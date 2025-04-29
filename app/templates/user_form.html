@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <title>User Information</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+
+    .form-input {
+      @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200;
+    }
+
+    .form-label {
+      @apply block text-sm font-medium text-gray-700 mb-2;
+    }
+
+    .form-select {
+      @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200;
+    }
+
+    .submit-btn {
+      @apply w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-lg hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-200;
+    }
+  </style>
+</head>
+
+<body class="flex items-center justify-center min-h-screen p-4">
+  {% include 'components/hamburger_menu.html' %}
+  <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md">
+    <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">הכרות ראשונית</h2>
+
+    <form id="userForm" class="space-y-6" action="/submit_user_info" method="POST">
+      <div>
+        <label class="form-label">שם פרטי</label>
+        <input type="text" id="name" name="name" required class="form-input" placeholder="הכנס שם פרטי"
+          value="{{ user_data.name if user_data else '' }}" />
+      </div>
+
+      <div>
+        <label class="form-label">שם משפחה</label>
+        <input type="text" id="last_name" name="last_name" required class="form-input" placeholder="הכנס שם משפחה"
+          value="{{ user_data.last_name if user_data else '' }}" />
+      </div>
+
+      <div>
+        <label class="form-label">אימייל</label>
+        <input type="email" id="email" name="email" required class="form-input" placeholder="הכנס אימייל"
+          value="{{ user_data.email if user_data else '' }}" />
+      </div>
+
+      <div>
+        <label class="form-label">טלפון</label>
+        <input type="tel" id="phone" name="phone" required class="form-input" placeholder="הכנס מספר טלפון"
+          pattern="[0-9]{10}" value="{{ user_data.phone if user_data else '' }}" />
+      </div>
+
+      <div>
+        <label class="form-label">שפת אם</label>
+        <select id="mother_language" name="mother_language" required class="form-select">
+          <option value="">בחר שפת אם</option>
+          <option value="עברית" {% if user_data and user_data.mother_language=='עברית' %}selected{% endif %}>עברית
+          </option>
+          <option value="אנגלית" {% if user_data and user_data.mother_language=='אנגלית' %}selected{% endif %}>אנגלית
+          </option>
+          <option value="ספרדית" {% if user_data and user_data.mother_language=='ספרדית' %}selected{% endif %}>ספרדית
+          </option>
+        </select>
+      </div>
+
+      <div>
+        <label class="form-label">מגדר</label>
+        <select id="gender" name="gender" required class="form-select">
+          <option value="">בחר מגדר</option>
+          <option value="זכר" {% if user_data and user_data.gender=='זכר' %}selected{% endif %}>זכר</option>
+          <option value="נקבה" {% if user_data and user_data.gender=='נקבה' %}selected{% endif %}>נקבה</option>
+          <option value="אחר" {% if user_data and user_data.gender=='אחר' %}selected{% endif %}>אחר</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="form-label">השכלה</label>
+        <select id="education" name="education" required class="form-select">
+          <option value="">בחר רמת השכלה</option>
+          <option value="תיכון" {% if user_data and user_data.education=='תיכון' %}selected{% endif %}>תיכון</option>
+          <option value="תואר ראשון" {% if user_data and user_data.education=='תואר ראשון' %}selected{% endif %}>תואר
+            ראשון</option>
+          <option value="תואר שני" {% if user_data and user_data.education=='תואר שני' %}selected{% endif %}>תואר שני
+          </option>
+          <option value="דוקטורט" {% if user_data and user_data.education=='דוקטורט' %}selected{% endif %}>דוקטורט
+          </option>
+          <option value="אחר" {% if user_data and user_data.education=='אחר' %}selected{% endif %}>אחר</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="form-label">תפקיד בעבודה</label>
+        <select id="job_title" name="job_title" required class="form-select" onchange="handleJobChange()">
+          <option value="">בחר תפקיד</option>
+          <option value="מנהל" {% if user_data and user_data.job_title=='מנהל' %}selected{% endif %}>מנהל</option>
+          <option value="מפתח תוכנה" {% if user_data and user_data.job_title=='מפתח תוכנה' %}selected{% endif %}>מפתח
+            תוכנה</option>
+          <option value="מעצב גרפי" {% if user_data and user_data.job_title=='מעצב גרפי' %}selected{% endif %}>מעצב גרפי
+          </option>
+          <option value="מומחה שיווק" {% if user_data and user_data.job_title=='מומחה שיווק' %}selected{% endif %}>מומחה
+            שיווק</option>
+          <option value="מנתח מידע" {% if user_data and user_data.job_title=='מנתח מידע' %}selected{% endif %}>מנתח מידע
+          </option>
+          <option value="יועץ עסקי" {% if user_data and user_data.job_title=='יועץ עסקי' %}selected{% endif %}>יועץ עסקי
+          </option>
+          <option value="מנהל מוצר" {% if user_data and user_data.job_title=='מנהל מוצר' %}selected{% endif %}>מנהל מוצר
+          </option>
+          <option value="מנהל משאבי אנוש" {% if user_data and user_data.job_title=='מנהל משאבי אנוש' %}selected{% endif
+            %}>מנהל משאבי אנוש</option>
+          <option value="מהנדס תעשייה וניהול" {% if user_data and user_data.job_title=='מהנדס תעשייה וניהול'
+            %}selected{% endif %}>מהנדס תעשייה וניהול</option>
+          <option value="אחר" {% if user_data and user_data.job_title=='אחר' %}selected{% endif %}>אחר</option>
+        </select>
+        <input type="text" id="custom_job_title" class="form-input mt-2 hidden" placeholder="הכנס תפקיד אחר..."
+          value="{{ user_data.custom_job_title if user_data and user_data.job_title == 'אחר' else '' }}" />
+      </div>
+
+      <div>
+        <label class="form-label">שנת לידה</label>
+        <input type="number" id="birth_year" name="birth_year" required min="1900" max="2024" class="form-input"
+          placeholder="הכנס שנת לידה" value="{{ user_data.birth_year if user_data else '' }}" />
+      </div>
+
+
+      <button type="submit"
+        class="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-lg hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-200">
+        המשך לאבחון
+
+      </button>
+    </form>
+  </div>
+
+  <script>
+    function handleJobChange() {
+      const jobSelect = document.getElementById('job_title');
+      const customJobInput = document.getElementById('custom_job_title');
+
+      if (jobSelect.value === 'אחר') {
+        customJobInput.classList.remove('hidden');
+        customJobInput.required = true;
+      } else {
+        customJobInput.classList.add('hidden');
+        customJobInput.required = false;
+      }
+    }
+
+    const form = document.getElementById('userForm');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const jobTitle = document.getElementById('job_title').value;
+      const customJob = document.getElementById('custom_job_title').value;
+      const finalJobTitle = (jobTitle === 'אחר') ? customJob : jobTitle;
+
+      const userData = {
+        name: document.getElementById('name').value,
+        last_name: document.getElementById('last_name').value,
+        email: document.getElementById('email').value,
+        phone: document.getElementById('phone').value,
+        mother_language: document.getElementById('mother_language').value,
+        gender: document.getElementById('gender').value,
+        education: document.getElementById('education').value,
+        job_title: finalJobTitle,
+        birth_year: document.getElementById('birth_year').value
+      };
+
+      try {
+        const response = await fetch('/submit_user_info', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(userData)
+        });
+
+        if (response.ok) {
+          window.location.href = '/chat';
+        } else {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Server response was not ok');
+        }
+      } catch (error) {
+        alert('שגיאה בשמירת נתוני משתמש: ' + error.message);
+        console.error('Error:', error);
+      }
+    });
+  </script>
+
+</body>
+
+</html>

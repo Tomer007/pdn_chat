@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>צ'אט אבחון PDN</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        .button-glow {
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.3);
+        }
+        .button-glow:hover {
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+        }
+        .message-animation {
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+    {% include 'components/hamburger_menu.html' %}
+    <main id="chatArea" class="glass-effect p-8 rounded-2xl shadow-2xl w-full max-w-2xl border border-white/20">
+        <h1 class="text-4xl font-bold text-center text-gray-800 mb-8 bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">אבחון אישי - PDN</h1>
+
+        <div id="messages" class="space-y-4 mb-6">
+            <div id="welcomeMessage" class="p-6 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl text-right border border-purple-100/50 message-animation">
+                שלום! 👋<br><br>
+                אני כאן כדי לעזור לך לגלות את קוד PDN שלך. 🎯<br><br>
+                הקוד PDN הוא כלי אבחון אישי שיעזור לך להבין טוב יותר את עצמך ואת הדרך שלך להצלחה. 💫<br><br>
+                האבחון מורכב מסדרת שאלות קצרות. אנא ענה בכנות על כל שאלה. ✨<br><br>
+                כשאתה מוכן, לחץ על הכפתור "מוכן להתחיל". 🚀
+            </div>
+            <div id="stageInstructions" class="hidden p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl text-right border border-blue-100/50 message-animation"></div>
+        </div>
+
+        <div id="questionArea" class="hidden space-y-6">
+            <h2 id="questionText" class="text-xl font-semibold text-gray-700 mb-4 bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent"></h2>
+            <div id="options" class="space-y-3"></div>
+        </div>
+
+        <div id="startButtonArea" class="text-center">
+            <button onclick="startChat()" 
+                class="w-full py-4 px-6 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-xl hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-purple-500/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] button-glow">
+                מוכן להתחיל
+            </button>
+        </div>
+    </main>
+
+    <script>
+        let currentQuestion = 4;
+        let currentStage = '';
+
+        function startChat() {
+            document.getElementById('startButtonArea').classList.add('hidden');
+            document.getElementById('welcomeMessage').classList.add('hidden');
+            document.getElementById('questionArea').classList.remove('hidden');
+            loadQuestion(currentQuestion);
+        }
+
+        function updateStageInstructions(stage) {
+            const instructionsDiv = document.getElementById('stageInstructions');
+            instructionsDiv.classList.remove('hidden');
+            
+            let instructions = '';
+            switch(stage) {
+                case 'PartA':
+                    instructions = `🎯 שלב ראשון: אבחון התנהגותי<br><br>
+                    בכל שאלה יוצגו בפנייך שתי אפשרויות. בחר באפשרות שמאפיינת אותך ביותר באופן כללי.<br><br>
+                    💭 בחר באופן ספונטני את התשובה הראשונה שאתה מתחבר אליה:`;
+                    break;
+                case 'PartB':
+                    instructions = `🌟 שלב שני: ניתוח התנהגותי מעמיק<br><br>
+                    בשלב זה נבחן את הדפוסים ההתנהגותיים שלך בסיטואציות שונות.<br><br>
+                    💡 אנא ענה בכנות על כל שאלה כדי לקבל תוצאות מדויקות.`;
+                    break;
+                case 'PartC':
+                    instructions = `💫 שלב שלישי: אבחון רגשי וחברתי<br><br>
+                    בשלב זה נבחן את הדפוסים הרגשיים והחברתיים שלך.<br><br>
+                    🤝 נגלה כיצד אתה מתמודד עם אתגרים חברתיים ורגשיים.`;
+                    break;
+                default:
+                    instructions = `✨ שלב זה בוחן את המאפיינים האישיים שלך.<br><br>
+                    💭 אנא ענה בכנות על כל שאלה.`;
+            }
+            
+            instructionsDiv.innerHTML = instructions;
+        }
+
+        async function loadQuestion(questionNumber) {
+            const response = await fetch(`/questionnaire/${questionNumber}`);
+            const data = await response.json();
+
+            if (data.message === "No more questions.") {
+                showFinalMessage();
+                return;
+            }
+
+            // Update stage instructions if stage changed
+            if (data.stage && data.stage !== currentStage) {
+                currentStage = data.stage;
+                updateStageInstructions(currentStage);
+            }
+
+            document.getElementById('questionText').innerText = data.question;
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = "";
+
+            data.options.forEach(option => {
+                const button = document.createElement("button");
+                button.innerText = option.text;
+                button.className = "w-full py-4 px-6 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-xl hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-purple-500/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] button-glow mb-3 message-animation";
+                button.onclick = () => submitAnswer(questionNumber, option.code, option.text);
+                optionsDiv.appendChild(button);
+            });
+        }
+
+        async function submitAnswer(questionNumber, optionCode, optionText) {
+            try {
+                await fetch('/answer', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        question_number: questionNumber,
+                        selected_option_code: optionCode,
+                        selected_option_text: optionText,
+                    })
+                });
+
+                currentQuestion++;
+                loadQuestion(currentQuestion);
+            } catch (error) {
+                alert('שגיאה בשליחת התשובה, אנא נסה שוב.');
+                console.error('Error:', error);
+            }
+        }
+
+        function showFinalMessage() {
+            const messages = document.getElementById('messages');
+            messages.innerHTML += `
+                <div class="p-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl text-center border border-green-100/50 text-gray-800 font-medium message-animation">
+                    סיימת את האבחון! תודה רבה 🙏
+                </div>
+            `;
+            document.getElementById('questionArea').classList.add('hidden');
+            
+            // Redirect to report page after a short delay
+            setTimeout(() => {
+                window.location.href = '/pdn_report';
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

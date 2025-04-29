@@ -1,0 +1,213 @@
+<nav class="hamburger-menu">
+    <button class="hamburger-icon absolute top-4 right-4" aria-label="תפריט" id="hamburgerButton">☰</button>
+    <div class="menu-content" id="menuContent">
+        <button class="menu-item" data-action="help">
+            <span class="menu-icon">❓</span>
+            <span class="menu-text">עזרה והנחיות</span>
+        </button>
+        <button class="menu-item" data-action="download">
+            <span class="menu-icon">💾</span>
+            <span class="menu-text">להוריד תמלול</span>
+        </button>
+        <button class="menu-item" data-action="about">
+            <span class="menu-icon">ℹ️</span>
+            <span class="menu-text">אודות</span>
+        </button>
+        <button class="menu-item" id="toggleModeBtn" data-action="theme">
+            <span class="menu-icon theme-icon">🌙</span>
+            <span class="menu-text theme-text">מצב לילה</span>
+        </button>
+        <button class="menu-item" data-action="logout">
+            <span class="menu-icon">🚪</span>
+            <span class="menu-text">התנתק מהמערכת</span>
+        </button>
+    </div>
+</nav>
+
+<style>
+    .hamburger-menu {
+        position: fixed;
+        top: 0;
+        right: 0;
+        z-index: 1000;
+    }
+
+    .hamburger-icon {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 48px;
+        height: 48px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        cursor: pointer;
+        padding: 8px;
+        margin: 16px;
+        z-index: 1001;
+        color: white;
+        font-size: 24px;
+        transition: all 0.3s ease;
+    }
+
+    .hamburger-icon:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: scale(1.05);
+    }
+
+    .menu-content {
+        position: fixed;
+        top: 0;
+        right: -300px;
+        width: 300px;
+        height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: -2px 0 20px rgba(0, 0, 0, 0.2);
+        transition: right 0.3s ease;
+        z-index: 999;
+        padding: 80px 20px 20px;
+        overflow-y: auto;
+    }
+
+    .menu-content.show {
+        right: 0;
+    }
+
+    .menu-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        color: white;
+        text-decoration: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        width: 100%;
+        cursor: pointer;
+        border-radius: 12px;
+        margin-bottom: 8px;
+    }
+
+    .menu-item:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateX(-4px);
+    }
+
+    .menu-icon {
+        margin-left: 12px;
+        font-size: 1.2em;
+    }
+
+    .menu-text {
+        flex: 1;
+        text-align: right;
+        font-size: 0.95em;
+        font-weight: 500;
+    }
+
+    body.menu-open {
+        overflow: hidden;
+    }
+
+    /* Dark mode styles */
+    [data-theme="dark"] .menu-content {
+        background: linear-gradient(135deg, #1a1a2e 0%, #30305a 100%);
+    }
+
+    [data-theme="dark"] .menu-item {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    [data-theme="dark"] .menu-item:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Scrollbar styling */
+    .menu-content::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .menu-content::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+    }
+
+    .menu-content::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+    }
+
+    .menu-content::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+</style>
+
+<script>
+    function initHamburgerMenu() {
+        const hamburgerButton = document.getElementById('hamburgerButton');
+        const menuContent = document.getElementById('menuContent');
+        const menuItems = document.querySelectorAll('.menu-item');
+
+        hamburgerButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menuContent.classList.toggle('show');
+            document.body.classList.toggle('menu-open');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!menuContent.contains(e.target) && !hamburgerButton.contains(e.target)) {
+                menuContent.classList.remove('show');
+                document.body.classList.remove('menu-open');
+            }
+        });
+
+        menuItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                const action = item.getAttribute('data-action');
+                
+                switch(action) {
+                    case 'help':
+                        alert('עזרה והנחיות יהיו זמינות בקרוב');
+                        break;
+                    case 'download':
+                        alert('הורדת תמלול תהיה זמינה בקרוב');
+                        break;
+                    case 'about':
+                        alert('מידע אודות המערכת יהיה זמין בקרוב');
+                        break;
+                    case 'theme':
+                        toggleTheme();
+                        break;
+                    case 'logout':
+                        window.location.href = '/';
+                        break;
+                }
+
+                menuContent.classList.remove('show');
+                document.body.classList.remove('menu-open');
+            });
+        });
+
+        menuContent.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    }
+
+    function toggleTheme() {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+        
+        const themeIcon = document.querySelector('.theme-icon');
+        const themeText = document.querySelector('.theme-text');
+        
+        themeIcon.textContent = isDark ? '🌙' : '☀️';
+        themeText.textContent = isDark ? 'מצב לילה' : 'מצב יום';
+    }
+
+    // Initialize when DOM is loaded
+    document.addEventListener('DOMContentLoaded', initHamburgerMenu);
+</script> 
