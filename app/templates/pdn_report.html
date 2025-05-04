@@ -1,211 +1,208 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <title>דוח PDN אישי</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <style>
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
-        @media print {
-            body {
-                background: none;
-            }
-            .no-print {
-                display: none;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <title>דוח אישי - PDN</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: radial-gradient(circle at center, #e0e7ff 0%, #c7d2fe 40%, #a5b4fc 100%);
+      font-family: 'Rubik', sans-serif;
+    }
+    .glass-box {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 2rem;
+      box-shadow: 0 15px 45px rgba(0, 0, 0, 0.1);
+    }
+    @media print {
+      body { background: none; }
+      .no-print { display: none !important; }
+    }
+  </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
-    {% include 'components/hamburger_menu.html' %}
-    <main class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-3xl">
-        <div class="space-y-8">
-            <!-- Header Section -->
-            <div class="text-center">
-                <h1 class="text-3xl font-bold text-gray-800" id="titleName">דוח אישי – PDN</h1>
-            </div>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
 
-            <!-- PDN Code Section -->
-            <div class="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-6 border border-purple-100">
-                <h2 class="text-2xl font-bold text-purple-800 mb-2" id="pdnCode">צופן אישי: P10</h2>
-                <p class="text-lg text-gray-700" id="pdnDescription">נתינה והנאה עם אנרגיה דינמית</p>
-                
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                    <div class="flex items-center space-x-2 space-x-reverse">
-                        <span class="text-2xl">💠</span>
-                        <div>
-                            <p class="font-semibold">יסוד</p>
-                            <p id="foundation">P (נתינה והנאה)</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-2 space-x-reverse">
-                        <span class="text-2xl">⚡</span>
-                        <div>
-                            <p class="font-semibold">אנרגיה</p>
-                            <p id="energy">D (דינמית)</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-2 space-x-reverse">
-                        <span class="text-2xl">🧬</span>
-                        <div>
-                            <p class="font-semibold">טיפוס</p>
-                            <p id="type">משפיע רגשי עם עשייה חזקה</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+  <!-- Print Mode Toggle & Spinner -->
+  <div class="no-print w-full max-w-4xl mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+    <label class="flex items-center space-x-2 space-x-reverse">
+      <input type="checkbox" id="togglePrintMode" class="h-4 w-4 text-purple-600 border-gray-300 rounded">
+      <span class="text-sm text-gray-700">מצב הדפסה</span>
+    </label>
+    <div id="downloadSpinner" class="hidden animate-spin h-5 w-5 border-2 border-t-transparent border-purple-600 rounded-full"></div>
+  </div>
 
-            <!-- About You Section -->
-            <div class="bg-white rounded-lg p-6 border border-gray-200">
-                <h2 class="text-xl font-bold text-gray-800 mb-4">🧬 עליך בקצרה</h2>
-                <div class="space-y-4 text-gray-700" id="aboutYou">
-                    <!-- Will be populated by JavaScript -->
-                </div>
-            </div>
+  <main class="glass-box w-full max-w-4xl p-8 space-y-10 text-right">
+    <div class="text-center space-y-2">
+        <h1 id="titleName" class="text-4xl font-extrabold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+          ✨ דוח אישי – PDN ✨
+        </h1>
+        <p class="text-2xl font-extrabold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+          ברוך הבא לעולם שלך. הצופן שלך מספר סיפור.
+        </p>
+      </div>
 
-            <!-- Strengths Section -->
-            <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-6 border border-green-100">
-                <h2 class="text-xl font-bold text-green-800 mb-4">🎯 הכוחות שלך</h2>
-                <ul class="list-disc list-inside space-y-2 text-gray-700" id="strengths">
-                    <!-- Will be populated by JavaScript -->
-                </ul>
-            </div>
+    <!-- PDN Summary -->
+    <section class="bg-white/70 backdrop-blur-sm border border-purple-200 p-6 rounded-2xl space-y-4 shadow">
+      <h2 class="text-2xl font-bold text-purple-800" id="pdnCode">צופן אישי: ...</h2>
+      <p class="text-lg text-gray-700" id="pdnDescription">...</p>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div><p class="font-semibold text-gray-700">💠 יסוד</p><p id="foundation" class="text-gray-600">...</p></div>
+        <div><p class="font-semibold text-gray-700">⚡ אנרגיה</p><p id="energy" class="text-gray-600">...</p></div>
+        <div><p class="font-semibold text-gray-700">🧬 טיפוס</p><p id="type" class="text-gray-600">...</p></div>
+      </div>
+    </section>
 
-            <!-- Challenges Section -->
-            <div class="bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg p-6 border border-orange-100">
-                <h2 class="text-xl font-bold text-orange-800 mb-4">⚠️ האתגרים שלך</h2>
-                <ul class="list-disc list-inside space-y-2 text-gray-700" id="challenges">
-                    <!-- Will be populated by JavaScript -->
-                </ul>
-            </div>
+    <!-- Collapsible Sections -->
+    <section class="space-y-8">
+      <div class="bg-blue-50 border border-blue-100 rounded-xl p-6 group">
+        <button onclick="toggleSection('aboutYou')" class="w-full text-right text-blue-700 font-bold text-lg mb-2 flex justify-between items-center">
+          🧬 עליך בקצרה <span class="text-sm text-blue-400">לחץ לפתיחה / סגירה</span>
+        </button>
+        <div id="aboutYou" class="text-gray-700 space-y-2"></div>
+      </div>
 
-            <!-- Growth Section -->
-            <div class="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg p-6 border border-blue-100">
-                <h2 class="text-xl font-bold text-blue-800 mb-4">🌱 מה יעזור לך לפרוח</h2>
-                <ul class="list-disc list-inside space-y-2 text-gray-700" id="growth">
-                    <!-- Will be populated by JavaScript -->
-                </ul>
-            </div>
+      <div class="bg-green-50 border border-green-100 rounded-xl p-6 group">
+        <button onclick="toggleSection('strengths')" class="w-full text-right text-green-700 font-bold text-lg mb-2 flex justify-between items-center">
+          🎯 הכוחות שלך <span class="text-sm text-green-400">לחץ לפתיחה / סגירה</span>
+        </button>
+        <ul id="strengths" class="list-disc list-inside text-gray-700 space-y-1"></ul>
+      </div>
 
-            <!-- Suitable Fields Section -->
-            <div class="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-6 border border-purple-100">
-                <h2 class="text-xl font-bold text-purple-800 mb-4">💡 תחומים מתאימים עבורך</h2>
-                <ul class="list-disc list-inside space-y-2 text-gray-700" id="suitableFields">
-                    <!-- Will be populated by JavaScript -->
-                </ul>
-            </div>
+      <div class="bg-orange-50 border border-orange-100 rounded-xl p-6 group">
+        <button onclick="toggleSection('challenges')" class="w-full text-right text-orange-700 font-bold text-lg mb-2 flex justify-between items-center">
+          ⚠️ האתגרים שלך <span class="text-sm text-orange-400">לחץ לפתיחה / סגירה</span>
+        </button>
+        <ul id="challenges" class="list-disc list-inside text-gray-700 space-y-1"></ul>
+      </div>
 
-            <!-- Summary Section -->
-            <div class="bg-gradient-to-r from-gray-50 to-slate-50 rounded-lg p-6 border border-gray-200">
-                <h2 class="text-xl font-bold text-gray-800 mb-4">🧭 סיכום</h2>
-                <div class="space-y-4 text-gray-700" id="summary">
-                    <!-- Will be populated by JavaScript -->
-                </div>
-                <div class="mt-4 p-4 bg-purple-50 rounded-lg border border-purple-100 text-center italic text-gray-700" id="quote">
-                    <!-- Quote will be populated by JavaScript -->
-                </div>
-            </div>
+      <div class="bg-cyan-50 border border-cyan-100 rounded-xl p-6 group">
+        <button onclick="toggleSection('growth')" class="w-full text-right text-cyan-700 font-bold text-lg mb-2 flex justify-between items-center">
+          🌱 מה יעזור לך לפרוח <span class="text-sm text-cyan-400">לחץ לפתיחה / סגירה</span>
+        </button>
+        <ul id="growth" class="list-disc list-inside text-gray-700 space-y-1"></ul>
+      </div>
 
-            <!-- Action Buttons -->
-            <div class="flex space-x-4 space-x-reverse no-print">
-                <button onclick="window.print()" 
-                    class="flex-1 py-3 px-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-lg hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-200">
-                    🖨️ הדפס דוח
-                </button>
-                <button onclick="downloadPDF()" 
-                    class="flex-1 py-3 px-4 bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">
-                    📥 הורד כקובץ
-                </button>
-            </div>
+      <div class="bg-purple-50 border border-purple-100 rounded-xl p-6 group">
+        <button onclick="toggleSection('suitableFields')" class="w-full text-right text-purple-700 font-bold text-lg mb-2 flex justify-between items-center">
+          💡 תחומים מתאימים עבורך <span class="text-sm text-purple-400">לחץ לפתיחה / סגירה</span>
+        </button>
+        <ul id="suitableFields" class="list-disc list-inside text-gray-700 space-y-1"></ul>
+      </div>
+
+      <div class="bg-gray-50 border border-gray-200 rounded-xl p-6 group">
+        <button onclick="toggleSection('summaryWrapper')" class="w-full text-right text-gray-800 font-bold text-lg mb-2 flex justify-between items-center">
+          🧭 סיכום <span class="text-sm text-gray-400">לחץ לפתיחה / סגירה</span>
+        </button>
+        <div id="summaryWrapper">
+          <div id="summary" class="text-gray-700 space-y-2"></div>
+          <blockquote id="quote" class="bg-purple-100 border border-purple-300 p-4 text-center italic rounded-xl text-gray-800 mt-4"></blockquote>
         </div>
-    </main>
+      </div>
+    </section>
 
-    <script>
-        async function loadReportData() {
-            try {
-                const response = await fetch('/get_report_data');
-                const data = await response.json();
-                
-                // Update title with name
-                document.getElementById('titleName').textContent = `דוח אישי – PDN של ${data.metadata.name}`;
-                
-                // Update PDN code section
-                document.getElementById('pdnCode').textContent = `צופן אישי: ${data.results.pdn_code}`;
-                
-                // Populate sections
-                populateAboutYou(data.results.about_you);
-                populateList('strengths', data.results.strengths);
-                populateList('challenges', data.results.challenges);
-                populateList('growth', data.results.growth);
-                populateList('suitableFields', data.results.suitable_fields);
-                populateSummary(data.results.summary);
-                
-            } catch (error) {
-                console.error('Error loading report data:', error);
-            }
-        }
+    <!-- Action Buttons -->
+    <div class="flex flex-col sm:flex-row gap-4 no-print">
+      <button onclick="window.print()" class="w-full sm:w-1/2 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-xl shadow hover:from-purple-700 hover:to-indigo-700 transition transform hover:scale-105 active:scale-95">
+        🖨️ הדפס דוח
+      </button>
+      <button onclick="downloadPDF()" class="w-full sm:w-1/2 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-semibold rounded-xl shadow hover:from-blue-700 hover:to-cyan-700 transition transform hover:scale-105 active:scale-95">
+        📥 הורד כקובץ
+      </button>
+    </div>
+  </main>
 
-        function populateList(elementId, items) {
-            const element = document.getElementById(elementId);
-            element.innerHTML = items.map(item => `<li>${item}</li>`).join('');
-        }
+  <!-- Footer Link -->
+    <div class="text-center pt-4">
+      <p class="text-sm sm:text-base font-medium bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-500 bg-clip-text text-transparent animate-pulse">
+        ✨ <a href="https://www.pdn.co.il" target="_blank" class="hover:underline">PDN – הנווט החכם להתפתחות אישית</a> ✨
+      </p>
+    </div>
 
-        function populateAboutYou(paragraphs) {
-            const element = document.getElementById('aboutYou');
-            element.innerHTML = paragraphs.map(p => `<p>${p}</p>`).join('');
-        }
+  <!-- JS -->
+  <script>
+    function toggleSection(id) {
+      const el = document.getElementById(id);
+      if (el.classList.contains('hidden')) {
+        el.classList.remove('hidden');
+      } else {
+        el.classList.add('hidden');
+      }
+    }
 
-        function populateSummary(summary) {
-            const element = document.getElementById('summary');
-            element.innerHTML = summary.points.map(p => `<p>${p}</p>`).join('');
-            document.getElementById('quote').textContent = `"${summary.quote}"`;
-        }
+    document.getElementById('togglePrintMode').addEventListener('change', function () {
+      document.body.classList.toggle('print-mode', this.checked);
+    });
 
-        async function downloadPDF() {
-            // Get the main content element
-            const element = document.querySelector('main');
-            const name = document.getElementById('titleName').textContent.split('של ')[1] || 'report';
-            
-            // Configure PDF options
-            const opt = {
-                margin: [10, 10],
-                filename: `PDN_Report_${name}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { 
-                    scale: 2,
-                    useCORS: true,
-                    logging: false
-                },
-                jsPDF: { 
-                    unit: 'mm', 
-                    format: 'a4', 
-                    orientation: 'portrait'
-                }
-            };
+    async function downloadPDF() {
+      const element = document.querySelector('main');
+      const name = document.getElementById('titleName')?.textContent?.split('של ')[1] || 'report';
+      const filename = `PDN_Report_${name.trim().replace(/\s+/g, '_')}.pdf`;
 
-            // Hide the buttons before generating PDF
-            const buttons = document.querySelector('.no-print');
-            buttons.style.display = 'none';
+      const spinner = document.getElementById('downloadSpinner');
+      const buttons = document.querySelector('.no-print');
+      spinner.classList.remove('hidden');
+      buttons.style.opacity = 0.4;
 
-            try {
-                // Generate PDF
-                await html2pdf().set(opt).from(element).save();
-            } catch (error) {
-                console.error('Error generating PDF:', error);
-                alert('שגיאה בהורדת הקובץ, אנא נסה שוב');
-            } finally {
-                // Show the buttons again
-                buttons.style.display = 'flex';
-            }
-        }
+      const opt = {
+        margin: 10,
+        filename,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
 
-        // Load data when page loads
-        window.addEventListener('load', loadReportData);
-    </script>
+      try {
+        await html2pdf().set(opt).from(element).save();
+      } catch (e) {
+        alert('⚠️ שגיאה בהורדת הדוח. נסה שוב.');
+      } finally {
+        spinner.classList.add('hidden');
+        buttons.style.opacity = 1;
+      }
+    }
+
+    async function loadReportData() {
+      try {
+        const response = await fetch('/get_report_data');
+        const data = await response.json();
+        document.getElementById('titleName').textContent = `דוח אישי – PDN של ${data.metadata.name}`;
+        document.getElementById('pdnCode').textContent = `צופן אישי: ${data.results.pdn_code}`;
+        document.getElementById('pdnDescription').textContent = data.results.description || '';
+        document.getElementById('foundation').textContent = data.results.foundation || '';
+        document.getElementById('energy').textContent = data.results.energy || '';
+        document.getElementById('type').textContent = data.results.type || '';
+        populateList('strengths', data.results.strengths);
+        populateList('challenges', data.results.challenges);
+        populateList('growth', data.results.growth);
+        populateList('suitableFields', data.results.suitable_fields);
+        populateAboutYou(data.results.about_you);
+        populateSummary(data.results.summary);
+      } catch (error) {
+        console.error('Error loading report:', error);
+      }
+    }
+
+    function populateList(id, items) {
+      const el = document.getElementById(id);
+      el.innerHTML = items.map(i => `<li>${i}</li>`).join('');
+    }
+
+    function populateAboutYou(paragraphs) {
+      const el = document.getElementById('aboutYou');
+      el.innerHTML = paragraphs.map(p => `<p>${p}</p>`).join('');
+    }
+
+    function populateSummary(summary) {
+      const el = document.getElementById('summary');
+      el.innerHTML = summary.points.map(p => `<p>${p}</p>`).join('');
+      document.getElementById('quote').textContent = `"${summary.quote}"`;
+    }
+
+    window.addEventListener('load', loadReportData);
+  </script>
 </body>
-</html> 
+</html>

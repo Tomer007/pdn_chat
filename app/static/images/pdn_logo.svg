@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="600" height="120" viewBox="0 0 600 120" xmlns="http://www.w3.org/2000/svg">
+    <!-- Gold color for text -->
+    <style>
+        .gold-text { fill: #C5A572; }
+        .orbit { fill: none; stroke: #2B3F6B; stroke-width: 1.5; }
+        .center-atom { fill: #2B3F6B; }
+    </style>
+    
+    <!-- Hebrew Text Right Side -->
+    <text x="200" y="45" class="gold-text" font-size="40" text-anchor="end" font-family="Arial">מרכז פדן</text>
+    <text x="200" y="80" class="gold-text" font-size="24" text-anchor="end" font-family="Arial">נווט דרך להצלחה</text>
+    
+    <!-- Atom Symbol in Center -->
+    <g transform="translate(300,60)">
+        <circle class="center-atom" r="8"/>
+        <ellipse class="orbit" rx="30" ry="15"/>
+        <ellipse class="orbit" rx="30" ry="15" transform="rotate(60)"/>
+        <ellipse class="orbit" rx="30" ry="15" transform="rotate(-60)"/>
+    </g>
+    
+    <!-- English Text Left Side -->
+    <text x="400" y="45" class="gold-text" font-size="40" text-anchor="start" font-family="Arial">PDN Center</text>
+    <text x="400" y="80" class="gold-text" font-size="24" text-anchor="start" font-family="Arial">Steer for success</text>
+</svg> 

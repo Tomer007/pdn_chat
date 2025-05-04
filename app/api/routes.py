@@ -4,8 +4,8 @@ from collections import Counter
 from pathlib import Path
 from typing import Dict
 
-from fastapi import APIRouter, Request, Response
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import APIRouter, Request, Response, HTTPException
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, EmailStr
 from app.utils.answer_storage import load_answers, clear_answers, save_user_metadata
@@ -13,10 +13,11 @@ from app.utils.answer_storage import load_answers, clear_answers, save_user_meta
 
 from app.models.user import UserInfoRequest
 from app.utils.user_manager import load_all_users_from_db, save_user_to_db
-from app.utils.questionnaire import get_question, submit_answer  
-
+from app.utils.questionnaire import get_question, submit_answer
+from app.utils.pdn_calculator import calculate_pdn_code
 from app.utils.json_saver import save_user_results
 from app.utils.answer_storage import save_answer
+from app.utils.report_generator import load_pdn_report
 
 
 
@@ -63,9 +64,11 @@ async def chat(request: Request):
 
 @router.get("/user_info", response_class=HTMLResponse)
 async def user_info_page(request: Request):
+    email = request.session.get("email", "anonymous")
     return templates.TemplateResponse("user_form.html", {
         "request": request,
-        "include_menu": True
+        "include_menu": True,
+        "email": email
     })
 
 @router.post("/user_info")
@@ -85,7 +88,7 @@ async def login_page(request: Request):
 
 @router.post("/login")
 async def login_user(request: Request, login_data: LoginRequest):
-    if login_data.password == "2":
+    if login_data.password == "":
         request.session["email"] = login_data.email
         return {"message": "Login successful"}
     else:
@@ -139,8 +142,8 @@ async def submit_answer_route(request: Request):
     return result
 
 
-@router.get("/result")
-async def get_result_route(request: Request):
+# @router.get("/result")
+# async def get_result_route(request: Request):
     email = request.session.get("email", "anonymous")
     questions = request.app.state.questions
     user_answers = load_answers(email)
@@ -168,8 +171,7 @@ async def get_result_route(request: Request):
     return result
 
 
-@router.post("/save_result")
-async def save_result(name: str, email: EmailStr):
+
 
 
     trait_scores = {"A": 0, "T": 0, "P": 0, "E": 0}
@@ -249,23 +251,14 @@ async def admin_dashboard(request: Request):
 
 @router.post("/submit_user_info")
 async def submit_user_info(request: Request):
-    # Get JSON data from request body
-    user_data = await request.json()
-    
-    metadata = {
-        'name': user_data['name'],
-        'last_name': user_data['last_name'],
-        'mother_language': user_data['mother_language'],
-        'gender': user_data['gender'],
-        'job_title': user_data['job_title'],
-        'birth_year': user_data['birth_year']
-    }
-    
-    # Save the metadata using the email from the session
-    email = request.session.get("email", "anonymous")
-    save_user_metadata(metadata, email)
-    
-    return JSONResponse(content={"message": "User information saved successfully"})
+    try:
+        user_data = await request.json()
+        request.session["user_data"] = user_data
+        return {"status": "success"}
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON data")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/pdn_report", response_class=HTMLResponse)
 async def pdn_report(request: Request):
@@ -275,63 +268,43 @@ async def pdn_report(request: Request):
     })
 
 @router.get("/get_report_data")
-async def get_report_data(request: Request):
+async def get_report_data(request: Request): 
+    print("get_report_data")
     email = request.session.get("email", "anonymous")
-    
+    # pdn_code = request.session.get("pdn_code", "ERROR")
+    # if pdn_code == "ERROR":
+    pdn_code = calculate_pdn_code(user_answers)
+
     # Load user metadata and answers
     user_data = load_answers(email)
     metadata = user_data.get('metadata', {})
-    answers = user_data.get('answers', {})
     
-    # Calculate PDN results (this is a placeholder - implement actual logic)
-    results = {
-        "pdn_code": "P10",
-        "foundation": "P (נתינה והנאה)",
-        "energy": "D (דינמית)",
-        "type": "משפיע רגשי עם עשייה חזקה",
-        "about_you": [
-            "אתה אדם שמונע מתוך חיבור עמוק לרגשות ולמשמעות – אך בשונה מהטיפוס הזורם, אתה לא מסתפק בתחושות: אתה פועל, מזיז, יוזם. אתה מאמין בנתינה, אבל כזו שמשאירה חותם.",
-            "האנרגיה שלך גבוהה ודינמית – אתה מחפש מרחבים לפעול, להוביל אנשים, ולהכניס ערך אמיתי לחיים של אחרים. אתה מוביל מתוך הקשבה, משפיע מתוך הלב, אך רוצה תוצאות."
-        ],
-        "strengths": [
-            "אכפתיות אמיתית – עם יכולת ביצוע גבוהה",
-            "הובלה רגשית – שמחברת אנשים למשמעות",
-            "דחף פנימי לעזור, לקדם, להזיז",
-            "כושר ריכוז גבוה כשיש ערך אישי",
-            "יכולת לבטא רגש בצורה ישירה ומובנת"
-        ],
-        "challenges": [
-            "מתעייף כשאין הערכה למה שאתה נותן",
-            "נוטה לקחת אחריות גם כשזה לא שלך",
-            "קושי לבקש עזרה – אתה רגיל להיות בצד הנותן",
-            "רגיש מאוד למערכות יחסים \"חסרות לב\""
-        ],
-        "growth": [
-            "מרחבים עם חיבור חברתי אמיתי (לא פורמלי)",
-            "תפקידים שמאפשרים הובלה רגשית ולא רק משימתית",
-            "שיח רגשי פתוח – בבית, בזוגיות, בעבודה",
-            "שילוב בין עשייה לעומק – לא רק להפעיל, אלא גם להקשיב",
-            "זמן שקט למילוי עצמי – להיטען רגשית מחדש"
-        ],
-        "suitable_fields": [
-            "ניהול קהילתי, הדרכה חינוכית",
-            "יזמות חברתית עם ערך מוסף",
-            "תפקידי גישור, ליווי רגשי, תמיכה בצוותים",
-            "הובלת קבוצות עם אווירה אישית וחמה"
-        ],
-        "summary": {
-            "points": [
-                "אתה לא רק אדם רגשי – אתה אדם שפועל מהרגש.",
-                "אתה לא רק נותן – אתה נותן כדי ליצור שינוי.",
-                "בעולם שצריך רגישות עם אומץ, אתה הנוכחות שמביאה את שניהם יחד."
-            ],
-            "quote": "אני נותן מעצמי כי אכפת לי, אבל גם לי מותר לעצור ולמלא את הלב מחדש."
-        }
-    }
+    # Load the report data for the PDN code
+    report_data = load_pdn_report(pdn_code)
     
+    # Return the complete report data
     return {
         "metadata": metadata,
-        "results": results
+        "results": {
+            "pdn_code": pdn_code,
+            **report_data  # Include all the report sections
+        }
     }
 
+@router.post("/complete_questionnaire")
+async def complete_questionnaire(request: Request):
+    print("complete_questionnaire")
+    email = request.session.get("email", "anonymous")
+    user_answers = load_answers(email)
+    
+    if not user_answers:
+        return {"error": "No answers found for this user"}
+    
+    # Calculate PDN code using the calculator
+    pdn_code = calculate_pdn_code(user_answers)
+    
+    # Store the PDN code in the session
+    request.session["pdn_code"] = pdn_code
+    print("pdn_code", pdn_code)
+    return {"message": "Questionnaire completed successfully", "pdn_code": pdn_code}
 

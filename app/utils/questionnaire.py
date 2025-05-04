@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 from fastapi import FastAPI
+import random
 
 app = FastAPI()
 
@@ -68,7 +69,6 @@ def submit_answer(question_number: int, selected_option_code: str, selected_opti
         "code": selected_option_code,
         "text": selected_option_text
     }
-    print(user_answers)
     next_question_number = question_number + 1
     next_question = questions.get(str(next_question_number))
 
@@ -84,9 +84,3 @@ def submit_answer(question_number: int, selected_option_code: str, selected_opti
         "options": next_question["options"]
     }
 
-def get_pdn_code(email: str = None) -> str:
-    """
-    For now returns a hardcoded E5 diagnosis.
-    In the future, this will analyze the user's answers and return the appropriate diagnosis.
-    """
-    return "E5" 
