@@ -28,8 +28,11 @@
       <h1 class="text-4xl font-extrabold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">PDN Center</h1>
       <p class="text-lg font-medium mt-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
         המסע לגילוי הצופן שלך ממשיך כאן</p>
-    </div>
-
+        {% if personal_instructions %}
+        <div class="p-6 rounded-xl border border-indigo-100 bg-gradient-to-r from-purple-100 to-indigo-100 text-gray-800 shadow-sm fade-in text-right" dir="rtl">
+          {{ personal_instructions|replace('\n', '<br>')|safe }}
+        </div>
+      {% endif %}
     <form id="userForm" class="space-y-6">
       <input type="hidden" id="email" value="{{ email }}">
       <!-- Input Group -->
@@ -135,8 +138,9 @@
       e.preventDefault();
       
       const formData = {
-        name: document.getElementById('name').value,
+        first_name: document.getElementById('name').value,
         last_name: document.getElementById('last_name').value,
+        email: document.getElementById('email').value,
         phone: document.getElementById('phone').value,
         birth_year: document.getElementById('birth_year').value,
         mother_language: document.getElementById('mother_language').value,
@@ -148,7 +152,7 @@
       };
 
       try {
-        const response = await fetch('/submit_user_info', {
+        const response = await fetch('/user_info', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

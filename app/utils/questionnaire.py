@@ -43,16 +43,19 @@ def get_question(question_number: int, questions: dict):
     
     if not question:
         return {"message": "No more questions."}
+    
+    print(questions["phases"][phase].get("instructions", "")) 
 
     return {
         "question_number": question_number,
         "question": question["text"],
         "options": question["options"],
         "stage": phase,
+        "type": question.get("type"), 
         "instructions": questions["phases"][phase].get("instructions", "")
     }
 
-def submit_answer(question_number: int, selected_option_code: str, selected_option_text: str, email: str = None, questions: dict = None):
+def submit_answer(question_number: int, selected_option_code: str, selected_option_text: str, ranking: dict = None, email: str = None, questions: dict = None):
     """
     Submit an answer to a specific question.
     Stores the answer and returns the next question if available.
@@ -67,8 +70,10 @@ def submit_answer(question_number: int, selected_option_code: str, selected_opti
     # Store the answer with all details
     user_answers[email][question_number] = {
         "code": selected_option_code,
-        "text": selected_option_text
+        "text": selected_option_text,
+        "ranking": ranking
     }
+    
     next_question_number = question_number + 1
     next_question = questions.get(str(next_question_number))
 
@@ -81,6 +86,8 @@ def submit_answer(question_number: int, selected_option_code: str, selected_opti
     return {
         "question_number": next_question_number,
         "question": next_question["text"],
-        "options": next_question["options"]
+        "options": next_question["options"],
+        "type": next_question.get("type"),
+        "instructions": next_question.get("instructions")
     }
 

@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -7,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
   <style>
     body {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -41,7 +41,7 @@
 
     <div id="messages" class="space-y-4 fade-in">
         <div id="welcomeMessage"
-             class="p-6 rounded-xl border border-purple-100 bg-gradient-to-r from-purple-100 to-indigo-100 text-gray-800 shadow-sm fade-in">
+             class="p-6 rounded-xl border border-indigo-100 bg-gradient-to-r from-purple-100 to-indigo-100 text-gray-800 shadow-sm fade-in text-right" dir="rtl">
           שלום! 👋<br><br>
           אני כאן כדי לעזור לך לגלות את קוד PDN שלך. 🎯<br><br>
           האבחון כולל סדרת שאלות קצרות. ענה בכנות ובלב פתוח. ✨<br><br>
@@ -66,7 +66,7 @@
   </main>
 
   <script>
-    let currentQuestion = 4;
+    let currentQuestion = 1;
     let currentStage = '';
 
     function startChat() {
@@ -76,46 +76,64 @@
       loadQuestion(currentQuestion);
     }
 
-    function updateStageInstructions(stage) {
-      const instructionsDiv = document.getElementById('stageInstructions');
-      instructionsDiv.classList.remove('hidden');
-
-      let instructions = '';
-      switch(stage) {
-        case 'PartA':
-          instructions = `🎯 שלב ראשון: אבחון התנהגותי<br><br>בחר באפשרות שמאפיינת אותך ביותר באופן כללי.`;
-          break;
-        case 'PartB':
-          instructions = `🌟 שלב שני: ניתוח התנהגותי מעמיק<br><br>ענה בכנות על כל שאלה כדי לקבל תוצאות מדויקות.`;
-          break;
-        case 'PartC':
-          instructions = `💫 שלב שלישי: אבחון רגשי וחברתי<br><br>נגלה כיצד אתה מתמודד עם אתגרים חברתיים ורגשיים.`;
-          break;
-        default:
-          instructions = `✨ שלב זה בוחן את המאפיינים האישיים שלך.`;
-      }
-
-      instructionsDiv.innerHTML = instructions;
-    }
-
+    
     async function loadQuestion(questionNumber) {
       const response = await fetch(`/questionnaire/${questionNumber}`);
       const data = await response.json();
-
+      console.log(data);
       if (data.message === "No more questions.") {
         completeQuestionnaire();
         return;
       }
-
-      if (data.stage && data.stage !== currentStage) {
-        currentStage = data.stage;
-        updateStageInstructions(currentStage);
-      }
-
+      
       document.getElementById('questionText').innerText = data.question;
       const optionsDiv = document.getElementById('options');
       optionsDiv.innerHTML = "";
 
+      // Handle ranking question with drag-and-drop
+      if (data.type === "ranking") {
+        
+        // Create the draggable list
+        const list = document.createElement('ul');
+        list.id = 'rankingList';
+        list.className = 'space-y-2';
+        data.options.forEach((option, idx) => {
+          const item = document.createElement('li');
+          item.className = 'cursor-move bg-white border border-indigo-200 rounded-lg px-4 py-3 shadow flex items-center text-gray-800 font-medium';
+          item.setAttribute('data-code', option.code);
+          item.innerText = option.text;
+          list.appendChild(item);
+        });
+        optionsDiv.appendChild(list);
+        // Initialize SortableJS
+        Sortable.create(list, { animation: 150 });
+        // Submit button
+        const submitBtn = document.createElement('button');
+        submitBtn.type = 'button';
+        submitBtn.innerText = 'שלח דירוג';
+        submitBtn.className = 'w-full py-3 px-6 mt-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-xl hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-purple-500/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg';
+        submitBtn.onclick = async (e) => {
+          e.preventDefault();
+          // Read the order
+          const items = list.querySelectorAll('li');
+          const ranking = {};
+          items.forEach((item, idx) => {
+            ranking[item.getAttribute('data-code')] = idx + 1; // 1 = best, 3 = lowest
+          });
+          await submitAnswer(questionNumber, null, null, ranking);
+        };
+        optionsDiv.appendChild(submitBtn);
+        const instructionsDiv = document.getElementById('stageInstructions');
+      if (data.instructions) {
+        instructionsDiv.classList.remove('hidden');
+        instructionsDiv.innerHTML = data.instructions.replace(/\n/g, '<br>');
+      } else {
+        instructionsDiv.classList.add('hidden');
+      }
+        return;
+      }
+
+      // Default: regular options as buttons
       data.options.forEach(option => {
         const button = document.createElement("button");
         button.innerText = option.text;
@@ -123,20 +141,30 @@
         button.onclick = () => submitAnswer(questionNumber, option.code, option.text);
         optionsDiv.appendChild(button);
       });
+
+      // Show instructions from backend (question or phase)
+      const instructionsDiv = document.getElementById('stageInstructions');
+      if (data.instructions) {
+        instructionsDiv.classList.remove('hidden');
+        instructionsDiv.innerHTML = data.instructions.replace(/\n/g, '<br>');
+      } else {
+        instructionsDiv.classList.add('hidden');
+      }
     }
 
-    async function submitAnswer(questionNumber, optionCode, optionText) {
+    async function submitAnswer(questionNumber, optionCode, optionText, ranking = null) {
       try {
+        const body = {
+          question_number: questionNumber,
+          selected_option_code: optionCode,
+          selected_option_text: optionText
+        };
+        if (ranking) body.ranking = ranking;
         await fetch('/answer', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({
-            question_number: questionNumber,
-            selected_option_code: optionCode,
-            selected_option_text: optionText
-          })
+          body: JSON.stringify(body)
         });
-
         currentQuestion++;
         loadQuestion(currentQuestion);
       } catch (error) {

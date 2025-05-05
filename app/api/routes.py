@@ -65,19 +65,28 @@ async def chat(request: Request):
 @router.get("/user_info", response_class=HTMLResponse)
 async def user_info_page(request: Request):
     email = request.session.get("email", "anonymous")
+    # Load questions.json to get the instructions
+    with open("app/data/questions.json", "r", encoding="utf-8") as f:
+        questions = json.load(f)
+    personal_instructions = questions["phases"]["PersonalDetails"]["instructions"]
     return templates.TemplateResponse("user_form.html", {
         "request": request,
         "include_menu": True,
-        "email": email
+        "email": email,
+        "personal_instructions": personal_instructions
     })
 
 @router.post("/user_info")
-async def save_user_info_api(user_info: UserInfoRequest):
-    # Save to JSON instead of SQLite
-    user_data = user_info.dict()
-    email = user_info.email or "anonymous"
-    save_user_metadata(user_data, email)
-    return {"message": "User information saved successfully."}
+async def save_user_info_api(request: Request):
+    try:
+        user_data = await request.json()
+        email = user_data.get('email', 'anonymous')
+        save_user_metadata(user_data, email)
+        return {"message": "User information saved successfully."}
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON data")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
@@ -88,7 +97,7 @@ async def login_page(request: Request):
 
 @router.post("/login")
 async def login_user(request: Request, login_data: LoginRequest):
-    if login_data.password == "":
+    if login_data.password == "1":
         request.session["email"] = login_data.email
         return {"message": "Login successful"}
     else:
@@ -114,19 +123,26 @@ async def submit_answer_route(request: Request):
     question_number = data.get("question_number")
     selected_option_code = data.get("selected_option_code")
     selected_option_text = data.get("selected_option_text")
+    ranking = data.get("ranking") 
     email = request.session.get("email", "anonymous")
 
-    # Save answer
-    save_answer(email, question_number, selected_option_code)
-    
     # Get questions from app state
     questions = request.app.state.questions
+    
+    
+    # Save answer with ranking if applicable
+    save_answer(email, question_number, {
+        "code": selected_option_code,
+        "text": selected_option_text,
+        "ranking": ranking 
+    })
     
     # Pass all parameters to submit_answer
     result = submit_answer(
         question_number=question_number,
         selected_option_code=selected_option_code,
         selected_option_text=selected_option_text,
+        ranking=ranking,
         email=email,
         questions=questions
     )
