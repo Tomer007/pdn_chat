@@ -18,6 +18,14 @@
       border-radius: 2rem;
       box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
     }
+    .error-message {
+      display: none;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
@@ -25,7 +33,6 @@
   <main class="glass-effect w-full max-w-md sm:max-w-xl p-6 sm:p-10 space-y-8 animate-fade-in text-right">
     <!-- Header -->
     <div class="text-center space-y-4">
-     
       <h1 class="text-4xl sm:text-5xl font-extrabold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
         PDN Center
       </h1>
@@ -80,6 +87,11 @@
       </button>
     </form>
 
+    <!-- Error Message -->
+    <div id="errorMessage" class="error-message text-center text-red-600 font-medium text-lg">
+      Invalid Input
+    </div>
+
     <!-- Footer Link -->
     <div class="text-center pt-4">
       <p class="text-sm sm:text-base font-medium bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-500 bg-clip-text text-transparent animate-pulse">
@@ -90,8 +102,25 @@
 
   <script>
     const form = document.getElementById('loginForm');
+    const errorMessage = document.getElementById('errorMessage');
+
+    // Function to show error message
+    function showError() {
+      errorMessage.style.display = 'block';
+    }
+
+    // Function to hide error message
+    function hideError() {
+      errorMessage.style.display = 'none';
+    }
+
+    // Hide error when user starts typing
+    document.getElementById('email').addEventListener('input', hideError);
+    document.getElementById('password').addEventListener('input', hideError);
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
+      hideError();
 
       const loginData = {
         email: document.getElementById('email').value,
@@ -110,10 +139,10 @@
         if (response.ok) {
           window.location.href = '/user_info';
         } else {
-          alert('שגיאה בהתחברות, אנא נסה שוב.');
+          showError();
         }
       } catch (error) {
-        alert('שגיאה בהתחברות, אנא נסה שוב.');
+        showError();
         console.error('Error:', error);
       }
     });
