@@ -32,6 +32,47 @@
     .fade-in {
       animation: fadeInUp 0.4s ease-out both;
     }
+
+    /* Slider styles */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 4px;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      background: #6366f1;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      background: #4f46e5;
+      transform: scale(1.1);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      background: #6366f1;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+    }
+
+    input[type="range"]::-moz-range-thumb:hover {
+      background: #4f46e5;
+      transform: scale(1.1);
+    }
   </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
@@ -89,6 +130,151 @@
       document.getElementById('questionText').innerText = data.question;
       const optionsDiv = document.getElementById('options');
       optionsDiv.innerHTML = "";
+
+      // Handle slider questions for Part C
+      if (data.stage === "PartC") {
+        // Create slider container
+        const sliderContainer = document.createElement('div');
+        sliderContainer.className = 'space-y-4';
+        
+        // Create labels container
+        const labelsContainer = document.createElement('div');
+        labelsContainer.className = 'flex justify-between text-sm text-gray-600';
+        
+        // Left label and button container (right side in RTL)
+        const leftContainer = document.createElement('div');
+        leftContainer.className = 'flex items-center gap-2';
+        const leftLabel = document.createElement('span');
+        leftLabel.textContent = data.options[0].text;
+        leftLabel.className = 'text-right';
+        
+        // Left button (now on the right side in RTL)
+        const leftButton = document.createElement('button');
+        leftButton.innerHTML = '&#8594;'; // Right arrow
+        leftButton.className = 'w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-full text-gray-600 font-bold transition-colors';
+        leftButton.onclick = () => {
+          const currentValue = parseInt(slider.value);
+          if (currentValue > 1) {
+            slider.value = currentValue - 1;
+            slider.dispatchEvent(new Event('input'));
+          }
+        };
+        
+        // Add button before label in RTL
+        leftContainer.appendChild(leftButton);
+        leftContainer.appendChild(leftLabel);
+        
+        // Right label and button container (left side in RTL)
+        const rightContainer = document.createElement('div');
+        rightContainer.className = 'flex items-center gap-2';
+        const rightLabel = document.createElement('span');
+        rightLabel.textContent = data.options[1].text;
+        rightLabel.className = 'text-left';
+        
+        // Right button (now on the left side in RTL)
+        const rightButton = document.createElement('button');
+        rightButton.innerHTML = '&#8592;'; // Left arrow
+        rightButton.className = 'w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-full text-gray-600 font-bold transition-colors';
+        rightButton.onclick = () => {
+          const currentValue = parseInt(slider.value);
+          if (currentValue < 7) {
+            slider.value = currentValue + 1;
+            slider.dispatchEvent(new Event('input'));
+          }
+        };
+        
+        // Add button before label in RTL
+        rightContainer.appendChild(rightButton);
+        rightContainer.appendChild(rightLabel);
+        
+        // Add containers to labels container
+        labelsContainer.appendChild(leftContainer);
+        labelsContainer.appendChild(rightContainer);
+        
+        // Create slider
+        const slider = document.createElement('input');
+        slider.type = 'range';
+        slider.min = '1';
+        slider.max = '7';
+        slider.value = '4';
+        slider.className = 'w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer';
+        
+        // Create value display
+        const valueDisplay = document.createElement('div');
+        valueDisplay.className = 'text-center text-sm text-gray-600';
+        valueDisplay.textContent = 'באמצע';
+        
+        // Add event listeners
+        slider.addEventListener('input', (e) => {
+          const value = parseInt(e.target.value);
+          let descriptiveText;
+          
+          // Get the left and right options from the question data
+          const leftOption = data.options[0].text;
+          const rightOption = data.options[1].text;
+          
+          switch(value) {
+            case 1: descriptiveText = leftOption; break;
+            case 2: descriptiveText = `לרב ${leftOption}`; break;
+            case 3: descriptiveText = `במידה מסוימת ${leftOption}`; break;
+            case 4: descriptiveText = 'באמצע'; break;
+            case 5: descriptiveText = `במידה מסוימת ${rightOption}`; break;
+            case 6: descriptiveText = `לרב ${rightOption}`; break;
+            case 7: descriptiveText = rightOption; break;
+          }
+          
+          valueDisplay.textContent = descriptiveText;
+        });
+        
+        // Create submit button
+        const submitBtn = document.createElement('button');
+        submitBtn.type = 'button';
+        submitBtn.innerText = 'שלח תשובה';
+        submitBtn.className = 'w-full py-3 px-6 mt-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-xl hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-purple-500/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg';
+        
+        // Add submit button click handler
+        submitBtn.onclick = async () => {
+          const value = parseInt(slider.value);
+          let leftPoints, rightPoints;
+          
+          // Get the codes from the question data
+          const leftCode = data.options[0].code;
+          const rightCode = data.options[1].code;
+          
+          switch(value) {
+            case 1: leftPoints = 12; rightPoints = 0; break;
+            case 2: leftPoints = 10; rightPoints = 2; break;
+            case 3: leftPoints = 8; rightPoints = 4; break;
+            case 4: leftPoints = 6; rightPoints = 6; break;
+            case 5: leftPoints = 4; rightPoints = 8; break;
+            case 6: leftPoints = 2; rightPoints = 10; break;
+            case 7: leftPoints = 0; rightPoints = 12; break;
+          }
+          
+          await submitAnswer(questionNumber, null, null, {
+            [leftCode]: leftPoints,
+            [rightCode]: rightPoints
+          });
+        };
+        
+        // Assemble the slider UI
+        sliderContainer.appendChild(labelsContainer);
+        sliderContainer.appendChild(slider);
+        sliderContainer.appendChild(valueDisplay);
+        sliderContainer.appendChild(submitBtn);
+        
+        optionsDiv.appendChild(sliderContainer);
+        
+        // Show instructions
+        const instructionsDiv = document.getElementById('stageInstructions');
+        if (data.instructions) {
+          instructionsDiv.classList.remove('hidden');
+          instructionsDiv.innerHTML = data.instructions.replace(/\n/g, '<br>');
+        } else {
+          instructionsDiv.classList.add('hidden');
+        }
+        return;
+      }
 
       // Handle ranking question with drag-and-drop
       if (data.type === "ranking") {

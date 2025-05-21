@@ -1,0 +1,563 @@
+{
+  "metadata": {
+    "first_name": "",
+    "last_name": "",
+    "email": "tomergur@gmail.com",
+    "phone": "",
+    "birth_year": "",
+    "mother_language": "",
+    "gender": "",
+    "education": "",
+    "job_title": ""
+  },
+  "1": {
+    "code": "ET",
+    "text": "מאורגן",
+    "ranking": null
+  },
+  "2": {
+    "code": "ET",
+    "text": "מחושב",
+    "ranking": null
+  },
+  "3": {
+    "code": "ET",
+    "text": "בוחן",
+    "ranking": null
+  },
+  "4": {
+    "code": "ET",
+    "text": "מרוכז",
+    "ranking": null
+  },
+  "5": {
+    "code": "ET",
+    "text": "ממוקד",
+    "ranking": null
+  },
+  "6": {
+    "code": "ET",
+    "text": "מתכנן מראש",
+    "ranking": null
+  },
+  "7": {
+    "code": "ET",
+    "text": "שקול",
+    "ranking": null
+  },
+  "8": {
+    "code": "ET",
+    "text": "משימתי",
+    "ranking": null
+  },
+  "9": {
+    "code": "ET",
+    "text": "מוכן מראש",
+    "ranking": null
+  },
+  "10": {
+    "code": "ET",
+    "text": "בשליטה עצמית",
+    "ranking": null
+  },
+  "11": {
+    "code": "ET",
+    "text": "יותר מתוכנן מאשר ספונטני",
+    "ranking": null
+  },
+  "12": {
+    "code": "ET",
+    "text": "תכליתי",
+    "ranking": null
+  },
+  "13": {
+    "code": "ET",
+    "text": "תכליתי וממוקד",
+    "ranking": null
+  },
+  "14": {
+    "code": "AP",
+    "text": "משתף",
+    "ranking": null
+  },
+  "15": {
+    "code": "AP",
+    "text": "מחליט תוך כדי תנועה",
+    "ranking": null
+  },
+  "16": {
+    "code": "ET",
+    "text": "ממוקד",
+    "ranking": null
+  },
+  "17": {
+    "code": "ET",
+    "text": "תמציתי ומדויק",
+    "ranking": null
+  },
+  "18": {
+    "code": "ET",
+    "text": "שיטתי",
+    "ranking": null
+  },
+  "19": {
+    "code": "AP",
+    "text": "אני יוצר קשר אישי ומדבר בחופשיות",
+    "ranking": null
+  },
+  "20": {
+    "code": "AE",
+    "text": "נוטה להתווכח",
+    "ranking": null
+  },
+  "21": {
+    "code": "AP",
+    "text": "מקשיב",
+    "ranking": null
+  },
+  "22": {
+    "code": "AE",
+    "text": "אומר את דעתי",
+    "ranking": null
+  },
+  "23": {
+    "code": "AE",
+    "text": "יותר אסרטיבי להגיד דעתי",
+    "ranking": null
+  },
+  "24": {
+    "code": "AE",
+    "text": "יוזם",
+    "ranking": null
+  },
+  "25": {
+    "code": "AE",
+    "text": "מבטא",
+    "ranking": null
+  },
+  "26": {
+    "code": "AE",
+    "text": "יותר דוחף",
+    "ranking": null
+  },
+  "27": {
+    "code": "AE",
+    "text": "מוחצן",
+    "ranking": null
+  },
+  "28": {
+    "code": "AE",
+    "text": "מאתגר",
+    "ranking": null
+  },
+  "29": {
+    "code": "AE",
+    "text": "מדבר",
+    "ranking": null
+  },
+  "30": {
+    "code": "AE",
+    "text": "מביע את דעתי",
+    "ranking": null
+  },
+  "31": {
+    "code": "AE",
+    "text": "כועס חזרה ומבטא כעס",
+    "ranking": null
+  },
+  "32": {
+    "code": "AE",
+    "text": "נועז",
+    "ranking": null
+  },
+  "33": {
+    "code": "AE",
+    "text": "לקחת פיקוד",
+    "ranking": null
+  },
+  "34": {
+    "code": "AE",
+    "text": "מדבר ישירות",
+    "ranking": null
+  },
+  "35": {
+    "code": "AE",
+    "text": "פתוח",
+    "ranking": null
+  },
+  "36": {
+    "code": "TP",
+    "text": "אני שותק, הדברים צריכים קודם 'להתבשל' בתוכי",
+    "ranking": null
+  },
+  "37": {
+    "code": "TP",
+    "text": "מבצע ניתוח ושוקל קודם",
+    "ranking": null
+  },
+  "38": {
+    "code": "AE",
+    "text": "מציג את עצמי בבטחון",
+    "ranking": null
+  },
+  "39": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "F": 1,
+      "S": 2,
+      "D": 3
+    }
+  },
+  "40": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "F": 1,
+      "S": 2,
+      "D": 3
+    }
+  },
+  "41": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "S": 1,
+      "F": 2,
+      "D": 3
+    }
+  },
+  "42": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "F": 1,
+      "S": 2,
+      "D": 3
+    }
+  },
+  "43": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "F": 1,
+      "S": 2,
+      "D": 3
+    }
+  },
+  "44": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "F": 1,
+      "S": 2,
+      "D": 3
+    }
+  },
+  "45": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "S": 1,
+      "F": 2,
+      "D": 3
+    }
+  },
+  "46": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "D": 1,
+      "S": 2,
+      "F": 3
+    }
+  },
+  "47": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "F": 1,
+      "S": 2,
+      "D": 3
+    }
+  },
+  "48": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "F": 1,
+      "S": 2,
+      "D": 3
+    }
+  },
+  "49": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "F": 1,
+      "S": 2,
+      "D": 3
+    }
+  },
+  "50": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "F": 1,
+      "S": 2,
+      "D": 3
+    }
+  },
+  "51": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "S": 1,
+      "F": 2,
+      "D": 3
+    }
+  },
+  "52": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "A": 4,
+      "T": 8
+    }
+  },
+  "53": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "A": 8,
+      "T": 4
+    }
+  },
+  "54": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "T": 2,
+      "A": 10
+    }
+  },
+  "55": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "A": 8,
+      "T": 4
+    }
+  },
+  "56": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "P": 4,
+      "E": 8
+    }
+  },
+  "57": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "E": 8,
+      "P": 4
+    }
+  },
+  "58": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "E": 10,
+      "P": 2
+    }
+  },
+  "59": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "E": 2,
+      "P": 10
+    }
+  },
+  "60": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "P": 2,
+      "E": 10
+    }
+  },
+  "61": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "E": 8,
+      "P": 4
+    }
+  },
+  "62": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "TP": 6,
+      "AE": 6
+    }
+  },
+  "63": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "TP": 6,
+      "AE": 6
+    }
+  },
+  "64": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "TP": 4,
+      "EA": 8
+    }
+  },
+  "65": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "TP": 2,
+      "EA": 10
+    }
+  },
+  "66": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "TP": 8,
+      "AE": 4
+    }
+  },
+  "67": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "TP": 10,
+      "AE": 2
+    }
+  },
+  "68": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "TP": 6,
+      "AE": 6
+    }
+  },
+  "69": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "TP": 4,
+      "AE": 8
+    }
+  },
+  "70": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "TP": 6,
+      "AE": 6
+    }
+  },
+  "71": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "TP": 4,
+      "AE": 8
+    }
+  },
+  "72": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "AP": 6,
+      "TE": 6
+    }
+  },
+  "73": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "AP": 4,
+      "TE": 8
+    }
+  },
+  "74": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "TE": 8,
+      "AP": 4
+    }
+  },
+  "75": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "TE": 10,
+      "AP": 2
+    }
+  },
+  "76": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "TP": 2,
+      "AE": 10
+    }
+  },
+  "77": {
+    "code": null,
+    "text": null,
+    "ranking": {
+      "TP": 4,
+      "AE": 8
+    }
+  },
+  "78": {
+    "code": "הנחה כספית",
+    "text": "הנחה כספית",
+    "ranking": null
+  },
+  "79": {
+    "code": "מקצועיות",
+    "text": "מקצועיות",
+    "ranking": null
+  },
+  "80": {
+    "code": "רשתות חברתיות",
+    "text": "רשתות חברתיות",
+    "ranking": null
+  },
+  "81": {
+    "code": "שירות",
+    "text": "שירות",
+    "ranking": null
+  },
+  "82": {
+    "code": "אוכל בזמנים קבועים יחסית ושומר על הרגלים מסודרים",
+    "text": "אוכל בזמנים קבועים יחסית ושומר על הרגלים מסודרים",
+    "ranking": null
+  },
+  "83": {
+    "code": "ניטרלי",
+    "text": "ניטרלי",
+    "ranking": null
+  },
+  "84": {
+    "code": "אמצע",
+    "text": "אמצע",
+    "ranking": null
+  }
+}

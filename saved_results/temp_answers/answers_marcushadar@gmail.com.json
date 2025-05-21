@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "first_name": "",
+    "first_name": "הדר",
     "last_name": "",
-    "email": "tomergur@gmail.com",
+    "email": "marcushadar@gmail.com",
     "phone": "",
     "birth_year": "",
     "mother_language": "",
@@ -16,8 +16,8 @@
     "ranking": null
   },
   "2": {
-    "code": "ET",
-    "text": "מחושב",
+    "code": "AP",
+    "text": "ספונטני",
     "ranking": null
   },
   "3": {
@@ -46,23 +46,23 @@
     "ranking": null
   },
   "8": {
-    "code": "ET",
-    "text": "משימתי",
+    "code": "AP",
+    "text": "פתוח לפי מה שמגיע",
     "ranking": null
   },
   "9": {
-    "code": "ET",
-    "text": "מוכן מראש",
+    "code": "AP",
+    "text": "מכבה שריפות",
     "ranking": null
   },
   "10": {
-    "code": "ET",
-    "text": "בשליטה עצמית",
+    "code": "AP",
+    "text": "נינוח ומשוחרר",
     "ranking": null
   },
   "11": {
-    "code": "ET",
-    "text": "יותר מתוכנן מאשר ספונטני",
+    "code": "AP",
+    "text": "יותר ספונטני מאשר מתוכנן",
     "ranking": null
   },
   "12": {
@@ -76,13 +76,13 @@
     "ranking": null
   },
   "14": {
-    "code": "ET",
-    "text": "דיסקרטי וענייני",
+    "code": "AP",
+    "text": "משתף",
     "ranking": null
   },
   "15": {
-    "code": "ET",
-    "text": "יודע בדיוק מה הולך לקרות",
+    "code": "AP",
+    "text": "מחליט תוך כדי תנועה",
     "ranking": null
   },
   "16": {
@@ -91,8 +91,8 @@
     "ranking": null
   },
   "17": {
-    "code": "ET",
-    "text": "תמציתי ומדויק",
+    "code": "AP",
+    "text": "מרחיב ומשתף",
     "ranking": null
   },
   "18": {
@@ -101,8 +101,8 @@
     "ranking": null
   },
   "19": {
-    "code": "AP",
-    "text": "אני יוצר קשר אישי ומדבר בחופשיות",
+    "code": "ET",
+    "text": "אני שומר על פורמליות וענייני",
     "ranking": null
   },
   "20": {
@@ -131,8 +131,8 @@
     "ranking": null
   },
   "25": {
-    "code": "AP",
-    "text": "מבליג",
+    "code": "AE",
+    "text": "מבטא",
     "ranking": null
   },
   "26": {
@@ -141,8 +141,8 @@
     "ranking": null
   },
   "27": {
-    "code": "AP",
-    "text": "מופנם",
+    "code": "AE",
+    "text": "מוחצן",
     "ranking": null
   },
   "28": {
@@ -191,8 +191,8 @@
     "ranking": null
   },
   "37": {
-    "code": "TP",
-    "text": "מבצע ניתוח ושוקל קודם",
+    "code": "AE",
+    "text": "מציע מיד פתרון",
     "ranking": null
   },
   "38": {
@@ -204,9 +204,9 @@
     "code": null,
     "text": null,
     "ranking": {
-      "D": 1,
-      "F": 2,
-      "S": 3
+      "F": 1,
+      "S": 2,
+      "D": 3
     }
   },
   "40": {
@@ -222,9 +222,9 @@
     "code": null,
     "text": null,
     "ranking": {
-      "D": 1,
-      "S": 2,
-      "F": 3
+      "F": 1,
+      "D": 2,
+      "S": 3
     }
   },
   "42": {
@@ -232,44 +232,44 @@
     "text": null,
     "ranking": {
       "D": 1,
-      "S": 2,
-      "F": 3
+      "F": 2,
+      "S": 3
     }
   },
   "43": {
     "code": null,
     "text": null,
     "ranking": {
-      "D": 1,
+      "F": 1,
       "S": 2,
-      "F": 3
+      "D": 3
     }
   },
   "44": {
     "code": null,
     "text": null,
     "ranking": {
-      "D": 1,
-      "S": 2,
-      "F": 3
+      "F": 1,
+      "D": 2,
+      "S": 3
     }
   },
   "45": {
     "code": null,
     "text": null,
     "ranking": {
-      "D": 1,
-      "S": 2,
-      "F": 3
+      "F": 1,
+      "D": 2,
+      "S": 3
     }
   },
   "46": {
     "code": null,
     "text": null,
     "ranking": {
-      "D": 1,
-      "S": 2,
-      "F": 3
+      "F": 1,
+      "D": 2,
+      "S": 3
     }
   },
   "47": {
@@ -285,27 +285,27 @@
     "code": null,
     "text": null,
     "ranking": {
-      "D": 1,
-      "S": 2,
-      "F": 3
+      "F": 1,
+      "D": 2,
+      "S": 3
     }
   },
   "49": {
     "code": null,
     "text": null,
     "ranking": {
-      "D": 1,
+      "F": 1,
       "S": 2,
-      "F": 3
+      "D": 3
     }
   },
   "50": {
     "code": null,
     "text": null,
     "ranking": {
-      "D": 1,
+      "F": 1,
       "S": 2,
-      "F": 3
+      "D": 3
     }
   },
   "51": {
@@ -313,138 +313,251 @@
     "text": null,
     "ranking": {
       "D": 1,
-      "S": 2,
-      "F": 3
+      "F": 2,
+      "S": 3
     }
   },
   "52": {
-    "code": "T",
-    "text": "מוודא כל פרט",
-    "ranking": null
+    "code": null,
+    "text": null,
+    "ranking": {
+      "A": 6,
+      "T": 6
+    }
   },
   "53": {
-    "code": "T",
-    "text": "מתקשה מאוד",
-    "ranking": null
+    "code": null,
+    "text": null,
+    "ranking": {
+      "A": 6,
+      "T": 6
+    }
   },
   "54": {
-    "code": "T",
-    "text": "מציע רעיונות לעיתים רחוקות",
-    "ranking": null
+    "code": null,
+    "text": null,
+    "ranking": {
+      "T": 10,
+      "A": 2
+    }
   },
   "55": {
-    "code": "A",
-    "text": "קשה לי לבחור לא פוחד לפספס",
-    "ranking": null
+    "code": null,
+    "text": null,
+    "ranking": {
+      "A": 6,
+      "T": 6
+    }
   },
   "56": {
-    "code": "P",
-    "text": "מתקשה להחליט",
-    "ranking": null
+    "code": null,
+    "text": null,
+    "ranking": {
+      "P": 6,
+      "E": 6
+    }
   },
   "57": {
-    "code": "E",
-    "text": "קשה לי מאוד שמובילים אותי, מעדיף להוביל",
-    "ranking": null
+    "code": null,
+    "text": null,
+    "ranking": {
+      "E": 6,
+      "P": 6
+    }
   },
   "58": {
-    "code": "E",
-    "text": "קל לי להציב גבולות",
-    "ranking": null
+    "code": null,
+    "text": null,
+    "ranking": {
+      "E": 4,
+      "P": 8
+    }
   },
   "59": {
-    "code": "E",
-    "text": "רואה עצמי ענייני ולא רגשי",
-    "ranking": null
+    "code": null,
+    "text": null,
+    "ranking": {
+      "E": 0,
+      "P": 12
+    }
   },
   "60": {
-    "code": "P",
-    "text": "מעדיף להישאר בצד",
-    "ranking": null
+    "code": null,
+    "text": null,
+    "ranking": {
+      "P": 8,
+      "E": 4
+    }
   },
   "61": {
-    "code": "E",
-    "text": "חשוב לי לפעול לפי הדרך שלי גם אם יש התנגדות",
-    "ranking": null
+    "code": null,
+    "text": null,
+    "ranking": {
+      "E": 2,
+      "P": 10
+    }
   },
   "62": {
-    "code": "TP",
-    "text": "מופנם מאוד",
-    "ranking": null
+    "code": null,
+    "text": null,
+    "ranking": {
+      "TP": 6,
+      "AE": 6
+    }
   },
   "63": {
-    "code": "TP",
-    "text": "מופנם מאוד",
-    "ranking": null
+    "code": null,
+    "text": null,
+    "ranking": {
+      "TP": 6,
+      "AE": 6
+    }
   },
   "64": {
-    "code": "TP",
-    "text": "מצטרף לא יוזם",
-    "ranking": null
+    "code": null,
+    "text": null,
+    "ranking": {
+      "TP": 4,
+      "EA": 8
+    }
   },
   "65": {
-    "code": "TP",
-    "text": "מצטרף לא יוזם",
-    "ranking": null
+    "code": null,
+    "text": null,
+    "ranking": {
+      "TP": 8,
+      "EA": 4
+    }
   },
   "66": {
-    "code": "TP",
-    "text": "מסודר מאוד",
-    "ranking": null
+    "code": null,
+    "text": null,
+    "ranking": {
+      "TP": 10,
+      "AE": 2
+    }
   },
   "67": {
-    "code": "TP",
-    "text": "מסודר מאוד",
-    "ranking": null
+    "code": null,
+    "text": null,
+    "ranking": {
+      "TP": 10,
+      "AE": 2
+    }
   },
   "68": {
-    "code": "TP",
-    "text": "שתקן, יותר מתבונן",
-    "ranking": null
+    "code": null,
+    "text": null,
+    "ranking": {
+      "TP": 6,
+      "AE": 6
+    }
   },
   "69": {
-    "code": "TP",
-    "text": "בגרות: שתקן, יותר מתבונן",
-    "ranking": null
+    "code": null,
+    "text": null,
+    "ranking": {
+      "TP": 4,
+      "AE": 8
+    }
   },
   "70": {
-    "code": "TP",
-    "text": "בורח מעימותים, נמנע",
-    "ranking": null
+    "code": null,
+    "text": null,
+    "ranking": {
+      "TP": 10,
+      "AE": 2
+    }
   },
   "71": {
-    "code": "TP",
-    "text": "בורח מעימותים, נמנע",
-    "ranking": null
+    "code": null,
+    "text": null,
+    "ranking": {
+      "TP": 10,
+      "AE": 2
+    }
   },
   "72": {
-    "code": "AP",
-    "text": "לא מקפיד, מאחר לעיתים קרובות",
-    "ranking": null
+    "code": null,
+    "text": null,
+    "ranking": {
+      "AP": 6,
+      "TE": 6
+    }
   },
   "73": {
-    "code": "AP",
-    "text": "לא מקפיד, מאחר לעיתים קרובות",
-    "ranking": null
+    "code": null,
+    "text": null,
+    "ranking": {
+      "AP": 4,
+      "TE": 8
+    }
   },
   "74": {
-    "code": "TE",
-    "text": "מסודר מאוד",
-    "ranking": null
+    "code": null,
+    "text": null,
+    "ranking": {
+      "TE": 8,
+      "AP": 4
+    }
   },
   "75": {
-    "code": "TE",
-    "text": "מסודר מאוד",
-    "ranking": null
+    "code": null,
+    "text": null,
+    "ranking": {
+      "TE": 10,
+      "AP": 2
+    }
   },
   "76": {
-    "code": "TP",
-    "text": "מאופק מאוד",
-    "ranking": null
+    "code": null,
+    "text": null,
+    "ranking": {
+      "TP": 6,
+      "AE": 6
+    }
   },
   "77": {
-    "code": "TP",
-    "text": "מאופק מאוד",
+    "code": null,
+    "text": null,
+    "ranking": {
+      "TP": 8,
+      "AE": 4
+    }
+  },
+  "78": {
+    "code": "קופון הטבה/חוויה",
+    "text": "קופון הטבה/חוויה",
+    "ranking": null
+  },
+  "79": {
+    "code": "יחס",
+    "text": "יחס",
+    "ranking": null
+  },
+  "80": {
+    "code": "שיחה קולית",
+    "text": "שיחה קולית",
+    "ranking": null
+  },
+  "81": {
+    "code": "מחיר",
+    "text": "מחיר",
+    "ranking": null
+  },
+  "82": {
+    "code": "אוכל בזמנים קבועים יחסית ושומר על הרגלים מסודרים",
+    "text": "אוכל בזמנים קבועים יחסית ושומר על הרגלים מסודרים",
+    "ranking": null
+  },
+  "83": {
+    "code": "שמח",
+    "text": "שמח",
+    "ranking": null
+  },
+  "84": {
+    "code": "אמצע",
+    "text": "אמצע",
     "ranking": null
   }
 }

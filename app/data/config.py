@@ -8,7 +8,7 @@ class Settings:
         self.PROJECT_NAME: str = self._config['project']['name']
         self.VERSION: str = self._config['project']['version']
 
-    @x
+    
     def load_config() -> Dict[str, Any]:
         """
         Load configuration from config.yaml file.

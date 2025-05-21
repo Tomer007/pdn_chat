@@ -19,20 +19,20 @@ def get_question(question_number: int, questions: dict):
     Returns the question text and its options.
     """
      
-    # Check Part A questions (41-38)
-    if 1 <= question_number <= 38:
+    # Check Part A questions (1-30)
+    if 1 <= question_number <= 30:
         print("Part A")     
         phase = "PartA"
-    # Check Part B questions (39-51)
-    elif 39 <= question_number <= 51:
+    # Check Part B questions (31-40)
+    elif 31 <= question_number <= 40:
         print("Part B")
         phase = "PartB"
-    # Check Part C questions (52-75)
-    elif 52 <= question_number <= 77:
+    # Check Part C questions (41-57)
+    elif 41 <= question_number <= 57:
         print("Part C")
         phase = "PartC"
-    # Check Part D questions (78-84)
-    elif 78 <= question_number <= 84:
+    # Check Part D questions (58-64)
+    elif 58 <= question_number <= 64:
         print("Part D")
         phase = "PartD"
     else:

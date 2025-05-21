@@ -101,7 +101,7 @@ async def login_user(request: Request, login_data: LoginRequest):
         request.session["email"] = login_data.email
         return {"message": "Login successful"}
     else:
-        return {"message": "Invalid credentials"}
+        raise HTTPException(status_code=401, detail="Invalid credentials")
 
 @router.post("/start")
 async def start_user(start_request: StartRequest):
@@ -156,114 +156,6 @@ async def submit_answer_route(request: Request):
         }
     
     return result
-
-
-# @router.get("/result")
-# async def get_result_route(request: Request):
-    email = request.session.get("email", "anonymous")
-    questions = request.app.state.questions
-    user_answers = load_answers(email)
-
-    if not user_answers:
-        raise HTTPException(status_code=400, detail="No answers found")
-
-    result = get_result(email)
-
-    questions_data = []
-    for q_num, answer_code in user_answers.items():
-        question = questions.get(str(q_num))
-        if question:
-            questions_data.append({
-                "question_number": int(q_num),
-                "question_text": question["text"],
-                "answer_label": next((opt["text"] for opt in question["options"] 
-                                if opt["code"] == answer_code["code"]), ""),
-                "answer_code": answer_code["code"]
-            })
-
-    save_user_results(email, questions_data)
-    clear_answers(email)  # Clear answers after saving results
-
-    return result
-
-
-
-
-
-    trait_scores = {"A": 0, "T": 0, "P": 0, "E": 0}
-    energy_scores = {"D": 0, "S": 0, "F": 0}
-    user_answers = load_answers(email)
-
-    for q_num, code in user_answers.items():
-        if code == "AP":
-            trait_scores["A"] += 1
-        elif code == "ET":
-            trait_scores["T"] += 1
-        elif code == "AE":
-            trait_scores["E"] += 1
-        elif code == "TP":
-            trait_scores["P"] += 1
-
-    primary_trait = max(trait_scores, key=trait_scores.get)
-    dominant_energy = "D"  # (לשדרוג בעתיד)
-
-    pdn_matrix = {
-        "P": {"D": "P10", "S": "P2", "F": "P6"},
-        "E": {"D": "E1", "S": "E5", "F": "E9"},
-        "A": {"D": "A7", "S": "A11", "F": "A3"},
-        "T": {"D": "T4", "S": "T8", "F": "T12"}
-    }
-
-    pdn_code = pdn_matrix.get(primary_trait, {}).get(dominant_energy, "NA")
-
-    user = User(
-        name=name,
-        email=email,
-        pdn_code=pdn_code,
-        trait=primary_trait,
-        energy=dominant_energy,
-        answers=str(user_answers)
-    )
-
-    save_user_to_db(user)
-
-    return {
-        "message": "User saved successfully.",
-        "pdn_code": pdn_code,
-        "trait": primary_trait,
-        "energy": dominant_energy
-    }
-
-@router.get("/admin/users")
-async def get_all_users():
-    users = load_all_users_from_db()
-    return users
-
-@router.get("/admin/stats")
-async def get_admin_stats():
-    users = load_all_users_from_db()
-
-    trait_counter = Counter()
-    energy_counter = Counter()
-
-    for user in users:
-        if user.trait:
-            trait_counter[user.trait] += 1
-        if user.energy:
-            energy_counter[user.energy] += 1
-
-    return {
-        "trait_distribution": dict(trait_counter),
-        "energy_distribution": dict(energy_counter),
-        "total_users": len(users)
-    }
-
-@router.get("/admin/dashboard", response_class=HTMLResponse)
-async def admin_dashboard(request: Request):
-    return templates.TemplateResponse("admin_dashboard.html", {
-        "request": request,
-        "include_menu": True
-    })
 
 @router.post("/submit_user_info")
 async def submit_user_info(request: Request):
