@@ -4,12 +4,12 @@ A comprehensive personality assessment system that helps users discover their PD
 
 ## Features
 
-- 🎯 Interactive questionnaire with multiple stages
-- 💫 Modern, responsive UI with smooth animations
-- 🔍 Dynamic stage instructions with visual feedback
-- 📊 Real-time answer tracking and analysis
-- 📝 Detailed personality report generation
-- 🔒 Secure user data management
+- Interactive questionnaire with multiple phases
+- Personality trait analysis
+- Energy type calculation
+- PDN code generation
+- Results storage and analysis
+- Hebrew language support
 
 ## Project Structure
 
@@ -85,3 +85,50 @@ A comprehensive personality assessment system that helps users discover their PD
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Setup
+
+1. Clone the repository:
+```bash
+git clone [your-repository-url]
+cd pdn_chat
+```
+
+2. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+## Usage
+
+1. Run the application:
+```bash
+python app/main.py
+```
+
+2. Follow the questionnaire instructions
+3. Get your PDN code and personality analysis
+
+## PDN Codes
+
+The system generates PDN codes based on:
+- Primary traits (A, T, P, E)
+- Energy types (D, S, F)
+
+Example codes:
+- P10: Pleasure with Dynamic energy
+- E1: Empire with Dynamic energy
+- A7: Achievement with Dynamic energy
+- T4: Trust with Dynamic energy
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## Contact
+
+tomergur@gmail.com
