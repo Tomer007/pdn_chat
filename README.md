@@ -1,15 +1,64 @@
-# PDN (Personality Diagnostic Navigator) System
+# PDN Diagnosis System
 
-A comprehensive personality assessment system that helps users discover their PDN code through an interactive questionnaire.
+A FastAPI-based system for PDN (Personality Diagnosis Network) assessment and analysis.
 
 ## Features
 
-- Interactive questionnaire with multiple phases
-- Personality trait analysis
-- Energy type calculation
-- PDN code generation
-- Results storage and analysis
-- Hebrew language support
+- User authentication and session management
+- Interactive questionnaire system
+- PDN code calculation
+- Detailed personality reports
+- API documentation with Swagger UI
+
+## API Endpoints
+
+### Pages
+- `GET /` - Home page (login)
+- `GET /chat` - Chat interface
+- `GET /pdn_report` - PDN report page
+
+### User Management
+- `POST /login` - User login
+- `GET /user_info` - User information form
+- `POST /user_info` - Save user information
+
+### Questionnaire
+- `GET /questionnaire/{question_number}` - Get specific question
+- `POST /answer` - Submit answer
+- `POST /complete_questionnaire` - Complete questionnaire
+
+### Reports
+- `GET /get_report_data` - Get PDN report data
+
+## Setup and Installation
+
+1. Clone the repository:
+```bash
+git clone [repository-url]
+cd pdn_chat
+```
+
+2. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+3. Set up environment variables:
+```bash
+cp .env.example .env
+# Edit .env with your configuration
+```
+
+4. Run the application:
+```bash
+uvicorn app.main:app --reload
+```
+
+## API Documentation
+
+Access the API documentation at:
+- Swagger UI: `http://localhost:8000/docs`
+- ReDoc: `http://localhost:8000/redoc`
 
 ## Project Structure
 
@@ -90,13 +139,24 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 1. Clone the repository:
 ```bash
-git clone [your-repository-url]
+git clone [repository-url]
 cd pdn_chat
 ```
 
 2. Install dependencies:
 ```bash
 pip install -r requirements.txt
+```
+
+3. Set up environment variables:
+```bash
+cp .env.example .env
+# Edit .env with your configuration
+```
+
+4. Run the application:
+```bash
+uvicorn app.main:app --reload
 ```
 
 ## Usage

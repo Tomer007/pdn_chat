@@ -1,7 +1,3 @@
-import random
-import json
-
-
 def calculate_pdn_code(answers: dict) -> dict:
     """
     Calculate the PDN code based on user's answers.
@@ -21,7 +17,7 @@ def calculate_pdn_code(answers: dict) -> dict:
 
     # Stage A: Primary Trait Calculation
     trait_counts = {'A': 0, 'T': 0, 'P': 0, 'E': 0}
-    #answer = data.questions
+    # answer = data.questions
     for i in range(1, 31):
         if str(i) in answers:
             answer = answers[str(i)]['code']
@@ -66,7 +62,7 @@ def calculate_pdn_code(answers: dict) -> dict:
 
     print("Stage B: Energy Type Calculation for D " + str(energy_counts['D']))
     print("Stage B: Energy Type Calculation for S " + str(energy_counts['S']))
-    print("Stage B: Energy Type Calculation for F " + str(energy_counts['F'])) 
+    print("Stage B: Energy Type Calculation for F " + str(energy_counts['F']))
 
     # Stage C: Validation and Tie-Breaking
     for i in range(52, 58):
@@ -75,10 +71,10 @@ def calculate_pdn_code(answers: dict) -> dict:
             traits = list(ranking.keys())
             trait1, trait2 = traits
             value1, value2 = ranking[trait1], ranking[trait2]
-            
+
             difference = value1 - value2
             score_adjustment = abs(difference) * 2
-            
+
             if difference > 0:
                 result['scores'][trait1] += score_adjustment
                 result['scores'][trait2] -= score_adjustment
@@ -95,29 +91,6 @@ def calculate_pdn_code(answers: dict) -> dict:
     print("Stage C: Validation and Tie-Breaking for E " + str(result['scores']['E']))
     print("Stage C: Validation and Tie-Breaking for A " + str(result['scores']['A']))
 
-    # Stage D: Validation and Tie-Breaking
-    for i in range(62, 78):
-        if str(i) in answers:
-            ranking = answers[str(i)]['ranking']
-            traits = list(ranking.keys())
-            
-            for trait_pair in traits:
-                trait1, trait2 = trait_pair[0], trait_pair[1]
-                value = ranking[trait_pair]
-                score_adjustment = abs(4 - value) * 2
-                
-                result['scores'][trait1] += score_adjustment
-                result['scores'][trait2] += score_adjustment
-
-    new_dominant_trait = max(result['scores'], key=result['scores'].get)
-    if result['scores'][new_dominant_trait] - result['scores'][result['trait']] >= 12:
-        result['trait'] = new_dominant_trait
-
-    print("Stage D: Validation and Tie-Breaking for T " + str(result['scores']['T']))
-    print("Stage D: Validation and Tie-Breaking for P " + str(result['scores']['P']))
-    print("Stage D: Validation and Tie-Breaking for E " + str(result['scores']['E']))
-    print("Stage D: Validation and Tie-Breaking for A " + str(result['scores']['A']))
-
     # Finalizing the PDN code
     pdn_matrix = {
         ('P', 'D'): 'P10', ('P', 'S'): 'P2', ('P', 'F'): 'P6',
@@ -125,10 +98,10 @@ def calculate_pdn_code(answers: dict) -> dict:
         ('A', 'D'): 'A7', ('A', 'S'): 'A11', ('A', 'F'): 'A3',
         ('T', 'D'): 'T4', ('T', 'S'): 'T8', ('T', 'F'): 'T12'
     }
-    
+
     pdn_code = pdn_matrix.get((result['trait'], result['energy']), 'NA')
     result['pdn_code'] = pdn_code
 
     print("Finalizing the PDN code " + str(pdn_code))
-   
+
     return pdn_code

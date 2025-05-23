@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <title>התחברות - PDN Center</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/@heroicons/vue@2.0.16/dist/heroicons.min.js" defer></script>
-  <style>
+    <meta charset="UTF-8"/>
+    <title>התחברות - PDN Center</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@heroicons/vue@2.0.16/dist/heroicons.min.js" defer></script>
+    <style>
     body {
       background: radial-gradient(ellipse at center, #e0e7ff 0%, #c7d2fe 50%, #a5b4fc 100%);
       font-family: 'Rubik', sans-serif;
@@ -26,81 +26,89 @@
       from { opacity: 0; transform: translateY(-10px); }
       to { opacity: 1; transform: translateY(0); }
     }
-  </style>
+
+    </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
 
-  <main class="glass-effect w-full max-w-md sm:max-w-xl p-6 sm:p-10 space-y-8 animate-fade-in text-right">
+<main class="glass-effect w-full max-w-md sm:max-w-xl p-6 sm:p-10 space-y-8 animate-fade-in text-right">
     <!-- Header -->
     <div class="text-center space-y-4">
-      <h1 class="text-4xl sm:text-5xl font-extrabold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-        PDN Center
-      </h1>
-      <h2 class="text-xl sm:text-2xl font-semibold bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 bg-clip-text text-transparent">
-        Decode Your Personal DNA
-      </h2>
-      <p class="text-base sm:text-lg font-medium bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-         המסע לגילוי הצופן שלך מתחיל כאן
-      </p>
+        <h1 class="text-4xl sm:text-5xl font-extrabold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+            PDN Center
+        </h1>
+        <h2 class="text-xl sm:text-2xl font-semibold bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 bg-clip-text text-transparent">
+            Decode Your Personal DNA
+        </h2>
+        <p class="text-base sm:text-lg font-medium bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+            המסע לגילוי הצופן שלך מתחיל כאן
+        </p>
     </div>
 
     <!-- Form -->
     <form id="loginForm" class="space-y-6">
-      <!-- Email Field with Icon -->
-      <div class="relative">
-        <label for="email" class="block text-sm font-semibold text-gray-700 mb-1">אימייל</label>
-        <input
-          type="email"
-          id="email"
-          name="email"
-          placeholder="כתובת אימייל"
-          class="w-full pr-12 pl-5 py-3 rounded-xl border border-purple-300 shadow-sm bg-white/90 text-right text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-purple-400/30 focus:border-purple-500 transition"
-          required
-        />
-        <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12H8m8 0a4 4 0 10-8 0 4 4 0 008 0z" />
-        </svg>
-      </div>
+        <!-- Email Field with Icon -->
+        <div class="relative">
+            <label for="email" class="block text-sm font-semibold text-gray-700 mb-1">אימייל</label>
+            <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="כתובת אימייל"
+                    class="w-full pr-12 pl-5 py-3 rounded-xl border border-purple-300 shadow-sm bg-white/90 text-right text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-purple-400/30 focus:border-purple-500 transition"
+                    required
+            />
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 class="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-purple-400" fill="none"
+                 viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M16 12H8m8 0a4 4 0 10-8 0 4 4 0 008 0z"/>
+            </svg>
+        </div>
 
-      <!-- Password Field with Icon -->
-      <div class="relative">
-        <label for="password" class="block text-sm font-semibold text-gray-700 mb-1">סיסמה</label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          placeholder="סיסמה"
-          class="w-full pr-12 pl-5 py-3 rounded-xl border border-purple-300 shadow-sm bg-white/90 text-right text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-purple-400/30 focus:border-purple-500 transition"
-          required
-        />
-        <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c1.38 0 2.5-1.12 2.5-2.5S13.38 6 12 6s-2.5 1.12-2.5 2.5S10.62 11 12 11zm0 0v2m0 4h.01" />
-        </svg>
-      </div>
+        <!-- Password Field with Icon -->
+        <div class="relative">
+            <label for="password" class="block text-sm font-semibold text-gray-700 mb-1">סיסמה</label>
+            <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    placeholder="סיסמה"
+                    class="w-full pr-12 pl-5 py-3 rounded-xl border border-purple-300 shadow-sm bg-white/90 text-right text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-purple-400/30 focus:border-purple-500 transition"
+                    required
+            />
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 class="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-purple-400" fill="none"
+                 viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 11c1.38 0 2.5-1.12 2.5-2.5S13.38 6 12 6s-2.5 1.12-2.5 2.5S10.62 11 12 11zm0 0v2m0 4h.01"/>
+            </svg>
+        </div>
 
-      <!-- Submit Button -->
-      <button
-        type="submit"
-        class="w-full py-3 px-6 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-lg font-semibold rounded-xl shadow-md hover:from-purple-700 hover:to-indigo-700 transition duration-300 transform hover:scale-105 active:scale-95"
-      >
-        התחבר למערכת
-      </button>
+        <!-- Submit Button -->
+        <button
+                type="submit"
+                class="w-full py-3 px-6 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-lg font-semibold rounded-xl shadow-md hover:from-purple-700 hover:to-indigo-700 transition duration-300 transform hover:scale-105 active:scale-95"
+        >
+            התחבר למערכת
+        </button>
     </form>
 
     <!-- Error Message -->
     <div id="errorMessage" class="error-message text-center text-red-600 font-medium text-lg">
-      Invalid Input
+        Invalid Input
     </div>
 
     <!-- Footer Link -->
     <div class="text-center pt-4">
-      <p class="text-sm sm:text-base font-medium bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-500 bg-clip-text text-transparent animate-pulse">
-        ✨ <a href="https://www.pdn.co.il" target="_blank" class="hover:underline">PDN – הנווט החכם להתפתחות אישית</a> ✨
-      </p>
+        <p class="text-sm sm:text-base font-medium bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-500 bg-clip-text text-transparent animate-pulse">
+            ✨ <a href="https://www.pdn.co.il" target="_blank" class="hover:underline">PDN – הנווט החכם להתפתחות
+            אישית</a> ✨
+        </p>
     </div>
-  </main>
+</main>
 
-  <script>
+<script>
     const form = document.getElementById('loginForm');
     const errorMessage = document.getElementById('errorMessage');
 
@@ -146,6 +154,7 @@
         console.error('Error:', error);
       }
     });
-  </script>
+
+</script>
 </body>
 </html>
