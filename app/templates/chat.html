@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <title>PDN Chat</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-  <style>
+    <meta charset="UTF-8"/>
+    <title>PDN Chat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <style>
     body {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       font-family: 'Rubik', sans-serif;
@@ -73,40 +73,43 @@
       background: #4f46e5;
       transform: scale(1.1);
     }
-  </style>
+
+    </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
 
-  <main id="chatArea" class="glass-effect p-8 rounded-2xl shadow-2xl w-full max-w-2xl border border-white/20 space-y-6">
-    <h1 class="text-4xl font-bold text-center text-gray-800 bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">אבחון אישי - PDN</h1>
+<main id="chatArea" class="glass-effect p-8 rounded-2xl shadow-2xl w-full max-w-2xl border border-white/20 space-y-6">
+    <h1 class="text-4xl font-bold text-center text-gray-800 bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+        אבחון אישי - PDN</h1>
 
     <div id="messages" class="space-y-4 fade-in">
         <div id="welcomeMessage"
-             class="p-6 rounded-xl border border-indigo-100 bg-gradient-to-r from-purple-100 to-indigo-100 text-gray-800 shadow-sm fade-in text-right" dir="rtl">
-          שלום! 👋<br><br>
-          אני כאן כדי לעזור לך לגלות את קוד PDN שלך. 🎯<br><br>
-          האבחון כולל סדרת שאלות קצרות. ענה בכנות ובלב פתוח. ✨<br><br>
-          לחץ על "מוכן להתחיל" כדי לצאת לדרך 🚀
+             class="p-6 rounded-xl border border-indigo-100 bg-gradient-to-r from-purple-100 to-indigo-100 text-gray-800 shadow-sm fade-in text-right"
+             dir="rtl">
+            שלום! 👋<br><br>
+            אני כאן כדי לעזור לך לגלות את קוד PDN שלך. 🎯<br><br>
+            האבחון כולל סדרת שאלות קצרות. ענה בכנות ובלב פתוח. ✨<br><br>
+            לחץ על "מוכן להתחיל" כדי לצאת לדרך 🚀
         </div>
         <div id="stageInstructions"
              class="hidden p-6 rounded-xl border border-indigo-100 bg-gradient-to-r from-purple-100 to-indigo-100 text-gray-800 shadow-sm fade-in"></div>
-      </div>
+    </div>
 
     <div id="questionArea" class="hidden space-y-6">
-      <h2 id="questionText"
-          class="text-xl font-semibold text-gray-700 mb-4 bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent"></h2>
-      <div id="options" class="space-y-3"></div>
+        <h2 id="questionText"
+            class="text-xl font-semibold text-gray-700 mb-4 bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent"></h2>
+        <div id="options" class="space-y-3"></div>
     </div>
 
     <div id="startButtonArea" class="text-center">
-      <button onclick="startChat()"
-              class="w-full py-4 px-6 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-xl hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-purple-500/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg">
-        מוכן להתחיל
-      </button>
+        <button onclick="startChat()"
+                class="w-full py-4 px-6 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-xl hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-purple-500/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg">
+            מוכן להתחיל
+        </button>
     </div>
-  </main>
+</main>
 
-  <script>
+<script>
     let currentQuestion = 1;
     let currentStage = '';
 
@@ -376,6 +379,7 @@
         console.error('Error:', error);
       }
     }
-  </script>
+
+</script>
 </body>
 </html>
