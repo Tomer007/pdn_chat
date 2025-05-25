@@ -184,18 +184,18 @@
       try {
         const response = await fetch('/get_report_data');
         const data = await response.json();
-        document.getElementById('titleName').textContent = `דוח אישי – PDN של ${data.metadata.name}`;
+        document.getElementById('titleName').textContent = `דוח אישי – PDN של: ${data.metadata.first_name} ${data.metadata.last_name}`;
         document.getElementById('pdnCode').textContent = `צופן אישי: ${data.results.pdn_code}`;
-        document.getElementById('pdnDescription').textContent = data.results.description || '';
-        document.getElementById('foundation').textContent = data.results.foundation || '';
-        document.getElementById('energy').textContent = data.results.energy || '';
-        document.getElementById('type').textContent = data.results.type || '';
-        populateList('strengths', data.results.strengths);
-        populateList('challenges', data.results.challenges);
-        populateList('growth', data.results.growth);
-        populateList('suitableFields', data.results.suitable_fields);
-        populateAboutYou(data.results.about_you);
-        populateSummary(data.results.summary);
+        // document.getElementById('pdnDescription').textContent = data.results.description || '';
+        // document.getElementById('foundation').textContent = data.results.foundation || '';
+        // document.getElementById('energy').textContent = data.results.energy || '';
+        // document.getElementById('type').textContent = data.results.type || '';
+        // populateList('strengths', data.results.strengths);
+        // populateList('challenges', data.results.challenges);
+        // populateList('growth', data.results.growth);
+        // populateList('suitableFields', data.results.suitable_fields);
+        // populateAboutYou(data.results.about_you);
+        // populateSummary(data.results.summary);
       } catch (error) {
         console.error('Error loading report:', error);
       }
