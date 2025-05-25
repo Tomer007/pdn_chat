@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: your-app-name
+    env: node # or python, ruby, etc.
+    buildCommand: npm install && npm run build # adjust based on your project
+    startCommand: npm start # adjust based on your project
+    envVars:
+      - key: NODE_ENV
+        value: production 
