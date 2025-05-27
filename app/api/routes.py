@@ -84,6 +84,9 @@ async def home(request: Request):
     logger.debug("GET / called")
     api_usage["home"] += 1
     logger.debug(f"API Usage: {dict(api_usage)}")
+    logger.info("Request: %s %s", request.method, request.url)
+    logger.info("Response: %s", 200)
+    logger.info("User answers: %s", user_answers)
     return templates.TemplateResponse("login.html", {"request": request})
 
 
@@ -97,6 +100,9 @@ async def chat(request: Request):
     logger.debug("GET /chat called")
     api_usage["chat"] += 1
     logger.debug(f"API Usage: {dict(api_usage)}")
+    logger.info("Request: %s %s", request.method, request.url)
+    logger.info("Response: %s", 200)
+    logger.info("User answers: %s", user_answers)
     config = request.app.state.config
     email = request.session.get("email", None)
     return templates.TemplateResponse(
@@ -120,6 +126,9 @@ async def user_info_page(request: Request):
     logger.debug("GET /user_info called")
     api_usage["user_info"] += 1
     logger.debug(f"API Usage: {dict(api_usage)}")
+    logger.info("Request: %s %s", request.method, request.url)
+    logger.info("Response: %s", 200)
+    logger.info("User answers: %s", user_answers)
     email = request.session.get("email", "anonymous")
     # Load questions.json to get the instructions
     with open("app/data/questions.json", "r", encoding="utf-8") as f:
@@ -143,6 +152,8 @@ async def save_user_info_api(request: Request):
     logger.debug("POST /user_info called")
     api_usage["save_user_info"] += 1
     logger.debug(f"API Usage: {dict(api_usage)}")
+    logger.info("Request: %s %s", request.method, request.url)
+    logger.info("Response: %s", 200)
     try:
         user_data = await request.json()
         email = user_data.get('email', 'anonymous')
@@ -160,6 +171,8 @@ async def login_user(request: Request, login_data: LoginRequest):
     logger.debug("POST /login called")
     api_usage["login"] += 1
     logger.debug(f"API Usage: {dict(api_usage)}")
+    logger.info("Request: %s %s", request.method, request.url)
+    logger.info("Response: %s", 200)
     if login_data.password == "1":
         request.session["email"] = login_data.email
         return {"message": "Login successful"}
@@ -172,6 +185,8 @@ async def get_question_route(request: Request, question_number: int):
     logger.debug(f"GET /questionnaire/{question_number} called")
     api_usage[f"get_question_{question_number}"] += 1
     logger.debug(f"API Usage: {dict(api_usage)}")
+    logger.info("Request: %s %s", request.method, request.url)
+    logger.info("Response: %s", 200)
     questions = request.app.state.questions
     return get_question(question_number, questions)
 
@@ -186,6 +201,8 @@ async def submit_answer_route(request: Request):
     logger.debug("POST /answer called")
     api_usage["submit_answer"] += 1
     logger.debug(f"API Usage: {dict(api_usage)}")
+    logger.info("Request: %s %s", request.method, request.url)
+    logger.info("Response: %s", 200)
     data = await request.json()
     question_number = data.get("question_number")
     selected_option_code = data.get("selected_option_code")
@@ -207,6 +224,8 @@ async def complete_questionnaire(request: Request):
     logger.debug("POST /complete_questionnaire called")
     api_usage["complete_questionnaire"] += 1
     logger.debug(f"API Usage: {dict(api_usage)}")
+    logger.info("Request: %s %s", request.method, request.url)
+    logger.info("Response: %s", 200)
     email = request.session.get("email", "anonymous")
     user_answers = load_answers(email)
 
@@ -223,6 +242,8 @@ async def pdn_report(request: Request):
     logger.debug("GET /pdn_report called")
     api_usage["pdn_report"] += 1
     logger.debug(f"API Usage: {dict(api_usage)}")
+    logger.info("Request: %s %s", request.method, request.url)
+    logger.info("Response: %s", 200)
     return templates.TemplateResponse("pdn_report.html", {
         "request": request,
         "include_menu": True
@@ -234,6 +255,8 @@ async def get_report_data(request: Request):
     logger.debug("GET /get_report_data called")
     api_usage["get_report_data"] += 1
     logger.debug(f"API Usage: {dict(api_usage)}")
+    logger.info("Request: %s %s", request.method, request.url)
+    logger.info("Response: %s", 200)
     email = request.session.get("email", "anonymous")
     user_answers = load_answers(email)
     
