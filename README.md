@@ -1,40 +1,30 @@
-# PDN Diagnosis System
+# PDN Chat Application
 
-A FastAPI-based system for PDN (Personality Diagnosis Network) assessment and analysis.
+A web-based application for PDN (Personality Diagnostic Network) assessment and analysis.
 
 ## Features
 
 - User authentication and session management
 - Interactive questionnaire system
-- PDN code calculation
+- PDN code calculation and analysis
 - Detailed personality reports
+- Chat interface for user interaction
 - API documentation with Swagger UI
 
-## API Endpoints
+## Tech Stack
 
-### Pages
-- `GET /` - Home page (login)
-- `GET /chat` - Chat interface
-- `GET /pdn_report` - PDN report page
+- **Backend**: FastAPI (Python)
+- **Frontend**: HTML, CSS, JavaScript
+- **Templates**: Jinja2
+- **Data Storage**: JSON/YAML
+- **Authentication**: Session-based
+- **Documentation**: Swagger UI/ReDoc
 
-### User Management
-- `POST /login` - User login
-- `GET /user_info` - User information form
-- `POST /user_info` - Save user information
-
-### Questionnaire
-- `GET /questionnaire/{question_number}` - Get specific question
-- `POST /answer` - Submit answer
-- `POST /complete_questionnaire` - Complete questionnaire
-
-### Reports
-- `GET /get_report_data` - Get PDN report data
-
-## Setup and Installation
+## Installation
 
 1. Clone the repository:
 ```bash
-git clone [repository-url]
+git clone [your-repository-url]
 cd pdn_chat
 ```
 
@@ -43,22 +33,10 @@ cd pdn_chat
 pip install -r requirements.txt
 ```
 
-3. Set up environment variables:
-```bash
-cp .env.example .env
-# Edit .env with your configuration
-```
-
-4. Run the application:
+3. Run the application:
 ```bash
 uvicorn app.main:app --reload
 ```
-
-## API Documentation
-
-Access the API documentation at:
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
 
 ## Project Structure
 
@@ -133,7 +111,14 @@ Access the API documentation at:
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is proprietary software. All rights reserved.
+
+Copyright (c) 2024 Tomer Gur
+
+This software and its contents are protected by copyright law. Unauthorized copying, modification, distribution, or use of this software, via any medium, is strictly prohibited.
+
+For licensing inquiries, please contact:
+- Email: tomergur@gmail.com
 
 ## Setup
 
@@ -191,4 +176,5 @@ Example codes:
 
 ## Contact
 
-tomergur@gmail.com
+For any questions or inquiries, please contact:
+- Email: tomergur@gmail.com
