@@ -24,8 +24,17 @@ app.add_middleware(SessionMiddleware, secret_key="your-very-secret-key")
 # Mount static folder
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
-# Set up logging
-logging.basicConfig(level=logging.INFO)
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),  # Console handler
+        logging.FileHandler('app.log')  # File handler
+    ]
+)
+
+# Create logger
 logger = logging.getLogger(__name__)
 
 # Global variables at startup

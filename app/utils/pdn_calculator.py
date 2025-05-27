@@ -1,3 +1,8 @@
+import logging
+
+# Add at the beginning of the file, after imports
+logger = logging.getLogger(__name__)
+
 def calculate_pdn_code(answers: dict) -> dict:
     """
     Calculate the PDN code based on user's answers.
@@ -34,14 +39,18 @@ def calculate_pdn_code(answers: dict) -> dict:
                 trait_counts['T'] += 1
                 trait_counts['P'] += 1
 
-    result['scores'].update(trait_counts)
-    dominant_trait = max(trait_counts, key=trait_counts.get)
+    for trait, score in trait_counts.items():
+        result['scores'][trait] += score
+    dominant_trait = max(result['scores'], key=result['scores'].get)
     result['trait'] = dominant_trait
 
-    print("Stage A: Primary Trait Calculation for T " + str(trait_counts['T']))
-    print("Stage A: Primary Trait Calculation for P " + str(trait_counts['P']))
-    print("Stage A: Primary Trait Calculation for E " + str(trait_counts['E']))
-    print("Stage A: Primary Trait Calculation for A " + str(trait_counts['A']))
+    logger.info("Stage A: Trait Calculation for A %s", result['scores']['A'])
+    logger.info("Stage A: Trait Calculation for T %s", result['scores']['T'])
+    logger.info("Stage A: Trait Calculation for P %s", result['scores']['P'])
+    logger.info("Stage A: Trait Calculation for E %s", result['scores']['E'])
+    logger.info("Stage A dominant trait %s", dominant_trait)
+
+
 
     # Stage B: Energy Type Calculation
     energy_counts = {'D': 0, 'S': 0, 'F': 0}
@@ -60,9 +69,11 @@ def calculate_pdn_code(answers: dict) -> dict:
     dominant_energy = max(energy_counts, key=energy_counts.get)
     result['energy'] = dominant_energy
 
-    print("Stage B: Energy Type Calculation for D " + str(energy_counts['D']))
-    print("Stage B: Energy Type Calculation for S " + str(energy_counts['S']))
-    print("Stage B: Energy Type Calculation for F " + str(energy_counts['F']))
+    logger.info("Stage B: Energy Type Calculation for D %s", energy_counts['D'])
+    logger.info("Stage B: Energy Type Calculation for S %s", energy_counts['S'])
+    logger.info("Stage B: Energy Type Calculation for F %s", energy_counts['F'])
+    logger.info("Stage B dominant energy %s", dominant_energy)
+
 
     # Stage C: Validation and Tie-Breaking
     for i in range(52, 58):
@@ -82,14 +93,45 @@ def calculate_pdn_code(answers: dict) -> dict:
                 result['scores'][trait1] -= score_adjustment
                 result['scores'][trait2] += score_adjustment
 
-    new_dominant_trait = max(result['scores'], key=result['scores'].get)
-    if result['scores'][new_dominant_trait] - result['scores'][result['trait']] >= 12:
-        result['trait'] = new_dominant_trait
+    for trait, score in trait_counts.items():
+        result['scores'][trait] += score
+    dominant_trait = max(result['scores'], key=result['scores'].get)
+    result['trait'] = dominant_trait
 
-    print("Stage C: Validation and Tie-Breaking for T " + str(result['scores']['T']))
-    print("Stage C: Validation and Tie-Breaking for P " + str(result['scores']['P']))
-    print("Stage C: Validation and Tie-Breaking for E " + str(result['scores']['E']))
-    print("Stage C: Validation and Tie-Breaking for A " + str(result['scores']['A']))
+
+    logger.info("Stage C: Trait Calculation for A %s", result['scores']['A'])
+    logger.info("Stage C: Trait Calculation for T %s", result['scores']['T'])
+    logger.info("Stage C: Trait Calculation for P %s", result['scores']['P'])
+    logger.info("Stage C: Trait Calculation for E %s", result['scores']['E'])
+    logger.info("Stage C dominant trait %s", dominant_trait)
+
+
+# StageD: Strengthen Dominant Trait
+    trait_counts = {'A': 0, 'T': 0, 'P': 0, 'E': 0}
+    for i in range(58, 61):
+        if str(i) in answers:
+            ranking = answers[str(i)]['ranking']
+            for trait, rank in ranking.items():
+                if rank == 1:
+                    trait_counts[trait] += 8  
+                elif rank == 2:
+                    trait_counts[trait] += 6
+                elif rank == 3:
+                    trait_counts[trait] += 4
+                elif rank == 4:
+                    trait_counts[trait] += 2
+
+    for trait, score in trait_counts.items():
+        result['scores'][trait] += score
+    dominant_trait = max(result['scores'], key=result['scores'].get)
+    result['trait'] = dominant_trait
+
+    logger.info("Stage D: Trait Calculation for A %s", result['scores']['A'])
+    logger.info("Stage D: Trait Calculation for T %s", result['scores']['T'])
+    logger.info("Stage D: Trait Calculation for P %s", result['scores']['P'])
+    logger.info("Stage D: Trait Calculation for E %s", result['scores']['E'])
+    logger.info("Stage D dominant trait %s", dominant_trait)
+
 
     # Finalizing the PDN code
     pdn_matrix = {
@@ -102,6 +144,6 @@ def calculate_pdn_code(answers: dict) -> dict:
     pdn_code = pdn_matrix.get((result['trait'], result['energy']), 'NA')
     result['pdn_code'] = pdn_code
 
-    print("Finalizing the PDN code " + str(pdn_code))
+    logger.info("Finalizing the PDN code %s", pdn_code)
 
     return pdn_code
