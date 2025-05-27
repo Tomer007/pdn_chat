@@ -1,9 +1,27 @@
 services:
   - type: web
-    name: your-app-name
-    env: node # or python, ruby, etc.
-    buildCommand: npm install && npm run build # adjust based on your project
-    startCommand: npm start # adjust based on your project
+    name: pdn-diagnosis
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
-      - key: NODE_ENV
-        value: production 
+      - key: PYTHON_VERSION
+        value: 3.9.0
+      - key: PORT
+        value: 8000
+      - key: SECRET_KEY
+        generateValue: true
+      - key: SMTP_SERVER
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: 587
+      - key: SMTP_USERNAME
+        value: tomergur@gmail.com
+      - key: SMTP_PASSWORD
+        value: jlzd ytwd dpat hcsi
+    healthCheckPath: /
+    autoDeploy: true
+    disk:
+      name: pdn-data
+      mountPath: /app/saved_results
+      sizeGB: 1 

@@ -13,6 +13,7 @@ from app.utils.answer_storage import save_answer
 from app.utils.pdn_calculator import calculate_pdn_code
 from app.utils.questionnaire import get_question
 from app.utils.report_generator import load_pdn_report
+from app.utils.email_sender import send_email
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -268,13 +269,19 @@ async def get_report_data(request: Request):
     
     if not pdn_code:
         raise HTTPException(status_code=400, detail="Could not calculate PDN code")
-        
+
     report_data = load_pdn_report(pdn_code)
+    
+    # Send email report
+    email_sent = send_email(user_answers, pdn_code, report_data)
+    if not email_sent:
+        logger.warning("Failed to send email report")
     
     return {
         "metadata": metadata,
         "results": {
             "pdn_code": pdn_code,
             **report_data
-        }
+        },
+        "email_sent": email_sent
     }
