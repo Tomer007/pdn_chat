@@ -84,7 +84,7 @@ def calculate_pdn_code(answers: dict) -> dict:
             value1, value2 = ranking[trait1], ranking[trait2]
 
             difference = value1 - value2
-            score_adjustment = abs(difference) * 2
+            score_adjustment = abs(difference)
 
             if difference > 0:
                 result['scores'][trait1] += score_adjustment
@@ -123,15 +123,15 @@ def calculate_pdn_code(answers: dict) -> dict:
                     result['scores'][combo1[0]] += score_adjustment
                     result['scores'][combo1[1]] += score_adjustment
                     # Subtract points from both traits in the losing combination
-                    result['scores'][combo2[0]] -= score_adjustment
-                    result['scores'][combo2[1]] -= score_adjustment
+                    result['scores'][combo2[0]] -= score_adjustment/2
+                    result['scores'][combo2[1]] -= score_adjustment/2
                 elif difference < 0:
                     # Add points to both traits in the winning combination
                     result['scores'][combo2[0]] += score_adjustment
                     result['scores'][combo2[1]] += score_adjustment
                     # Subtract points from both traits in the losing combination
-                    result['scores'][combo1[0]] -= score_adjustment
-                    result['scores'][combo1[1]] -= score_adjustment
+                    result['scores'][combo1[0]] -= score_adjustment/2
+                    result['scores'][combo1[1]] -= score_adjustment/2
 
     # Recalculate dominant trait after all adjustments
     dominant_trait = max(result['scores'], key=result['scores'].get)
