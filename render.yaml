@@ -18,7 +18,7 @@ services:
       - key: SMTP_USERNAME
         value: tomergur@gmail.com
       - key: SMTP_PASSWORD
-        value: jlzd ytwd dpat hcsi
+        value: XXXXX
     healthCheckPath: /
     autoDeploy: true
     disk:
