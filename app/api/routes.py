@@ -174,7 +174,7 @@ async def login_user(request: Request, login_data: LoginRequest):
     logger.debug(f"API Usage: {dict(api_usage)}")
     logger.info("Request: %s %s", request.method, request.url)
     logger.info("Response: %s", 200)
-    if login_data.password == "1":
+    if login_data.password == "pdn":
         request.session["email"] = login_data.email
         return {"message": "Login successful"}
     else:
