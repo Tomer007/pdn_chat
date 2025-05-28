@@ -86,10 +86,10 @@
         <div id="welcomeMessage"
              class="p-6 rounded-xl border border-indigo-100 bg-gradient-to-r from-purple-100 to-indigo-100 text-gray-800 shadow-sm fade-in text-right"
              dir="rtl">
-            שלום! 👋<br><br>
-            אני כאן כדי לעזור לך לגלות את קוד PDN שלך. 🎯<br><br>
-            האבחון כולל סדרת שאלות קצרות. ענה בכנות ובלב פתוח. ✨<br><br>
-            לחץ על "מוכן להתחיל" כדי לצאת לדרך 🚀
+            שלום!<br><br>
+            אני כאן כדי לעזור לך לגלות את קוד PDN שלך.<br><br>
+            האבחון כולל סדרת שאלות קצרות. ענה בכנות ובלב פתוח.<br><br>
+            לחץ על "מוכן להתחיל" כדי לצאת לדרך
         </div>
         <div id="stageInstructions"
              class="hidden p-6 rounded-xl border border-indigo-100 bg-gradient-to-r from-purple-100 to-indigo-100 text-gray-800 shadow-sm fade-in"></div>
@@ -124,8 +124,10 @@
     async function loadQuestion(questionNumber) {
       const response = await fetch(`/questionnaire/${questionNumber}`);
       const data = await response.json();
-      console.log(data);
+      console.log('Question data:', data);
+      console.log('Current stage:', data.stage);
       if (data.message === "No more questions.") {
+        console.log('No more questions.');
         completeQuestionnaire();
         return;
       }
@@ -134,9 +136,10 @@
       const optionsDiv = document.getElementById('options');
       optionsDiv.innerHTML = "";
 
-      // Handle slider questions for Part C
-      if (data.stage === "PartC") {
+      // Handle slider questions for Part C, D
+      if (data.stage == "PartC" || data.stage == "PartD") {
         // Create slider container
+        console.log(' data.stage ', data.stage);
         const sliderContainer = document.createElement('div');
         sliderContainer.className = 'space-y-4';
         
@@ -343,6 +346,7 @@
 
     async function submitAnswer(questionNumber, optionCode, optionText, ranking = null) {
       try {
+        console.log('Submitting answer for question:', questionNumber);
         const body = {
           question_number: questionNumber,
           selected_option_code: optionCode,
@@ -364,12 +368,22 @@
 
     async function completeQuestionnaire() {
       try {
+        // // Show loading state immediately
+        // document.getElementById('chatArea').innerHTML = `
+        //   <div class="text-center p-8">
+        //     <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+        //     <p class="mt-4 text-gray-700">מכין את הדוח שלך...</p>
+        //   </div>
+        // `;
+
+        // Make the request and wait for it to complete
         const response = await fetch('/complete_questionnaire', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'}
         });
 
         if (response.ok) {
+          // Only redirect after the report is fully generated
           window.location.href = '/pdn_report';
         } else {
           throw new Error('Failed to complete questionnaire');
