@@ -5,395 +5,390 @@
     <title>PDN Chat</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Varela+Round&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
-    body {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      font-family: 'Rubik', sans-serif;
-      min-height: 100vh;
-    }
-    .glass-effect {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(20px);
-      border-radius: 1.5rem;
-      box-shadow: 0 15px 30px rgba(0,0,0,0.1);
-    }
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(8px);
+      body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); font-family: 'Rubik', sans-serif; min-height: 100vh; }
+      .glass-effect { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); border-radius: 1.5rem; box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
+      @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+      .fade-in { animation: fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) both; }
+      .modal-backdrop {
+        position: fixed; inset: 0; background: rgba(55, 48, 163, 0.3); display: none;
+        align-items: center; justify-content: center; z-index: 50;
+        animation: modalBackdropIn .4s both;
       }
-      to {
-        opacity: 1;
-        transform: translateY(0);
+      @keyframes modalBackdropIn { from { opacity: 0; } to { opacity: 1; } }
+      .modal-animate {
+        animation: modalScaleIn .45s cubic-bezier(0.4,0,0.2,1) both;
       }
-    }
-    .fade-in {
-      animation: fadeInUp 0.4s ease-out both;
-    }
-
-    /* Slider styles */
-    input[type="range"] {
-      -webkit-appearance: none;
-      appearance: none;
-      height: 8px;
-      background: #e2e8f0;
-      border-radius: 4px;
-      outline: none;
-    }
-
-    input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 20px;
-      height: 20px;
-      background: #6366f1;
-      border-radius: 50%;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    input[type="range"]::-webkit-slider-thumb:hover {
-      background: #4f46e5;
-      transform: scale(1.1);
-    }
-
-    input[type="range"]::-moz-range-thumb {
-      width: 20px;
-      height: 20px;
-      background: #6366f1;
-      border-radius: 50%;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      border: none;
-    }
-
-    input[type="range"]::-moz-range-thumb:hover {
-      background: #4f46e5;
-      transform: scale(1.1);
-    }
-
+      @keyframes modalScaleIn { from { opacity: 0; transform: scale(0.88) translateY(32px);} to { opacity: 1; transform: scale(1) translateY(0);} }
+      .glow {
+        box-shadow: 0 0 30px 0 #a5b4fc88, 0 2px 32px 0 #818cf880;
+      }
+      .modal-icon {
+        font-size: 2.5rem;
+        color: #7c3aed;
+        filter: drop-shadow(0 2px 4px #818cf880);
+        margin-bottom: 12px;
+        animation: iconPop .6s cubic-bezier(0.68,-0.55,0.27,1.55);
+      }
+      @keyframes iconPop { 0% { transform: scale(0); } 70% { transform: scale(1.22); } 100% { transform: scale(1); } }
+      .modal-close-btn {
+        transition: background .22s, transform .15s;
+      }
+      .modal-close-btn:hover {
+        background: linear-gradient(to left, #7c3aed 80%, #6366f1 100%);
+        transform: scale(1.05) translateY(-2px);
+        box-shadow: 0 2px 8px #a5b4fc44;
+      }
+      @media (max-width: 600px) {
+        .glass-effect, .modal-card { padding: 1.2rem !important; }
+      }
+      /* Voice record UI */
+      #voiceRecordArea .recording {
+        color: #7c3aed;
+        font-weight: bold;
+        animation: pulse 1.1s infinite alternate;
+      }
+      @keyframes pulse { from { opacity: 1;} to { opacity: 0.5;} }
+      .audio-bar {
+        width: 8px; height: 22px; background: #7c3aed; margin: 0 2px; border-radius: 5px; display: inline-block; vertical-align: bottom;
+        animation: bounce 1s infinite alternate;
+      }
+      .audio-bar:nth-child(2) { animation-delay: .15s; }
+      .audio-bar:nth-child(3) { animation-delay: .3s; }
+      .audio-bar:nth-child(4) { animation-delay: .45s; }
+      .audio-bar:nth-child(5) { animation-delay: .6s; }
+      @keyframes bounce {
+        from { height: 8px; background: #c4b5fd; }
+        to   { height: 22px; background: #7c3aed; }
+      }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
 
+<!-- Modal for stage instructions -->
+<div id="instructionModal" class="fixed inset-0 bg-purple-800/40 backdrop-blur-sm hidden items-center justify-center z-50">
+  <div class="relative bg-gradient-to-r from-purple-100 to-indigo-100 rounded-2xl p-8 max-w-md w-full glass-effect glow animate-fade-in-up shadow-2xl text-center">
+    <!-- Animated bulb icon -->
+    <div class="text-4xl mb-4 animate-bounce">💡</div>
+    <!-- Title (if used) -->
+    <h3 id="modalTitle" class="text-lg font-extrabold mb-2" style="font-family:'Varela Round',cursive"></h3>
+    <!-- Instruction text -->
+    <p id="modalText" class="text-lg text-right text-gray-800 whitespace-pre-line mb-6 leading-relaxed"></p>
+    <!-- Action button -->
+    <button id="modalClose" class="mx-auto block py-3 px-8 text-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-purple-400/30 transform transition duration-300 hover:scale-105 animate-pulse">
+      הבנתי, אפשר להמשיך!
+    </button>
+  </div>
+</div>
+
+<style>
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(24px);}
+    to { opacity: 1; transform: translateY(0);}
+  }
+  .animate-fade-in-up {
+    animation: fadeInUp 0.5s cubic-bezier(0.4,0,0.2,1) both;
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0);}
+    50% { transform: translateY(-10px);}
+  }
+  .animate-bounce {
+    animation: bounce 1.2s infinite;
+  }
+  @keyframes pulse {
+    0% { transform: scale(1);}
+    50% { transform: scale(1.05);}
+    100% { transform: scale(1);}
+  }
+  .animate-pulse {
+    animation: pulse 2s infinite;
+  }
+</style>
+
+
 <main id="chatArea" class="glass-effect p-8 rounded-2xl shadow-2xl w-full max-w-2xl border border-white/20 space-y-6">
-    <h1 class="text-4xl font-bold text-center text-gray-800 bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-        אבחון אישי - PDN</h1>
-
+    <h1 class="text-4xl font-bold text-center text-gray-800 bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">אבחון אישי - PDN</h1>
     <div id="messages" class="space-y-4 fade-in">
-        <div id="welcomeMessage"
-             class="p-6 rounded-xl border border-indigo-100 bg-gradient-to-r from-purple-100 to-indigo-100 text-gray-800 shadow-sm fade-in text-right"
-             dir="rtl">
-            שלום!<br><br>
-            אני כאן כדי לעזור לך לגלות את קוד PDN שלך.<br><br>
-            האבחון כולל סדרת שאלות קצרות. ענה בכנות ובלב פתוח.<br><br>
-            לחץ על "מוכן להתחיל" כדי לצאת לדרך
+        <!-- Welcome Message -->
+        <div id="welcomeMessage" class="p-6 rounded-xl border border-indigo-100 bg-gradient-to-r from-purple-100 to-indigo-100 text-gray-800 shadow-sm fade-in text-right" dir="rtl">
+            <p class="text-lg mb-4">שלום!</p>
+            <p class="text-lg mb-4">אני כאן כדי לעזור לך לגלות את קוד PDN שלך.</p>
+            <p class="text-lg mb-4">האבחון כולל סדרת שאלות קצרות. ענה בכנות ובלב פתוח.</p>
         </div>
-        <div id="stageInstructions"
-             class="hidden p-6 rounded-xl border border-indigo-100 bg-gradient-to-r from-purple-100 to-indigo-100 text-gray-800 shadow-sm fade-in"></div>
+        <!-- Voice Recording Section -->
+        <div id="voiceRecordArea" class="hidden fade-in text-center space-y-4 bg-gradient-to-r from-purple-100 to-indigo-100 p-7 rounded-2xl shadow" style="max-width:520px;margin:0 auto;">
+            <div class="text-lg font-semibold text-gray-700">הקלט את עצמך מדבר במשך דקה</div>
+            <p class="text-lg text-gray-600">לחץ על כפתור ההקלטה, ספר על עצמך או פשוט דבר בחופשיות במשך דקה.<br> כשתסיים, לחץ על "סיים והמשך".</p>
+            <div>
+                <button id="startRecordBtn" class="text-lg py-3 px-7 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl shadow-lg font-semibold">התחל להקליט</button>
+                <button id="stopRecordBtn" class="hidden text-lg py-3 px-7 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-xl shadow-lg font-semibold ml-2">סיים והמשך</button>
+            </div>
+            <div id="recordStatus" class="text-lg text-purple-700"></div>
+            <div id="visualizer" class="flex justify-center items-end space-x-1 mb-1" style="height:24px;direction:ltr"></div>
+            <audio id="audioPlayback" controls class="hidden mx-auto" style="max-width:260px"></audio>
+        </div>
     </div>
-
     <div id="questionArea" class="hidden space-y-6">
-        <h2 id="questionText"
-            class="text-xl font-semibold text-gray-700 mb-4 bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent"></h2>
+        <h2 id="questionText" class="text-lg font-semibold text-gray-700 mb-4 bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent"></h2>
         <div id="options" class="space-y-3"></div>
     </div>
-
     <div id="startButtonArea" class="text-center">
-        <button onclick="startChat()"
-                class="w-full py-4 px-6 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-xl hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-purple-500/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg">
-            מוכן להתחיל
-        </button>
+        <button onclick="startChat()" class="text-lg w-full py-4 px-6 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-xl hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-purple-500/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg">מוכן להתחיל</button>
     </div>
 </main>
 
 <script>
-    let currentQuestion = 1;
-    let currentStage = '';
+let currentQuestion = 1;
+let currentStage = '';
+let nextData = null;
 
-    function startChat() {
-      document.getElementById('startButtonArea').classList.add('hidden');
-      document.getElementById('welcomeMessage').classList.add('hidden');
-      document.getElementById('questionArea').classList.remove('hidden');
-      loadQuestion(currentQuestion);
+// Modal logic
+const modal = document.getElementById('instructionModal');
+const modalTitle = document.getElementById('modalTitle');
+const modalText = document.getElementById('modalText');
+document.getElementById('modalClose').onclick = () => {
+    modal.style.display = 'none';
+    document.body.style.overflow = "";
+    if (nextData) { actuallyRenderQuestion(nextData); nextData = null; }
+};
+
+// Voice record logic
+let mediaRecorder;
+let audioChunks = [];
+let recordTimer = null;
+let recordElapsed = 0;
+
+const startBtn = document.getElementById('startRecordBtn');
+const stopBtn = document.getElementById('stopRecordBtn');
+const recordStatus = document.getElementById('recordStatus');
+const audioPlayback = document.getElementById('audioPlayback');
+const visualizer = document.getElementById('visualizer');
+
+function startChat() {
+    document.getElementById('startButtonArea').classList.add('hidden');
+    document.getElementById('welcomeMessage').classList.add('hidden');
+    document.getElementById('voiceRecordArea').classList.remove('hidden');
+    resetVoiceUI();
+}
+
+startBtn.onclick = async function() {
+    audioChunks = [];
+    recordStatus.innerHTML = '<span class="recording">מקליט... (00:00 / 01:00)</span>';
+    startBtn.classList.add('hidden');
+    stopBtn.classList.remove('hidden');
+    audioPlayback.classList.add('hidden');
+    visualizer.innerHTML = '';
+    // Add fake bars for animation
+    for(let i=0;i<5;i++){
+        const bar = document.createElement('div');
+        bar.className = 'audio-bar';
+        visualizer.appendChild(bar);
     }
-
-    
-    async function loadQuestion(questionNumber) {
-      const response = await fetch(`/questionnaire/${questionNumber}`);
-      const data = await response.json();
-      console.log('Question data:', data);
-      console.log('Current stage:', data.stage);
-      if (data.message === "No more questions.") {
-        console.log('No more questions.');
-        completeQuestionnaire();
-        return;
-      }
-      
-      document.getElementById('questionText').innerText = data.question;
-      const optionsDiv = document.getElementById('options');
-      optionsDiv.innerHTML = "";
-
-      // Handle slider questions for Part C, D
-      if (data.stage == "PartC" || data.stage == "PartD") {
-        // Create slider container
-        console.log(' data.stage ', data.stage);
-        const sliderContainer = document.createElement('div');
-        sliderContainer.className = 'space-y-4';
-        
-        // Create labels container
-        const labelsContainer = document.createElement('div');
-        labelsContainer.className = 'flex justify-between text-sm text-gray-600';
-        
-        // Left label and button container (right side in RTL)
-        const leftContainer = document.createElement('div');
-        leftContainer.className = 'flex items-center gap-2';
-        const leftLabel = document.createElement('span');
-        leftLabel.textContent = data.options[0].text;
-        leftLabel.className = 'text-right';
-        
-        // Left button (now on the right side in RTL)
-        const leftButton = document.createElement('button');
-        leftButton.innerHTML = '&#8594;'; // Right arrow
-        leftButton.className = 'w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-full text-gray-600 font-bold transition-colors';
-        leftButton.onclick = () => {
-          const currentValue = parseInt(slider.value);
-          if (currentValue > 1) {
-            slider.value = currentValue - 1;
-            slider.dispatchEvent(new Event('input'));
-          }
+    recordElapsed = 0;
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+        mediaRecorder.onstop = e => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            audioPlayback.src = URL.createObjectURL(audioBlob);
+            audioPlayback.classList.remove('hidden');
+            visualizer.innerHTML = '';
         };
-        
-        // Add button before label in RTL
-        leftContainer.appendChild(leftButton);
-        leftContainer.appendChild(leftLabel);
-        
-        // Right label and button container (left side in RTL)
-        const rightContainer = document.createElement('div');
-        rightContainer.className = 'flex items-center gap-2';
-        const rightLabel = document.createElement('span');
-        rightLabel.textContent = data.options[1].text;
-        rightLabel.className = 'text-left';
-        
-        // Right button (now on the left side in RTL)
-        const rightButton = document.createElement('button');
-        rightButton.innerHTML = '&#8592;'; // Left arrow
-        rightButton.className = 'w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-full text-gray-600 font-bold transition-colors';
-        rightButton.onclick = () => {
-          const currentValue = parseInt(slider.value);
-          if (currentValue < 7) {
-            slider.value = currentValue + 1;
-            slider.dispatchEvent(new Event('input'));
-          }
-        };
-        
-        // Add button before label in RTL
-        rightContainer.appendChild(rightButton);
-        rightContainer.appendChild(rightLabel);
-        
-        // Add containers to labels container
-        labelsContainer.appendChild(leftContainer);
-        labelsContainer.appendChild(rightContainer);
-        
-        // Create slider
-        const slider = document.createElement('input');
-        slider.type = 'range';
-        slider.min = '1';
-        slider.max = '7';
-        slider.value = '4';
-        slider.className = 'w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer';
-        
-        // Create value display
-        const valueDisplay = document.createElement('div');
-        valueDisplay.className = 'text-center text-sm text-gray-600';
-        valueDisplay.textContent = 'באמצע';
-        
-        // Add event listeners
-        slider.addEventListener('input', (e) => {
-          const value = parseInt(e.target.value);
-          let descriptiveText;
-          
-          // Get the left and right options from the question data
-          const leftOption = data.options[0].text;
-          const rightOption = data.options[1].text;
-          
-          switch(value) {
-            case 1: descriptiveText = leftOption; break;
-            case 2: descriptiveText = `לרב ${leftOption}`; break;
-            case 3: descriptiveText = `במידה מסוימת ${leftOption}`; break;
-            case 4: descriptiveText = 'באמצע'; break;
-            case 5: descriptiveText = `במידה מסוימת ${rightOption}`; break;
-            case 6: descriptiveText = `לרב ${rightOption}`; break;
-            case 7: descriptiveText = rightOption; break;
-          }
-          
-          valueDisplay.textContent = descriptiveText;
-        });
-        
-        // Create submit button
-        const submitBtn = document.createElement('button');
-        submitBtn.type = 'button';
-        submitBtn.innerText = 'שלח תשובה';
-        submitBtn.className = 'w-full py-3 px-6 mt-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-xl hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-purple-500/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg';
-        
-        // Add submit button click handler
-        submitBtn.onclick = async () => {
-          const value = parseInt(slider.value);
-          let leftPoints, rightPoints;
-          
-          // Get the codes from the question data
-          const leftCode = data.options[0].code;
-          const rightCode = data.options[1].code;
-          
-          switch(value) {
-            case 1: leftPoints = 12; rightPoints = 0; break;
-            case 2: leftPoints = 10; rightPoints = 2; break;
-            case 3: leftPoints = 8; rightPoints = 4; break;
-            case 4: leftPoints = 6; rightPoints = 6; break;
-            case 5: leftPoints = 4; rightPoints = 8; break;
-            case 6: leftPoints = 2; rightPoints = 10; break;
-            case 7: leftPoints = 0; rightPoints = 12; break;
-          }
-          
-          await submitAnswer(questionNumber, null, null, {
-            [leftCode]: leftPoints,
-            [rightCode]: rightPoints
-          });
-        };
-        
-        // Assemble the slider UI
-        sliderContainer.appendChild(labelsContainer);
-        sliderContainer.appendChild(slider);
-        sliderContainer.appendChild(valueDisplay);
-        sliderContainer.appendChild(submitBtn);
-        
-        optionsDiv.appendChild(sliderContainer);
-        
-        // Show instructions
-        const instructionsDiv = document.getElementById('stageInstructions');
-        if (data.instructions) {
-          instructionsDiv.classList.remove('hidden');
-          instructionsDiv.innerHTML = data.instructions.replace(/\n/g, '<br>');
-        } else {
-          instructionsDiv.classList.add('hidden');
-        }
-        return;
-      }
-
-      // Handle ranking question with drag-and-drop
-      if (data.type === "ranking") {
-        
-        // Create the draggable list
-        const list = document.createElement('ul');
-        list.id = 'rankingList';
-        list.className = 'space-y-2';
-        data.options.forEach((option, idx) => {
-          const item = document.createElement('li');
-          item.className = 'cursor-move bg-white border border-indigo-200 rounded-lg px-4 py-3 shadow flex items-center text-gray-800 font-medium';
-          item.setAttribute('data-code', option.code);
-          item.innerText = option.text;
-          list.appendChild(item);
-        });
-        optionsDiv.appendChild(list);
-        // Initialize SortableJS
-        Sortable.create(list, { animation: 150 });
-        // Submit button
-        const submitBtn = document.createElement('button');
-        submitBtn.type = 'button';
-        submitBtn.innerText = 'שלח דירוג';
-        submitBtn.className = 'w-full py-3 px-6 mt-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-xl hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-purple-500/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg';
-        submitBtn.onclick = async (e) => {
-          e.preventDefault();
-          // Read the order
-          const items = list.querySelectorAll('li');
-          const ranking = {};
-          items.forEach((item, idx) => {
-            ranking[item.getAttribute('data-code')] = idx + 1; // 1 = best, 3 = lowest
-          });
-          await submitAnswer(questionNumber, null, null, ranking);
-        };
-        optionsDiv.appendChild(submitBtn);
-        const instructionsDiv = document.getElementById('stageInstructions');
-      if (data.instructions) {
-        instructionsDiv.classList.remove('hidden');
-        instructionsDiv.innerHTML = data.instructions.replace(/\n/g, '<br>');
-      } else {
-        instructionsDiv.classList.add('hidden');
-      }
-        return;
-      }
-
-      // Default: regular options as buttons
-      data.options.forEach(option => {
-        const button = document.createElement("button");
-        button.innerText = option.text;
-        button.className = "fade-in w-full py-4 px-6 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-xl hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-purple-500/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg";
-        button.onclick = () => submitAnswer(questionNumber, option.code, option.text);
-        optionsDiv.appendChild(button);
-      });
-
-      // Show instructions from backend (question or phase)
-      const instructionsDiv = document.getElementById('stageInstructions');
-      if (data.instructions) {
-        instructionsDiv.classList.remove('hidden');
-        instructionsDiv.innerHTML = data.instructions.replace(/\n/g, '<br>');
-      } else {
-        instructionsDiv.classList.add('hidden');
-      }
+        mediaRecorder.start();
+        // Timer for duration
+        recordTimer = setInterval(() => {
+            recordElapsed++;
+            let sec = recordElapsed % 60, min = Math.floor(recordElapsed / 60);
+            recordStatus.innerHTML = `<span class="recording">מקליט... (${("0"+min).slice(-2)}:${("0"+sec).slice(-2)} / 01:00)</span>`;
+            if(recordElapsed >= 60) {
+                finishRecording();
+            }
+        }, 1000);
+    } catch (err) {
+        recordStatus.innerHTML = '<span class="text-red-600 font-semibold">שגיאה בגישה למיקרופון</span>';
+        stopBtn.classList.add('hidden');
+        startBtn.classList.remove('hidden');
+        visualizer.innerHTML = '';
     }
+};
 
-    async function submitAnswer(questionNumber, optionCode, optionText, ranking = null) {
-      try {
-        console.log('Submitting answer for question:', questionNumber);
-        const body = {
-          question_number: questionNumber,
-          selected_option_code: optionCode,
-          selected_option_text: optionText
-        };
-        if (ranking) body.ranking = ranking;
-        await fetch('/answer', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify(body)
-        });
-        currentQuestion++;
+function finishRecording() {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+        clearInterval(recordTimer);
+        recordStatus.innerHTML = '<span class="text-purple-600 font-bold">ההקלטה הסתיימה. ניתן להאזין ולהמשיך.</span>';
+        stopBtn.innerText = 'המשך';
+        stopBtn.classList.remove('hidden');
+        startBtn.classList.add('hidden');
+        visualizer.innerHTML = '';
+    }
+}
+
+stopBtn.onclick = function() {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+        finishRecording();
+    } else {
+        document.getElementById('voiceRecordArea').classList.add('hidden');
+        document.getElementById('questionArea').classList.remove('hidden');
         loadQuestion(currentQuestion);
-      } catch (error) {
-        alert('שגיאה בשליחת התשובה, אנא נסה שוב.');
-        console.error('Error:', error);
-      }
     }
+};
 
-    async function completeQuestionnaire() {
-      try {
-        // // Show loading state immediately
-        // document.getElementById('chatArea').innerHTML = `
-        //   <div class="text-center p-8">
-        //     <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-        //     <p class="mt-4 text-gray-700">מכין את הדוח שלך...</p>
-        //   </div>
-        // `;
+function resetVoiceUI() {
+    startBtn.classList.remove('hidden');
+    stopBtn.classList.add('hidden');
+    stopBtn.innerText = 'סיים והמשך';
+    recordStatus.innerHTML = '';
+    audioPlayback.classList.add('hidden');
+    audioPlayback.src = '';
+    visualizer.innerHTML = '';
+    if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
+    if (recordTimer) clearInterval(recordTimer);
+}
 
-        // Make the request and wait for it to complete
-        const response = await fetch('/complete_questionnaire', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'}
-        });
-
-        if (response.ok) {
-          // Only redirect after the report is fully generated
-          window.location.href = '/pdn_report';
-        } else {
-          throw new Error('Failed to complete questionnaire');
+// Question/Modal logic
+async function loadQuestion(questionNumber) {
+    const response = await fetch(`/questionnaire/${questionNumber}`);
+    const data = await response.json();
+    if (data.message === "No more questions.") return completeQuestionnaire();
+    if (data.stage !== currentStage) {
+        currentStage = data.stage;
+        if (data.instructions) {
+            modalTitle.innerHTML = ""; // No title
+            modalText.innerText = data.instructions;
+            modal.style.display = 'flex';
+            document.body.style.overflow = "hidden";
+            setTimeout(() => {
+                document.querySelector('.modal-card').classList.remove('modal-animate');
+                void document.querySelector('.modal-card').offsetWidth;
+                document.querySelector('.modal-card').classList.add('modal-animate');
+            }, 10);
+            nextData = data;
+            return;
         }
-      } catch (error) {
-        alert('שגיאה בסיום השאלון, אנא נסה שוב.');
-        console.error('Error:', error);
-      }
     }
+    actuallyRenderQuestion(data);
+}
 
+function actuallyRenderQuestion(data) {
+    document.getElementById('questionText').innerText = data.question;
+    const optionsDiv = document.getElementById('options');
+    optionsDiv.innerHTML = '';
+
+    if (['PartC','PartD'].includes(data.stage)) {
+        renderSliderQuestion(data, data.question_number);
+        return;
+    }
+    if (data.type === 'ranking') {
+        renderRankingQuestion(data, data.question_number);
+        return;
+    }
+    data.options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.innerText = opt.text;
+        btn.className = 'text-lg fade-in w-full py-4 px-6 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-xl hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-purple-500/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg';
+        btn.onclick = () => submitAnswer(data.question_number, opt.code, opt.text);
+        optionsDiv.appendChild(btn);
+    });
+}
+
+function renderSliderQuestion(data, questionNumber) {
+    const sliderContainer = document.createElement('div');
+    sliderContainer.className = 'space-y-4';
+    // Labels
+    const labelsContainer = document.createElement('div');
+    labelsContainer.className = 'flex justify-between text-sm text-gray-600';
+    const leftContainer = document.createElement('div'); leftContainer.className = 'flex items-center gap-2';
+    const leftLabel = document.createElement('span'); leftLabel.textContent = data.options[0].text; leftLabel.className = 'text-right';
+    const leftButton = document.createElement('button'); leftButton.innerHTML = '&#8594;'; leftButton.className = 'w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center';
+    leftButton.onclick = () => { if (slider.value > 1) { slider.value--; slider.dispatchEvent(new Event('input')); } };
+    leftContainer.append(leftButton, leftLabel);
+
+    const rightContainer = document.createElement('div'); rightContainer.className = 'flex items-center gap-2';
+    const rightButton = document.createElement('button'); rightButton.innerHTML = '&#8592;'; rightButton.className = 'w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center';
+    rightButton.onclick = () => { if (slider.value < 7) { slider.value++; slider.dispatchEvent(new Event('input')); } };
+    const rightLabel = document.createElement('span'); rightLabel.textContent = data.options[1].text; rightLabel.className = 'text-left';
+    rightContainer.append(rightButton, rightLabel);
+    labelsContainer.append(leftContainer, rightContainer);
+
+    // Slider
+    const slider = document.createElement('input');
+    slider.type = 'range'; slider.min = '1'; slider.max = '7'; slider.value = '4'; slider.className = 'w-full';
+    const valueDisplay = document.createElement('div'); valueDisplay.className = 'text-center text-sm text-gray-600'; valueDisplay.textContent = 'באמצע';
+    slider.addEventListener('input', e => {
+        const v = +e.target.value;
+        const [lText, rText] = data.options.map(o=>o.text);
+        let desc;
+        if (v===1) desc = lText;
+        else if (v===2) desc = `לרב ${lText}`;
+        else if (v===3) desc = `במידה מסוימת ${lText}`;
+        else if (v===4) desc = 'באמצע';
+        else if (v===5) desc = `במידה מסוימת ${rText}`;
+        else if (v===6) desc = `לרב ${rText}`;
+        else if (v===7) desc = rText;
+        valueDisplay.textContent = desc;
+    });
+    // Submit
+    const submitBtn = document.createElement('button');
+    submitBtn.type = 'button';
+    submitBtn.innerText = 'שלח תשובה';
+    submitBtn.className = 'text-lg w-full py-3 px-6 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl';
+    submitBtn.onclick = async () => {
+        const v = +slider.value;
+        const leftCode = data.options[0].code, rightCode = data.options[1].code;
+        let lp, rp;
+        switch(v){case 1: lp=12;rp=0;break;case 2:lp=10;rp=2;break;case 3:lp=8;rp=4;break;case 4:lp=6;rp=6;break;case 5:lp=4;rp=8;break;case 6:lp=2;rp=10;break;case 7:lp=0;rp=12;break;}
+        await submitAnswer(questionNumber, null, null, {[leftCode]:lp,[rightCode]:rp});
+    };
+    // Assemble
+    sliderContainer.append(labelsContainer, slider, valueDisplay, submitBtn);
+    document.getElementById('options').appendChild(sliderContainer);
+}
+
+function renderRankingQuestion(data, questionNumber) {
+    const list = document.createElement('ul'); list.id = 'rankingList'; list.className = 'space-y-2';
+    data.options.forEach(opt => {
+        const item = document.createElement('li');
+        item.className = 'cursor-move bg-white border border-indigo-200 rounded-lg px-4 py-3 shadow flex items-center text-gray-800 font-medium';
+        item.setAttribute('data-code', opt.code);
+        item.innerText = opt.text;
+        list.appendChild(item);
+    });
+    Sortable.create(list, { animation: 150 });
+    document.getElementById('options').appendChild(list);
+    const submitBtn = document.createElement('button');
+    submitBtn.type = 'button';
+    submitBtn.innerText = 'שלח דירוג';
+    submitBtn.className = 'text-lg w-full py-3 px-6 mt-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-xl';
+    submitBtn.onclick = async e => {
+        e.preventDefault(); const items = list.querySelectorAll('li'); const ranking = {};
+        items.forEach((it, idx) => ranking[it.getAttribute('data-code')] = idx+1);
+        await submitAnswer(questionNumber, null, null, ranking);
+    };
+    document.getElementById('options').appendChild(submitBtn);
+}
+
+async function submitAnswer(qNum, code, text, ranking = null) {
+    const payload = { question_number: qNum, selected_option_code: code, selected_option_text: text };
+    if (ranking) payload.ranking = ranking;
+    try {
+        await fetch('/answer', {
+            method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
+        });
+        currentQuestion++; loadQuestion(currentQuestion);
+    } catch {
+        alert('שגיאה בשליחת התשובה, אנא נסה שוב.');
+    }
+}
+
+async function completeQuestionnaire() {
+    const resp = await fetch('/complete_questionnaire', { method: 'POST', headers: {'Content-Type':'application/json'} });
+    if (resp.ok) window.location.href = '/pdn_report'; else alert('שגיאה בסיום השאלון, אנא נסה שוב.');
+}
 </script>
 </body>
 </html>
