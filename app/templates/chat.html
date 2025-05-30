@@ -114,9 +114,12 @@
     <div id="messages" class="space-y-4 fade-in">
         <!-- Welcome Message -->
         <div id="welcomeMessage" class="p-6 rounded-xl border border-indigo-100 bg-gradient-to-r from-purple-100 to-indigo-100 text-gray-800 shadow-sm fade-in text-right" dir="rtl">
-            <p class="text-lg mb-4">שלום!</p>
-            <p class="text-lg mb-4">אני כאן כדי לעזור לך לגלות את קוד PDN שלך.</p>
-            <p class="text-lg mb-4">האבחון כולל סדרת שאלות קצרות. ענה בכנות ובלב פתוח.</p>
+          <p class="text-lg mb-4">שלום וברוך הבא</p>
+          <p class="text-lg mb-4">בוא נגלה יחד את קוד ה־PDN הייחודי שלך – המצפן הפנימי שלך לצמיחה והתפתחות.</p>
+          <p class="text-lg mb-4">כל מה שצריך זה לענות על השאלון.</p>
+          <p class="text-lg mb-4">תענה בלב פתוח, ובכנות – ונתחיל במסע מרתק פנימה</p>
+
+          
         </div>
         <!-- Voice Recording Section -->
         <div id="voiceRecordArea" class="hidden fade-in text-center space-y-4 bg-gradient-to-r from-purple-100 to-indigo-100 p-7 rounded-2xl shadow" style="max-width:520px;margin:0 auto;">
@@ -169,7 +172,7 @@ const visualizer = document.getElementById('visualizer');
 
 function startChat() {
     document.getElementById('startButtonArea').classList.add('hidden');
-    document.getElementById('welcomeMessage').classList.add('hidden');
+    welcomeMessage.classList.add('hidden');
     document.getElementById('voiceRecordArea').classList.remove('hidden');
     resetVoiceUI();
 }
@@ -258,14 +261,14 @@ async function loadQuestion(questionNumber) {
     if (data.stage !== currentStage) {
         currentStage = data.stage;
         if (data.instructions) {
-            modalTitle.innerHTML = ""; // No title
+            modalTitle.innerHTML = "<div class='text-lg font-bold text-gray-700'>הסבר למילוי נכון:</div>";
             modalText.innerText = data.instructions;
             modal.style.display = 'flex';
             document.body.style.overflow = "hidden";
             setTimeout(() => {
-                document.querySelector('.modal-card').classList.remove('modal-animate');
-                void document.querySelector('.modal-card').offsetWidth;
-                document.querySelector('.modal-card').classList.add('modal-animate');
+                modal.classList.remove('modal-animate');
+                void modal.offsetWidth; // Force reflow
+                modal.classList.add('modal-animate');
             }, 10);
             nextData = data;
             return;
@@ -287,13 +290,21 @@ function actuallyRenderQuestion(data) {
         renderRankingQuestion(data, data.question_number);
         return;
     }
-    data.options.forEach(opt => {
+    
+    // Create an array of buttons first
+    const buttons = data.options.map(opt => {
         const btn = document.createElement('button');
         btn.innerText = opt.text;
         btn.className = 'text-lg fade-in w-full py-4 px-6 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-xl hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-purple-500/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg';
         btn.onclick = () => submitAnswer(data.question_number, opt.code, opt.text);
-        optionsDiv.appendChild(btn);
+        return btn;
     });
+    
+    // Randomize the order of buttons
+    buttons.sort(() => Math.random() - 0.5);
+    
+    // Append the randomized buttons to the options div
+    buttons.forEach(btn => optionsDiv.appendChild(btn));
 }
 
 function renderSliderQuestion(data, questionNumber) {
@@ -350,8 +361,15 @@ function renderSliderQuestion(data, questionNumber) {
 }
 
 function renderRankingQuestion(data, questionNumber) {
-    const list = document.createElement('ul'); list.id = 'rankingList'; list.className = 'space-y-2';
-    data.options.forEach(opt => {
+    const list = document.createElement('ul'); 
+    list.id = 'rankingList'; 
+    list.className = 'space-y-2';
+    
+    // Create an array of options and randomize them
+    const randomizedOptions = [...data.options].sort(() => Math.random() - 0.5);
+    
+    // Use the randomized options to create list items
+    randomizedOptions.forEach(opt => {
         const item = document.createElement('li');
         item.className = 'cursor-move bg-white border border-indigo-200 rounded-lg px-4 py-3 shadow flex items-center text-gray-800 font-medium';
         item.setAttribute('data-code', opt.code);
@@ -360,12 +378,15 @@ function renderRankingQuestion(data, questionNumber) {
     });
     Sortable.create(list, { animation: 150 });
     document.getElementById('options').appendChild(list);
+    
     const submitBtn = document.createElement('button');
     submitBtn.type = 'button';
     submitBtn.innerText = 'שלח דירוג';
     submitBtn.className = 'text-lg w-full py-3 px-6 mt-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-xl';
     submitBtn.onclick = async e => {
-        e.preventDefault(); const items = list.querySelectorAll('li'); const ranking = {};
+        e.preventDefault(); 
+        const items = list.querySelectorAll('li'); 
+        const ranking = {};
         items.forEach((it, idx) => ranking[it.getAttribute('data-code')] = idx+1);
         await submitAnswer(questionNumber, null, null, ranking);
     };
