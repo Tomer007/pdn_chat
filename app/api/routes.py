@@ -1,7 +1,7 @@
 import json
-from typing import Dict, Optional
 import logging
 from collections import defaultdict
+from typing import Dict, Optional
 
 from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import HTMLResponse
@@ -10,10 +10,10 @@ from pydantic import BaseModel, EmailStr, Field
 
 from app.utils.answer_storage import load_answers, save_user_metadata
 from app.utils.answer_storage import save_answer
+from app.utils.email_sender import send_email
 from app.utils.pdn_calculator import calculate_pdn_code
 from app.utils.questionnaire import get_question
 from app.utils.report_generator import load_pdn_report
-from app.utils.email_sender import send_email
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
