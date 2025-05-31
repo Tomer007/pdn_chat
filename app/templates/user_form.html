@@ -29,11 +29,10 @@
         <h1 class="text-4xl font-extrabold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
             PDN Center</h1>
         <p class="text-lg font-medium mt-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-            המסע לגילוי הצופן שלך ממשיך כאן</p>
+            המסע לגילוי הצופן המקור שלך </p>
         {% if personal_instructions %}
-        <div class="p-6 rounded-xl border border-indigo-100 bg-gradient-to-r from-purple-100 to-indigo-100 text-gray-800 shadow-sm fade-in text-right"
-             dir="rtl">
-            {{ personal_instructions|replace('\n', '<br>')|safe }}
+        <div id="welcomeMessage" class="p-6 rounded-xl border border-indigo-100 bg-gradient-to-r from-purple-100 to-indigo-100 text-gray-800 shadow-sm fade-in text-right" dir="rtl">
+          <p class="text-lg mb-4">{{ personal_instructions|replace('\n', '<br>')|safe }}</p>
         </div>
         {% endif %}
         <form id="userForm" class="space-y-6">
@@ -124,11 +123,12 @@
                            placeholder="הכנס שנת לידה"/>
                 </div>
             </div>
-
-            <button type="submit"
-                    class="w-full py-4 mt-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-lg font-semibold rounded-xl shadow-md hover:from-purple-700 hover:to-indigo-700 transition transform hover:scale-105 active:scale-95">
-                המשך לאבחון
-            </button>
+            <button
+                type="submit"
+                class="w-full py-3 px-6 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-lg font-semibold rounded-xl shadow-md hover:from-purple-700 hover:to-indigo-700 transition duration-300 transform hover:scale-105 active:scale-95"
+        >
+        המשך לאבחון
+      </button>
         </form>
     </div>
 

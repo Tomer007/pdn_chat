@@ -110,12 +110,12 @@
 
 
 <main id="chatArea" class="glass-effect p-8 rounded-2xl shadow-2xl w-full max-w-2xl border border-white/20 space-y-6">
-    <h1 class="text-4xl font-bold text-center text-gray-800 bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">אבחון אישי - PDN</h1>
+    <h1 class="text-4xl font-bold text-center text-gray-800 bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">אבחון צופן המקור </h1>
     <div id="messages" class="space-y-4 fade-in">
         <!-- Welcome Message -->
         <div id="welcomeMessage" class="p-6 rounded-xl border border-indigo-100 bg-gradient-to-r from-purple-100 to-indigo-100 text-gray-800 shadow-sm fade-in text-right" dir="rtl">
-          <p class="text-lg mb-4">שלום וברוך הבא</p>
-          <p class="text-lg mb-4">בוא נגלה יחד את קוד ה־PDN הייחודי שלך – המצפן הפנימי שלך לצמיחה והתפתחות.</p>
+          <p class="text-lg mb-4 font-bold">שלום וברוך הבא,</p>
+          <p class="text-lg mb-4">בוא נגלה יחד את קוד המקור הייחודי שלך – המצפן הפנימי שלך לצמיחה והתפתחות.</p>
           <p class="text-lg mb-4">כל מה שצריך זה לענות על השאלון.</p>
           <p class="text-lg mb-4">תענה בלב פתוח, ובכנות – ונתחיל במסע מרתק פנימה</p>
 
@@ -123,8 +123,8 @@
         </div>
         <!-- Voice Recording Section -->
         <div id="voiceRecordArea" class="hidden fade-in text-center space-y-4 bg-gradient-to-r from-purple-100 to-indigo-100 p-7 rounded-2xl shadow" style="max-width:520px;margin:0 auto;">
-            <div class="text-lg font-semibold text-gray-700">הקלט את עצמך מדבר במשך דקה</div>
-            <p class="text-right text-gray-600">לחץ על כפתור ההקלטה, ספר על עצמך או פשוט דבר בחופשיות במשך דקה.<br> כשתסיים, לחץ על "סיים והמשך".</p>
+          <p class="text-lg mb-4 font-bold">הקלט את עצמך מדבר במשך דקה</p>  
+          <p class="text-right mb-4 ">לחץ על כפתור ההקלטה, ספר על עצמך או פשוט דבר בחופשיות במשך דקה.<br> כשתסיים, לחץ על "סיים והמשך".</p>
             <div>
                 <button id="startRecordBtn" class="text-lg py-3 px-7 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl shadow-lg font-semibold">התחל להקליט</button>
                 <button id="stopRecordBtn" class="hidden text-lg py-3 px-7 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-xl shadow-lg font-semibold ml-2">סיים והמשך</button>
@@ -141,12 +141,25 @@
     <div id="startButtonArea" class="text-center">
         <button onclick="startChat()" class="text-lg w-full py-4 px-6 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-xl hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-purple-500/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg">מוכן להתחיל</button>
     </div>
+
+    <!-- Footer Link -->
+    <div class="text-center pt-4 space-y-4">
+        <button id="backButton" onclick="goBack()" class="text-sm w-1/2 py-2 px-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-xl hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-purple-500/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hidden">
+            חזור לשאלה הקודמת
+        </button>
+        <p class="text-sm sm:text-base font-medium bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-500 bg-clip-text text-transparent animate-pulse">
+            ✨ <a href="https://www.pdn.co.il" target="_blank" class="hover:underline">PDN – הנווט החכם להתפתחות
+            אישית</a> ✨
+        </p>
+    </div>
+
 </main>
 
 <script>
 let currentQuestion = 1;
 let currentStage = '';
 let nextData = null;
+let questionHistory = []; // Array to store question history
 
 // Modal logic
 const modal = document.getElementById('instructionModal');
@@ -223,7 +236,7 @@ function finishRecording() {
     if (mediaRecorder && mediaRecorder.state === 'recording') {
         mediaRecorder.stop();
         clearInterval(recordTimer);
-        recordStatus.innerHTML = '<span class="text-purple-600 font-bold">ההקלטה הסתיימה. ניתן להאזין ולהמשיך.</span>';
+        recordStatus.innerHTML = '<span class="text-black-600 font-bold">ההקלטה הסתיימה. ניתן להאזין ולהמשיך.</span>';
         stopBtn.innerText = 'המשך';
         stopBtn.classList.remove('hidden');
         startBtn.classList.add('hidden');
@@ -261,7 +274,7 @@ async function loadQuestion(questionNumber) {
     if (data.stage !== currentStage) {
         currentStage = data.stage;
         if (data.instructions) {
-            modalTitle.innerHTML = "<div class='text-lg font-bold text-gray-700'>הסבר למילוי נכון:</div>";
+            modalTitle.innerHTML = "<div class='text-lg font-bold text-gray-700' >הסבר למילוי נכון:</div>";
             modalText.innerText = data.instructions;
             modal.style.display = 'flex';
             document.body.style.overflow = "hidden";
@@ -281,6 +294,10 @@ function actuallyRenderQuestion(data) {
     document.getElementById('questionText').innerText = data.question;
     const optionsDiv = document.getElementById('options');
     optionsDiv.innerHTML = '';
+    
+    // Show/hide back button based on question history
+    const backButton = document.getElementById('backButton');
+    backButton.classList.toggle('hidden', questionHistory.length === 0);
 
     if (['PartC','PartD'].includes(data.stage)) {
         renderSliderQuestion(data, data.question_number);
@@ -400,7 +417,10 @@ async function submitAnswer(qNum, code, text, ranking = null) {
         await fetch('/answer', {
             method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
         });
-        currentQuestion++; loadQuestion(currentQuestion);
+        // Store current question in history before moving to next
+        questionHistory.push(currentQuestion);
+        currentQuestion++; 
+        loadQuestion(currentQuestion);
     } catch {
         alert('שגיאה בשליחת התשובה, אנא נסה שוב.');
     }
@@ -409,6 +429,13 @@ async function submitAnswer(qNum, code, text, ranking = null) {
 async function completeQuestionnaire() {
     const resp = await fetch('/complete_questionnaire', { method: 'POST', headers: {'Content-Type':'application/json'} });
     if (resp.ok) window.location.href = '/pdn_report'; else alert('שגיאה בסיום השאלון, אנא נסה שוב.');
+}
+
+async function goBack() {
+    if (questionHistory.length > 0) {
+        currentQuestion = questionHistory.pop();
+        loadQuestion(currentQuestion);
+    }
 }
 </script>
 </body>
