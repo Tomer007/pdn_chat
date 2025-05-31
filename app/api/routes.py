@@ -285,3 +285,10 @@ async def get_report_data(request: Request):
         },
         "email_sent": email_sent
     }
+
+@router.get('/get_user_name')
+def get_user_name(request: Request):
+    # Get the user's name from your session or database
+    #TODO ADD user name
+    email = request.session.get("email", "anonymous")
+    return {"name": email}
