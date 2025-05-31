@@ -1,14 +1,13 @@
 import json
+import logging
 from pathlib import Path
 
 import yaml
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
-from starlette.middleware.sessions import SessionMiddleware
-from fastapi.middleware.cors import CORSMiddleware
-import logging
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
+from fastapi.staticfiles import StaticFiles
+from starlette.middleware.sessions import SessionMiddleware
 
 from app.api.routes import router as api_router
 
