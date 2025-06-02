@@ -78,7 +78,7 @@
     <p id="modalText" class="text-lg text-right text-gray-800 whitespace-pre-line mb-6 leading-relaxed"></p>
     <!-- Action button -->
     <button id="modalClose" class="mx-auto block py-3 px-8 text-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-purple-400/30 transform transition duration-300 hover:scale-105 animate-pulse">
-      הבנתי, אפשר להמשיך!
+      יופי, אפשר להתקדם!
     </button>
   </div>
 </div>
@@ -128,7 +128,8 @@
           <p class="text-lg mb-4">ההקלטה לא חובה, אבל זה משפר את דיוק קוד המקור שלך!</p>
             <div>
                 <button id="startRecordBtn" class="text-lg py-3 px-7 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl shadow-lg font-semibold">התחל להקליט</button>
-                <button id="stopRecordBtn" class="hidden text-lg py-3 px-7 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-xl shadow-lg font-semibold ml-2">סיים והמשך</button>
+                <button id="skipBtn" class="text-lg py-3 px-7 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl shadow-lg font-semibold">דלג, אתחל איבחון</button>
+                <button id="stopRecordBtn" class="hidden text-lg py-3 px-7 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-xl shadow-lg font-semibold ml-2">סיים</button>
             </div>
             <div id="recordStatus" class="text-lg text-purple-700"></div>
             <div id="visualizer" class="flex justify-center items-end space-x-1 mb-1" style="height:24px;direction:ltr"></div>
@@ -138,9 +139,6 @@
     <div id="questionArea" class="hidden space-y-6">
         <h2 id="questionText" class="text-lg font-semibold text-gray-700 mb-4 bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent"></h2>
         <div id="options" class="space-y-3"></div>
-    </div>
-    <div id="startButtonArea" class="text-center">
-        <button onclick="startChat()" class="text-lg w-full py-4 px-6 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-xl hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-purple-500/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg">מוכן להתחיל</button>
     </div>
 
     <!-- Footer Link -->
@@ -183,13 +181,15 @@ const stopBtn = document.getElementById('stopRecordBtn');
 const recordStatus = document.getElementById('recordStatus');
 const audioPlayback = document.getElementById('audioPlayback');
 const visualizer = document.getElementById('visualizer');
+const skipBtn = document.getElementById('skipBtn');
 
-function startChat() {
-    document.getElementById('startButtonArea').classList.add('hidden');
-    welcomeMessage.classList.add('hidden');
-    document.getElementById('voiceRecordArea').classList.remove('hidden');
+
+skipBtn.onclick = async function() {    
+    document.getElementById('voiceRecordArea').classList.add('hidden');
+    document.getElementById('questionArea').classList.remove('hidden');
     resetVoiceUI();
-}
+    loadQuestion(currentQuestion);
+};
 
 startBtn.onclick = async function() {
     audioChunks = [];
@@ -197,6 +197,7 @@ startBtn.onclick = async function() {
     startBtn.classList.add('hidden');
     stopBtn.classList.remove('hidden');
     audioPlayback.classList.add('hidden');
+    skipBtn.classList.add('hidden');
     visualizer.innerHTML = '';
     // Add fake bars for animation
     for(let i=0;i<5;i++){
@@ -237,10 +238,11 @@ function finishRecording() {
     if (mediaRecorder && mediaRecorder.state === 'recording') {
         mediaRecorder.stop();
         clearInterval(recordTimer);
-        recordStatus.innerHTML = '<span class="text-black-600 font-bold">ההקלטה הסתיימה..</span>';
+        recordStatus.innerHTML = '<span class="text-black-600 font-bold">ההקלטה הסתיימה.</span>';
         stopBtn.innerText = 'המשך';
         stopBtn.classList.remove('hidden');
         startBtn.classList.add('hidden');
+        skipBtn.classList.add('hidden');
         visualizer.innerHTML = '';
     }
 }
@@ -277,7 +279,7 @@ async function loadQuestion(questionNumber) {
         if (data.instructions) {
           //<div id="voiceRecordArea" class="p-6 rounded-xl border border-indigo-100 bg-gradient-to-r from-purple-100 to-indigo-100 text-gray-800 shadow-sm fade-in text-right" dir="rtl">
 
-            modalTitle.innerHTML = "<div class=' p-6 text-lg font-bold text-gray-700 ' >הסבר:</div>";
+            //modalTitle.innerHTML = "<div class=' p-6 text-lg font-bold text-gray-700 ' >הסבר:</div>";
             modalText.innerText = data.instructions;
             modal.style.display = 'flex';
             document.body.style.overflow = "hidden";
