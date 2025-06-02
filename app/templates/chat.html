@@ -113,18 +113,19 @@
     <h1 class="text-4xl font-bold text-center text-gray-800 bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">אבחון צופן המקור </h1>
     <div id="messages" class="space-y-4 fade-in">
         <!-- Welcome Message -->
-        <div id="welcomeMessage" class="p-6 rounded-xl border border-indigo-100 bg-gradient-to-r from-purple-100 to-indigo-100 text-gray-800 shadow-sm fade-in text-right" dir="rtl">
-          <p class="text-lg mb-4 font-bold">שלום וברוך הבא,</p>
-          <p class="text-lg mb-4">בוא נגלה יחד את קוד המקור הייחודי שלך – המצפן הפנימי שלך לצמיחה והתפתחות.</p>
-          <p class="text-lg mb-4">כל מה שצריך זה לענות על השאלון.</p>
-          <p class="text-lg mb-4">תענה בלב פתוח, ובכנות – ונתחיל במסע מרתק פנימה</p>
+        <!-- <div id="welcomeMessage" class="p-6 rounded-xl border border-indigo-100 bg-gradient-to-r from-purple-100 to-indigo-100 text-gray-800 shadow-sm fade-in text-right" dir="rtl">
+          <p class="text-lg mb-4 ">שלום וברוך הבא,</p>
+          <p class="text-lg mb-4">בוא נגלה יחד את קוד המקור הייחודי שלך, המצפן הפנימי שלך לצמיחה והתפתחות.</p>
+          <p class="text-lg mb-4">תענה בלב פתוח ובכנות ונצא למסע מרתק פנימה</p>
 
-          
-        </div>
+        </div> -->
         <!-- Voice Recording Section -->
-        <div id="voiceRecordArea" class="hidden fade-in text-center space-y-4 bg-gradient-to-r from-purple-100 to-indigo-100 p-7 rounded-2xl shadow" style="max-width:520px;margin:0 auto;">
-          <p class="text-lg mb-4 font-bold">הקלט את עצמך מדבר במשך דקה</p>  
-          <p class="text-right mb-4 ">לחץ על כפתור ההקלטה, ספר על עצמך או פשוט דבר בחופשיות במשך דקה.<br> כשתסיים, לחץ על "סיים והמשך".</p>
+        <div id="voiceRecordArea" class="p-6 rounded-xl border border-indigo-100 bg-gradient-to-r from-purple-100 to-indigo-100 text-gray-800 shadow-sm fade-in text-right" dir="rtl">
+          <p class="text-lg mb-4 ">שלום וברוך הבא,</p>
+          <p class="text-lg mb-4">בוא נגלה יחד את קוד המקור הייחודי שלך, המצפן הפנימי שלך לצמיחה והתפתחות.</p>
+          <p class="text-lg mb-4" >הקלט דקה של דיבור – זה עוזר לנו לשפר את הדיוק של קוד המקור שלך</p>
+          <p class="text-lg mb-4">לחץ על כפתור ההקלטה, דבר בחופשיות או ספר קצת על עצמך, וכשתסיים לחץ על "סיים".</p>
+          <p class="text-lg mb-4">ההקלטה לא חובה, אבל זה משפר את דיוק קוד המקור שלך!</p>
             <div>
                 <button id="startRecordBtn" class="text-lg py-3 px-7 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl shadow-lg font-semibold">התחל להקליט</button>
                 <button id="stopRecordBtn" class="hidden text-lg py-3 px-7 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-xl shadow-lg font-semibold ml-2">סיים והמשך</button>
@@ -236,7 +237,7 @@ function finishRecording() {
     if (mediaRecorder && mediaRecorder.state === 'recording') {
         mediaRecorder.stop();
         clearInterval(recordTimer);
-        recordStatus.innerHTML = '<span class="text-black-600 font-bold">ההקלטה הסתיימה. ניתן להאזין ולהמשיך.</span>';
+        recordStatus.innerHTML = '<span class="text-black-600 font-bold">ההקלטה הסתיימה..</span>';
         stopBtn.innerText = 'המשך';
         stopBtn.classList.remove('hidden');
         startBtn.classList.add('hidden');
@@ -274,7 +275,9 @@ async function loadQuestion(questionNumber) {
     if (data.stage !== currentStage) {
         currentStage = data.stage;
         if (data.instructions) {
-            modalTitle.innerHTML = "<div class='text-lg font-bold text-gray-700' >הסבר למילוי נכון:</div>";
+          //<div id="voiceRecordArea" class="p-6 rounded-xl border border-indigo-100 bg-gradient-to-r from-purple-100 to-indigo-100 text-gray-800 shadow-sm fade-in text-right" dir="rtl">
+
+            modalTitle.innerHTML = "<div class=' p-6 text-lg font-bold text-gray-700 ' >הסבר:</div>";
             modalText.innerText = data.instructions;
             modal.style.display = 'flex';
             document.body.style.overflow = "hidden";
