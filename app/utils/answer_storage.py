@@ -19,7 +19,10 @@ def save_answer(email: str, question_number: int, answer_data: dict):
     else:
         data = {}
 
-    data[str(question_number)] = answer_data
+    # Filter out None values from answer_data
+    filtered_answer_data = {k: v for k, v in answer_data.items() if v is not None}
+
+    data[str(question_number)] = filtered_answer_data
 
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
