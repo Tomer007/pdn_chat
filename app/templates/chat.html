@@ -112,23 +112,24 @@
 <main id="chatArea" class="glass-effect p-8 rounded-2xl shadow-2xl w-full max-w-2xl border border-white/20 space-y-6">
     <h1 class="text-4xl font-bold text-center text-gray-800 bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">אבחון צופן המקור </h1>
     <div id="messages" class="space-y-4 fade-in">
-        <!-- Welcome Message -->
-        <!-- <div id="welcomeMessage" class="p-6 rounded-xl border border-indigo-100 bg-gradient-to-r from-purple-100 to-indigo-100 text-gray-800 shadow-sm fade-in text-right" dir="rtl">
-          <p class="text-lg mb-4 ">שלום וברוך הבא,</p>
-          <p class="text-lg mb-4">בוא נגלה יחד את קוד המקור הייחודי שלך, המצפן הפנימי שלך לצמיחה והתפתחות.</p>
-          <p class="text-lg mb-4">תענה בלב פתוח ובכנות ונצא למסע מרתק פנימה</p>
 
-        </div> -->
         <!-- Voice Recording Section -->
         <div id="voiceRecordArea" class="p-6 rounded-xl border border-indigo-100 bg-gradient-to-r from-purple-100 to-indigo-100 text-gray-800 shadow-sm fade-in text-right" dir="rtl">
-          <p class="text-lg mb-4 ">שלום וברוך הבא,</p>
-          <p class="text-lg mb-4">בוא נגלה יחד את קוד המקור הייחודי שלך, המצפן הפנימי שלך לצמיחה והתפתחות.</p>
-          <p class="text-lg mb-4" >הקלט דקה של דיבור – זה עוזר לנו לשפר את הדיוק של קוד המקור שלך</p>
-          <p class="text-lg mb-4">לחץ על כפתור ההקלטה, דבר בחופשיות או ספר קצת על עצמך, וכשתסיים לחץ על "סיים".</p>
-          <p class="text-lg mb-4">ההקלטה לא חובה, אבל זה משפר את דיוק קוד המקור שלך!</p>
+           <p class="text-lg mb-4">שלום וברוך הבא,</p>
+        <p class="text-lg mb-4">בוא נגלה יחד את קוד המקור הייחודי שלך, המצפן הפנימי שלך לצמיחה והתפתחות.</p>
+        <p class="text-lg mb-4">ענה על שתי שאלות הבאות לזיהוי הצופן האישי שלך:</p>
+        <div class="bg-white p-4 rounded border-r-4 border-blue-400">
+                    <span>1.</span> ספר לי על חוויה חיובית או מרגשת שחווית בשנה האחרונה. משהו שנגע בך או שימח אותך במיוחד.
+                </div>
+                <div class="bg-white p-4 rounded border-r-4 border-blue-400">
+                    <span>2.</span> ספר לי על אתגר משמעותי שהתמודדת איתו לאחרונה – משהו שהיה לך לא פשוט, ואיך הצלחת לעבור אותו.
+                </div>
+            ֿ
+
+
+        <p class="text-lg mb-4">כשתסיים לחץ על "סיים".</p>
             <div>
                 <button id="startRecordBtn" class="text-lg py-3 px-7 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl shadow-lg font-semibold">התחל להקליט</button>
-                <button id="skipBtn" class="text-lg py-3 px-7 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl shadow-lg font-semibold">דלג, אתחל איבחון</button>
                 <button id="stopRecordBtn" class="hidden text-lg py-3 px-7 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-xl shadow-lg font-semibold ml-2">סיים</button>
             </div>
             <div id="recordStatus" class="text-lg text-purple-700"></div>
@@ -181,15 +182,7 @@ const stopBtn = document.getElementById('stopRecordBtn');
 const recordStatus = document.getElementById('recordStatus');
 const audioPlayback = document.getElementById('audioPlayback');
 const visualizer = document.getElementById('visualizer');
-const skipBtn = document.getElementById('skipBtn');
 
-
-skipBtn.onclick = async function() {    
-    document.getElementById('voiceRecordArea').classList.add('hidden');
-    document.getElementById('questionArea').classList.remove('hidden');
-    resetVoiceUI();
-    loadQuestion(currentQuestion);
-};
 
 startBtn.onclick = async function() {
     audioChunks = [];
@@ -197,7 +190,6 @@ startBtn.onclick = async function() {
     startBtn.classList.add('hidden');
     stopBtn.classList.remove('hidden');
     audioPlayback.classList.add('hidden');
-    skipBtn.classList.add('hidden');
     visualizer.innerHTML = '';
     // Add fake bars for animation
     for(let i=0;i<5;i++){
@@ -242,7 +234,6 @@ function finishRecording() {
         stopBtn.innerText = 'המשך';
         stopBtn.classList.remove('hidden');
         startBtn.classList.add('hidden');
-        skipBtn.classList.add('hidden');
         visualizer.innerHTML = '';
     }
 }
@@ -416,7 +407,9 @@ function renderRankingQuestion(data, questionNumber) {
 }
 
 async function submitAnswer(qNum, code, text, ranking = null) {
-    const payload = { question_number: qNum, selected_option_code: code, selected_option_text: text };
+    const questionText = document.getElementById('questionText').innerText;
+    const payload = { question_number: qNum, selected_option_code: code, selected_option_text: text, question: questionText };
+    
     if (ranking) payload.ranking = ranking;
     try {
         await fetch('/answer', {

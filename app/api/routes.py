@@ -199,12 +199,11 @@ async def submit_answer_route(request: Request):
     
     Saves user's answer for a specific question.
     """
-    logger.debug("POST /answer called")
     api_usage["submit_answer"] += 1
     logger.debug(f"API Usage: {dict(api_usage)}")
-    logger.info("Request: %s %s", request.method, request.url)
-    logger.info("Response: %s", 200)
+   
     data = await request.json()
+    question = data.get("question")
     question_number = data.get("question_number")
     selected_option_code = data.get("selected_option_code")
     selected_option_text = data.get("selected_option_text")
@@ -214,8 +213,9 @@ async def submit_answer_route(request: Request):
     # Save answer with ranking if applicable
     save_answer(email, question_number, {
         "code": selected_option_code,
-        "text": selected_option_text,
-        "ranking": ranking
+        "answer": selected_option_text,
+        "ranking": ranking,
+        "question": question
     })
     return {"message": "Answer saved successfully"}
 
