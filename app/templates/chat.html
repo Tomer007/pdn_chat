@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Varela+Round&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
-      body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); font-family: 'Rubik', sans-serif; min-height: 100vh; }
+      body { background: radial-gradient(ellipse at center, #e0e7ff 0%, #c7d2fe 50%, #a5b4fc 100%); font-family: 'Rubik', sans-serif; min-height: 100vh; }
       .glass-effect { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); border-radius: 1.5rem; box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
       @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
       .fade-in { animation: fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) both; }
@@ -123,13 +123,9 @@
                 </div>
                 <div class="bg-white p-4 rounded border-r-4 border-blue-400">
                     <span>2.</span> ספר לי על אתגר משמעותי שהתמודדת איתו לאחרונה – משהו שהיה לך לא פשוט, ואיך הצלחת לעבור אותו.
-                </div>
-            ֿ
-
-
-        <p class="text-lg mb-4">כשתסיים לחץ על "סיים".</p>
+                </div></br>
             <div>
-                <button id="startRecordBtn" class="text-lg py-3 px-7 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl shadow-lg font-semibold">התחל להקליט</button>
+                <button id="startRecordBtn" class="text-lg py-3 px-7 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl shadow-lg font-semibold">התחל</button>
                 <button id="stopRecordBtn" class="hidden text-lg py-3 px-7 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-xl shadow-lg font-semibold ml-2">סיים</button>
             </div>
             <div id="recordStatus" class="text-lg text-purple-700"></div>

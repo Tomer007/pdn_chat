@@ -10,6 +10,8 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.api.routes import router as api_router
+# import firebase_admin
+# from firebase_admin import credentials
 
 app = FastAPI(
     title="PDN Diagnosis System API",
@@ -50,6 +52,9 @@ async def startup_event():
     with open(questions_path, "r", encoding="utf-8") as f:
         app.state.questions = json.load(f)
 
+    # Initialize Firebase Admin SDK
+    # cred = credentials.Certificate('path/to/your/serviceAccountKey.json')
+    # firebase_admin.initialize_app(cred)
 
 # Include routers
 app.include_router(api_router)
