@@ -271,6 +271,9 @@ async def get_report_data(request: Request):
         raise HTTPException(status_code=400, detail="Could not calculate PDN code")
 
     report_data = load_pdn_report(pdn_code)
+
+    # Save the report data to the Firebase Firestore database
+    save_report_to_firestore(user_answers, pdn_code, report_data)
     
     # Send email report
     email_sent = send_email(user_answers, pdn_code, report_data)
