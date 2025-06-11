@@ -68,8 +68,11 @@
 <body class="flex items-center justify-center min-h-screen p-4">
 
 <!-- Modal for stage instructions -->
-<div id="instructionModal" class="fixed inset-0 bg-purple-800/40 backdrop-blur-sm hidden items-center justify-center z-50">
+<div id="instructionModal" class="fixed inset-0 backdrop-blur-sm hidden items-center justify-center z-50"
+style="background: radial-gradient(ellipse at center, #e0e7ff 0%, #c7d2fe 50%, #a5b4fc 100%);"
+>
   <div class="relative bg-gradient-to-r from-purple-100 to-indigo-100 rounded-2xl p-8 max-w-md w-full glass-effect glow animate-fade-in-up shadow-2xl text-center">
+
     <!-- Animated bulb icon -->
     <div class="text-4xl mb-4 animate-bounce">💡</div>
     <!-- Title (if used) -->
@@ -292,7 +295,7 @@ function actuallyRenderQuestion(data) {
     backButton.classList.toggle('hidden', questionHistory.length === 0);
 
     if (['PartC','PartD'].includes(data.stage)) {
-        renderSliderQuestion(data, data.question_number);
+        renderScaleQuestion(data, data.question_number);
         return;
     }
     if (data.type === 'ranking') {
@@ -316,58 +319,103 @@ function actuallyRenderQuestion(data) {
     buttons.forEach(btn => optionsDiv.appendChild(btn));
 }
 
-function renderSliderQuestion(data, questionNumber) {
-    const sliderContainer = document.createElement('div');
-    sliderContainer.className = 'space-y-4';
-    // Labels
-    const labelsContainer = document.createElement('div');
-    labelsContainer.className = 'flex justify-between text-sm text-gray-600';
-    const leftContainer = document.createElement('div'); leftContainer.className = 'flex items-center gap-2';
-    const leftLabel = document.createElement('span'); leftLabel.textContent = data.options[0].text; leftLabel.className = 'text-right';
-    const leftButton = document.createElement('button'); leftButton.innerHTML = '&#8594;'; leftButton.className = 'w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center';
-    leftButton.onclick = () => { if (slider.value > 1) { slider.value--; slider.dispatchEvent(new Event('input')); } };
-    leftContainer.append(leftButton, leftLabel);
+function renderScaleQuestion(data, questionNumber) {
+      const container = document.createElement('div');
+      container.className = 'space-y-4';
 
-    const rightContainer = document.createElement('div'); rightContainer.className = 'flex items-center gap-2';
-    const rightButton = document.createElement('button'); rightButton.innerHTML = '&#8592;'; rightButton.className = 'w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center';
-    rightButton.onclick = () => { if (slider.value < 7) { slider.value++; slider.dispatchEvent(new Event('input')); } };
-    const rightLabel = document.createElement('span'); rightLabel.textContent = data.options[1].text; rightLabel.className = 'text-left';
-    rightContainer.append(rightButton, rightLabel);
-    labelsContainer.append(leftContainer, rightContainer);
+      const labelsRow = document.createElement('div');
+      labelsRow.className = 'flex justify-between items-center';
 
-    // Slider
-    const slider = document.createElement('input');
-    slider.type = 'range'; slider.min = '1'; slider.max = '7'; slider.value = '4'; slider.className = 'w-full';
-    const valueDisplay = document.createElement('div'); valueDisplay.className = 'text-center text-sm text-gray-600'; valueDisplay.textContent = 'באמצע';
-    slider.addEventListener('input', e => {
-        const v = +e.target.value;
-        const [lText, rText] = data.options.map(o=>o.text);
-        let desc;
-        if (v===1) desc = lText;
-        else if (v===2) desc = `לרב ${lText}`;
-        else if (v===3) desc = `במידה מסוימת ${lText}`;
-        else if (v===4) desc = 'באמצע';
-        else if (v===5) desc = `במידה מסוימת ${rText}`;
-        else if (v===6) desc = `לרב ${rText}`;
-        else if (v===7) desc = rText;
-        valueDisplay.textContent = desc;
-    });
-    // Submit
-    const submitBtn = document.createElement('button');
-    submitBtn.type = 'button';
-    submitBtn.innerText = 'שלח תשובה';
-    submitBtn.className = 'text-lg w-full py-3 px-6 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl';
-    submitBtn.onclick = async () => {
-        const v = +slider.value;
-        const leftCode = data.options[0].code, rightCode = data.options[1].code;
-        let lp, rp;
-        switch(v){case 1: lp=12;rp=0;break;case 2:lp=10;rp=2;break;case 3:lp=8;rp=4;break;case 4:lp=6;rp=6;break;case 5:lp=4;rp=8;break;case 6:lp=2;rp=10;break;case 7:lp=0;rp=12;break;}
+      const leftLabel = document.createElement('span');
+      leftLabel.textContent = data.options[0].text;
+      const rightLabel = document.createElement('span');
+      rightLabel.textContent = data.options[1].text;
+
+      labelsRow.append(leftLabel, rightLabel);
+      container.append(labelsRow);
+
+      const [lText, rText] = data.options.map(o => o.text);
+      const descriptions = [
+        lText,
+        `לרב ${lText}`,
+        `במידה מסוימת ${lText}`,
+        'באמצע',
+        `במידה מסוימת ${rText}`,
+        `לרב ${rText}`,
+        rText,
+      ];
+
+      let currentStep = null;
+
+      const stepsRow = document.createElement('div');
+      stepsRow.className = 'flex justify-between items-center py-2';
+
+      function updateSelection() {
+        buttons.forEach((btn, idx) => {
+          btn.classList.toggle('from-purple-600', idx === currentStep);
+          btn.classList.toggle('to-indigo-600', idx === currentStep);
+          btn.classList.toggle('bg-gradient-to-r', idx === currentStep);
+          btn.classList.toggle('text-white', idx === currentStep);
+          btn.classList.toggle('bg-gray-200', idx !== currentStep);
+        });
+        valueDisplay.textContent = currentStep !== null ? descriptions[currentStep] : '';
+        submitBtn.disabled = currentStep === null;
+        submitBtn.classList.toggle('opacity-50', currentStep === null);
+        submitBtn.classList.toggle('cursor-not-allowed', currentStep === null);
+      }
+
+      const buttons = Array.from({length:7}, (_, idx) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'w-8 h-8 rounded-full bg-gray-200 transition';
+        btn.setAttribute('aria-label', descriptions[idx]);
+        btn.onclick = () => {
+          currentStep = idx;
+          updateSelection();
+        };
+        stepsRow.appendChild(btn);
+        return btn;
+      });
+
+      container.append(stepsRow);
+
+      const valueDisplay = document.createElement('div');
+      valueDisplay.className = 'text-center text-sm text-gray-600';
+      container.append(valueDisplay);
+
+      const submitBtn = document.createElement('button');
+      submitBtn.type = 'button';
+      submitBtn.innerText = 'שלח תשובה';
+      submitBtn.className = 'text-lg w-full py-3 px-6 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl opacity-50 cursor-not-allowed';
+      submitBtn.disabled = true;
+      submitBtn.onclick = async () => {
+        if (currentStep === null) return;
+        const leftCode  = data.options[0].code;
+        const rightCode = data.options[1].code;
+        const scaleMap = [ [12,0],[10,2],[8,4],[6,6],[4,8],[2,10],[0,12] ];
+        const [lp, rp] = scaleMap[currentStep];
         await submitAnswer(questionNumber, null, null, {[leftCode]:lp,[rightCode]:rp});
+
+      };
+      
+      container.append(submitBtn);
+
+      document.getElementById('options').appendChild(container);
+      updateSelection();
+    }
+
+    const sampleData = {
+      options: [
+        { text: 'לא מסכים כלל', code: 'low' },
+        { text: 'מסכים מאוד', code: 'high' }
+      ]
     };
-    // Assemble
-    sliderContainer.append(labelsContainer, slider, valueDisplay, submitBtn);
-    document.getElementById('options').appendChild(sliderContainer);
-}
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderScaleQuestion(sampleData, 1);
+    });
+
+
 
 function renderRankingQuestion(data, questionNumber) {
     const list = document.createElement('ul'); 
