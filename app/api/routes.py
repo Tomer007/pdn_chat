@@ -66,7 +66,7 @@ class LoginRequest(BaseModel):
     class Config:
         json_schema_extra = {
             "example": {
-                "email": "john@example.com",
+                "email": "tomergur@gmail.com",
                 "password": "password123"
             }
         }

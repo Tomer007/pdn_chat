@@ -23,7 +23,7 @@ def calculate_pdn_code(answers: dict) -> dict:
     # Stage A: Primary Trait Calculation
     trait_counts = {'A': 0, 'T': 0, 'P': 0, 'E': 0}
     # answer = data.questions
-    for i in range(1, 31):
+    for i in range(1, 27):
         if str(i) in answers:
             answer = answers[str(i)]['code']
             if answer == 'AP':
@@ -54,7 +54,7 @@ def calculate_pdn_code(answers: dict) -> dict:
 
     # Stage B: Energy Type Calculation
     energy_counts = {'D': 0, 'S': 0, 'F': 0}
-    for i in range(31, 41):
+    for i in range(27, 38):
         if str(i) in answers:
             ranking = answers[str(i)]['ranking']
             for energy, rank in ranking.items():
@@ -76,7 +76,7 @@ def calculate_pdn_code(answers: dict) -> dict:
 
 
     # Stage C: Validation and Tie-Breaking
-    for i in range(41, 46):
+    for i in range(38, 43):
         if str(i) in answers:
             ranking = answers[str(i)]['ranking']
             traits = list(ranking.keys())
@@ -106,7 +106,7 @@ def calculate_pdn_code(answers: dict) -> dict:
     logger.info("Stage C dominant trait %s", dominant_trait)
 
     # Stage D: Validation and Tie-Breaking
-    for i in range(46, 60):
+    for i in range(43, 57):
         if str(i) in answers:
             ranking = answers[str(i)]['ranking']
             # Get the trait combinations and their rankings
@@ -145,7 +145,7 @@ def calculate_pdn_code(answers: dict) -> dict:
 
     # StageE: Strengthen Dominant Trait
     trait_counts = {'A': 0, 'T': 0, 'P': 0, 'E': 0}
-    for i in range(60, 63):
+    for i in range(57, 60):
         if str(i) in answers:
             ranking = answers[str(i)]['ranking']
             for trait, rank in ranking.items():
