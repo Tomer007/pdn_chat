@@ -14,6 +14,7 @@ from app.utils.email_sender import send_email
 from app.utils.pdn_calculator import calculate_pdn_code
 from app.utils.questionnaire import get_question
 from app.utils.report_generator import load_pdn_report
+#from app.utils.store_pdn_report_in_Firebase import store_pdn_report_in_Firebase
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -273,7 +274,7 @@ async def get_report_data(request: Request):
     report_data = load_pdn_report(pdn_code)
 
     # Save the report data to the Firebase Firestore database
-    save_report_to_firestore(user_answers, pdn_code, report_data)
+    #store_pdn_report_in_Firebase(user_answers, pdn_code, report_data)
     
     # Send email report
     email_sent = send_email(user_answers, pdn_code, report_data)
