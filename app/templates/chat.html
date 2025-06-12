@@ -63,6 +63,14 @@
         from { height: 8px; background: #c4b5fd; }
         to   { height: 22px; background: #7c3aed; }
       }
+      .ranking-number.selected {
+        color: #7c3aed; /* Tailwind's purple-600 */
+        font-weight: bold;
+      }
+      .ranking-number {
+        color: #7c3aed;   /* Tailwind's purple-600 */
+        font-weight: bold;
+      }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
@@ -417,38 +425,115 @@ function renderScaleQuestion(data, questionNumber) {
 
 
 
-function renderRankingQuestion(data, questionNumber) {
-    const list = document.createElement('ul'); 
-    list.id = 'rankingList'; 
-    list.className = 'space-y-2';
-    
-    // Create an array of options and randomize them
-    const randomizedOptions = [...data.options].sort(() => Math.random() - 0.5);
-    
-    // Use the randomized options to create list items
-    randomizedOptions.forEach(opt => {
-        const item = document.createElement('li');
-        item.className = 'cursor-move bg-white border border-indigo-200 rounded-lg px-4 py-3 shadow flex items-center text-gray-800 font-medium';
-        item.setAttribute('data-code', opt.code);
-        item.innerText = opt.text;
-        list.appendChild(item);
-    });
-    Sortable.create(list, { animation: 150 });
-    document.getElementById('options').appendChild(list);
-    
-    const submitBtn = document.createElement('button');
-    submitBtn.type = 'button';
-    submitBtn.innerText = 'שלח דירוג';
-    submitBtn.className = 'text-lg w-full py-3 px-6 mt-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-xl';
-    submitBtn.onclick = async e => {
-        e.preventDefault(); 
-        const items = list.querySelectorAll('li'); 
-        const ranking = {};
-        items.forEach((it, idx) => ranking[it.getAttribute('data-code')] = idx+1);
-        await submitAnswer(questionNumber, null, null, ranking);
-    };
-    document.getElementById('options').appendChild(submitBtn);
-}
+    function renderRankingQuestion(data, questionNumber) {
+            const container = document.createElement('div');
+            container.className = 'glass-effect rounded-3xl shadow-lg p-8';
+
+            const instruction = document.createElement('div');
+            instruction.className = 'mb-6 text-center text-purple-700 bg-purple-50 px-6 py-4 rounded-full text-base font-semibold';
+            instruction.innerHTML = 'מה חשוב לך יותר? לחץ לפי סדר החשיבות.<br>לא בטוח? תמיד אפשר ללחוץ שוב ולשנות.';
+            container.appendChild(instruction);
+
+            const list = document.createElement('ul');
+            list.id = 'rankingList';
+            list.className = 'space-y-3';
+
+            const randomizedOptions = [...data.options].sort(() => Math.random() - 0.5);
+            const selectedOrder = [];
+
+            randomizedOptions.forEach(opt => {
+                const li = document.createElement('li');
+                li.className = 'ranking-item bg-white rounded-xl p-4 flex items-center gap-4 border cursor-pointer';
+                li.setAttribute('data-code', opt.code);
+
+                const numberDiv = document.createElement('span');
+                numberDiv.className = 'ranking-number';
+                numberDiv.textContent = '?';
+
+                const textSpan = document.createElement('span');
+                textSpan.className = 'flex-1';
+                textSpan.textContent = opt.text;
+
+                li.appendChild(numberDiv);
+                li.appendChild(textSpan);
+
+                li.addEventListener('click', () => {
+                    const code = opt.code;
+                    const idx = selectedOrder.indexOf(code);
+                    if (idx >= 0) {
+                        selectedOrder.splice(idx, 1);
+                    } else if (selectedOrder.length < 4) {
+                        selectedOrder.push(code);
+                    }
+                    renderRanks();
+                });
+
+                list.appendChild(li);
+            });
+
+            function renderRanks() {
+                list.querySelectorAll('li').forEach(li => {
+                    const code = li.getAttribute('data-code');
+                    const numberDiv = li.querySelector('.ranking-number');
+                    const idx = selectedOrder.indexOf(code);
+                    if (idx >= 0) {
+                        numberDiv.textContent = idx + 1;
+                        numberDiv.classList.add('selected');
+                    } else {
+                        numberDiv.textContent = '?';
+                        numberDiv.classList.remove('selected');
+                    }
+                });
+            }
+
+            container.appendChild(list);
+
+            const buttons = document.createElement('div');
+            buttons.className = 'flex gap-4 mt-8';
+
+            const submitBtn = document.createElement('button');
+            submitBtn.type = 'button';
+            submitBtn.className = 'flex-1 py-4 px-6 bg-purple-600 text-white font-semibold rounded-xl hover:bg-purple-700 transition';
+            submitBtn.textContent = 'שלח דירוג';
+
+            const errorDiv = document.createElement('div');
+            errorDiv.id = 'rankingError';
+            errorDiv.className = 'text-red-600 text-right mb-2';
+            errorDiv.style.display = 'none';
+            document.getElementById('options').appendChild(errorDiv);
+
+            submitBtn.onclick = async () => {
+                if (selectedOrder.length < data.options.length) {
+                    errorDiv.textContent = 'יש לדרג את כל האפשרויות';
+                    errorDiv.style.display = 'block';
+                    return;
+                } else {
+                    errorDiv.style.display = 'none';
+                    const result = {};
+                    selectedOrder.forEach((code, index) => {
+                        result[code] = index + 1;
+                    });
+                    await submitAnswer(questionNumber, null, null, result);
+                }
+            };
+
+            const resetBtn = document.createElement('button');
+            resetBtn.type = 'button';
+            resetBtn.className = 'flex-1 py-4 px-6 bg-violet-100 text-purple-800 font-semibold rounded-xl hover:bg-violet-200 transition';
+            resetBtn.textContent = 'איפוס';
+
+            resetBtn.onclick = () => {
+                selectedOrder.length = 0;
+                renderRanks();
+            };
+
+            buttons.appendChild(submitBtn);
+            buttons.appendChild(resetBtn);
+
+            container.appendChild(buttons);
+            document.getElementById('options').appendChild(container);
+        }
+
 
 async function submitAnswer(qNum, code, text, ranking = null) {
     const questionText = document.getElementById('questionText').innerText;
