@@ -1,9 +1,11 @@
 import json
+import os
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any
 
-ANSWERS_DIR = Path("saved_results")
+# Get ANSWERS_DIR from environment variable, fallback to default
+ANSWERS_DIR = Path(os.getenv('ANSWERS_DIR', 'saved_results'))
 
 # Make sure the directory exists
 ANSWERS_DIR.mkdir(parents=True, exist_ok=True)
@@ -15,6 +17,7 @@ def save_answer(email: str, question_number: int, answer_data: dict):
     # Sanitize username for file system safety
     safe_username = "".join(c for c in email if c.isalnum() or c in (' ', '-', '_')).rstrip()
     safe_username = safe_username.replace(' ', '_')
+
 
     file_path = ANSWERS_DIR / safe_username / f"answers_{safe_username}.json"
 
