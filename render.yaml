@@ -19,9 +19,11 @@ services:
         value: tomergur@gmail.com
       - key: SMTP_PASSWORD
         value: XXXXX
+      - key: ANSWERS_DIR
+        value: /pdn/saved_results
     healthCheckPath: /
     autoDeploy: true
     disk:
-      name: pdn-data
+      name: pdn
       mountPath: /app/saved_results
       sizeGB: 1 
