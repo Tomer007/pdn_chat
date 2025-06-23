@@ -3,6 +3,7 @@ import logging
 # Add at the beginning of the file, after imports
 logger = logging.getLogger(__name__)
 
+
 def calculate_pdn_code(answers: dict) -> dict:
     """
     Calculate the PDN code based on user's answers.
@@ -50,8 +51,6 @@ def calculate_pdn_code(answers: dict) -> dict:
     logger.info("Stage A: Trait Calculation for E %s", result['scores']['E'])
     logger.info("Stage A dominant trait %s", dominant_trait)
 
-
-
     # Stage B: Energy Type Calculation
     energy_counts = {'D': 0, 'S': 0, 'F': 0}
     for i in range(27, 38):
@@ -73,7 +72,6 @@ def calculate_pdn_code(answers: dict) -> dict:
     logger.info("Stage B: Energy Type Calculation for S %s", energy_counts['S'])
     logger.info("Stage B: Energy Type Calculation for F %s", energy_counts['F'])
     logger.info("Stage B dominant energy %s", dominant_energy)
-
 
     # Stage C: Validation and Tie-Breaking
     for i in range(38, 43):
@@ -97,7 +95,6 @@ def calculate_pdn_code(answers: dict) -> dict:
         result['scores'][trait] += score
     dominant_trait = max(result['scores'], key=result['scores'].get)
     result['trait'] = dominant_trait
-
 
     logger.info("Stage C: Trait Calculation for A %s", result['scores']['A'])
     logger.info("Stage C: Trait Calculation for T %s", result['scores']['T'])
@@ -123,15 +120,15 @@ def calculate_pdn_code(answers: dict) -> dict:
                     result['scores'][combo1[0]] += score_adjustment
                     result['scores'][combo1[1]] += score_adjustment
                     # Subtract points from both traits in the losing combination
-                    result['scores'][combo2[0]] -= score_adjustment/2
-                    result['scores'][combo2[1]] -= score_adjustment/2
+                    result['scores'][combo2[0]] -= score_adjustment / 2
+                    result['scores'][combo2[1]] -= score_adjustment / 2
                 elif difference < 0:
                     # Add points to both traits in the winning combination
                     result['scores'][combo2[0]] += score_adjustment
                     result['scores'][combo2[1]] += score_adjustment
                     # Subtract points from both traits in the losing combination
-                    result['scores'][combo1[0]] -= score_adjustment/2
-                    result['scores'][combo1[1]] -= score_adjustment/2
+                    result['scores'][combo1[0]] -= score_adjustment / 2
+                    result['scores'][combo1[1]] -= score_adjustment / 2
 
     # Recalculate dominant trait after all adjustments
     dominant_trait = max(result['scores'], key=result['scores'].get)
@@ -150,7 +147,7 @@ def calculate_pdn_code(answers: dict) -> dict:
             ranking = answers[str(i)]['ranking']
             for trait, rank in ranking.items():
                 if rank == 1:
-                    result['scores'][trait] += 8  
+                    result['scores'][trait] += 8
                 elif rank == 2:
                     result['scores'][trait] += 6
                 elif rank == 3:
@@ -166,7 +163,6 @@ def calculate_pdn_code(answers: dict) -> dict:
     logger.info("Stage E: Trait Calculation for P %s", result['scores']['P'])
     logger.info("Stage E: Trait Calculation for E %s", result['scores']['E'])
     logger.info("Stage E dominant trait %s", dominant_trait)
-
 
     # Finalizing the PDN code
     pdn_matrix = {

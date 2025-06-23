@@ -6,6 +6,7 @@ from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
 
+
 def send_email(user_answers: Dict[str, Any], pdn_code: str, report_data: Dict[str, Any]) -> bool:
     """
     Send PDN report via email to the user.
@@ -27,8 +28,8 @@ def send_email(user_answers: Dict[str, Any], pdn_code: str, report_data: Dict[st
 
         # Create message
         msg = MIMEMultipart()
-        msg['From'] = 'tomergur@gmail.com' 
-        msg['To'] = user_email#, 'center@pdn.co.il'
+        msg['From'] = 'tomergur@gmail.com'
+        msg['To'] = user_email  # , 'center@pdn.co.il'
         msg['Subject'] = f'Your PDN Analysis Report - {pdn_code}'
 
         # Create email body
@@ -77,4 +78,4 @@ def send_email(user_answers: Dict[str, Any], pdn_code: str, report_data: Dict[st
 
     except Exception as e:
         logger.error(f"Failed to send email: {str(e)}")
-        return False 
+        return False

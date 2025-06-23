@@ -14,7 +14,8 @@ from app.utils.email_sender import send_email
 from app.utils.pdn_calculator import calculate_pdn_code
 from app.utils.questionnaire import get_question
 from app.utils.report_generator import load_pdn_report
-#from app.utils.store_pdn_report_in_Firebase import store_pdn_report_in_Firebase
+
+# from app.utils.store_pdn_report_in_Firebase import store_pdn_report_in_Firebase
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -59,7 +60,7 @@ class AnswerRequest(BaseModel):
         }
 
 
-class LoginRequest(BaseModel):  
+class LoginRequest(BaseModel):
     email: EmailStr = Field(..., description="User's email address")
     password: str = Field(..., description="User's password")
 
@@ -202,7 +203,7 @@ async def submit_answer_route(request: Request):
     """
     api_usage["submit_answer"] += 1
     logger.debug(f"API Usage: {dict(api_usage)}")
-   
+
     data = await request.json()
     question = data.get("question")
     question_number = data.get("question_number")
@@ -261,26 +262,26 @@ async def get_report_data(request: Request):
     logger.info("Response: %s", 200)
     email = request.session.get("email", "anonymous")
     user_answers = load_answers(email)
-    
+
     if not user_answers:
         raise HTTPException(status_code=404, detail="No answers found for this user")
-        
+
     metadata = user_answers.get('metadata', {})
     pdn_code = calculate_pdn_code(user_answers)
-    
+
     if not pdn_code:
         raise HTTPException(status_code=400, detail="Could not calculate PDN code")
 
     report_data = load_pdn_report(pdn_code)
 
     # Save the report data to the Firebase Firestore database
-    #store_pdn_report_in_Firebase(user_answers, pdn_code, report_data)
-    
+    # store_pdn_report_in_Firebase(user_answers, pdn_code, report_data)
+
     # Send email report
     email_sent = send_email(user_answers, pdn_code, report_data)
     if not email_sent:
         logger.warning("Failed to send email report")
-    
+
     return {
         "metadata": metadata,
         "results": {
@@ -290,9 +291,10 @@ async def get_report_data(request: Request):
         "email_sent": email_sent
     }
 
+
 @router.get('/get_user_name')
 def get_user_name(request: Request):
     # Get the user's name from your session or database
-    #TODO ADD user name
+    # TODO ADD user name
     email = request.session.get("email", "anonymous")
     return {"name": email}
