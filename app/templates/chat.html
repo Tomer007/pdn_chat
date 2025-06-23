@@ -8,6 +8,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Varela+Round&display=swap"
           rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <!-- Include audio handler script -->
+    <script src="/static/js/audio-handler.js"></script>
     <style>
       body { background: radial-gradient(ellipse at center, #e0e7ff 0%, #c7d2fe 50%, #a5b4fc 100%); font-family: 'Rubik', sans-serif; min-height: 100vh; }
       .glass-effect { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); border-radius: 1.5rem; box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
@@ -147,17 +149,21 @@
             <div>
                 <button id="startRecordBtn"
                         class="text-lg py-3 px-7 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl shadow-lg font-semibold">
-                    התחל
+                    התחל להקליט
                 </button>
                 <button id="stopRecordBtn"
                         class="hidden text-lg py-3 px-7 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-xl shadow-lg font-semibold ml-2">
-                    סיים
+                    סיים הקלטה
                 </button>
             </div>
             <div id="recordStatus" class="text-lg text-purple-700"></div>
             <div id="visualizer" class="flex justify-center items-end space-x-1 mb-1"
                  style="height:24px;direction:ltr"></div>
             <audio id="audioPlayback" controls class="hidden mx-auto" style="max-width:260px"></audio>
+            <!-- Audio upload status -->
+            <div id="uploadStatus" class="text-center mt-4 hidden">
+                <div class="text-green-600 font-semibold">הקלטה נשמרה בהצלחה!</div>
+            </div>
         </div>
     </div>
     <div id="questionArea" class="hidden space-y-6">
@@ -185,6 +191,7 @@ let currentQuestion = 1;
 let currentStage = '';
 let nextData = null;
 let questionHistory = []; // Array to store question history
+let currentUsername = '{{ email }}' || 'anonymous'; // Get username from template
 
 // Modal logic
 const modal = document.getElementById('instructionModal');
@@ -207,7 +214,7 @@ const stopBtn = document.getElementById('stopRecordBtn');
 const recordStatus = document.getElementById('recordStatus');
 const audioPlayback = document.getElementById('audioPlayback');
 const visualizer = document.getElementById('visualizer');
-
+const uploadStatus = document.getElementById('uploadStatus');
 
 startBtn.onclick = async function() {
     audioChunks = [];
@@ -227,11 +234,22 @@ startBtn.onclick = async function() {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         mediaRecorder = new MediaRecorder(stream);
         mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-        mediaRecorder.onstop = e => {
+        mediaRecorder.onstop = async e => {
             const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
             audioPlayback.src = URL.createObjectURL(audioBlob);
             audioPlayback.classList.remove('hidden');
             visualizer.innerHTML = '';
+            
+            // Upload audio to backend
+            try {
+                const result = await saveUserAudio(currentUsername, audioBlob);
+                uploadStatus.classList.remove('hidden');
+                console.log('Audio uploaded successfully:', result);
+            } catch (error) {
+                console.error('Failed to upload audio:', error);
+                uploadStatus.classList.remove('hidden');
+                uploadStatus.innerHTML = '<div class="text-red-600 font-semibold">שגיאה בשמירת ההקלטה</div>';
+            }
         };
         mediaRecorder.start();
         // Timer for duration
@@ -256,7 +274,7 @@ function finishRecording() {
         mediaRecorder.stop();
         clearInterval(recordTimer);
         recordStatus.innerHTML = '<span class="text-black-600 font-bold">ההקלטה הסתיימה.</span>';
-        stopBtn.innerText = 'המשך';
+        stopBtn.innerText = 'המשך לאיבחון';
         stopBtn.classList.remove('hidden');
         startBtn.classList.add('hidden');
         visualizer.innerHTML = '';
@@ -276,11 +294,12 @@ stopBtn.onclick = function() {
 function resetVoiceUI() {
     startBtn.classList.remove('hidden');
     stopBtn.classList.add('hidden');
-    stopBtn.innerText = 'סיים והמשך';
+    stopBtn.innerText = 'סיים הקלטה';
     recordStatus.innerHTML = '';
     audioPlayback.classList.add('hidden');
     audioPlayback.src = '';
     visualizer.innerHTML = '';
+    uploadStatus.classList.add('hidden');
     if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
     if (recordTimer) clearInterval(recordTimer);
 }
