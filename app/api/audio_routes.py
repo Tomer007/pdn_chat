@@ -14,7 +14,13 @@ logger = logging.getLogger(__name__)
 audio_router = APIRouter(prefix="/api", tags=["audio"])
 
 # Base directory for saved results
-SAVED_RESULTS_DIR = Path("saved_results")
+SAVED_RESULTS_DIR = Path(os.getenv('ANSWERS_DIR', 'saved_results'))
+
+# Log the directory being used for debugging
+logger.info(f"ANSWERS_DIR environment variable: {os.getenv('ANSWERS_DIR', 'NOT_SET')}")
+logger.info(f"Using SAVED_RESULTS_DIR: {SAVED_RESULTS_DIR}")
+logger.info(f"Current working directory: {os.getcwd()}")
+logger.info(f"Absolute SAVED_RESULTS_DIR path: {SAVED_RESULTS_DIR.absolute()}")
 
 @audio_router.post("/save-audio")
 async def save_audio(
