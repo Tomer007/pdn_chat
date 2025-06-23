@@ -20,7 +20,7 @@ def get_question(question_number: int, questions: dict):
     Fetch a specific question by its number.
     Returns the question text and its options.
     """
-    
+
     # Check Part A questions (1-26)
     if 1 <= question_number <= 26:
         print("Part A")
@@ -30,17 +30,17 @@ def get_question(question_number: int, questions: dict):
         print("Part B")
         phase = "PartB"
     # Check Part C questions (38-42)
-    elif 38 <= question_number <= 42:   
+    elif 38 <= question_number <= 42:
         print("Part C")
         phase = "PartC"
     # Check Part D questions (43-56)
     elif 43 <= question_number <= 56:
         phase = "PartD"
     # Check Part E questions (57-59)    
-    elif 57 <= question_number <= 59:   
-        phase = "PartE" 
-    # Check Part F questions (60-65)
-    elif 60 <= question_number <= 65:       
+    elif 57 <= question_number <= 59:
+        phase = "PartE"
+        # Check Part F questions (60-65)
+    elif 60 <= question_number <= 65:
         phase = "PartF"
     else:
         return {"message": "No more questions."}

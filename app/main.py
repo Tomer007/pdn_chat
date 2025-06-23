@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.api.routes import router as api_router
+
 # import firebase_admin
 # from firebase_admin import credentials
 
@@ -38,6 +39,7 @@ logging.basicConfig(
 # Create logger
 logger = logging.getLogger(__name__)
 
+
 # Global variables at startup
 @app.on_event("startup")
 async def startup_event():
@@ -55,6 +57,7 @@ async def startup_event():
     # Initialize Firebase Admin SDK
     # cred = credentials.Certificate('path/to/your/serviceAccountKey.json')
     # firebase_admin.initialize_app(cred)
+
 
 # Include routers
 app.include_router(api_router)
@@ -80,6 +83,7 @@ def get_question(question_number: int, questions: dict):
         "options": question["options"]
     }
 
+
 @app.middleware("http")
 async def log_requests(request, call_next):
     logger.info(f"Request: {request.method} {request.url}")
@@ -87,22 +91,25 @@ async def log_requests(request, call_next):
     logger.info(f"Response: {response.status_code}")
     return response
 
+
 # Custom OpenAPI schema
 def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
-    
+
     openapi_schema = get_openapi(
         title="PDN Diagnosis System API",
         version="1.0.0",
         description="API for the PDN Diagnosis System",
         routes=app.routes,
     )
-    
+
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 
+
 app.openapi = custom_openapi
+
 
 # Custom docs endpoint
 @app.get("/docs", include_in_schema=False)

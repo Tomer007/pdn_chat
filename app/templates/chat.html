@@ -5,7 +5,8 @@
     <title>PDN Chat</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Varela+Round&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Varela+Round&display=swap"
+          rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
       body { background: radial-gradient(ellipse at center, #e0e7ff 0%, #c7d2fe 50%, #a5b4fc 100%); font-family: 'Rubik', sans-serif; min-height: 100vh; }
@@ -71,27 +72,29 @@
         color: #7c3aed;   /* Tailwind's purple-600 */
         font-weight: bold;
       }
+
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
 
 <!-- Modal for stage instructions -->
 <div id="instructionModal" class="fixed inset-0 backdrop-blur-sm hidden items-center justify-center z-50"
-style="background: radial-gradient(ellipse at center, #e0e7ff 0%, #c7d2fe 50%, #a5b4fc 100%);"
+     style="background: radial-gradient(ellipse at center, #e0e7ff 0%, #c7d2fe 50%, #a5b4fc 100%);"
 >
-  <div class="relative bg-gradient-to-r from-purple-100 to-indigo-100 rounded-2xl p-8 max-w-md w-full glass-effect glow animate-fade-in-up shadow-2xl text-center">
+    <div class="relative bg-gradient-to-r from-purple-100 to-indigo-100 rounded-2xl p-8 max-w-md w-full glass-effect glow animate-fade-in-up shadow-2xl text-center">
 
-    <!-- Animated bulb icon -->
-    <div class="text-4xl mb-4 animate-bounce">💡</div>
-    <!-- Title (if used) -->
-    <h3 id="modalTitle" class="text-lg font-extrabold mb-2" style="font-family:'Varela Round',cursive"></h3>
-    <!-- Instruction text -->
-    <p id="modalText" class="text-lg text-right text-gray-800 whitespace-pre-line mb-6 leading-relaxed"></p>
-    <!-- Action button -->
-    <button id="modalClose" class="mx-auto block py-3 px-8 text-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-purple-400/30 transform transition duration-300 hover:scale-105 animate-pulse">
-      יופי, אפשר להתקדם!
-    </button>
-  </div>
+        <!-- Animated bulb icon -->
+        <div class="text-4xl mb-4 animate-bounce">💡</div>
+        <!-- Title (if used) -->
+        <h3 id="modalTitle" class="text-lg font-extrabold mb-2" style="font-family:'Varela Round',cursive"></h3>
+        <!-- Instruction text -->
+        <p id="modalText" class="text-lg text-right text-gray-800 whitespace-pre-line mb-6 leading-relaxed"></p>
+        <!-- Action button -->
+        <button id="modalClose"
+                class="mx-auto block py-3 px-8 text-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-purple-400/30 transform transition duration-300 hover:scale-105 animate-pulse">
+            יופי, אפשר להתקדם!
+        </button>
+    </div>
 </div>
 
 <style>
@@ -117,41 +120,56 @@ style="background: radial-gradient(ellipse at center, #e0e7ff 0%, #c7d2fe 50%, #
   .animate-pulse {
     animation: pulse 2s infinite;
   }
+
 </style>
 
 
 <main id="chatArea" class="glass-effect p-8 rounded-2xl shadow-2xl w-full max-w-2xl border border-white/20 space-y-6">
-    <h1 class="text-4xl font-bold text-center text-gray-800 bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">אבחון צופן המקור </h1>
+    <h1 class="text-4xl font-bold text-center text-gray-800 bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+        אבחון צופן המקור </h1>
     <div id="messages" class="space-y-4 fade-in">
 
         <!-- Voice Recording Section -->
-        <div id="voiceRecordArea" class="p-6 rounded-xl border border-indigo-100 bg-gradient-to-r from-purple-100 to-indigo-100 text-gray-800 shadow-sm fade-in text-right" dir="rtl">
-           <p class="text-lg mb-4">שלום וברוך הבא,</p>
-        <p class="text-lg mb-4">בוא נגלה יחד את קוד המקור הייחודי שלך, המצפן הפנימי שלך לצמיחה והתפתחות.</p>
-        <p class="text-lg mb-4">ענה על שתי שאלות הבאות לזיהוי קוד המקור שלך:</p>
-        <div class="bg-white p-4 rounded border-r-4 border-blue-400">
-                    <span>1.</span> ספר לי על חוויה חיובית או מרגשת שחווית בשנה האחרונה. משהו שנגע בך או שימח אותך במיוחד.
-                </div>
-                <div class="bg-white p-4 rounded border-r-4 border-blue-400">
-                    <span>2.</span> ספר לי על אתגר משמעותי שהתמודדת איתו לאחרונה – משהו שהיה לך לא פשוט, ואיך הצלחת לעבור אותו.
-                </div></br>
+        <div id="voiceRecordArea"
+             class="p-6 rounded-xl border border-indigo-100 bg-gradient-to-r from-purple-100 to-indigo-100 text-gray-800 shadow-sm fade-in text-right"
+             dir="rtl">
+            <p class="text-lg mb-4">שלום וברוך הבא,</p>
+            <p class="text-lg mb-4">בוא נגלה יחד את קוד המקור הייחודי שלך, המצפן הפנימי שלך לצמיחה והתפתחות.</p>
+            <p class="text-lg mb-4">ענה על שתי שאלות הבאות לזיהוי קוד המקור שלך:</p>
+            <div class="bg-white p-4 rounded border-r-4 border-blue-400">
+                <span>1.</span> ספר לי על חוויה חיובית או מרגשת שחווית בשנה האחרונה. משהו שנגע בך או שימח אותך במיוחד.
+            </div>
+            <div class="bg-white p-4 rounded border-r-4 border-blue-400">
+                <span>2.</span> ספר לי על אתגר משמעותי שהתמודדת איתו לאחרונה – משהו שהיה לך לא פשוט, ואיך הצלחת לעבור
+                אותו.
+            </div>
+            </br>
             <div>
-                <button id="startRecordBtn" class="text-lg py-3 px-7 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl shadow-lg font-semibold">התחל</button>
-                <button id="stopRecordBtn" class="hidden text-lg py-3 px-7 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-xl shadow-lg font-semibold ml-2">סיים</button>
+                <button id="startRecordBtn"
+                        class="text-lg py-3 px-7 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl shadow-lg font-semibold">
+                    התחל
+                </button>
+                <button id="stopRecordBtn"
+                        class="hidden text-lg py-3 px-7 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-xl shadow-lg font-semibold ml-2">
+                    סיים
+                </button>
             </div>
             <div id="recordStatus" class="text-lg text-purple-700"></div>
-            <div id="visualizer" class="flex justify-center items-end space-x-1 mb-1" style="height:24px;direction:ltr"></div>
+            <div id="visualizer" class="flex justify-center items-end space-x-1 mb-1"
+                 style="height:24px;direction:ltr"></div>
             <audio id="audioPlayback" controls class="hidden mx-auto" style="max-width:260px"></audio>
         </div>
     </div>
     <div id="questionArea" class="hidden space-y-6">
-        <h2 id="questionText" class="text-lg font-semibold text-gray-700 mb-4 bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent"></h2>
+        <h2 id="questionText"
+            class="text-lg font-semibold text-gray-700 mb-4 bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent"></h2>
         <div id="options" class="space-y-3"></div>
     </div>
 
     <!-- Footer Link -->
     <div class="text-center pt-4 space-y-4">
-        <button id="backButton" onclick="goBack()" class="text-sm w-1/2 py-2 px-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-xl hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-purple-500/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hidden">
+        <button id="backButton" onclick="goBack()"
+                class="text-sm w-1/2 py-2 px-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-xl hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-purple-500/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hidden">
             חזור לשאלה הקודמת
         </button>
         <p class="text-sm sm:text-base font-medium bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-500 bg-clip-text text-transparent animate-pulse">
@@ -576,6 +594,7 @@ async function goBack() {
         loadQuestion(currentQuestion);
     }
 }
+
 </script>
 </body>
 </html>

@@ -67,7 +67,7 @@ def save_user_metadata(metadata: Dict[str, Any], email: str = None) -> None:
         data = {}
 
     # Update metadata
-    metadata['timestamp'] = timestamp   
+    metadata['timestamp'] = timestamp
     data['metadata'] = metadata
 
     # Save with proper Hebrew encoding
