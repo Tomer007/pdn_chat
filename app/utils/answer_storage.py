@@ -11,7 +11,12 @@ ANSWERS_DIR.mkdir(parents=True, exist_ok=True)
 
 def save_answer(email: str, question_number: int, answer_data: dict):
     """Save a single answer to the user's temp file."""
-    file_path = ANSWERS_DIR / f"answers_{email}.json"
+
+    # Sanitize username for file system safety
+    safe_username = "".join(c for c in email if c.isalnum() or c in (' ', '-', '_')).rstrip()
+    safe_username = safe_username.replace(' ', '_')
+
+    file_path = ANSWERS_DIR / safe_username / f"answers_{safe_username}.json"
 
     if file_path.exists():
         with open(file_path, "r", encoding="utf-8") as f:

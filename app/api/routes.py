@@ -14,6 +14,7 @@ from app.utils.email_sender import send_email
 from app.utils.pdn_calculator import calculate_pdn_code
 from app.utils.questionnaire import get_question
 from app.utils.report_generator import load_pdn_report
+from app.api.audio_routes import audio_router
 
 # from app.utils.store_pdn_report_in_Firebase import store_pdn_report_in_Firebase
 
@@ -23,6 +24,9 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
+
+# Include audio routes
+router.include_router(audio_router)
 
 # Temporary dictionary to store user answers in memory
 user_answers: Dict[int, str] = {}
