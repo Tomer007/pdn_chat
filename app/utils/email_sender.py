@@ -28,7 +28,7 @@ def send_email(user_answers: Dict[str, Any], pdn_code: str, report_data: Dict[st
 
         # Create message
         msg = MIMEMultipart()
-        msg['From'] = 'tomergur@gmail.com'
+        msg['From'] = 'center@pdn.co.il'
         msg['To'] = user_email  # , 'center@pdn.co.il'
         msg['Subject'] = f'Your PDN Analysis Report - {pdn_code}'
 
