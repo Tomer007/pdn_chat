@@ -15,6 +15,7 @@ from app.utils.pdn_calculator import calculate_pdn_code
 from app.utils.questionnaire import get_question
 from app.utils.report_generator import load_pdn_report
 from app.api.audio_routes import audio_router
+from app.api.admin_dashboard_api import admin_router
 
 # from app.utils.store_pdn_report_in_Firebase import store_pdn_report_in_Firebase
 
@@ -27,6 +28,8 @@ templates = Jinja2Templates(directory="app/templates")
 
 # Include audio routes
 router.include_router(audio_router)
+# Include admin routes
+router.include_router(admin_router)
 
 # Temporary dictionary to store user answers in memory
 user_answers: Dict[int, str] = {}
@@ -278,9 +281,6 @@ async def get_report_data(request: Request):
 
     report_data = load_pdn_report(pdn_code)
 
-    # Save the report data to the Firebase Firestore database
-    # store_pdn_report_in_Firebase(user_answers, pdn_code, report_data)
-
     # Send email report
     email_sent = send_email(user_answers, pdn_code, report_data)
     if not email_sent:
@@ -300,5 +300,19 @@ async def get_report_data(request: Request):
 def get_user_name(request: Request):
     # Get the user's name from your session or database
     # TODO ADD user name
-    email = request.session.get("email", "anonymous")
-    return {"name": email}
+    return {"name": "User"}
+
+
+@router.get("/admin-dashboard", response_class=HTMLResponse, tags=["Admin"])
+async def admin_dashboard_page(request: Request):
+    """
+    Admin dashboard page endpoint.
+    
+    Returns the admin dashboard HTML template.
+    """
+    logger.debug("GET /admin-dashboard called")
+    api_usage["admin_dashboard"] += 1
+    logger.debug(f"API Usage: {dict(api_usage)}")
+    logger.info("Request: %s %s", request.method, request.url)
+    logger.info("Response: %s", 200)
+    return templates.TemplateResponse("admin_dashboard.html", {"request": request})
