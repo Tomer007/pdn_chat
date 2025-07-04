@@ -5,22 +5,32 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "FastAPI",
+            "name": "Flask App (app.py)",
             "type": "python",
             "request": "launch",
-            "module": "uvicorn",
-            "args": [
-                "app.main:app",
-                "--reload",
-                "--host",
-                "127.0.0.1",
-                "--port",
-                "8001"
-            ],
-            "python": "/opt/homebrew/opt/chat_bot/bin/python3",
+            "program": "${workspaceFolder}/app.py",
+            "console": "integratedTerminal",
+            "python": "${workspaceFolder}/venv/bin/python",
             "env": {
-                "PYTHONPATH": "${workspaceFolder}:/opt/homebrew/opt/chat_bot/lib/python3.9/site-packages"
-            }
+                "FLASK_ENV": "development",
+                "FLASK_DEBUG": "1"
+            },
+            "cwd": "${workspaceFolder}",
+            "justMyCode": false
+        },
+        {
+            "name": "Flask App (run.py)",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/run.py",
+            "console": "integratedTerminal",
+            "python": "${workspaceFolder}/venv/bin/python",
+            "env": {
+                "FLASK_ENV": "development",
+                "FLASK_DEBUG": "1"
+            },
+            "cwd": "${workspaceFolder}",
+            "justMyCode": false
         }
     ]
 }

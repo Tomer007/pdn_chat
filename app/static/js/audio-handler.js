@@ -12,7 +12,7 @@ async function saveUserAudio(username, audioBlob) {
         formData.append('username', username);
 
         // Send POST request to backend
-        const response = await fetch('/api/save-audio', {
+        const response = await fetch('/pdn-admin/api/save-audio', {
             method: 'POST',
             body: formData
         });

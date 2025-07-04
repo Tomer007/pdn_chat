@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8"/>
+    <title>PDN Admin Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: radial-gradient(ellipse at center, #e0e7ff 0%, #c7d2fe 50%, #7c3aed 100%);
+            min-height: 100vh;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .modal-backdrop {
+            position: fixed; 
+            inset: 0; 
+            background: rgba(0, 0, 0, 0.5); 
+            display: none;
+            align-items: center; 
+            justify-content: center; 
+            z-index: 50;
+            backdrop-filter: blur(4px);
+        }
+        .table-container {
+            max-height: 65vh;
+            overflow-y: auto;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+        }
+        .table-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .table-container::-webkit-scrollbar-track {
+            background: #f3f4f6;
+            border-radius: 3px;
+        }
+        .table-container::-webkit-scrollbar-thumb {
+            background: #6366f1;
+            border-radius: 3px;
+        }
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: #4f46e5;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+        }
+        .table-header {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .table-row:hover {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            transform: scale(1.001);
+            transition: all 0.2s ease;
+        }
+        .action-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 80px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .action-btn:focus-visible {
+            outline: 2px solid #6366f1;
+            outline-offset: 2px;
+        }
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        .action-btn:active {
+            transform: translateY(0);
+        }
+        .action-btn.loading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+        .action-btn.loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border: 2px solid transparent;
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .action-btn.questionnaire {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+        }
+        .action-btn.questionnaire:hover {
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+        }
+        .action-btn.voice {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+        .action-btn.voice:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        }
+        .action-btn.edit {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+        }
+        .action-btn.edit:hover {
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+        }
+        .action-btn.download {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+        .action-btn.download:hover {
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+        }
+        .action-btn.delete {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+        .action-btn.delete:hover {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        }
+        .action-btn.email {
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            color: white;
+            flex-direction: column;
+            min-height: 60px;
+            padding: 8px 12px;
+        }
+        .action-btn.email:hover {
+            background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+        }
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        .tooltip::before {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 9999;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: rgba(0, 0, 0, 0.9) transparent transparent transparent;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 9999;
+        }
+        .tooltip:hover::before,
+        .tooltip:hover::after {
+            opacity: 1;
+        }
+        .search-input {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #d1d5db;
+            transition: all 0.3s ease;
+        }
+        .search-input:focus {
+            background: white;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.7s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .highlight-difference {
+            background-color: #eae5e6 !important; /* Light red background */
+            border-left: 4px solid #f5f1f1; /* Red left border for emphasis */
+        }
+        .highlight-difference:hover {
+            background-color: #b0e9a9 !important; /* Slightly darker red on hover */
+        }
+        /* Alternative styling - you can choose which one you prefer */
+        .highlight-difference td {
+            color: #0e0d0d; /* Darker red text */
+            font-weight: 500;
+        }
+        
+        /* Enhanced notification animations */
+        .notification-item {
+            animation: notificationSlideIn 0.5s ease-out;
+        }
+        
+        @keyframes notificationSlideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100%) scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
+        }
+        
+        .notification-item.animate-bounce {
+            animation: notificationBounce 0.6s ease-in-out;
+        }
+        
+        @keyframes notificationBounce {
+            0%, 20%, 53%, 80%, 100% {
+                transform: translate3d(0, 0, 0);
+            }
+            40%, 43% {
+                transform: translate3d(0, -8px, 0);
+            }
+            70% {
+                transform: translate3d(0, -4px, 0);
+            }
+            90% {
+                transform: translate3d(0, -2px, 0);
+            }
+        }
+        
+        /* Notification glow effect */
+        .notification-item {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.1);
+        }
+        
+        .notification-item[class*="border-red"] {
+            box-shadow: 0 10px 25px rgba(195, 229, 161, 0.2), 0 0 0 1px rgba(239, 68, 68, 0.3);
+        }
+        
+        .notification-item[class*="border-green"] {
+            box-shadow: 0 10px 25px rgba(34, 197, 94, 0.2), 0 0 0 1px rgba(34, 197, 94, 0.3);
+        }
+        
+        .notification-item[class*="border-blue"] {
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2), 0 0 0 1px rgba(59, 130, 246, 0.3);
+        }
+        
+        .notification-item[class*="border-yellow"] {
+            box-shadow: 0 10px 25px rgba(234, 179, 8, 0.2), 0 0 0 1px rgba(234, 179, 8, 0.3);
+        }
+    </style>
+</head>
+<body class="p-6">
+
+<!-- Main Dashboard -->
+<div id="dashboard" class="space-y-8">
+    <!-- Header -->
+    <div class="card p-8 rounded-2xl bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200">
+        <div class="flex justify-between items-center">
+            <div class="flex items-center space-x-6 space-x-reverse">
+                <div class="flex-shrink-0">
+                    <img src="/static/images/pdn_logo.svg" 
+                         alt="PDN Logo" 
+                         class="h-20 w-auto object-contain drop-shadow-lg"
+                         style="max-width: 250px;">
+                </div>
+                <div class="border-r border-indigo-300 pr-6">
+                    <h1 class="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                        מערכת שליטה וניהול
+                    </h1>
+                    <p class="text-lg text-gray-700 mt-2 font-medium">ניהול נתוני אבחון פדן</p>
+                    <div class="flex items-center mt-2 space-x-4 space-x-reverse">
+                        <span class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm font-medium">
+                            <i class="fas fa-shield-alt mr-1"></i>מערכת ניהול מאובטחת
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex space-x-4 space-x-reverse">
+                <button id="refreshBtn" 
+                        class="btn-success text-white px-6 py-3 rounded-lg font-semibold text-base transition-all duration-300 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                    <i ></i>
+                    רענן נתונים
+                </button>
+                <button id="logoutBtn" 
+                        class="btn-danger text-white px-6 py-3 rounded-lg font-semibold text-base transition-all duration-300 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                    <i ></i>
+                    התנתק
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="card p-8 rounded-2xl">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4 space-x-reverse">
+                <label for="searchInput" class="text-lg font-medium text-gray-700 flex items-center">
+                    <i class="fas fa-search mr-2"></i>
+                    חיפוש לפי אימייל:
+                </label>
+                <input type="text" id="searchInput" placeholder="הקלד אימייל לחיפוש..."
+                       class="px-4 py-3 search-input rounded-lg transition-all duration-300 w-64">
+            </div>
+            <div class="flex items-center space-x-4 space-x-reverse">
+                <label class="flex items-center space-x-2 space-x-reverse cursor-pointer">
+                    <input type="checkbox" id="redUsersFilter" 
+                           class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2">
+                    <span class="text-lg font-medium text-gray-700 flex items-center">
+                        <i class="fas fa-exclamation-triangle mr-2 text-red-500"></i>
+                        הצג  חריגים
+                    </span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="card p-8 rounded-2xl">
+        <div class="mb-6">
+            <h3 class="text-xl font-semibold text-gray-800 flex items-center">
+                <i ></i>
+                נתוני משתמשים
+            </h3>
+        </div>
+        <div class="table-container">
+            <table class="w-full">
+                <thead class="table-header sticky top-0">
+                    <tr>
+                        <th class="px-4 py-4 text-right font-semibold text-gray-700">אימייל</th>
+                        <th class="px-4 py-4 text-right font-semibold text-gray-700">תאריך איבחון</th>
+                        <th class="px-4 py-4 text-right font-semibold text-gray-700">פדן קוד</th>
+                        <th class="px-4 py-4 text-right font-semibold text-gray-700">ניתוח קול קוד</th>
+                        <th class="px-4 py-4 text-right font-semibold text-gray-700">קוד מאבחן</th>
+                        <th class="px-4 py-4 text-right font-semibold text-gray-700">הערות המאבחן</th>
+                        <th class="px-4 py-4 text-right font-semibold text-gray-700">פעולות מנהל</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Data will be populated here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="card p-8 rounded-2xl bg-gradient-to-r from-gray-50 to-slate-50 border border-gray-200">
+        <div class="text-center space-y-6">      
+            <!-- Links and Info -->
+            <div class="flex flex-wrap justify-center items-center space-x-8 space-x-reverse text-sm text-gray-600">
+                <a href="https://www.pdn.co.il" target="_blank" class="hover:text-indigo-600 transition-colors flex items-center">
+                    <i class="fas fa-globe mr-2"></i>
+                    אתר רשמי
+                </a>
+                <span class="flex items-center">
+                    <i class="fas fa-shield-alt mr-2"></i>
+                    מערכת מאובטחת
+                </span>
+            </div>
+            
+            <!-- Copyright -->
+            <div class="border-t border-gray-200 pt-6">
+                <p class="text-xs text-gray-500">
+                    © 2024 PDN Center כל הזכויות שמורות 
+                </p>
+                <p class="text-xs text-gray-400 mt-2">
+                    מערכת ניהול נתוני אבחון פדן - גרסה 1.0
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Questionnaire Modal -->
+<div id="questionnaireModal" class="modal-backdrop">
+    <div class="card p-8 max-w-4xl w-full mx-4 max-h-[80vh] overflow-y-auto rounded-2xl">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800 flex items-center">
+                <i class="fas fa-clipboard-list mr-2 text-indigo-600"></i>
+                נתוני שאלון
+            </h2>
+            <button onclick="closeModal('questionnaireModal')" 
+                    class="text-gray-500 hover:text-gray-700 text-2xl transition-colors">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div id="questionnaireContent" class="space-y-4">
+            <!-- Questionnaire data will be populated here -->
+        </div>
+    </div>
+</div>
+
+<!-- Voice Modal -->
+<div id="voiceModal" class="modal-backdrop">
+    <div class="card p-8 max-w-2xl w-full mx-4 rounded-2xl">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800 flex items-center">
+                <i class="fas fa-microphone mr-2 text-indigo-600"></i>
+                הקלטה קולית
+            </h2>
+            <button onclick="closeModal('voiceModal')" 
+                    class="text-gray-500 hover:text-gray-700 text-2xl transition-colors">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div id="voiceContent" class="space-y-4">
+            <!-- Voice player will be populated here -->
+        </div>
+    </div>
+</div>
+
+<!-- Edit Diagnose Modal -->
+<div id="editDiagnoseModal" class="modal-backdrop">
+    <div class="card p-8 max-w-2xl w-full mx-4 rounded-2xl">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800 flex items-center">
+                <i></i>
+                עריכת אבחון
+            </h2>
+            <button onclick="closeModal('editDiagnoseModal')" 
+                    class="text-gray-500 hover:text-gray-700 text-2xl transition-colors">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="editDiagnoseForm" class="space-y-4">
+            <div>
+                <label for="diagnosePdnCode" class="block text-sm font-medium text-gray-700 mb-2">
+                    <i ></i>קוד PDN אבחון
+                </label>
+                <input type="text" id="diagnosePdnCode" name="diagnose_pdn_code" required
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300">
+            </div>
+            <div>
+                <label for="diagnoseComments" class="block text-sm font-medium text-gray-700 mb-2">
+                    <i></i>הערות אבחון
+                </label>
+                <textarea id="diagnoseComments" name="diagnose_comments" rows="4" required
+                          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"></textarea>
+            </div>
+            <div class="flex space-x-4 space-x-reverse">
+                <button type="submit" 
+                        class="flex-1 py-3 px-6 btn-success text-white font-semibold rounded-lg transition-all duration-300 flex items-center justify-center">
+                    <i class="fas fa-save mr-2"></i>
+                    שמור
+                </button>
+                <button type="button" onclick="closeModal('editDiagnoseModal')"
+                        class="flex-1 py-3 px-6 btn-secondary text-white font-semibold rounded-lg transition-all duration-300 flex items-center justify-center">
+                    <i class="fas fa-times mr-2"></i>
+                    ביטול
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Enhanced Action Modal -->
+<div x-data="{ showActionModal: false, modalText: '', loadingBtn: '' }" 
+     x-show="showActionModal" 
+     @click.away="showActionModal = false" 
+     class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50" 
+     x-transition>
+    <div class="bg-white rounded-lg shadow-lg p-6 w-80 text-center animate-fade-in">
+        <h2 class="text-lg font-semibold mb-4">פעולה מתבצעת</h2>
+        <p x-text="modalText" class="text-gray-700 mb-4"></p>
+        <div class="flex justify-center mb-4">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        </div>
+        <button @click="showActionModal = false" 
+                class="mt-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors">
+            סגור
+        </button>
+    </div>
+</div>
+
+<!-- Loading Spinner -->
+<div id="loadingSpinner" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 backdrop-blur-sm">
+    <div class="card p-8 text-center rounded-2xl">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+        <p class="text-lg text-gray-700">טוען...</p>
+    </div>
+</div>
+
+<script>
+let sessionToken = null;
+let currentData = [];
+let currentEditEmail = null;
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    setupEventListeners();
+    loadMetadata();
+});
+
+function setupEventListeners() {
+    // Search functionality
+    document.getElementById('searchInput').addEventListener('input', handleSearch);
+    
+    // Red users filter
+    document.getElementById('redUsersFilter').addEventListener('change', handleFilter);
+    
+    // Refresh button
+    document.getElementById('refreshBtn').addEventListener('click', loadMetadata);
+    
+    // Logout button
+    document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+    
+    // Edit diagnose form
+    document.getElementById('editDiagnoseForm').addEventListener('submit', handleEditDiagnose);
+}
+
+async function handleLogout() {
+    if (sessionToken) {
+        try {
+            await fetch('/pdn-admin/logout');
+        } catch (error) {
+            console.error('Logout error:', error);
+        }
+    }
+    sessionToken = null;
+    // Redirect to login page
+    window.location.href = '/pdn-admin/login';
+}
+
+async function loadMetadata() {
+    showLoading();
+    try {
+        const response = await fetch('/pdn-admin/metadata');
+        if (response.ok) {
+            const data = await response.json();
+            currentData = data.data;
+            renderTable(currentData);
+        } else {
+            throw new Error('Failed to load metadata');
+        }
+    } catch (error) {
+        console.error('Error loading metadata:', error);
+        alert('שגיאה בטעינת הנתונים');
+    } finally {
+        hideLoading();
+    }
+}
+
+function renderTable(data) {
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '';
+    
+    data.forEach(user => {
+        const row = document.createElement('tr');
+        
+        // Check if any of the three codes are different
+        const isDifferent = (user.pdn_code !== user.diagnose_pdn_code && 
+                           user.diagnose_pdn_code !== "N/A" && 
+                           user.diagnose_pdn_code !== "") ||
+                           (user.pdn_code !== user.pdn_voice_code && 
+                           user.pdn_voice_code !== "N/A" && 
+                           user.pdn_voice_code !== "") ||
+                           (user.pdn_voice_code !== user.diagnose_pdn_code && 
+                           user.diagnose_pdn_code !== "N/A" && 
+                           user.diagnose_pdn_code !== "" &&
+                           user.pdn_voice_code !== "N/A" && 
+                           user.pdn_voice_code !== "");
+        
+        // Add red background class if codes are different
+        if (isDifferent) {
+            row.classList.add('highlight-difference');
+        }
+        
+        row.innerHTML = `
+            <td class="px-4 py-4 font-medium text-gray-900">${user.email}</td>
+            <td class="px-4 py-4 text-gray-700">${user.date}</td>
+            <td class="px-4 py-4">
+                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">🔵 ${user.pdn_code}</span>
+            </td>
+            <td class="px-4 py-4">
+                <span class="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">🎤 ${user.pdn_voice_code || 'N/A'}</span>
+            </td>
+            <td class="px-4 py-4">
+                <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">🟢 ${user.diagnose_pdn_code || 'N/A'}</span>
+            </td>
+            <td class="px-4 py-4 text-gray-700 max-w-xs truncate" title="${user.diagnose_comments || ''}">${user.diagnose_comments || ''}</td>
+            <td class="px-4 py-4">
+                <div class="relative" x-data="{ open: false, loadingBtn: '', modalText: '', showModal: false }">
+                    <button @click="open = !open" 
+                            class="action-btn bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-all duration-300 flex items-center">
+                        <i class="fas fa-cogs mr-2"></i>
+                        פעולות
+                        <i class="fas fa-chevron-down mr-2 transition-transform" :class="{ 'rotate-180': open }"></i>
+                    </button>
+                    
+                    <div x-show="open" 
+                         @click.away="open = false"
+                         x-transition:enter="transition ease-out duration-100"
+                         x-transition:enter-start="transform opacity-0 scale-95"
+                         x-transition:enter-end="transform opacity-100 scale-100"
+                         x-transition:leave="transition ease-in duration-75"
+                         x-transition:leave-start="transform opacity-100 scale-100"
+                         x-transition:leave-end="transform opacity-0 scale-95"
+                         class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                        
+                        <div class="py-1">
+                            <button @click="loadingBtn = 'questionnaire'; modalText = 'טוען נתוני שאלון...'; showModal = true; viewQuestionnaire('${user.email}'); open = false" 
+                                    class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                    :disabled="loadingBtn === 'questionnaire'">
+                                <i class="fas fa-clipboard-list ml-2"></i>
+                                צפה בשאלון
+                            </button>
+                            
+                            <button @click="loadingBtn = 'voice'; modalText = 'טוען הקלטה קולית...'; showModal = true; playVoice('${user.email}'); open = false" 
+                                    class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                    :disabled="loadingBtn === 'voice'">
+                                <i class="fas fa-microphone ml-2"></i>
+                                האזן להקלטה
+                            </button>
+                            
+                            <button @click="loadingBtn = 'edit'; modalText = 'ערוך איבחון...'; showModal = true; editDiagnose('${user.email}'); open = false" 
+                                    class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                    :disabled="loadingBtn === 'edit'">
+                                <i class="fas fa-edit ml-2"></i>
+                                ערוך אבחון
+                            </button>
+                            
+                            <button @click="loadingBtn = 'email'; modalText = 'שולח אימייל...'; showModal = true; sendEmail('${user.email}'); open = false" 
+                                    class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                    :disabled="loadingBtn === 'email'">
+                                <i class="fas fa-envelope ml-2"></i>
+                                שלח אימייל
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+    
+    // Initialize tooltips after rendering
+    initializeTooltips();
+}
+
+function initializeTooltips() {
+    // Remove any existing tooltip elements
+    const existingTooltips = document.querySelectorAll('.custom-tooltip');
+    existingTooltips.forEach(tooltip => tooltip.remove());
+    
+    // Add event listeners to all tooltip elements
+    const tooltipElements = document.querySelectorAll('[data-tooltip]');
+    tooltipElements.forEach(element => {
+        element.addEventListener('mouseenter', showCustomTooltip);
+        element.addEventListener('mouseleave', hideCustomTooltip);
+    });
+}
+
+function showCustomTooltip(event) {
+    const element = event.target;
+    const tooltipText = element.getAttribute('data-tooltip');
+    
+    if (!tooltipText) return;
+    
+    // Create tooltip element
+    const tooltip = document.createElement('div');
+    tooltip.className = 'custom-tooltip';
+    tooltip.textContent = tooltipText;
+    tooltip.style.cssText = `
+        position: absolute;
+        background: rgba(0, 0, 0, 0.9);
+        color: white;
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+        white-space: nowrap;
+        z-index: 99999;
+        pointer-events: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    `;
+    
+    document.body.appendChild(tooltip);
+    
+    // Position tooltip
+    const rect = element.getBoundingClientRect();
+    tooltip.style.left = rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2) + 'px';
+    tooltip.style.top = rect.top - tooltip.offsetHeight - 8 + 'px';
+    
+    // Show tooltip
+    setTimeout(() => {
+        tooltip.style.opacity = '1';
+    }, 10);
+}
+
+function hideCustomTooltip(event) {
+    const tooltips = document.querySelectorAll('.custom-tooltip');
+    tooltips.forEach(tooltip => {
+        tooltip.style.opacity = '0';
+        setTimeout(() => {
+            if (tooltip.parentElement) {
+                tooltip.remove();
+            }
+        }, 300);
+    });
+}
+
+function handleSearch(e) {
+    applyFilters();
+}
+
+function handleFilter(e) {
+    applyFilters();
+}
+
+function applyFilters() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const showRedUsersOnly = document.getElementById('redUsersFilter').checked;
+    
+    let filteredData = currentData.filter(user => {
+        // Email search filter
+        const matchesSearch = user.email.toLowerCase().includes(searchTerm);
+        
+        // Red users filter - check if any of the three codes are different
+        const isRedUser = (user.pdn_code !== user.diagnose_pdn_code && 
+                         user.diagnose_pdn_code !== "N/A" && 
+                         user.diagnose_pdn_code !== "") ||
+                         (user.pdn_code !== user.pdn_voice_code && 
+                         user.pdn_voice_code !== "N/A" && 
+                         user.pdn_voice_code !== "") ||
+                         (user.pdn_voice_code !== user.diagnose_pdn_code && 
+                         user.diagnose_pdn_code !== "N/A" && 
+                         user.diagnose_pdn_code !== "" &&
+                         user.pdn_voice_code !== "N/A" && 
+                         user.pdn_voice_code !== "");
+        
+        if (showRedUsersOnly) {
+            return matchesSearch && isRedUser;
+        } else {
+            return matchesSearch;
+        }
+    });
+    
+    renderTable(filteredData);
+}
+
+async function viewQuestionnaire(email) {
+    if (!sessionToken) return;
+    
+    try {
+        const response = await fetch(`/pdn-admin/user/questionnaire/${email}`);
+        if (response.ok) {
+            const data = await response.json();
+            displayQuestionnaire(data);
+            // Reset loading state for this specific row
+            resetRowLoadingState(email, 'questionnaire');
+        } else {
+            throw new Error('Failed to load questionnaire');
+        }
+    } catch (error) {
+        console.error('Error loading questionnaire:', error);
+        showNotification('שגיאה בטעינת השאלון', 'error');
+        // Reset loading state for this specific row
+        resetRowLoadingState(email, 'questionnaire');
+    }
+}
+
+function displayQuestionnaire(data) {
+    const content = document.getElementById('questionnaireContent');
+    
+    // Extract metadata and questions
+    const metadata = data.metadata || {};
+    const questions = {};
+    const questionsData = data.questions_data || {};
+    
+    // Separate questions from metadata
+    Object.keys(data).forEach(key => {
+        if (key !== 'metadata' && key !== 'questions_data' && !isNaN(key)) {
+            questions[key] = data[key];
+        }
+    });
+    
+    displayQuestionsWithText(questions, metadata, questionsData);
+}
+
+function displayQuestionsWithText(questions, metadata, questionsData) {
+    const content = document.getElementById('questionnaireContent');
+    
+    content.innerHTML = `
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200">
+            <h3 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
+                <i class="fas fa-user mr-2 text-blue-600"></i>פרטי משתמש
+            </h3>
+            <div class="grid grid-cols-2 gap-4">
+                <div><strong>אימייל:</strong> ${metadata.email || 'לא זמין'}</div>
+                <div><strong>שם פרטי:</strong> ${metadata.first_name || 'לא זמין'}</div>
+                <div><strong>שם משפחה:</strong> ${metadata.last_name || 'לא זמין'}</div>
+                <div><strong>טלפון:</strong> ${metadata.phone || 'לא זמין'}</div>
+                <div><strong>שנת לידה:</strong> ${metadata.birth_year || 'לא זמין'}</div>
+                <div><strong>שפת אם:</strong> ${metadata.mother_language || 'לא זמין'}</div>
+                <div><strong>מגדר:</strong> ${metadata.gender || 'לא זמין'}</div>
+                <div><strong>השכלה:</strong> ${metadata.education || 'לא זמין'}</div>
+                <div><strong>תפקיד:</strong> ${metadata.job_title || 'לא זמין'}</div>
+                <div><strong>תאריך השלמה:</strong> ${metadata.timestamp ? metadata.timestamp.replace(/_/g, ' ') : 'לא זמין'}</div>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-xl border border-gray-200">
+            <h3 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
+                <i class="fas fa-list mr-2 text-indigo-600"></i>תשובות השאלון (${Object.keys(questions).length} שאלות)
+            </h3>
+            <div class="space-y-4">
+                ${Object.entries(questions).map(([questionNumber, questionData]) => {
+                    // Handle different question types
+                    let answerDisplay = '';
+                    let codeDisplay = '';
+                    let questionText = `שאלה ${questionNumber}`;
+                    
+                    // Get question text from questions data
+                    if (questionsData) {
+                        // Search for question in all phases
+                        for (const phaseKey in questionsData.phases) {
+                            const phase = questionsData.phases[phaseKey];
+                            if (phase.questions && phase.questions[questionNumber]) {
+                                questionText = phase.questions[questionNumber].text;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (questionData.ranking) {
+                        // For ranking questions, show the ranking data
+                        const rankingEntries = Object.entries(questionData.ranking);
+                        const sortedRanking = rankingEntries.sort((a, b) => a[1] - b[1]);
+                        answerDisplay = sortedRanking.map(([key, value]) => `${key}: ${value}`).join(', ');
+                        codeDisplay = 'דירוג';
+                    } else if (questionData.selected_option_code) {
+                        // For questions with selected_option_code
+                        answerDisplay = questionData.selected_option_code;
+                        codeDisplay = questionText;
+                    } else if (questionData.answer && questionData.code) {
+                        // For regular questions with answer and code
+                        answerDisplay = questionData.answer;
+                        codeDisplay = questionData.code;
+                    } else {
+                        // Fallback for any other structure
+                        answerDisplay = 'לא זמין';
+                        codeDisplay = 'לא זמין';
+                    }
+                    
+                    return `
+                        <div class="border-b border-gray-100 pb-4 last:border-b-0">
+                            <div class="flex items-start justify-between mb-2">
+                                <p class="font-medium text-gray-800 flex-1">${questionText}</p>
+                                <span class="px-2 py-1 bg-indigo-100 text-indigo-800 rounded text-xs font-medium mr-2 flex-shrink-0">
+                                    שאלה ${questionNumber}
+                                </span>
+                            </div>
+                            <div class="flex items-center space-x-4 space-x-reverse">
+                                <p class="text-gray-600 bg-gray-50 px-3 py-2 rounded-lg inline-block">
+                                    <i class="fas fa-check mr-2 text-green-600"></i>תשובה: ${answerDisplay}
+                                </p>
+                                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
+                                    קוד: ${codeDisplay}
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('questionnaireModal').style.display = 'flex';
+}
+
+async function playVoice(email) {
+    if (!sessionToken) return;
+    
+    try {
+        console.log('Fetching voice for email:', email); // Debug log
+        
+        const response = await fetch(`/pdn-admin/user/voice/${email}`);
+        console.log('Response status:', response.status); // Debug log
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Voice data received:', data); // Debug log
+            displayVoice(data);
+            // Reset loading state for this specific row
+            resetRowLoadingState(email, 'voice');
+        } else {
+            const errorText = await response.text();
+            console.error('Server error:', errorText); // Debug log
+            throw new Error(`Failed to load voice: ${response.status} ${errorText}`);
+        }
+    } catch (error) {
+        console.error('Error loading voice:', error);
+        showNotification('שגיאה בטעינת ההקלטה', 'error');
+        // Reset loading state for this specific row
+        resetRowLoadingState(email, 'voice');
+    }
+}
+
+function displayVoice(data) {
+    const content = document.getElementById('voiceContent');
+    
+    // Check if we have the required data
+    if (!data || !data.voice_url) {
+        content.innerHTML = `
+            <div class="bg-red-50 p-6 rounded-xl border border-red-200">
+                <h3 class="text-lg font-semibold mb-4 text-red-800 flex items-center">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>שגיאה
+                </h3>
+                <p class="text-red-700">לא נמצא קובץ הקלטה למשתמש זה</p>
+            </div>
+        `;
+        document.getElementById('voiceModal').style.display = 'flex';
+        return;
+    }
+    
+    // Fix the path construction - remove 'saved_results/' prefix if it exists
+    let filePath = data.voice_url;
+    if (filePath.startsWith('saved_results/')) {
+        filePath = filePath.substring('saved_results/'.length);
+    }
+    
+    const audioUrl = `/pdn-admin/audio/${encodeURIComponent(filePath)}`;
+    
+    console.log('Original voice_url:', data.voice_url); // Debug log
+    console.log('Processed filePath:', filePath); // Debug log
+    console.log('Final audio URL:', audioUrl); // Debug log
+    
+    content.innerHTML = `
+        <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200 mb-6">
+            <h3 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
+                <i class="fas fa-info-circle mr-2 text-green-600"></i>פרטי הקלטה
+            </h3>
+            <div class="grid grid-cols-2 gap-4">
+                <div><strong>אימייל:</strong> ${data.email || 'לא זמין'}</div>
+                <div><strong>סטטוס:</strong> <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-sm">זמין</span></div>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-xl border border-gray-200">
+            <h3 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
+                <i class="fas fa-play mr-2 text-indigo-600"></i>הקלטה קולית
+            </h3>
+            <audio controls class="w-full" preload="metadata">
+                <source src="${audioUrl}" type="audio/wav">
+                <source src="${audioUrl}" type="audio/mp3">
+                <source src="${audioUrl}" type="audio/mpeg">
+                הדפדפן שלך לא תומך בנגינת אודיו.
+            </audio>
+        </div>
+    `;
+    
+    document.getElementById('voiceModal').style.display = 'flex';
+    
+    // Add event listeners to the audio element for debugging
+    const audioElement = content.querySelector('audio');
+    if (audioElement) {
+        audioElement.addEventListener('loadstart', () => console.log('Audio loading started'));
+        audioElement.addEventListener('canplay', () => console.log('Audio can play'));
+        audioElement.addEventListener('error', (e) => {
+            console.error('Audio error:', e);
+            console.error('Audio error details:', audioElement.error);
+        });
+        audioElement.addEventListener('loadeddata', () => console.log('Audio data loaded'));
+    }
+}
+
+function editDiagnose(email) {
+    currentEditEmail = email;
+    const user = currentData.find(u => u.email === email);
+    
+    if (user) {
+        document.getElementById('diagnosePdnCode').value = user.diagnose_pdn_code;
+        document.getElementById('diagnoseComments').value = user.diagnose_comments;
+        document.getElementById('editDiagnoseModal').style.display = 'flex';
+        // Reset loading state for this specific row
+        resetRowLoadingState(email, 'edit');
+    }
+}
+
+async function handleEditDiagnose(e) {
+    e.preventDefault();
+    if (!sessionToken || !currentEditEmail) return;
+    
+    showLoading();
+    try {
+        const formData = {
+            diagnose_pdn_code: document.getElementById('diagnosePdnCode').value,
+            diagnose_comments: document.getElementById('diagnoseComments').value
+        };
+        
+        const response = await fetch(`/pdn-admin/user/diagnose/${currentEditEmail}`);
+        
+        if (response.ok) {
+            const data = await response.json();
+            // Update local data
+            const userIndex = currentData.findIndex(u => u.email === currentEditEmail);
+            if (userIndex !== -1) {
+                currentData[userIndex] = data.user;
+                renderTable(currentData);
+            }
+            closeModal('editDiagnoseModal');
+        } else {
+            throw new Error('Failed to update diagnose');
+        }
+    } catch (error) {
+        console.error('Error updating diagnose:', error);
+        alert('שגיאה בעדכון האבחון');
+    } finally {
+        hideLoading();
+    }
+}
+
+async function sendEmail(email) {
+    if (!sessionToken) return;
+    
+    // Find user data
+    const user = currentData.find(u => u.email === email);
+    if (!user) {
+        showNotification('משתמש לא נמצא', 'error');
+        resetRowLoadingState(email, 'email');
+        return;
+    }
+    
+    // Check if all three codes match
+    const codesMatch = user.pdn_code === user.pdn_voice_code && 
+                      user.pdn_code === user.diagnose_pdn_code &&
+                      user.pdn_voice_code === user.diagnose_pdn_code &&
+                      user.diagnose_pdn_code !== "N/A" && 
+                      user.diagnose_pdn_code !== "" &&
+                      user.pdn_voice_code !== "N/A" && 
+                      user.pdn_voice_code !== "";
+    
+    if (!codesMatch) {
+        showNotification('לא ניתן לשלוח אימייל - הקודים אינם תואמים', 'error');
+        resetRowLoadingState(email, 'email');
+        return;
+    }
+    
+    // Prompt for admin password
+    const password = prompt('הזן סיסמת מנהל לשליחת אימייל:');
+    if (!password) {
+        resetRowLoadingState(email, 'email');
+        return;
+    }
+    
+    if (password !== 'admin') {
+        showNotification('סיסמה שגויה', 'error');
+        resetRowLoadingState(email, 'email');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/pdn-admin/user/send_email/${email}`);
+        
+        if (response.ok) {
+            const data = await response.json();
+            showNotification(`אימייל נשלח בהצלחה ל-${email}`, 'success');
+            // Reset loading state for this specific row
+            resetRowLoadingState(email, 'email');
+        } else {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Failed to send email');
+        }
+    } catch (error) {
+        console.error('Error sending email:', error);
+        showNotification(`שגיאה בשליחת האימייל: ${error.message}`, 'error');
+        // Reset loading state for this specific row
+        resetRowLoadingState(email, 'email');
+    }
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+    if (modalId === 'editDiagnoseModal') {
+        currentEditEmail = null;
+    }
+}
+
+function showLoading() {
+    document.getElementById('loadingSpinner').classList.remove('hidden');
+}
+
+function hideLoading() {
+    document.getElementById('loadingSpinner').classList.add('hidden');
+}
+
+// Close modals when clicking outside
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('modal-backdrop')) {
+        e.target.style.display = 'none';
+    }
+});
+
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `fixed top-6 right-6 z-[9999] p-6 rounded-xl shadow-2xl transition-all duration-500 transform translate-x-full border-2`;
+    
+    // Enhanced styling based on type
+    let bgColor, borderColor, icon, textColor;
+    switch(type) {
+        case 'success':
+            bgColor = 'bg-green-50';
+            borderColor = 'border-green-500';
+            icon = 'fa-check-circle';
+            textColor = 'text-green-800';
+            break;
+        case 'error':
+            bgColor = 'bg-red-50';
+            borderColor = 'border-red-500';
+            icon = 'fa-exclamation-triangle';
+            textColor = 'text-red-800';
+            break;
+        case 'warning':
+            bgColor = 'bg-yellow-50';
+            borderColor = 'border-yellow-500';
+            icon = 'fa-exclamation-circle';
+            textColor = 'text-yellow-800';
+            break;
+        default:
+            bgColor = 'bg-blue-50';
+            borderColor = 'border-blue-500';
+            icon = 'fa-info-circle';
+            textColor = 'text-blue-800';
+    }
+    
+    notification.className += ` ${bgColor} ${borderColor}`;
+    notification.innerHTML = `
+        <div class="flex items-start space-x-3 space-x-reverse">
+            <div class="flex-shrink-0">
+                <i class="fas ${icon} text-xl ${textColor}"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium ${textColor} leading-5">${message}</p>
+            </div>
+            <div class="flex-shrink-0">
+                <button onclick="this.closest('.notification-item').remove()" 
+                        class="inline-flex text-gray-400 hover:text-gray-600 transition-colors duration-200">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // Add a unique class for easier targeting
+    notification.classList.add('notification-item');
+    
+    document.body.appendChild(notification);
+    
+    // Animate in with bounce effect
+    setTimeout(() => {
+        notification.classList.remove('translate-x-full');
+        notification.classList.add('animate-bounce');
+        setTimeout(() => {
+            notification.classList.remove('animate-bounce');
+        }, 1000);
+    }, 100);
+    
+    // Auto remove after 8 seconds (increased from 5)
+    setTimeout(() => {
+        notification.classList.add('translate-x-full');
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.remove();
+            }
+        }, 500);
+    }, 8000);
+    
+    // Add sound for error notifications
+    if (type === 'error') {
+        // Create a simple beep sound
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+        oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+        
+        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.2);
+    }
+}
+
+// Add this new function to reset loading state for a specific row
+function resetRowLoadingState(email, buttonType) {
+    // Find the row for this email
+    const rows = document.querySelectorAll('#tableBody tr');
+    rows.forEach(row => {
+        const emailCell = row.querySelector('td:first-child');
+        if (emailCell && emailCell.textContent.trim() === email) {
+            // Find the Alpine component in this row
+            const alpineComponent = row.querySelector('[x-data]');
+            if (alpineComponent && alpineComponent._x_dataStack && alpineComponent._x_dataStack[0]) {
+                alpineComponent._x_dataStack[0].loadingBtn = '';
+                alpineComponent._x_dataStack[0].showModal = false;
+            }
+        }
+    });
+}
+
+// Update the existing resetAlpineLoadingState function
+function resetAlpineLoadingState() {
+    // Reset all Alpine components
+    document.querySelectorAll('[x-data]').forEach(element => {
+        if (element._x_dataStack && element._x_dataStack[0]) {
+            element._x_dataStack[0].loadingBtn = '';
+            element._x_dataStack[0].showModal = false;
+        }
+    });
+}
+</script>
+</body>
+</html> 

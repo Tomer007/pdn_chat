@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8"/>
+    <title>דוח אישי - PDN</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
+    <style>
+    body {
+      background: radial-gradient(circle at center, #e0e7ff 0%, #c7d2fe 40%, #a5b4fc 100%);
+      font-family: 'Rubik', sans-serif;
+    }
+    .glass-box {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 2rem;
+      box-shadow: 0 15px 45px rgba(0, 0, 0, 0.1);
+    }
+    @media print {
+      body { background: none; }
+      .no-print { display: none !important; }
+    }
+
+
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+
+<!-- Print Mode Toggle & Spinner -->
+<div class="no-print w-full max-w-4xl mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+    <label class="flex items-center space-x-2 space-x-reverse">
+        <input type="checkbox" id="togglePrintMode" class="h-4 w-4 text-purple-600 border-gray-300 rounded">
+        <span class="text-sm text-gray-700">מצב הדפסה</span>
+    </label>
+    <div id="downloadSpinner"
+         class="hidden animate-spin h-5 w-5 border-2 border-t-transparent border-purple-600 rounded-full"></div>
+</div>
+
+<main class="glass-box w-full max-w-4xl p-8 space-y-10 text-right">
+    <div class="text-center space-y-2">
+        <h1 id="titleName"
+            class="text-4xl font-extrabold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+            ✨ דוח אישי – PDN ✨
+        </h1>
+        <p class="text-2xl font-extrabold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+            ברוך הבא לעולם שלך. הצופן שלך מספר סיפור.
+        </p>
+    </div>
+    <!-- Action Buttons -->
+    <div class="flex flex-col sm:flex-row gap-4 no-print">
+        <button onclick="window.print()"
+                class="w-full sm:w-1/2 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-xl shadow hover:from-purple-700 hover:to-indigo-700 transition transform hover:scale-105 active:scale-95">
+            🖨️ הדפס דוח
+        </button>
+        <button onclick="downloadPDF()"
+                class="w-full sm:w-1/2 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-semibold rounded-xl shadow hover:from-blue-700 hover:to-cyan-700 transition transform hover:scale-105 active:scale-95">
+            📥 הורד כקובץ
+        </button>
+    </div>
+</main>
+
+<!-- Footer Link -->
+<div class="text-center pt-4">
+    <p class="text-sm sm:text-base font-medium bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-500 bg-clip-text text-transparent animate-pulse">
+        ✨ <a href="https://www.pdn.co.il" target="_blank" class="hover:underline">Personal Development Navigator</a> ✨
+    </p>
+</div>
+
+<!-- JS -->
+<script>
+    function toggleSection(id) {
+      const el = document.getElementById(id);
+      if (el.classList.contains('hidden')) {
+        el.classList.remove('hidden');
+      } else {
+        el.classList.add('hidden');
+      }
+    }
+
+    document.getElementById('togglePrintMode').addEventListener('change', function () {
+      document.body.classList.toggle('print-mode', this.checked);
+    });
+
+    async function downloadPDF() {
+      const element = document.querySelector('main');
+      const name = document.getElementById('titleName')?.textContent?.split('של ')[1] || 'report';
+      const filename = `PDN_Report_${name.trim().replace(/\s+/g, '_')}.pdf`;
+
+      const spinner = document.getElementById('downloadSpinner');
+      const buttons = document.querySelector('.no-print');
+      spinner.classList.remove('hidden');
+      buttons.style.opacity = 0.4;
+
+      const opt = {
+        margin: 10,
+        filename,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      try {
+        await html2pdf().set(opt).from(element).save();
+      } catch (e) {
+        alert('⚠️ שגיאה בהורדת הדוח. נסה שוב.');
+      } finally {
+        spinner.classList.add('hidden');
+        buttons.style.opacity = 1;
+      }
+    }
+
+    async function loadReportData() {
+      try {
+        const response = await fetch('/pdn-diagnose/get_report_data');
+        const data = await response.json();
+        document.getElementById('titleName').textContent = `דוח אישי – PDN של: ${data.metadata.first_name} ${data.metadata.last_name}`;
+        document.getElementById('pdnCode').textContent = `צופן אישי: ${data.results.pdn_code}`;
+        // document.getElementById('pdnDescription').textContent = data.results.description || '';
+        // document.getElementById('foundation').textContent = data.results.foundation || '';
+        // document.getElementById('energy').textContent = data.results.energy || '';
+        // document.getElementById('type').textContent = data.results.type || '';
+        // populateList('strengths', data.results.strengths);
+        // populateList('challenges', data.results.challenges);
+        // populateList('growth', data.results.growth);
+        // populateList('suitableFields', data.results.suitable_fields);
+        // populateAboutYou(data.results.about_you);
+        // populateSummary(data.results.summary);
+      } catch (error) {
+        console.error('Error loading report:', error);
+      }
+    }
+
+    function populateList(id, items) {
+      const el = document.getElementById(id);
+      el.innerHTML = items.map(i => `<li>${i}</li>`).join('');
+    }
+
+    function populateAboutYou(paragraphs) {
+      const el = document.getElementById('aboutYou');
+      el.innerHTML = paragraphs.map(p => `<p>${p}</p>`).join('');
+    }
+
+    function populateSummary(summary) {
+      const el = document.getElementById('summary');
+      el.innerHTML = summary.points.map(p => `<p>${p}</p>`).join('');
+      document.getElementById('quote').textContent = `"${summary.quote}"`;
+    }
+
+    window.addEventListener('load', loadReportData);
+
+
+</script>
+</body>
+</html>
