@@ -26,7 +26,7 @@ def calculate_pdn_code(answers: dict) -> dict:
     # answer = data.questions
     for i in range(1, 27):
         if str(i) in answers:
-            answer = answers[str(i)]['code']
+            answer = answers[str(i)]['selected_option_code']
             if answer == 'AP':
                 trait_counts['A'] += 1
                 trait_counts['P'] += 1

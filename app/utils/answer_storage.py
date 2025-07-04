@@ -1,5 +1,6 @@
 import json
 import os
+from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any, Optional
 from app.utils.pdn_file_path import PDNFilePath
@@ -14,7 +15,7 @@ def save_answer(email: str, question_number: int, answer_data: dict):
     
     # Create filename
     file_extension = ".json"
-    filename = f"{email}_answers_{file_extension}"
+    filename = f"{email}_answers{file_extension}"
  
     file_path = pdn_file_path.get_user_file_path(email, filename)
 
@@ -57,13 +58,21 @@ def load_answers(email: str) -> Optional[Dict[str, Any]]:
     Load user answers from a JSON file
     """
     try:
-        
-        # Create filename
+        # Try to load the complete answers file first (with underscore suffix)
         file_extension = ".json"
-        filename = f"{email}_answers_{file_extension}"
-
+        complete_filename = f"{email}_answers_{file_extension}"
+        complete_file_path = pdn_file_path.get_user_file_path(email, complete_filename)
+        
+        # If complete file exists, load it
+        if os.path.exists(complete_file_path) and not os.path.isdir(complete_file_path):
+            with open(complete_file_path, "r", encoding="utf-8") as f:
+                answers = json.load(f)
+                print(f"Successfully loaded complete answers for {email}")
+                return answers
+        
+        # Fallback to regular answers file
+        filename = f"{email}_answers{file_extension}"
         file_path = pdn_file_path.get_user_file_path(email, filename)
-
         
         # Check if the path exists and is a file (not a directory)
         if not os.path.exists(file_path):
@@ -149,7 +158,7 @@ def save_user_metadata(metadata: Dict[str, Any], email: str = None) -> None:
     
     # Create filename
     file_extension = ".json"
-    filename = f"{email}_answers_{file_extension}"
+    filename = f"{email}_answers{file_extension}"
  
     file_path = pdn_file_path.get_user_file_path(email, filename)
 

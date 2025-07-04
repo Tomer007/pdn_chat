@@ -3,7 +3,7 @@ import os
 from typing import Dict, Any
 from app.utils.pdn_file_path import PDNFilePath
 import json
-from app.utils.pdn_file_path import PDNFilePath
+from pathlib import Path
 
 class CSVMetadataHandler:
     """Utility class for handling user metadata CSV operations."""
@@ -146,7 +146,7 @@ class CSVMetadataHandler:
             # Check if file_path is None before calling os.path.exists
             if file_path is None:
                 return None
-            
+
             if not os.path.exists(file_path):
                 return None
             

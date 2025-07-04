@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8"/>
+    <title>התחברות - PDN Center</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: radial-gradient(ellipse at center, #e0e7ff 0%, #c7d2fe 50%, #7c3aed 100%);
+            min-height: 100vh;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .modal-backdrop {
+            position: fixed; 
+            inset: 0; 
+            background: rgba(0, 0, 0, 0.5); 
+            display: flex;
+            align-items: center; 
+            justify-content: center; 
+            z-index: 50;
+            backdrop-filter: blur(4px);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
+        .error-message {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="p-6">
+
+<!-- Login Modal -->
+<div class="modal-backdrop">
+    <div class="card p-8 max-w-md w-full mx-4 rounded-2xl">
+        <div class="text-center mb-6">
+            <!-- PDN Logo -->
+            <div class="flex justify-center mb-4">
+                <img src="/static/images/pdn_logo.svg" 
+                     alt="PDN Logo" 
+                     class="h-24 w-auto object-contain drop-shadow-lg"
+                     style="max-width: 300px;">
+            </div>
+            <h2 class="text-4xl sm:text-3xl font-extrabold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+                PDN Center
+            </h2>
+            <h2 class="text-xl sm:text-1xl font-semibold bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 bg-clip-text text-transparent">מערכת אבחון אישי</h2>
+            <p class="text-gray-600 mt-2">הזן פרטים כדי להתחבר</p>
+        </div>
+        <form id="loginForm" class="space-y-4">
+            <!-- Email Field -->
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-envelope mr-4"></i>אימייל
+                </label>
+                <input type="email" id="email" name="email" required
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
+                       placeholder="הזן כתובת אימייל"
+                       autocomplete="email">
+            </div>
+            
+            <!-- Password Field -->
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-lock mr-4"></i>סיסמה
+                </label>
+                <input type="password" id="password" name="password" required
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
+                       placeholder="הזן סיסמה"
+                       autocomplete="current-password">
+            </div>
+            
+            <button type="submit" 
+                    class="w-full py-3 px-6 btn-primary text-white font-semibold rounded-lg focus:outline-none focus:ring-4 focus:ring-indigo-500/50 transition-all duration-300">
+                <i class="fas fa-sign-in-alt mr-2"></i>כניסה
+            </button>
+        </form>
+        <div id="loginError" class="text-red-600 mt-4 hidden text-center">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            <span>פרטים שגויים</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    const form = document.getElementById('loginForm');
+    const loginError = document.getElementById('loginError');
+
+    // Function to show error message
+    function showError() {
+      loginError.classList.remove('hidden');
+    }
+
+    // Function to hide error message
+    function hideError() {
+      loginError.classList.add('hidden');
+    }
+
+    // Hide error when user starts typing
+    document.getElementById('email').addEventListener('input', hideError);
+    document.getElementById('password').addEventListener('input', hideError);
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideError();
+
+      const loginData = {
+        email: document.getElementById('email').value,
+        password: document.getElementById('password').value
+      };
+
+      try {
+        const response = await fetch('/pdn-diagnose/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(loginData)
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          window.location.href = '/pdn-diagnose/user_info';
+        } else {
+          showError();
+        }
+      } catch (error) {
+        showError();
+        console.error('Error:', error);
+      }
+    });
+</script>
+</body>
+</html>
