@@ -74,18 +74,31 @@ class PDNFilePath:
         """
         return self.get_user_dir(user_email)
 
-    def list_user_files(self, user_email: str, pattern: str = "*") -> list[Path]:
+    
+    def find_user_file(self, user_email: str, file_type: str) -> Path:
         """
-        List files in user directory matching pattern.
+        Find user file based on email and file type.
         
         Args:
             user_email: User's email address
-            pattern: File pattern to match (default: all files)
+            file_type: Type of file to find
             
         Returns:
-            List of Path objects for matching files
+            Path object pointing to the file, or None if not found
         """
-        user_dir = self.get_user_dir(user_email)
-        return list(user_dir.glob(pattern))
-
-
+        # Create safe username from email
+        safe_username = "".join(c for c in user_email if c.isalnum() or c in (' ', '-', '_')).rstrip()
+        safe_username = safe_username.replace(' ', '_')
+        
+        # Create user directory path without creating it
+        user_dir = self.base_dir / safe_username
+        
+        # Only search if directory exists
+        if not user_dir.exists():
+            return None
+        
+        list_of_files = list(user_dir.glob(f"*{file_type}"))
+        if len(list_of_files) == 0:
+            return None
+        return list_of_files[0] 
+        
