@@ -151,13 +151,15 @@ def submit_answer_route():
             question_data = get_question(question_number, questions)
             if 'question' in question_data:
                 question_text = question_data['question']
+                question_options = question_data['options']
         except Exception as e:
             logger.error(f"Could not get question text for question {question_number}: {e}")
         
         # Create answer data dictionary
         answer_data = {
             'selected_option_code': selected_option_code,
-            'ranking': ranking
+            'ranking': ranking,
+            'question_options': question_options
         }
         
         # Save answer with question text
