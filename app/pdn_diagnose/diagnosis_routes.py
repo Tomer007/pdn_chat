@@ -240,21 +240,47 @@ def pdn_report():
 def get_report_data():
     """Get report data for the frontend"""
     try:
-        # Get the session ID from the request
-        session_id = request.args.get('session_id')
-        if not session_id:
-            return jsonify({'error': 'Session ID is required'}), 400
+        # Get the current user's email from session
+        email = session.get('email', 'anonymous')
+        logger.info(f"Getting report data for email: {email}")
         
-        # Load the report data from the saved results
-        report_file = os.path.join('saved_results', f'{session_id}_report.json')
+        # Load user answers
+        user_answers_data = load_answers(email)
         
-        if not os.path.exists(report_file):
-            return jsonify({'error': 'Report not found'}), 404
+        if not user_answers_data:
+            logger.error(f"No answers found for email: {email}")
+            return jsonify({'error': 'No answers found'}), 400
         
-        with open(report_file, 'r') as f:
-            report_data = json.load(f)
+        # Calculate PDN code
+        pdn_code = calculate_pdn_code(user_answers_data)
         
-        return jsonify(report_data)
+        if not pdn_code:
+            logger.error(f"Could not calculate PDN code for user {email}")
+            return jsonify({'error': 'Could not calculate PDN code'}), 400
+        
+        # Load report data
+        report_data = load_pdn_report(pdn_code)
+        
+        if not report_data:
+            logger.error(f"Could not load PDN report for code {pdn_code}")
+            return jsonify({'error': 'Could not load PDN report'}), 400
+        
+        # Get user metadata
+        user_data = session.get('user_data', {})
+        
+        # Prepare response data
+        response_data = {
+            'metadata': {
+                'first_name': user_data.get('first_name', 'User'),
+                'last_name': user_data.get('last_name', ''),
+                'email': email
+            },
+            'results': {
+                'pdn_code': pdn_code,
+            }
+        }
+        
+        return jsonify(response_data)
     
     except Exception as e:
         logger.error(f"Error getting report data: {str(e)}")

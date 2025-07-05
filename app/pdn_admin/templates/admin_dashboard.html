@@ -1014,7 +1014,7 @@ function displayQuestionsWithText(questions, metadata, questionsData) {
                         <div class="border-b border-gray-100 pb-4 last:border-b-0">
                             <div class="flex items-start justify-between mb-2">
                                 <p class="font-medium text-gray-800 flex-1">${questionText}</p>
-                                <span class="px-2 py-1 bg-indigo-100 text-indigo-800 rounded text-xs font-medium mr-2 flex-shrink-0">
+                                <span  class="px-2 py-1 bg-indigo-100 text-indigo-800 rounded text-xs font-medium ml-2 flex-shrink-0">
                                     שאלה ${questionNumber}
                                 </span>
                             </div>
@@ -1022,9 +1022,6 @@ function displayQuestionsWithText(questions, metadata, questionsData) {
                                 <p class="text-gray-600 bg-gray-50 px-3 py-2 rounded-lg inline-block">
                                     <i class="fas fa-check mr-2 text-green-600"></i>תשובה: ${answerDisplay}
                                 </p>
-                                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
-                                    קוד: ${answerDisplay}
-                                </span>
                             </div>
                             ${optionsDisplay}
                         </div>
@@ -1096,7 +1093,7 @@ function displayVoice(data) {
         filePath = filePath.substring('saved_results/'.length);
     }
     
-    const audioUrl = `/pdn-admin/audio/${encodeURIComponent(filePath)}`;
+    const audioUrl = `/pdn-admin/audio/${encodeURIComponent(filePath)}?session_token=${sessionToken}`;
     
     console.log('Original voice_url:', data.voice_url); // Debug log
     console.log('Processed filePath:', filePath); // Debug log
