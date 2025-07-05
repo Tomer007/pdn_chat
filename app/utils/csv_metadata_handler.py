@@ -280,11 +280,10 @@ class UserMetadataHandler:
             
             # Construct filename based on file type
             if file_type == "wav":
-                filename = f"{email}_recording.wav"
+                file_path = pdn_file_path.find_user_file(email, file_type)
             else:
                 filename = f"{email}_{file_type}"
-            
-            file_path = pdn_file_path.get_user_file_path(email, filename)
+                file_path = pdn_file_path.get_user_file_path(email, filename)
 
             if not os.path.exists(file_path):
                 return None
