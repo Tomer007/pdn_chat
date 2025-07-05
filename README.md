@@ -13,21 +13,41 @@ app/
   pdn_diagnose/
     diagnosis_routes.py
     templates/
+      diagnose_login.html
+      user_form.html
+      chat.html
+      pdn_report.html
     static/
     ...
   pdn_admin/
     admin_routes.py
+    admin_api.py
     audio_routes.py
+    templates/
+      admin_login.html      # Separate login page
+      admin_dashboard.html  # Pure dashboard (no login modal)
     ...
   pdn_chat_ai/
     chat_routes.py
+    templates/
     ...
   utils/
     answer_storage.py
     pdn_calculator.py
+    report_generator.py
+    csv_metadata_handler.py
+    email_sender.py
+    questionnaire.py
     ...
   data/
     questions.json
+    config.yaml
+    pdn_reports.json
+    ...
+  static/                   # Centralized static files
+    css/
+    js/
+    images/
     ...
 ```
 
@@ -35,7 +55,9 @@ app/
 - Python 3.x
 - Flask
 - JavaScript (frontend logic)
-- Tailwind CSS (via CDN for development; see Known Issues)
+- Tailwind CSS (via CDN for development)
+- Alpine.js (for interactive components)
+- HTML2PDF.js (for PDF generation)
 
 ## URL Structure & Endpoints
 
@@ -62,7 +84,8 @@ app/
 
 ### PDN Admin Module (`/pdn-admin`)
 **Admin Interface:**
-- `GET /pdn-admin/` - Admin dashboard page
+- `GET /pdn-admin/` - Admin login page (separate from dashboard)
+- `GET /pdn-admin/dashboard` - Admin dashboard (requires authentication)
 - `POST /pdn-admin/login` - Admin login
 - `GET /pdn-admin/logout` - Admin logout
 
@@ -76,25 +99,11 @@ app/
 
 **Audio Management:**
 - `GET /pdn-admin/audio/<path:file_path>` - Serve audio files
-
-**Admin API Endpoints:**
-- `POST /pdn-admin/api/login` - Admin API login
-- `GET /pdn-admin/api/logout` - Admin API logout
-- `GET /pdn-admin/api/metadata` - Get metadata via API
-- `GET /pdn-admin/api/metadata/csv` - Download metadata CSV via API
-- `GET /pdn-admin/api/user/questionnaire/<email>` - Get user questionnaire via API
-- `GET /pdn-admin/api/user/voice/<email>` - Get user voice via API
-- `PUT /pdn-admin/api/user/diagnose/<email>` - Update user diagnose via API
-- `POST /pdn-admin/api/user/send_email/<email>` - Send user email via API
-- `GET /pdn-admin/api/audio/<path:file_path>` - Serve audio files via API
-
-**Audio Upload:**
 - `POST /pdn-admin/api/save-audio` - Save user audio file
-- `GET /pdn-admin/api/audio/<username>` - Get user audio files
 
 ### PDN Chat AI Module (`/pdn-chat-ai`)
 **Chat Interface:**
-- `GET /pdn-chat-ai/` - Chat interface page
+- `GET /pdn-chat-ai/` - Chat interface page (includes questionnaire functionality)
 - `POST /pdn-chat-ai/chat` - Handle chat messages
 - `GET /pdn-chat-ai/context` - Get user context for chat
 - `GET /pdn-chat-ai/history` - Get chat history
@@ -111,32 +120,83 @@ app/
 - Questions 27-65: Ranking or other types (data in `ranking`)
 - Answers are saved per user and used for PDN code calculation
 - Completion triggers PDN code calculation and report generation
+- Users are redirected to `/pdn-diagnose/pdn_report` after completion
+
+## Admin Dashboard Features
+- **Separate Login Page:** Clean login interface at `/pdn-admin/`
+- **Pure Dashboard:** Dashboard at `/pdn-admin/dashboard` without embedded login
+- **User Management:** View, edit, and manage user data
+- **Audio Management:** Upload and manage user voice recordings
+- **Email System:** Send PDN reports to users
+- **Data Export:** Download metadata as CSV
+- **Visual Indicators:** Red highlighting for users with inconsistent PDN codes
 
 ## Audio Upload
-- Audio is uploaded via `/pdn-admin/api/save-audio` (used in chat and admin dashboard)
+- Audio is uploaded via `/pdn-admin/api/save-audio`
 - Audio files are saved under `saved_results/<user>/<filename>.wav`
+- Supported in both chat interface and admin dashboard
 
 ## Running the App
-- Activate your virtual environment
-- Install dependencies: `pip install -r requirements.txt`
-- Run the app: `python run.py` or `flask run` (ensure `FLASK_APP=app`)
-- The app runs on `http://127.0.0.1:8001/` by default
+1. Activate your virtual environment:
+   ```bash
+   source venv/bin/activate  # On macOS/Linux
+   # or
+   venv\Scripts\activate     # On Windows
+   ```
+
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. Run the app:
+   ```bash
+   python app.py
+   ```
+
+4. Access the application:
+   - Main app: `http://127.0.0.1:8001/`
+   - Admin login: `http://127.0.0.1:8001/pdn-admin/`
+   - Admin dashboard: `http://127.0.0.1:8001/pdn-admin/dashboard`
+   - Chat interface: `http://127.0.0.1:8001/pdn-chat-ai/`
+   - Diagnose interface: `http://127.0.0.1:8001/pdn-diagnose/`
+
+## Configuration
+- Admin password: Set in `config.py` or environment variable `ADMIN_PASSWORD` (default: 'pdn')
+- Session management: File-based sessions (configurable)
+- Static files: Centralized in `app/static/`
 
 ## Logs & Debugging
-- Logs are written to `app.log` (and/or `logs/app.log`)
-- To tail logs: `tail -f app.log` or `tail -f logs/app.log`
+- Logs are written to `logs/app.log`
+- To tail logs: `tail -f logs/app.log`
 - Check logs for import errors, endpoint errors, or calculation issues
 
 ## Troubleshooting
+
+### Common Issues
+- **404 Errors:** Ensure you're using the correct URL prefixes (`/pdn-admin/`, `/pdn-diagnose/`, `/pdn-chat-ai/`)
+- **Static File Issues:** Static files are now centralized in `app/static/`
+- **Admin Access:** Use `/pdn-admin/` for login, `/pdn-admin/dashboard` for the dashboard
+- **Session Issues:** Clear browser cache or restart the application
+
+### Error Resolution
 - **400 Errors on Answer Submission:** Check that answers include `selected_option_code` or `ranking` as appropriate
 - **400 Errors on Questionnaire Completion:** Verify answer structure matches expected format
 - **Import Errors:** Ensure all dependencies are installed and virtual environment is activated
-- **Static File Issues:** Check that static files are in the correct location (`app/pdn_diagnose/static/`)
+- **PDN Report Loading:** Ensure the correct endpoint `/pdn-diagnose/get_report_data` is being called
+
+## Recent Updates (Latest)
+- **Refactored Admin Interface:** Separated login and dashboard into distinct pages
+- **Centralized Static Files:** Moved all static assets to `app/static/`
+- **Fixed API Endpoints:** Corrected all endpoint paths to use proper prefixes
+- **Enhanced User Experience:** Improved questionnaire flow and error handling
+- **Removed Unused Code:** Cleaned up unused `app/api/` directory
+- **Fixed PDN Report:** Corrected endpoint for loading report data
 
 ## Known Issues
 - **Tailwind CSS CDN Warnings:** In development, Tailwind is loaded via CDN which may show warnings
-- **Answer Structure:** Some endpoints expect `selected_option_code` while others expect `code` - this is being standardized
 - **Session Management:** Currently uses file-based sessions; consider Redis for production
+- **Admin Authentication:** Simple password-based authentication; consider implementing proper session management for production
 
 ## Contributing
 - Fork the repo and create a feature branch
@@ -147,8 +207,8 @@ app/
 - Tests are located in the `tests/` directory
 - Run tests with `pytest` or your preferred test runner
 
-## Recent Changes
-- Modularized app structure under `app/`
-- Fixed answer submission and questionnaire completion endpoints
-- Added comprehensive error handling and logging
-- Updated URL structure documentation
+## Security Notes
+- Admin password should be changed in production
+- Consider implementing proper session management
+- Review and secure file upload endpoints
+- Implement rate limiting for production use

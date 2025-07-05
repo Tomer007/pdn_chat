@@ -193,6 +193,16 @@ def complete_questionnaire():
             logger.error(f"Could not calculate PDN code for user {email}")
             return jsonify({"error": "Could not calculate PDN code - insufficient answers"}), 400
         
+        # Update CSV with the calculated PDN code
+        try:
+            from ..utils.csv_metadata_handler import UserMetadataHandler
+            csv_handler = UserMetadataHandler()
+            csv_handler.update_pdn_code(email, pdn_code)
+            logger.info(f"Successfully updated CSV with PDN code {pdn_code} for {email}")
+        except Exception as csv_error:
+            logger.warning(f"Failed to update CSV with PDN code: {csv_error}")
+            # Don't fail the entire request if CSV update fails
+        
         return jsonify({"pdn_code": pdn_code, "message": "Questionnaire completed successfully"})
     except Exception as e:
         logger.error(f"Error completing questionnaire: {e}")

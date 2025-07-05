@@ -126,14 +126,15 @@ def test_admin_api():
         import os
         sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
         
-        from pdn_admin.admin_api import admin_api_bp, HARDCODED_CSV_DATA, verify_session
+        from pdn_admin.admin_api import admin_api_bp, get_user_metadata, verify_session
         print("✅ Admin API module imported successfully")
         
         # Test data
-        if len(HARDCODED_CSV_DATA) > 0:
-            print(f"✅ Admin API has {len(HARDCODED_CSV_DATA)} test records")
+        user_metadata = get_user_metadata()
+        if len(user_metadata) > 0:
+            print(f"✅ Admin API has {len(user_metadata)} user records from CSV")
         else:
-            print("❌ Admin API has no test records")
+            print("❌ Admin API has no user records")
             return False
         
         # Test session verification function

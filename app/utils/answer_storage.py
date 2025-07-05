@@ -4,7 +4,7 @@ from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any, Optional
 from app.utils.pdn_file_path import PDNFilePath
-from app.utils.csv_metadata_handler import CSVMetadataHandler
+from app.utils.csv_metadata_handler import UserMetadataHandler
 
 # Initialize the utility
 pdn_file_path = PDNFilePath()
@@ -162,7 +162,7 @@ def save_user_metadata(metadata: Dict[str, Any], email: str = None) -> None:
  
     file_path = pdn_file_path.get_user_file_path(email, filename)
 
-    csv_metadata_handler = CSVMetadataHandler()
+    csv_metadata_handler = UserMetadataHandler()
     csv_metadata_handler.append_user_metadata(metadata)
 
     if file_path.exists():
