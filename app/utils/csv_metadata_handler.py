@@ -243,13 +243,19 @@ class UserMetadataHandler:
         """
         try:
             pdn_file_path = PDNFilePath()
-            user_dir = pdn_file_path.get_user_dir(email)
-            csv_file_path = pdn_file_path.find(user_dir, file_type)
+            
+            # Construct filename based on file type
+            if file_type == "answers":
+                filename = f"{email}_answers.json"
+            else:
+                filename = f"{email}_{file_type}.json"
+            
+            file_path = pdn_file_path.get_user_file_path(email, filename)
 
-            if csv_file_path is None or not os.path.exists(csv_file_path):
+            if not os.path.exists(file_path):
                 return None
 
-            with open(csv_file_path, 'r', encoding='utf-8') as jsonfile:
+            with open(file_path, 'r', encoding='utf-8') as jsonfile:
                 data = json.load(jsonfile)
 
             return data
@@ -271,10 +277,16 @@ class UserMetadataHandler:
         """
         try:
             pdn_file_path = PDNFilePath()
-            user_dir = pdn_file_path.get_user_dir(email)
-            file_path = pdn_file_path.find(user_dir, file_type)
+            
+            # Construct filename based on file type
+            if file_type == "wav":
+                filename = f"{email}_recording.wav"
+            else:
+                filename = f"{email}_{file_type}"
+            
+            file_path = pdn_file_path.get_user_file_path(email, filename)
 
-            if file_path is None or not os.path.exists(file_path):
+            if not os.path.exists(file_path):
                 return None
 
             return str(file_path)
@@ -398,18 +410,7 @@ class UserMetadataHandler:
         """
         return self._update_user_field(email, "PDN Code", pdn_code)
 
-    def update_voice_code(self, email: str, voice_code: str) -> bool:
-        """
-        Update PDN Voice Code for a specific user.
-        
-        Args:
-            email: User's email address
-            voice_code: The voice analysis PDN code
-            
-        Returns:
-            True if successful, False otherwise
-        """
-        return self._update_user_field(email, "PDN Voice Code", voice_code)
+
 
     def update_diagnose_code(self, email: str, diagnose_code: str, diagnose_comments: str = "") -> bool:
         """
@@ -460,46 +461,7 @@ class UserMetadataHandler:
             logger.error(f"Error updating Diagnose Code: {e}")
             return False
 
-    def delete_user(self, email: str) -> bool:
-        """
-        Delete a user from the CSV file.
-        
-        Args:
-            email: User's email address
-            
-        Returns:
-            True if successful, False otherwise
-        """
-        try:
-            if not self._validate_email(email):
-                return False
 
-            if not os.path.exists(self.csv_filename):
-                return False
-
-            # Read current data
-            data = self._read_csv_data()
-            email = email.strip()
-
-            # Filter out the user to delete
-            original_count = len(data)
-            data = [row for row in data if row.get("Email", "").strip() != email]
-
-            if len(data) == original_count:
-                logger.warning(f"User {email} not found in CSV")
-                return False
-
-            # Write back data
-            if self._write_csv_data(data):
-                logger.info(f"Successfully deleted user {email}")
-                return True
-            else:
-                logger.error(f"Failed to write data after deleting {email}")
-                return False
-
-        except Exception as e:
-            logger.error(f"Error deleting user: {e}")
-            return False
 
     def get_statistics(self) -> Dict[str, Any]:
         """
@@ -529,30 +491,4 @@ class UserMetadataHandler:
             logger.error(f"Error getting statistics: {e}")
             return {}
 
-    def backup_csv(self, backup_path: Optional[str] = None) -> bool:
-        """
-        Create a backup of the CSV file.
-        
-        Args:
-            backup_path: Optional custom backup path
-            
-        Returns:
-            True if successful, False otherwise
-        """
-        try:
-            if not os.path.exists(self.csv_filename):
-                logger.error("CSV file does not exist for backup")
-                return False
 
-            if backup_path is None:
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                backup_path = str(self.csv_filename).replace('.csv', f'_backup_{timestamp}.csv')
-
-            import shutil
-            shutil.copy2(self.csv_filename, backup_path)
-            logger.info(f"Successfully created backup: {backup_path}")
-            return True
-
-        except Exception as e:
-            logger.error(f"Error creating backup: {e}")
-            return False

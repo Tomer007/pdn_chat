@@ -8,7 +8,7 @@ import yaml
 
 # Import blueprints
 from app.pdn_diagnose import pdn_diagnose_bp
-from app.pdn_admin import pdn_admin_bp, admin_api_bp, audio_bp
+from app.pdn_admin import pdn_admin_bp, audio_bp
 from app.pdn_chat_ai import pdn_chat_ai_bp
 
 def create_app():
@@ -60,7 +60,6 @@ def create_app():
     # Register blueprints
     app.register_blueprint(pdn_diagnose_bp, url_prefix='/pdn-diagnose')
     app.register_blueprint(pdn_admin_bp, url_prefix='/pdn-admin')
-    app.register_blueprint(admin_api_bp, url_prefix='/pdn-admin')  # Admin API endpoints
     app.register_blueprint(audio_bp, url_prefix='/pdn-admin')  # Audio endpoints
     app.register_blueprint(pdn_chat_ai_bp, url_prefix='/pdn-chat-ai')
     
