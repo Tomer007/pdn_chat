@@ -68,7 +68,7 @@
             background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
         }
         .table-header {
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            background: linear-gradient(135deg, #b2d1ef 0%, #f1f5f9 100%);
             border-bottom: 2px solid #e2e8f0;
         }
         .table-row:hover {
@@ -224,15 +224,15 @@
             to { opacity: 1; transform: translateY(0); }
         }
         .highlight-difference {
-            background-color: #eae5e6 !important; /* Light red background */
-            border-left: 4px solid #f5f1f1; /* Red left border for emphasis */
+            background-color: #fef2f2 !important; /* Light red background */
+            border-left: 4px solid #ef4444; /* Red left border for emphasis */
         }
         .highlight-difference:hover {
-            background-color: #b0e9a9 !important; /* Slightly darker red on hover */
+            background-color: #e7fee2 !important; /* Slightly darker red on hover */
         }
         /* Alternative styling - you can choose which one you prefer */
         .highlight-difference td {
-            color: #0e0d0d; /* Darker red text */
+            color: #0e0e0d; 
             font-weight: 500;
         }
         
@@ -291,6 +291,18 @@
         .notification-item[class*="border-yellow"] {
             box-shadow: 0 10px 25px rgba(234, 179, 8, 0.2), 0 0 0 1px rgba(234, 179, 8, 0.3);
         }
+        .download-csv-btn {
+            box-shadow: 0 4px 16px 0 rgba(99, 102, 241, 0.10), 0 1.5px 4px 0 rgba(139, 92, 246, 0.10);
+            border: 1.5px solid #a5b4fc;
+            letter-spacing: 0.02em;
+            background: linear-gradient(90deg, #6366f1 0%, #a21caf 60%, #ec4899 100%);
+        }
+        .download-csv-btn:hover, .download-csv-btn:focus {
+            box-shadow: 0 6px 20px 0 rgba(99, 102, 241, 0.18), 0 2px 8px 0 rgba(139, 92, 246, 0.15);
+            border-color: #6366f1;
+            outline: none;
+            background: linear-gradient(90deg, #4f46e5 0%, #7c3aed 60%, #db2777 100%);
+        }
     </style>
 </head>
 <body class="p-6">
@@ -322,12 +334,12 @@
             <div class="flex space-x-4 space-x-reverse">
                 <button id="refreshBtn" 
                         class="btn-success text-white px-6 py-3 rounded-lg font-semibold text-base transition-all duration-300 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-                    <i ></i>
+                    <i class="fas fa-sync-alt mr-2"></i>
                     רענן נתונים
                 </button>
                 <button id="logoutBtn" 
                         class="btn-danger text-white px-6 py-3 rounded-lg font-semibold text-base transition-all duration-300 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-                    <i ></i>
+                    <i class="fas fa-sign-out-alt mr-2"></i>
                     התנתק
                 </button>
             </div>
@@ -340,7 +352,7 @@
             <div class="flex items-center space-x-4 space-x-reverse">
                 <label for="searchInput" class="text-lg font-medium text-gray-700 flex items-center">
                     <i class="fas fa-search mr-2"></i>
-                    חיפוש לפי אימייל:
+                    חיפוש מאובחן לפי אימייל:
                 </label>
                 <input type="text" id="searchInput" placeholder="הקלד אימייל לחיפוש..."
                        class="px-4 py-3 search-input rounded-lg transition-all duration-300 w-64">
@@ -360,11 +372,19 @@
 
     <!-- Data Table -->
     <div class="card p-8 rounded-2xl">
-        <div class="mb-6">
+        <div class="mb-6 flex items-center justify-between">
             <h3 class="text-xl font-semibold text-gray-800 flex items-center">
-                <i ></i>
-                נתוני משתמשים
+                <i class="fas fa-users mr-2"></i>
+                נתוני מאובחנים
             </h3>
+            <div class="flex items-center space-x-4 space-x-reverse">
+                <span id="rowCount" class="text-base text-gray-600">סה"כ שורות: 0</span>
+                <button id="downloadCsvBtn"
+                    class="download-csv-btn flex items-center px-5 py-2 rounded-xl font-semibold text-white shadow-md transition-all duration-300">
+                    <i class="fas fa-download ml-2 text-lg"></i>
+                    הורד CSV
+                </button>
+            </div>
         </div>
         <div class="table-container">
             <table class="w-full">
@@ -468,7 +488,7 @@
         <form id="editDiagnoseForm" class="space-y-4">
             <div>
                 <label for="diagnosePdnCode" class="block text-sm font-medium text-gray-700 mb-2">
-                    <i ></i>קוד PDN אבחון
+                    <i class="fas fa-code mr-2"></i>קוד PDN אבחון
                 </label>
                 <input type="text" id="diagnosePdnCode" name="diagnose_pdn_code" required
                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300">
@@ -528,8 +548,51 @@ let sessionToken = null;
 let currentData = [];
 let currentEditEmail = null;
 
+// Function to format timestamp
+function formatTimestamp(timestamp) {
+    if (!timestamp) return 'לא זמין';
+    
+    try {
+        // Handle different timestamp formats
+        let cleanTimestamp = timestamp.replace(/_/g, ' ').trim();
+        
+        // If it's already in a readable format, return as is
+        if (cleanTimestamp.includes('-') || cleanTimestamp.includes('/')) {
+            return cleanTimestamp;
+        }
+        
+        // Parse timestamp in format "YYYY MM DD HH MM" or "YYYY_MM_DD_HH_MM"
+        const parts = cleanTimestamp.split(/[\s_]+/);
+        
+        if (parts.length >= 5) {
+            const [year, month, day, hour, minute] = parts;
+            
+            // Validate parts
+            if (year && month && day && hour && minute) {
+                // Format as Hebrew date: DD/MM/YYYY HH:MM
+                return `${day}/${month}/${year} ${hour}:${minute}`;
+            }
+        }
+        
+        // If parsing fails, return the cleaned timestamp
+        return cleanTimestamp;
+    } catch (error) {
+        console.error('Error formatting timestamp:', error);
+        return timestamp.replace(/_/g, ' ');
+    }
+}
+
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
+    // Get session token from localStorage
+    sessionToken = localStorage.getItem('adminSessionToken');
+    
+    // If no session token, redirect to login
+    if (!sessionToken) {
+        window.location.href = '/pdn-admin/';
+        return;
+    }
+    
     setupEventListeners();
     loadMetadata();
 });
@@ -549,19 +612,26 @@ function setupEventListeners() {
     
     // Edit diagnose form
     document.getElementById('editDiagnoseForm').addEventListener('submit', handleEditDiagnose);
+    
+    // CSV download button
+    document.getElementById('downloadCsvBtn').addEventListener('click', function() {
+        downloadTableAsCsv(currentData);
+    });
 }
 
 async function handleLogout() {
     if (sessionToken) {
         try {
-            await fetch('/pdn-admin/logout');
+            await fetch(`/pdn-admin/logout?session_token=${sessionToken}`);
         } catch (error) {
             console.error('Logout error:', error);
         }
     }
     sessionToken = null;
+    // Clear session token from localStorage
+    localStorage.removeItem('adminSessionToken');
     // Redirect to login page
-    window.location.href = '/pdn-admin/login';
+    window.location.href = '/pdn-admin/';
 }
 
 async function loadMetadata() {
@@ -586,6 +656,9 @@ async function loadMetadata() {
 function renderTable(data) {
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = '';
+    
+    // Update row count
+    document.getElementById('rowCount').textContent = `סה\"כ שורות: ${data.length}`;
     
     data.forEach(user => {
         const row = document.createElement('tr');
@@ -786,7 +859,7 @@ async function viewQuestionnaire(email) {
     if (!sessionToken) return;
     
     try {
-        const response = await fetch(`/pdn-admin/user/questionnaire/${email}`);
+        const response = await fetch(`/pdn-admin/user/questionnaire/${email}?session_token=${sessionToken}`);
         if (response.ok) {
             const data = await response.json();
             displayQuestionnaire(data);
@@ -829,7 +902,7 @@ function displayQuestionsWithText(questions, metadata, questionsData) {
             <h3 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
                 <i class="fas fa-user mr-2 text-blue-600"></i>פרטי משתמש
             </h3>
-            <div class="grid grid-cols-2 gap-4">
+            <div ">
                 <div><strong>אימייל:</strong> ${metadata.email || 'לא זמין'}</div>
                 <div><strong>שם פרטי:</strong> ${metadata.first_name || 'לא זמין'}</div>
                 <div><strong>שם משפחה:</strong> ${metadata.last_name || 'לא זמין'}</div>
@@ -839,12 +912,12 @@ function displayQuestionsWithText(questions, metadata, questionsData) {
                 <div><strong>מגדר:</strong> ${metadata.gender || 'לא זמין'}</div>
                 <div><strong>השכלה:</strong> ${metadata.education || 'לא זמין'}</div>
                 <div><strong>תפקיד:</strong> ${metadata.job_title || 'לא זמין'}</div>
-                <div><strong>תאריך השלמה:</strong> ${metadata.timestamp ? metadata.timestamp.replace(/_/g, ' ') : 'לא זמין'}</div>
+                <div><strong>תאריך איבחון:</strong> ${metadata.timestamp ? formatTimestamp(metadata.timestamp) : 'לא זמין'}</div>
             </div>
         </div>
         <div class="bg-white p-6 rounded-xl border border-gray-200">
             <h3 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
-                <i class="fas fa-list mr-2 text-indigo-600"></i>תשובות השאלון (${Object.keys(questions).length} שאלות)
+                <i></i>תשובות מאובחן (${Object.keys(questions).length} שאלות)
             </h3>
             <div class="space-y-4">
                 ${Object.entries(questions).map(([questionNumber, questionData]) => {
@@ -860,6 +933,7 @@ function displayQuestionsWithText(questions, metadata, questionsData) {
                             const phase = questionsData.phases[phaseKey];
                             if (phase.questions && phase.questions[questionNumber]) {
                                 questionText = phase.questions[questionNumber].text;
+                                console.log(questionText);
                                 break;
                             }
                         }
@@ -878,7 +952,7 @@ function displayQuestionsWithText(questions, metadata, questionsData) {
                     } else if (questionData.answer && questionData.code) {
                         // For regular questions with answer and code
                         answerDisplay = questionData.answer;
-                        codeDisplay = questionData.code;
+                        codeDisplay = questionText; // Use the actual question text instead of the code
                     } else {
                         // Fallback for any other structure
                         answerDisplay = 'לא זמין';
@@ -898,7 +972,7 @@ function displayQuestionsWithText(questions, metadata, questionsData) {
                                     <i class="fas fa-check mr-2 text-green-600"></i>תשובה: ${answerDisplay}
                                 </p>
                                 <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
-                                    קוד: ${codeDisplay}
+                                    קוד: ${questionText}
                                 </span>
                             </div>
                         </div>
@@ -917,7 +991,7 @@ async function playVoice(email) {
     try {
         console.log('Fetching voice for email:', email); // Debug log
         
-        const response = await fetch(`/pdn-admin/user/voice/${email}`);
+        const response = await fetch(`/pdn-admin/user/voice/${email}?session_token=${sessionToken}`);
         console.log('Response status:', response.status); // Debug log
         
         if (response.ok) {
@@ -1030,7 +1104,13 @@ async function handleEditDiagnose(e) {
             diagnose_comments: document.getElementById('diagnoseComments').value
         };
         
-        const response = await fetch(`/pdn-admin/user/diagnose/${currentEditEmail}`);
+        const response = await fetch(`/pdn-admin/user/diagnose/${currentEditEmail}?session_token=${sessionToken}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
         
         if (response.ok) {
             const data = await response.json();
@@ -1092,7 +1172,13 @@ async function sendEmail(email) {
     }
     
     try {
-        const response = await fetch(`/pdn-admin/user/send_email/${email}`);
+        const response = await fetch(`/pdn-admin/user/send_email/${email}?session_token=${sessionToken}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ password: password })
+        });
         
         if (response.ok) {
             const data = await response.json();
@@ -1255,6 +1341,33 @@ function resetAlpineLoadingState() {
             element._x_dataStack[0].showModal = false;
         }
     });
+}
+
+function downloadTableAsCsv(data) {
+    if (!data || data.length === 0) {
+        alert('אין נתונים להורדה');
+        return;
+    }
+    // Define the columns to export
+    const columns = [
+        { key: 'email', label: 'אימייל' },
+        { key: 'date', label: 'תאריך איבחון' },
+        { key: 'pdn_code', label: 'פדן קוד' },
+        { key: 'pdn_voice_code', label: 'ניתוח קול קוד' },
+        { key: 'diagnose_pdn_code', label: 'קוד מאבחן' },
+        { key: 'diagnose_comments', label: 'הערות המאבחן' }
+    ];
+    let csvContent = columns.map(col => col.label).join(',') + '\n';
+    data.forEach(row => {
+        csvContent += columns.map(col => '"' + (row[col.key] || '').replace(/"/g, '""') + '"').join(',') + '\n';
+    });
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute('download', 'user_metadata.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 </script>
 </body>

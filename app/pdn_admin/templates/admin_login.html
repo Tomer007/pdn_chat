@@ -136,6 +136,8 @@
                 if (response.ok) {
                     const data = await response.json();
                     sessionToken = data.session_token;
+                    // Store session token in localStorage
+                    localStorage.setItem('adminSessionToken', sessionToken);
                     // Redirect to dashboard
                     window.location.href = '/pdn-admin/dashboard';
                 } else {

@@ -7,87 +7,88 @@ from typing import Dict
 from pathlib import Path
 from flask import Blueprint, request, render_template, jsonify, session, current_app, send_file, abort
 from werkzeug.exceptions import HTTPException
+import logging
 
 # Import logger
 from .logger import setup_logger
 
 # Import utilities
-from ..utils.csv_metadata_handler import CSVMetadataHandler
+from ..utils.csv_metadata_handler import UserMetadataHandler
 from ..utils.email_sender import send_email
 from ..utils.answer_storage import load_answers
 from ..utils.report_generator import load_pdn_report
+from ..utils.pdn_calculator import calculate_pdn_code
 
-# Setup logger
-logger = setup_logger()
+# Configure logging
+logger = logging.getLogger(__name__)
 
 # Create blueprint
 pdn_admin_bp = Blueprint('pdn_admin', __name__, 
                         template_folder='templates',
-                        static_folder='app/static')
+                        static_folder='../static')
 
-# In-memory session storage (in production, use proper session management)
+# Admin sessions storage (in production, use Redis or database)
 admin_sessions = set()
 
-# Hardcoded CSV data as specified
-HARDCODED_CSV_DATA = [
-    {
-        "email": "tomergur@example.com",
-        "date": "2025-01-15",
-        "pdn_code": "E1",
-        "pdn_voice_code": "V3",
-        "diagnose_pdn_code": "N/A",
-        "diagnose_comments": "",
-        "first_name": "תומר",
-        "last_name": "גור",
-        "phone": "054-5555555",
-        "native_language": "עברית",
-        "gender": "זכר",
-        "education_level": "תואר ראשון",
-        "job_title": "מפתח תוכנה",
-        "birth_year": "1990",
-        "link_to_user": "/user/user1@example.com",
-        "questionnaire": "/api/user/questionnaire/user1@example.com",
-        "voice": "/api/user/voice/user1@example.com"
-    },
-    {
-        "email": "user2@example.com",
-        "date": "2025-01-16",
-        "pdn_code": "A7",
-        "pdn_voice_code": "V8",
-        "diagnose_pdn_code": "A7",
-        "diagnose_comments": "משתמש מוחצן ומאורגן",
-        "first_name": "שרה",
-        "last_name": "לוי",
-        "phone": "052-9876543",
-        "native_language": "עברית",
-        "gender": "נקבה",
-        "education_level": "תואר שני",
-        "job_title": "מנהלת פרויקטים",
-        "birth_year": "1985",
-        "link_to_user": "/user/user2@example.com",
-        "questionnaire": "/api/user/questionnaire/user2@example.com",
-        "voice": "/api/user/voice/user2@example.com"
-    },
-    {
-        "email": "tomergur@gmail.com",
-        "date": "2025-01-17",
-        "pdn_code": "T4",
-        "pdn_voice_code": "V5",
-        "diagnose_pdn_code": "T4",
-        "diagnose_comments": "משתמש גמיש ומופנם",
-        "first_name": "תומר",
-        "last_name": "גור",
-        "phone": "054-5555555",
-        "native_language": "עברית",
-        "gender": "זכר",
-        "education_level": "תואר ראשון",
-        "job_title": "מהנדס תוכנה",
-        "birth_year": "1992",
-        "link_to_user": "/user/tomergur@gmail.com",
-        "questionnaire": "/api/user/questionnaire/tomergur@gmail.com",
-        "voice": "/api/user/voice/tomergur@gmail.com"
-    }
-]
+def load_user_metadata():
+    """
+    Load user metadata from the CSV file.
+    
+    Returns:
+        List of dictionaries containing user metadata
+    """
+    try:
+        csv_file_path = Path('saved_results/user_metadata.csv')
+        if not csv_file_path.exists():
+            logger.warning("user_metadata.csv file not found")
+            return []
+        
+        metadata_list = []
+        with open(csv_file_path, 'r', encoding='utf-8') as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                # Skip empty rows
+                if not row.get("Email", "").strip():
+                    continue
+                    
+                # Convert CSV column names to the expected format
+                user_data = {
+                    "email": row.get("Email", "").strip(),
+                    "date": row.get("Date", "").strip(),
+                    "pdn_code": row.get("PDN Code", "").strip(),
+                    "pdn_voice_code": row.get("PDN Voice Code", "").strip(),
+                    "diagnose_pdn_code": row.get("Diagnose PDN Code", "").strip(),
+                    "diagnose_comments": row.get("Diagnose Comments", "").strip(),
+                    # Add default values for missing fields
+                    "first_name": "",
+                    "last_name": "",
+                    "phone": "",
+                    "native_language": "",
+                    "gender": "",
+                    "education_level": "",
+                    "job_title": "",
+                    "birth_year": "",
+                    "link_to_user": f"/user/{row.get('Email', '').strip()}",
+                    "questionnaire": f"/api/user/questionnaire/{row.get('Email', '').strip()}",
+                    "voice": f"/api/user/voice/{row.get('Email', '').strip()}"
+                }
+                metadata_list.append(user_data)
+        
+        logger.info(f"Loaded {len(metadata_list)} user records from CSV")
+        return metadata_list
+        
+    except Exception as e:
+        logger.error(f"Error loading user metadata from CSV: {e}")
+        return []
+
+def get_user_metadata():
+    """
+    Get user metadata, loading from CSV if needed.
+    
+    Returns:
+        List of dictionaries containing user metadata
+    """
+    return load_user_metadata()
 
 def verify_session(session_token: str):
     """Verify admin session"""
@@ -162,7 +163,7 @@ def get_metadata():
     
     # For now, allow access without session token for the dashboard
     # In production, you should implement proper session management
-    return jsonify({"data": HARDCODED_CSV_DATA})
+    return jsonify({"data": get_user_metadata()})
 
 @pdn_admin_bp.route('/metadata/csv')
 def get_metadata_csv():
@@ -176,9 +177,9 @@ def get_metadata_csv():
     
     # Create CSV in memory
     output = io.StringIO()
-    writer = csv.DictWriter(output, fieldnames=HARDCODED_CSV_DATA[0].keys())
+    writer = csv.DictWriter(output, fieldnames=get_user_metadata()[0].keys())
     writer.writeheader()
-    writer.writerows(HARDCODED_CSV_DATA)
+    writer.writerows(get_user_metadata())
     
     output.seek(0)
     
@@ -200,7 +201,7 @@ def get_user_questionnaire(email):
     verify_session(session_token)
     
     # Find user in data
-    csv_metadata_handler = CSVMetadataHandler()
+    csv_metadata_handler = UserMetadataHandler()
     questionnaire_data = csv_metadata_handler.get_user_files(email, "answers")
     if not questionnaire_data:
         return jsonify({"error": "User not found"}), 404
@@ -218,7 +219,7 @@ def get_user_voice(email):
     
     try:
         # Find user in data
-        csv_metadata_handler = CSVMetadataHandler()
+        csv_metadata_handler = UserMetadataHandler()
         user_audio_path = csv_metadata_handler.get_user_audio_path(email, "wav")
         
         # Check if path is None or empty
@@ -254,20 +255,35 @@ def update_user_diagnose(email):
         diagnose_data = request.get_json()
         
         # Find and update user in data
-        user_data = next((user for user in HARDCODED_CSV_DATA if user["email"] == email), None)
+        user_data = next((user for user in get_user_metadata() if user["email"] == email), None)
         if not user_data:
             return jsonify({"error": "User not found"}), 404
         
         # Update diagnose fields with safe defaults
+        diagnose_pdn_code = ""
+        diagnose_comments = ""
+        
         if "diagnose_pdn_code" in diagnose_data:
-            user_data["diagnose_pdn_code"] = diagnose_data["diagnose_pdn_code"]
+            diagnose_pdn_code = diagnose_data["diagnose_pdn_code"]
+            user_data["diagnose_pdn_code"] = diagnose_pdn_code
         elif "diagnose_pdn_code" not in user_data:
-            user_data["diagnose_pdn_code"] = user_data.get("pdn_code", "")
+            diagnose_pdn_code = user_data.get("pdn_code", "")
+            user_data["diagnose_pdn_code"] = diagnose_pdn_code
         
         if "diagnose_comments" in diagnose_data:
-            user_data["diagnose_comments"] = diagnose_data["diagnose_comments"]
+            diagnose_comments = diagnose_data["diagnose_comments"]
+            user_data["diagnose_comments"] = diagnose_comments
         elif "diagnose_comments" not in user_data:
             user_data["diagnose_comments"] = ""
+        
+        # Update CSV with the new diagnose information
+        try:
+            csv_handler = UserMetadataHandler()
+            csv_handler.update_diagnose_code(email, diagnose_pdn_code, diagnose_comments)
+            logger.info(f"Successfully updated CSV with diagnose info for {email}")
+        except Exception as csv_error:
+            logger.warning(f"Failed to update CSV with diagnose info: {csv_error}")
+            # Don't fail the entire request if CSV update fails
         
         return jsonify({
             "success": True,
@@ -295,8 +311,7 @@ def send_user_email(email):
             return jsonify({"error": "User answers not found"}), 404
         
         # Calculate PDN code
-        pdn_code = "E5"  # TODO: Implement calculate_pdn_code
-        # pdn_code = calculate_pdn_code(user_answers)
+        pdn_code = calculate_pdn_code(user_answers)
 
         if not pdn_code:
             return jsonify({"error": "Could not calculate PDN code"}), 400
