@@ -61,20 +61,7 @@ class PDNFilePath:
         file_path = user_dir / filename
 
         return file_path
-
-    def ensure_user_dir_exists(self, user_email: str) -> Path:
-        """
-        Ensure user directory exists and return its path.
-        
-        Args:
-            user_email: User's email address
-            
-        Returns:
-            Path object pointing to the user's directory
-        """
-        return self.get_user_dir(user_email)
-
-    
+ 
     def find_user_file(self, user_email: str, file_type: str) -> Path:
         """
         Find user file based on email and file type.
