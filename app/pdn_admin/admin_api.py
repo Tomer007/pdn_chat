@@ -370,6 +370,4 @@ def serve_audio(file_path):
         abort(500, description="Error serving audio file")
 
 
-def is_valid_session(session_token):
-    """Check if session token is valid."""
-    return session_token in admin_sessions
+

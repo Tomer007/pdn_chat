@@ -38,24 +38,7 @@ def save_answer(email: str, question_number: int, answer_data: dict, question_te
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
-def save_answers(email: str, answers: Dict[str, Any]) -> bool:
-    """
-    Save user answers to a JSON file
-    """
-    try:
-        file_path = pdn_file_path.get_user_file_path(email, "answers.json")
 
-        print(f"Saving answers for {email} to: {file_path}")
-
-        # Ensure we're creating a file, not a directory
-        with open(file_path, "w", encoding="utf-8") as f:
-            json.dump(answers, f, ensure_ascii=False, indent=2)
-
-        print(f"Successfully saved answers for {email}")
-        return True
-    except Exception as e:
-        print(f"Error saving answers for {email}: {e}")
-        return False
 
 
 def load_answers(email: str) -> Optional[Dict[str, Any]]:
@@ -111,49 +94,7 @@ def load_answers(email: str) -> Optional[Dict[str, Any]]:
         return None
 
 
-def delete_answers(email: str) -> bool:
-    """
-    Delete user answers file
-    """
-    try:
-        # Create a safe filename by replacing problematic characters
-        safe_email = email.replace("@", "_at_").replace(".", "_dot_")
-        file_path = f"saved_results/answers_{safe_email}.json"
 
-        if os.path.exists(file_path):
-            if os.path.isdir(file_path):
-                # If it's a directory, try to remove it
-                os.rmdir(file_path)
-            else:
-                # If it's a file, remove it
-                os.remove(file_path)
-            return True
-        return False
-    except Exception as e:
-        print(f"Error deleting answers for {email}: {e}")
-        return False
-
-
-def list_all_answers() -> list:
-    """
-    List all saved answer files
-    """
-    try:
-        if not os.path.exists("saved_results"):
-            return []
-
-        answers = []
-        for filename in os.listdir("saved_results"):
-            if filename.startswith("answers_") and filename.endswith(".json"):
-                # Extract email from filename
-                email_part = filename[8:-5]  # Remove "answers_" prefix and ".json" suffix
-                email = email_part.replace("_at_", "@").replace("_dot_", ".")
-                answers.append(email)
-
-        return answers
-    except Exception as e:
-        print(f"Error listing answers: {e}")
-        return []
 
 
 def save_user_metadata(metadata: Dict[str, Any], email: str = None) -> None:

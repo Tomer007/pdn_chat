@@ -61,40 +61,4 @@ def get_question(question_number: int, questions: dict):
     }
 
 
-def submit_answer(question_number: int, selected_option_code: str, selected_option_text: str, ranking: dict = None,
-                  email: str = None, questions: dict = None):
-    """
-    Submit an answer to a specific question.
-    Stores the answer and returns the next question if available.
-    """
-    if not email:
-        raise ValueError("Email is required")
 
-    # Initialize user's answer dictionary if it doesn't exist
-    if email not in user_answers:
-        user_answers[email] = {}
-
-    # Store the answer with all details
-    # TODO check if we need the user_answer might be deleted
-    user_answers[email][question_number] = {
-        "code": selected_option_code,
-        "text": selected_option_text,
-        "ranking": ranking
-    }
-
-    next_question_number = question_number + 1
-    next_question = questions.get(str(next_question_number))
-
-    if not next_question:
-        return {
-            "message": "Questionnaire completed.",
-            "answers": user_answers[email]
-        }
-
-    return {
-        "question_number": next_question_number,
-        "question": next_question["text"],
-        "options": next_question["options"],
-        "type": next_question.get("type"),
-        "instructions": next_question.get("instructions")
-    }
