@@ -5,7 +5,7 @@ from typing import Optional
 
 class PDNFilePath:
     """Utility class for handling PDN file paths and user directories."""
-    
+
     def __init__(self, base_dir: Optional[str] = None):
         """
         Initialize PDNFilePath utility.
@@ -14,7 +14,7 @@ class PDNFilePath:
             base_dir: Base directory for saved results. Defaults to 'saved_results'
         """
         self.base_dir = Path(base_dir or os.getenv('ANSWERS_DIR', 'saved_results'))
-    
+
     def get_base_dir(self) -> Path:
         """
         Get base directory.
@@ -23,7 +23,7 @@ class PDNFilePath:
             Path object pointing to the base directory
         """
         return self.base_dir
-    
+
     def get_user_dir(self, user_email: str) -> Path:
         """
         Get or create user directory based on email.
@@ -37,15 +37,15 @@ class PDNFilePath:
         # Create safe username from email
         safe_username = "".join(c for c in user_email if c.isalnum() or c in (' ', '-', '_')).rstrip()
         safe_username = safe_username.replace(' ', '_')
-        
+
         # Create user directory path
         user_dir = self.base_dir / safe_username
-        
+
         # Create directory if it doesn't exist
         user_dir.mkdir(parents=True, exist_ok=True)
-        
+
         return user_dir
-    
+
     def get_user_file_path(self, user_email: str, filename: str) -> Path:
         """
         Get file path within user directory.
@@ -59,9 +59,9 @@ class PDNFilePath:
         """
         user_dir = self.get_user_dir(user_email)
         file_path = user_dir / filename
-        
+
         return file_path
-    
+
     def ensure_user_dir_exists(self, user_email: str) -> Path:
         """
         Ensure user directory exists and return its path.
@@ -73,7 +73,7 @@ class PDNFilePath:
             Path object pointing to the user's directory
         """
         return self.get_user_dir(user_email)
-    
+
     def list_user_files(self, user_email: str, pattern: str = "*") -> list[Path]:
         """
         List files in user directory matching pattern.
@@ -87,7 +87,7 @@ class PDNFilePath:
         """
         user_dir = self.get_user_dir(user_email)
         return list(user_dir.glob(pattern))
-    
+
     def find(self, user_dir: Path, search_string: str) -> Path:
         """
         Find file in user directory.
@@ -97,7 +97,7 @@ class PDNFilePath:
             if search_string in file.name:
                 return file
         return None
-    
+
     def user_dir_exists(self, user_email: str) -> bool:
         """
         Check if user directory exists.
@@ -111,5 +111,5 @@ class PDNFilePath:
         safe_username = "".join(c for c in user_email if c.isalnum() or c in (' ', '-', '_')).rstrip()
         safe_username = safe_username.replace(' ', '_')
         user_dir = self.base_dir / safe_username
-        
-        return user_dir.exists() 
+
+        return user_dir.exists()

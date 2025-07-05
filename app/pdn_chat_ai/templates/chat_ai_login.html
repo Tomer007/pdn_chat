@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>עוזר רפואי - מאוחדת</title>
-  <style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>עוזר רפואי - מאוחדת</title>
+    <style>
     * {
       margin: 0;
       padding: 0;
@@ -314,24 +314,26 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-  </style>
+
+    </style>
 </head>
 <body>
-  <div class="container">
-   
-    
+<div class="container">
+
+
     <div class="patient-form">
-      <div class="form-header">
-        <h2 style="font-size: 18px;">
-          <img src="https://www.pcgraph.co.il/wp-content/uploads/2019/11/%D7%9C%D7%95%D7%92%D7%95-%D7%A7%D7%95%D7%A4%D7%97-%D7%9E%D7%90%D7%95%D7%97%D7%93%D7%AA.jpg" alt="מאוחדת לוגו" style="
+        <div class="form-header">
+            <h2 style="font-size: 18px;">
+                <img src="https://www.pcgraph.co.il/wp-content/uploads/2019/11/%D7%9C%D7%95%D7%92%D7%95-%D7%A7%D7%95%D7%A4%D7%97-%D7%9E%D7%90%D7%95%D7%97%D7%93%D7%AA.jpg"
+                     alt="מאוחדת לוגו" style="
           width: 70px;
           height: 70px;
       "/>
-          ברוכים הבאים למערכת הכנה לביקור במאוחדת  
-        </h2>
-        <p id="current-date-time"></p>
+                ברוכים הבאים למערכת הכנה לביקור במאוחדת
+            </h2>
+            <p id="current-date-time"></p>
 
-<script>
+            <script>
   const now = new Date();
   const date = now.toLocaleDateString('he-IL');      
   const time = now.toLocaleTimeString('he-IL', {
@@ -340,32 +342,33 @@
   });                                              
 
   document.getElementById('current-date-time').innerText = `${time} ${date} `;
-</script>
-        </div>
-      
-      <form id="patientForm">
-        <div class="form-group">
-          <label for="patientName">שם המטופל:</label>
-          <input 
-            type="text" 
-            id="patientName" 
-            name="patientName" 
-            placeholder="הזן את שם המטופל"
-            required
-            autocomplete="off"
-            maxlength="50"
-          >
-          <div class="error-message" id="nameError">אנא הזן שם מטופל תקין (לפחות 2 תווים)</div>
-        </div>
-        
-        <button type="submit" class="start-button" id="startButton">
-          <span class="button-text">התחל ביקור רופא</span>
-        </button>
-      </form>
 
-  </div>
+            </script>
+        </div>
 
-  <script>
+        <form id="patientForm">
+            <div class="form-group">
+                <label for="patientName">שם המטופל:</label>
+                <input
+                        type="text"
+                        id="patientName"
+                        name="patientName"
+                        placeholder="הזן את שם המטופל"
+                        required
+                        autocomplete="off"
+                        maxlength="50"
+                >
+                <div class="error-message" id="nameError">אנא הזן שם מטופל תקין (לפחות 2 תווים)</div>
+            </div>
+
+            <button type="submit" class="start-button" id="startButton">
+                <span class="button-text">התחל ביקור רופא</span>
+            </button>
+        </form>
+
+    </div>
+
+    <script>
     function getOrCreatePatientId() {
       let patient_id = localStorage.getItem('patient_id');
       if (!patient_id) {
@@ -467,7 +470,8 @@
         }
       });
     });
-  </script>
+
+    </script>
 </body>
 </html>
  

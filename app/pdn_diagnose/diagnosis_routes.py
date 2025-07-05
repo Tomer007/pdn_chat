@@ -144,15 +144,25 @@ def submit_answer_route():
             logger.error("Missing selected_option_code for regular question")
             return jsonify({"error": "Missing selected_option_code"}), 400
         
+        # Get question text from questions data
+        question_text = None
+        try:
+            questions = current_app.config.get('PDN_QUESTIONS', {})
+            question_data = get_question(question_number, questions)
+            if 'question' in question_data:
+                question_text = question_data['question']
+        except Exception as e:
+            logger.error(f"Could not get question text for question {question_number}: {e}")
+        
         # Create answer data dictionary
         answer_data = {
             'selected_option_code': selected_option_code,
             'ranking': ranking
         }
         
-        # Save answer
+        # Save answer with question text
         try:
-            save_answer(email, question_number, answer_data)
+            save_answer(email, question_number, answer_data, question_text)
             logger.info(f"Answer saved successfully for question {question_number}")
         except Exception as save_error:
             logger.error(f"Error saving answer: {save_error}")
@@ -188,7 +198,9 @@ def complete_questionnaire():
         
         # Calculate PDN code
         pdn_code = calculate_pdn_code(user_answers_data)
-        
+
+        logger.info(f"PDN code for {email}: {pdn_code}")
+
         if not pdn_code:
             logger.error(f"Could not calculate PDN code for user {email}")
             return jsonify({"error": "Could not calculate PDN code - insufficient answers"}), 400
