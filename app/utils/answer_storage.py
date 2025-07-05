@@ -1,22 +1,22 @@
 import json
 import os
-from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any, Optional
-from app.utils.pdn_file_path import PDNFilePath
+
 from app.utils.csv_metadata_handler import UserMetadataHandler
+from app.utils.pdn_file_path import PDNFilePath
 
 # Initialize the utility
 pdn_file_path = PDNFilePath()
 
-def save_answer(email: str, question_number: int, answer_data: dict):
+
+def save_answer(email: str, question_number: int, answer_data: dict, question_text: str = None):
     """Save a single answer to the user's temp file."""
 
-    
     # Create filename
     file_extension = ".json"
     filename = f"{email}_answers{file_extension}"
- 
+
     file_path = pdn_file_path.get_user_file_path(email, filename)
 
     if file_path.exists():
@@ -27,6 +27,10 @@ def save_answer(email: str, question_number: int, answer_data: dict):
 
     # Filter out None values from answer_data
     filtered_answer_data = {k: v for k, v in answer_data.items() if v is not None}
+
+    # Add question text if provided
+    if question_text:
+        filtered_answer_data['question_text'] = question_text
 
     data[str(question_number)] = filtered_answer_data
 
@@ -40,18 +44,19 @@ def save_answers(email: str, answers: Dict[str, Any]) -> bool:
     """
     try:
         file_path = pdn_file_path.get_user_file_path(email, "answers.json")
-        
+
         print(f"Saving answers for {email} to: {file_path}")
-        
+
         # Ensure we're creating a file, not a directory
         with open(file_path, "w", encoding="utf-8") as f:
             json.dump(answers, f, ensure_ascii=False, indent=2)
-        
+
         print(f"Successfully saved answers for {email}")
         return True
     except Exception as e:
         print(f"Error saving answers for {email}: {e}")
         return False
+
 
 def load_answers(email: str) -> Optional[Dict[str, Any]]:
     """
@@ -62,23 +67,23 @@ def load_answers(email: str) -> Optional[Dict[str, Any]]:
         file_extension = ".json"
         complete_filename = f"{email}_answers_{file_extension}"
         complete_file_path = pdn_file_path.get_user_file_path(email, complete_filename)
-        
+
         # If complete file exists, load it
         if os.path.exists(complete_file_path) and not os.path.isdir(complete_file_path):
             with open(complete_file_path, "r", encoding="utf-8") as f:
                 answers = json.load(f)
                 print(f"Successfully loaded complete answers for {email}")
                 return answers
-        
+
         # Fallback to regular answers file
         filename = f"{email}_answers{file_extension}"
         file_path = pdn_file_path.get_user_file_path(email, filename)
-        
+
         # Check if the path exists and is a file (not a directory)
         if not os.path.exists(file_path):
             print(f"Answers file not found for {email}")
             return None
-        
+
         if os.path.isdir(file_path):
             print(f"Path exists but is a directory, not a file: {file_path}")
             # Try to remove the directory if it exists
@@ -88,13 +93,13 @@ def load_answers(email: str) -> Optional[Dict[str, Any]]:
             except OSError as e:
                 print(f"Could not remove directory {file_path}: {e}")
             return None
-        
+
         # Load the JSON file
         with open(file_path, "r", encoding="utf-8") as f:
             answers = json.load(f)
             print(f"Successfully loaded answers for {email}")
             return answers
-            
+
     except FileNotFoundError:
         print(f"Answers file not found for {email}")
         return None
@@ -105,6 +110,7 @@ def load_answers(email: str) -> Optional[Dict[str, Any]]:
         print(f"Error loading answers for {email}: {e}")
         return None
 
+
 def delete_answers(email: str) -> bool:
     """
     Delete user answers file
@@ -113,7 +119,7 @@ def delete_answers(email: str) -> bool:
         # Create a safe filename by replacing problematic characters
         safe_email = email.replace("@", "_at_").replace(".", "_dot_")
         file_path = f"saved_results/answers_{safe_email}.json"
-        
+
         if os.path.exists(file_path):
             if os.path.isdir(file_path):
                 # If it's a directory, try to remove it
@@ -127,6 +133,7 @@ def delete_answers(email: str) -> bool:
         print(f"Error deleting answers for {email}: {e}")
         return False
 
+
 def list_all_answers() -> list:
     """
     List all saved answer files
@@ -134,7 +141,7 @@ def list_all_answers() -> list:
     try:
         if not os.path.exists("saved_results"):
             return []
-        
+
         answers = []
         for filename in os.listdir("saved_results"):
             if filename.startswith("answers_") and filename.endswith(".json"):
@@ -142,11 +149,12 @@ def list_all_answers() -> list:
                 email_part = filename[8:-5]  # Remove "answers_" prefix and ".json" suffix
                 email = email_part.replace("_at_", "@").replace("_dot_", ".")
                 answers.append(email)
-        
+
         return answers
     except Exception as e:
         print(f"Error listing answers: {e}")
         return []
+
 
 def save_user_metadata(metadata: Dict[str, Any], email: str = None) -> None:
     """
@@ -155,11 +163,11 @@ def save_user_metadata(metadata: Dict[str, Any], email: str = None) -> None:
     """
     if not email:
         raise ValueError("Email is required to save user metadata")
-    
+
     # Create filename
     file_extension = ".json"
     filename = f"{email}_answers{file_extension}"
- 
+
     file_path = pdn_file_path.get_user_file_path(email, filename)
 
     csv_metadata_handler = UserMetadataHandler()
@@ -171,7 +179,7 @@ def save_user_metadata(metadata: Dict[str, Any], email: str = None) -> None:
     else:
         data = {}
 
-# Generate timestamp
+    # Generate timestamp
 
     # Update metadata
     metadata['timestamp'] = datetime.now().strftime("%Y_%m_%d_%H_%M")
@@ -180,5 +188,3 @@ def save_user_metadata(metadata: Dict[str, Any], email: str = None) -> None:
     # Save with proper Hebrew encoding
     with open(file_path, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
-
-
