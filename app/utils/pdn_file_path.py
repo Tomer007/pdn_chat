@@ -88,28 +88,4 @@ class PDNFilePath:
         user_dir = self.get_user_dir(user_email)
         return list(user_dir.glob(pattern))
 
-    def find(self, user_dir: Path, search_string: str) -> Path:
-        """
-        Find file in user directory.
-        """
-        list_of_files = list(user_dir.glob("*"))
-        for file in list_of_files:
-            if search_string in file.name:
-                return file
-        return None
 
-    def user_dir_exists(self, user_email: str) -> bool:
-        """
-        Check if user directory exists.
-        
-        Args:
-            user_email: User's email address
-            
-        Returns:
-            True if directory exists, False otherwise
-        """
-        safe_username = "".join(c for c in user_email if c.isalnum() or c in (' ', '-', '_')).rstrip()
-        safe_username = safe_username.replace(' ', '_')
-        user_dir = self.base_dir / safe_username
-
-        return user_dir.exists()
