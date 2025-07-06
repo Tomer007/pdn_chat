@@ -7,8 +7,6 @@ from werkzeug.utils import secure_filename
 
 from ..utils.pdn_file_path import PDNFilePath
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 audio_bp = Blueprint('audio', __name__)

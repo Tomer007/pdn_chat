@@ -1,15 +1,5 @@
 import json
 
-from fastapi import FastAPI
-
-app = FastAPI()
-
-
-@app.on_event("startup")
-async def startup_event():
-    with open("app/data/questions.json", "r", encoding="utf-8") as f:
-        app.state.questions = json.load(f)
-
 
 # Temporary dictionary to store user answers in memory
 user_answers = {}

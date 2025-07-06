@@ -1,19 +1,17 @@
 import json
 import logging
+import os
 from collections import defaultdict
+
 from flask import Blueprint, request, render_template, jsonify, session, current_app
 from werkzeug.exceptions import HTTPException
-import os
 
-# Import utilities using proper relative imports
 from ..utils.answer_storage import load_answers, save_user_metadata, save_answer
-from ..utils.email_sender import send_email
 from ..utils.pdn_calculator import calculate_pdn_code
 from ..utils.questionnaire import get_question
 from ..utils.report_generator import load_pdn_report
-
-# Import logger
 from .logger import setup_logger
+from ..utils.email_sender import send_pdn_code_email
 
 # Setup logger
 logger = setup_logger()
@@ -329,7 +327,7 @@ def send_pdn_email():
             return jsonify({"error": "Could not load PDN report"}), 400
         
         # Send email
-        email_sent = send_email(user_answers_data, pdn_code, report_data)
+        email_sent = send_pdn_code_email(user_answers_data, "pdn_code")
         
         if email_sent:
             return jsonify({

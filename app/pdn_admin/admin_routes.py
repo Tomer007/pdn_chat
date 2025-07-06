@@ -8,13 +8,8 @@ from pathlib import Path
 from flask import Blueprint, request, render_template, jsonify, current_app, send_file, abort
 
 from ..utils.answer_storage import load_answers
-# Import utilities
 from ..utils.csv_metadata_handler import UserMetadataHandler
-from ..utils.email_sender import send_email
-from ..utils.pdn_calculator import calculate_pdn_code
-from ..utils.report_generator import load_pdn_report
-
-# Import logger
+from ..utils.email_sender import send_pdn_code_email
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -321,18 +316,12 @@ def send_user_email(email):
             return jsonify({"error": "User answers not found"}), 404
 
         # Calculate PDN code
-        pdn_code = calculate_pdn_code(user_answers)
-
+        pdn_code = "P10"
         if not pdn_code:
             return jsonify({"error": "Could not calculate PDN code"}), 400
 
-        # Load report data
-        report_data = load_pdn_report(pdn_code)
-        if not report_data:
-            return jsonify({"error": "Could not load PDN report"}), 400
-
         # Send email
-        email_sent = send_email(user_answers, pdn_code, report_data)
+        email_sent = send_pdn_code_email(user_answers, pdn_code)
 
         if email_sent:
             return jsonify({
