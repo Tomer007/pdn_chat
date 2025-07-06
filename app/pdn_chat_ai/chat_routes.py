@@ -1,8 +1,6 @@
 from flask import Blueprint, request, render_template, jsonify, session, current_app
 
-# Import logger
 from .logger import setup_logger
-# Import utilities
 from ..utils.answer_storage import load_answers
 from ..utils.pdn_calculator import calculate_pdn_code
 from ..utils.report_generator import load_pdn_report

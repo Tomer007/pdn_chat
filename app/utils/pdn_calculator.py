@@ -1,6 +1,5 @@
 import logging
 
-# Add at the beginning of the file, after imports
 logger = logging.getLogger(__name__)
 
 
