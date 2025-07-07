@@ -171,13 +171,14 @@ def send_pdn_code_email(user_answers: Dict[str, Any], pdn_code: str) -> bool:
                 }}
                 
                 .greeting {{
-                    font-size: 20px;
-                    font-weight: 600;
-                    color: #374151;
-                    margin-bottom: 24px;
+                    font-size: 28px;
+                    font-weight: 700;
+                    color: #1f2937;
+                    margin-bottom: 32px;
                     text-align: right;
                     direction: rtl;
                     unicode-bidi: bidi-override;
+                    line-height: 1.4;
                 }}
                 
                 .message-box {{
@@ -210,15 +211,16 @@ def send_pdn_code_email(user_answers: Dict[str, Any], pdn_code: str) -> bool:
                 }}
                 
                 .message-text {{
-                    font-size: 16px;
-                    line-height: 1.7;
-                    color: #374151;
-                    margin-bottom: 16px;
+                    font-size: 20px;
+                    line-height: 1.8;
+                    color: #1f2937;
+                    margin-bottom: 20px;
                     position: relative;
                     z-index: 1;
                     text-align: right;
                     direction: rtl;
                     unicode-bidi: bidi-override;
+                    font-weight: 400;
                 }}
                 
                 .pdn-code-section {{
@@ -255,10 +257,10 @@ def send_pdn_code_email(user_answers: Dict[str, Any], pdn_code: str) -> bool:
                 }}
                 
                 .pdn-code-label {{
-                    font-size: 14px;
-                    font-weight: 500;
-                    color: #6b7280;
-                    margin-bottom: 8px;
+                    font-size: 18px;
+                    font-weight: 600;
+                    color: #4b5563;
+                    margin-bottom: 12px;
                     text-transform: uppercase;
                     letter-spacing: 0.5px;
                     direction: rtl;
@@ -266,14 +268,14 @@ def send_pdn_code_email(user_answers: Dict[str, Any], pdn_code: str) -> bool:
                 }}
                 
                 .pdn-code {{
-                    font-size: 48px;
+                    font-size: 56px;
                     font-weight: 900;
                     background: linear-gradient(135deg, #7c3aed, #8b5cf6, #a855f7, #c084fc, #d946ef);
                     background-size: 300% 300%;
                     -webkit-background-clip: text;
                     -webkit-text-fill-color: transparent;
                     background-clip: text;
-                    margin: 12px 0;
+                    margin: 16px 0;
                     direction: ltr;
                     unicode-bidi: bidi-override;
                     animation: gradientFlow 3s ease-in-out infinite;
@@ -318,11 +320,11 @@ def send_pdn_code_email(user_answers: Dict[str, Any], pdn_code: str) -> bool:
                     background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 25%, #a855f7 50%, #c084fc 75%, #d946ef 100%);
                     color: white;
                     text-decoration: none;
-                    padding: 20px 40px;
+                    padding: 24px 48px;
                     border-radius: 16px;
                     font-weight: 700;
-                    font-size: 18px;
-                    margin: 20px 0;
+                    font-size: 22px;
+                    margin: 24px 0;
                     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
                     box-shadow: 
                         0 8px 25px rgba(139, 92, 246, 0.4),
@@ -364,23 +366,23 @@ def send_pdn_code_email(user_answers: Dict[str, Any], pdn_code: str) -> bool:
                 }}
                 
                 .footer-text {{
-                    font-size: 14px;
-                    color: #6b7280;
-                    margin-bottom: 12px;
+                    font-size: 16px;
+                    color: #4b5563;
+                    margin-bottom: 16px;
                 }}
                 
                 .footer-signature {{
-                    font-size: 16px;
-                    font-weight: 600;
-                    color: #374151;
-                    margin-bottom: 8px;
+                    font-size: 20px;
+                    font-weight: 700;
+                    color: #1f2937;
+                    margin-bottom: 12px;
                     direction: rtl;
                     unicode-bidi: bidi-override;
                 }}
                 
                 .footer-tagline {{
-                    font-size: 12px;
-                    color: #9ca3af;
+                    font-size: 16px;
+                    color: #6b7280;
                     font-style: italic;
                     direction: rtl;
                     unicode-bidi: bidi-override;
@@ -414,7 +416,7 @@ def send_pdn_code_email(user_answers: Dict[str, Any], pdn_code: str) -> bool:
                     }}
                     
                     .header h1 {{
-                        font-size: 24px;
+                        font-size: 28px;
                     }}
                     
                     .content {{
@@ -422,7 +424,7 @@ def send_pdn_code_email(user_answers: Dict[str, Any], pdn_code: str) -> bool:
                     }}
                     
                     .pdn-code {{
-                        font-size: 28px;
+                        font-size: 36px;
                     }}
                 }}
             </style>
@@ -431,7 +433,7 @@ def send_pdn_code_email(user_answers: Dict[str, Any], pdn_code: str) -> bool:
             <div class="email-container">
                 <div class="header">
                     <h1>מפת הדרכים האישית שלך</h1>
-                    <h2>PDN Personal Roadmap</h2>
+                    <h2>קוד המקור" - הנווט הראשי שלך להצלחה"</h2>
                 </div>
                 
                 <div class="content">
@@ -472,7 +474,7 @@ def send_pdn_code_email(user_answers: Dict[str, Any], pdn_code: str) -> bool:
                     
                     <div class="message-box">
                         <p class="message-text">
-                            כי בתוך כל אחד מאיתנו טמון צופן ייחודי, שמחכה להתגלות ולנווט את החיים בדיוק אל המקום שבו הנשמה נחה. עכשיו זה הזמן להתחיל להקשיב לו.
+                        כי בתוך כל אחד ואחת מאיתנו טמון צופן ייחודי – שמחכה להתגלות, ולכוון את החיים בדיוק אל המקום שבו הלב מהדהד, והצליל הפנימי מתחיל סוף־סוף להתנגן. זה הזמן ולהתחיל לנגן את המנגינה שלך לעולם.
                         </p>
                     </div>
                 </div>
