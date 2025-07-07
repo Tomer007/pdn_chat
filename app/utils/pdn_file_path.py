@@ -61,7 +61,7 @@ class PDNFilePath:
         file_path = user_dir / filename
 
         return file_path
- 
+
     def find_user_file(self, user_email: str, file_type: str) -> Path:
         """
         Find user file based on email and file type.
