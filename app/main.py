@@ -7,7 +7,7 @@ app = Flask(__name__,
             static_folder="static",
             template_folder="templates")
 
-app.secret_key = os.environ.get('SECRET_KEY', 'your-very-secret-key')
+app.secret_key = "your-very-secret-key"  # הוסף את השורה הזו
 
 # Register blueprints
 app.register_blueprint(pdn_admin_bp, url_prefix='/pdn-admin')
