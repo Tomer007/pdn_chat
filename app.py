@@ -49,13 +49,13 @@ def create_app():
         
         # Load questions
         with open(questions_path, "r", encoding="utf-8") as f:
-            app.config['PDN_QUESTIONS'] = json.load(f)
+            app.config['QUESTIONS_FILE'] = json.load(f)
             
         logger.info("Configuration loaded successfully")
     except Exception as e:
         logger.error(f"Error loading configuration: {e}")
         app.config['PDN_CONFIG'] = {}
-        app.config['PDN_QUESTIONS'] = {}
+        app.config['QUESTIONS_FILE'] = {}
     
     # Register blueprints
     app.register_blueprint(pdn_diagnose_bp, url_prefix='/pdn-diagnose')

@@ -49,7 +49,7 @@ def user_info_page():
     email = session.get("email", "anonymous")
     
     # Load questions.json to get the instructions
-    questions = current_app.config.get('PDN_QUESTIONS', {})
+    questions = current_app.config.get('QUESTIONS_FILE', {})
     personal_instructions = questions.get("phases", {}).get("PersonalDetails", {}).get("instructions", "")
     
     return render_template("user_form.html", 
@@ -105,7 +105,7 @@ def get_question_route(question_number):
     logger.info("Request: %s %s", request.method, request.url)
     logger.info("Response: %s", 200)
     
-    questions = current_app.config.get('PDN_QUESTIONS', {})
+    questions = current_app.config.get('QUESTIONS_FILE', {})
     return get_question(question_number, questions)
 
 @pdn_diagnose_bp.route('/answer', methods=['POST'])
@@ -145,7 +145,7 @@ def submit_answer_route():
         # Get question text from questions data
         question_text = None
         try:
-            questions = current_app.config.get('PDN_QUESTIONS', {})
+            questions = current_app.config.get('QUESTIONS_FILE', {})
             question_data = get_question(question_number, questions)
             if 'question' in question_data:
                 question_text = question_data['question']
