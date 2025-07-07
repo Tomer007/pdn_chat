@@ -8,7 +8,7 @@ from starlette.requests import Request
 from app.pdn_admin.admin_routes import router as admin_router
 from app.pdn_chat_ai.chat_routes import router as chat_ai_router
 from app.pdn_diagnose.diagnosis_routes import router as diagnose_router
-
+ 
 app = FastAPI()
 
 # Mount static files
