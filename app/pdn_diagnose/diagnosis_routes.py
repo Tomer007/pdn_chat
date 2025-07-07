@@ -312,7 +312,7 @@ def chat():
     user_name = user_data.get('first_name', 'User')
     user_id = email  # Using email as user ID
     
-    return render_template("chat.html", 
+    return render_template("questionnaire.html", 
                          include_menu=True,
                          user_name=user_name,
                          user_id=user_id,
