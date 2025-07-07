@@ -10,26 +10,39 @@ logger = setup_logger()
 
 # Create blueprint
 pdn_chat_ai_bp = Blueprint('pdn_chat_ai', __name__,
-                           template_folder='../pdn_diagnose/templates',
-                           static_folder='../pdn_diagnose/static')
+                           template_folder='templates',
+                           static_folder='../static')
 
 
 @pdn_chat_ai_bp.route('/')
 def chat():
-    """Chat interface endpoint"""
+    """Binat Chat AI login endpoint"""
     logger.debug("GET /pdn-chat-ai/ called")
     logger.info("Request: %s %s", request.method, request.url)
     logger.info("Response: %s", 200)
 
-    config = current_app.config.get('PDN_CONFIG', {})
-    email = session.get("email", None)
+    return render_template("binat_login.html")
 
-    welcome_message = config.get("chatbots", {}).get("chatbot_PDN", {}).get("welcome_message", "Welcome to PDN Chat!")
+
+@pdn_chat_ai_bp.route('/chat-ai')
+def chat_interface():
+    """Chat interface endpoint - accessed after login"""
+    logger.debug("GET /pdn-chat-ai/chat-ai called")
+    logger.info("Request: %s %s", request.method, request.url)
+    logger.info("Response: %s", 200)
+
+    # Get user name from query parameters
+    user_name = request.args.get('user_name', 'Anonymous')
+    user_id = request.args.get('user_id', '')
+
+    config = current_app.config.get('PDN_CONFIG', {})
+    welcome_message = config.get("chatbots", {}).get("chatbot_PDN", {}).get("welcome_message", "ברוך הבא לצ'אט AI!")
 
     return render_template(
         "chat.html",
         welcome_message=welcome_message,
-        email=email,
+        user_name=user_name,
+        user_id=user_id,
         include_menu=True
     )
 
@@ -44,6 +57,8 @@ def chat_message():
     try:
         data = request.get_json()
         message = data.get('message', '')
+        user_name = data.get('user_name', 'Anonymous')
+        user_id = data.get('user_id', '')
         email = session.get('email', 'anonymous')
 
         # Load user context if available
@@ -67,7 +82,7 @@ def chat_message():
         # TODO: Implement actual AI chat logic here
         # For now, return a simple response
         response = {
-            "message": f"Thank you for your message: '{message}'. This is a placeholder response. User context: {bool(user_context)}",
+            "message": f"שלום {user_name}! תודה על ההודעה שלך: '{message}'. זהו תגובה זמנית. בהמשך כאן תהיה לוגיקת AI אמיתית.",
             "user_context": user_context
         }
 
