@@ -1,11 +1,13 @@
-from flask import Flask, send_from_directory
 from app.pdn_admin.admin_routes import pdn_admin_bp
 from app.pdn_chat_ai.chat_routes import pdn_chat_ai_bp
 from app.pdn_diagnose.diagnosis_routes import pdn_diagnose_bp
+import os
 
 app = Flask(__name__, 
             static_folder="static",
             template_folder="templates")
+
+app.secret_key = os.environ.get('SECRET_KEY', 'your-very-secret-key')
 
 # Register blueprints
 app.register_blueprint(pdn_admin_bp, url_prefix='/pdn-admin')

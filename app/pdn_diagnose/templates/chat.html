@@ -129,8 +129,12 @@
 
 
 <main id="chatArea" class="glass-effect p-8 rounded-2xl shadow-2xl w-full max-w-2xl border border-white/20 space-y-6">
+    <!-- Hidden fields for user data -->
+    <input type="hidden" id="userName" value="{{ user_name or '' }}">
+    <input type="hidden" id="userId" value="{{ user_id or '' }}">
     <h1 class="text-4xl font-bold text-center text-gray-800 bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-        אבחון קוד המקור </h1>
+        {% if user_name %}ברוך הבא, {{ user_name }}{% else %}אבחון קוד המקור{% endif %}
+    </h1>
     <div id="messages" class="space-y-4 fade-in">
 
         <!-- Voice Recording Section -->
