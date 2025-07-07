@@ -1,18 +1,27 @@
-from flask import Flask, send_from_directory
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from starlette.requests import Request
 
-app = Flask(__name__, 
-            static_folder="static",
-            template_folder="templates")
+# Import your routers (make sure these use FastAPI's APIRouter)
+from app.pdn_admin.admin_routes import router as admin_router
+from app.pdn_chat_ai.chat_routes import router as chat_ai_router
+from app.pdn_diagnose.diagnosis_routes import router as diagnose_router
 
-# Import your routes
-# from app.pdn_admin import admin_routes
-# from app.pdn_chat_ai import chat_routes
-# from app.pdn_diagnose import diagnosis_routes
+app = FastAPI()
 
-# app.register_blueprint(admin_routes.pdn_admin_bp)
-# app.register_blueprint(chat_routes.pdn_chat_ai_bp)
-# app.register_blueprint(diagnosis_routes.pdn_diagnose_bp)
+# Mount static files
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
-@app.route("/")
-def root():
+# Set up templates
+templates = Jinja2Templates(directory="app/pdn_admin/templates")
+
+# Include routers
+app.include_router(admin_router, prefix="/pdn-admin")
+app.include_router(chat_ai_router, prefix="/pdn-chat-ai")
+app.include_router(diagnose_router, prefix="/pdn-diagnose")
+
+@app.get("/", response_class=HTMLResponse)
+async def root(request: Request):
     return {"message": "PDN Chat API"} 
