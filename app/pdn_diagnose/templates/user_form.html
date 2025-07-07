@@ -207,7 +207,7 @@
         });
 
         if (response.ok) {
-          window.location.href = '/pdn-chat-ai/';
+            window.location.href = '/chat';
         } else {
           const errorData = await response.json();
           alert('שגיאה בשמירת הפרטים: ' + (errorData.detail || 'אנא נסה שוב'));
