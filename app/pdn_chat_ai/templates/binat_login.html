@@ -76,9 +76,10 @@
         <div class="text-center mb-6">
             <!-- Binat Chat AI Logo -->
             <div class="flex justify-center mb-4">
-                <div class="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
-                    <i class="fas fa-robot text-white text-3xl"></i>
-                </div>
+                <img src="/static/images/pdn_logo.svg"
+                     alt="PDN Logo"
+                     class="h-24 w-auto object-contain drop-shadow-lg"
+                     style="max-width: 300px;">
             </div>
             <h2 class="text-4xl sm:text-3xl font-extrabold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
               בינת " קוד המקור"
@@ -108,6 +109,34 @@
         <div id="loginError" class="text-red-600 mt-4 hidden text-center">
             <i class="fas fa-exclamation-triangle mr-2"></i>
             <span>אנא הזן שם משתמש תקין (לפחות 2 תווים)</span>
+        </div>
+        
+        <!-- Footer -->
+        <div class="mt-8 pt-6 border-t border-gray-200">
+            <div class="text-center space-y-4">
+                <!-- Links and Info -->
+                <div class="flex flex-wrap justify-center items-center space-x-6 space-x-reverse text-sm text-gray-600">
+                    <a href="https://www.pdn.co.il" target="_blank"
+                       class="hover:text-indigo-600 transition-colors flex items-center">
+                        <i class="fas fa-globe mr-2"></i>
+                        אתר רשמי
+                    </a>
+                    <span class="flex items-center">
+                        <i class="fas fa-shield-alt mr-2"></i>
+                        מערכת מאובטחת
+                    </span>
+                </div>
+
+                <!-- Copyright -->
+                <div class="border-t border-gray-200 pt-4">
+                    <p class="text-xs text-gray-500">
+                        © 2024 PDN Center כל הזכויות שמורות
+                    </p>
+                    <p class="text-xs text-gray-400 mt-2">
+                        מערכת ניהול נתוני אבחון פדן - גרסה 1.0
+                    </p>
+                </div>
+            </div>
         </div>
     </div>
 </div>
