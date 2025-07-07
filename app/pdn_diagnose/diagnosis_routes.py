@@ -298,6 +298,26 @@ def get_user_name():
     user_name = user_data.get('first_name', 'User')
     return jsonify({"user_name": user_name})
 
+@pdn_diagnose_bp.route('/chat')
+def chat():
+    """Chat page for diagnose questionnaire"""
+    logger.debug("GET /pdn-diagnose/chat called")
+    api_usage["chat"] += 1
+    logger.debug(f"API Usage: {dict(api_usage)}")
+    logger.info("Request: %s %s", request.method, request.url)
+    logger.info("Response: %s", 200)
+    
+    email = session.get('email', 'anonymous')
+    user_data = session.get('user_data', {})
+    user_name = user_data.get('first_name', 'User')
+    user_id = email  # Using email as user ID
+    
+    return render_template("chat.html", 
+                         include_menu=True,
+                         user_name=user_name,
+                         user_id=user_id,
+                         email=email)
+
 @pdn_diagnose_bp.route('/send_email', methods=['POST'])
 def send_pdn_email():
     """Send PDN report email to user"""

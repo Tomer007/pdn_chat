@@ -1,294 +1,906 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
+
 <head>
-    <meta charset="UTF-8"/>
-    <title>Binat Chat AI</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background: radial-gradient(ellipse at center, #e0e7ff 0%, #c7d2fe 50%, #7c3aed 100%);
-            min-height: 100vh;
-        }
-        .glass-effect { 
-            background: rgba(255, 255, 255, 0.95); 
-            backdrop-filter: blur(20px); 
-            border-radius: 1.5rem; 
-            box-shadow: 0 15px 30px rgba(0,0,0,0.1); 
-        }
-        .message-bubble {
-            max-width: 80%;
-            padding: 12px 16px;
-            border-radius: 18px;
-            margin-bottom: 12px;
-            word-wrap: break-word;
-        }
-        .user-message {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            color: white;
-            margin-right: 0;
-            margin-left: auto;
-            border-bottom-right-radius: 4px;
-        }
-        .ai-message {
-            background: #f3f4f6;
-            color: #374151;
-            margin-left: 0;
-            margin-right: auto;
-            border-bottom-left-radius: 4px;
-        }
-        .typing-indicator {
-            display: none;
-            padding: 12px 16px;
-            background: #f3f4f6;
-            border-radius: 18px;
-            border-bottom-left-radius: 4px;
-            margin-bottom: 12px;
-        }
-        .typing-dots {
-            display: flex;
-            gap: 4px;
-        }
-        .typing-dot {
-            width: 8px;
-            height: 8px;
-            background: #9ca3af;
-            border-radius: 50%;
-            animation: typing 1.4s infinite ease-in-out;
-        }
-        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
-        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
-        @keyframes typing {
-            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
-            40% { transform: scale(1); opacity: 1; }
-        }
-        .input-area {
-            background: rgba(255, 255, 255, 0.9);
-            border: 2px solid #e5e7eb;
-            border-radius: 24px;
-            transition: all 0.3s ease;
-        }
-        .input-area:focus-within {
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-        }
-        .send-button {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            transition: all 0.3s ease;
-        }
-        .send-button:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
-        }
-        .send-button:disabled {
-            background: #9ca3af;
-            cursor: not-allowed;
-            transform: none;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PDN עוזר רפואי - צ'אט חכם</title>
+  <style>
+    body {
+      font-family: 'Alef', sans-serif;
+      background: linear-gradient(135deg, #dddff3 0%, #eae3da 100%);
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, #f7941d 0%, #ff6b35 100%);
+      color: white;
+      padding: 20px;
+      text-align: center;
+      font-size: 1.3em;
+      border-radius: 0 0 20px 20px;
+      box-shadow: 0 4px 20px rgba(247, 148, 29, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      animation: shimmer 3s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { left: -100%; }
+      100% { left: 100%; }
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      margin: 30px auto;
+      padding: 30px;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      max-width: 700px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      animation: slideInUp 0.8s ease-out;
+    }
+
+    @keyframes slideInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .title {
+      background: linear-gradient(135deg, #f7941d, #ff6b35);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: bold;
+      font-size: 1.6em;
+      margin-bottom: 25px;
+      text-align: center;
+    }
+
+    .delimiter {
+      margin: 0 8px;
+      color: #ff6b35;
+      font-weight: bold;
+      font-size: 1.2em;
+      vertical-align: middle;
+    }
+
+    .tabs {
+      display: flex;
+      margin-bottom: 15px;
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 4px;
+    }
+
+    .message-content {
+      color: #2d3748;
+      line-height: 1.6;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 12px;
+      text-align: center;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-weight: 500;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      color: #718096;
+    }
+
+    .tab.active {
+      font-weight: 600;
+      background: linear-gradient(135deg, #f7941d, #ff6b35);
+      color: white;
+      box-shadow: 0 4px 12px rgba(247, 148, 29, 0.3);
+    }
+
+    .chat-container {
+      background: white;
+      border-radius: 20px;
+      padding: 20px;
+      max-width: 650px;
+      width: 100%;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      margin-top: 40px;
+      display: flex;
+      flex-direction: column;
+      animation: fadeIn 1s ease-in-out;
+      transition: all 0.4s ease;
+      min-height: 500px;
+      max-height: 700px;
+      overflow-y: auto;
+      position: relative;
+      border: 1px solid #e2e8f0;
+    }
+
+    .chat-container::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .chat-container::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+
+    .chat-container::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 4px;
+    }
+
+    .chat-container::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+
+    .input-area {
+      display: flex;
+      margin-top: auto;
+      gap: 12px;
+      animation: fadeIn 1.2s ease;
+      align-items: center;
+      position: sticky;
+      bottom: 0;
+      background: white;
+      padding: 15px 0;
+      z-index: 1;
+      border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .input-area input {
+      flex-grow: 1;
+      padding: 16px 20px;
+      border-radius: 25px;
+      border: 2px solid #e2e8f0;
+      font-size: 16px;
+      background-color: #f8f9fa;
+      color: #2d3748;
+      transition: all 0.3s ease;
+    }
+
+    .input-area input:focus {
+      outline: none;
+      border-color: #f7941d;
+      box-shadow: 0 0 0 3px rgba(247, 148, 29, 0.1);
+      background-color: white;
+      transform: translateY(-2px);
+    }
+
+    .input-area input::placeholder {
+      color: #a0aec0;
+    }
+
+    .input-area button {
+      background: linear-gradient(135deg, #f7941d, #ff6b35);
+      color: white;
+      border: none;
+      border-radius: 25px;
+      padding: 16px 24px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .input-area button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .input-area button:hover::before {
+      left: 100%;
+    }
+
+    .input-area button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(247, 148, 29, 0.4);
+    }
+
+    .input-area button:active {
+      transform: translateY(0);
+    }
+
+    .input-area button:disabled {
+      background: #a0aec0;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .mic-btn {
+      background: #f8f9fa;
+      border: 2px solid #f7941d;
+      border-radius: 50%;
+      width: 60px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-left: 4px;
+      margin-right: 4px;
+      position: relative;
+    }
+
+    .mic-btn:hover {
+      background: #fff3e0;
+      transform: scale(1.05);
+    }
+
+    .mic-btn.active {
+      background: linear-gradient(135deg, #f7941d, #ff6b35);
+      border: 2px solid #ff6b35;
+      box-shadow: 0 0 0 4px rgba(247, 148, 29, 0.3);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(247, 148, 29, 0.7);
+      }
+      70% {
+        box-shadow: 0 0 0 10px rgba(247, 148, 29, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(247, 148, 29, 0);
+      }
+    }
+
+    .mic-btn svg {
+      width: 32px;
+      height: 32px;
+      color: #f7941d;
+      transition: color 0.3s ease;
+    }
+
+    .mic-btn.active svg {
+      color: white;
+    }
+
+    .footer {
+      background: linear-gradient(135deg, #f7941d, #ff6b35);
+      padding: 25px;
+      text-align: center;
+      color: white;
+      margin-top: 30px;
+      font-size: 1.1em;
+      border-radius: 16px;
+      margin-left: auto;
+      margin-right: auto;
+      box-shadow: 0 8px 25px rgba(247, 148, 29, 0.3);
+    }
+
+    .footer a {
+      display: inline-block;
+      margin-top: 15px;
+      padding: 12px 30px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      text-decoration: none;
+      border-radius: 25px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .footer a:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .chat-bubble {
+      background: #f5f5f5;
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 10px;
+      font-size: 16px;
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      animation: slideIn 0.5s ease;
+      direction: rtl;
+      text-align: right;
+      max-width: 85%;
+      position: relative;
+      transition: transform 0.2s ease;
+    }
+
+    .chat-bubble:hover {
+      transform: translateY(-1px);
+    }
+
+    .chat-bubble.bot {
+      background-color: #ffe0b2;
+      color: #e65100;
+      align-self: stretch;
+      margin-right: stretch;
+      margin-left: 0;
+    }
+
+    .disabled-summary-button {
+      background-color: #f7941d !important;
+      cursor: not-allowed;
+      opacity: 0.7;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .chat-bubble.user {
+      background-color: #e3f2fd;
+      color: #0d47a1;
+      align-self: stretch;
+      margin-left: stretch;
+      margin-right: 0;
+    }
+
+    .bot-message,
+    .user-message {
+      width: 100%;
+      padding-bottom: 16px;
+    }
+
+    .bot-label {
+      position: absolute;
+      top: 4px;
+      right: 12px;
+      font-size: 0.75em;
+      color: #181717;
+      font-weight: 500;
+      opacity: 0.9;
+    }
+
+    .user-label {
+      position: absolute;
+      top: 4px;
+      right: 12px;
+      font-size: 0.75em;
+      color: #181717;
+      font-weight: 500;
+      opacity: 0.9;
+    }
+
+    .message-meta {
+      position: absolute;
+      bottom: 4px;
+      left: 12px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.7em;
+      color: #666;
+      opacity: 0.8;
+    }
+
+    .message-time {
+      position: static;
+      font-size: 1.0em;
+      color: #201d1d;
+      opacity: 0.8;
+      margin: 0;
+      padding: 0;
+      font-weight: bold;
+    }
+
+    .message-status {
+      position: static;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      font-size: 0.7em;
+      margin: 0;
+      padding: 0;
+    }
+
+    .message-status svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .message-status.sent svg {
+      color: #666;
+    }
+
+    .message-status.delivered svg {
+      color: #4CAF50;
+    }
+
+    .message-status.read svg {
+      color: #2196F3;
+    }
+
+    .summaryText {
+      direction: rtl;
+      font-family: "Arial", sans-serif;
+      line-height: 1.6;
+      font-size: 1rem;
+    }
+
+    .typing-indicator {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 12px;
+      background: #ffe0b2;
+      border-radius: 12px;
+      color: #181717;
+      font-size: 0.9em;
+      margin-bottom: 10px;
+      width: fit-content;
+    }
+
+    .typing-dots {
+      display: flex;
+      gap: 2px;
+    }
+
+    .typing-dot {
+      width: 6px;
+      height: 6px;
+      background: #181717;
+      border-radius: 50%;
+      animation: typingDot 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typingDot {
+      0%,
+      60%,
+      100% {
+        transform: translateY(0);
+      }
+
+      30% {
+        transform: translateY(-4px);
+      }
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      animation: fadeInModal 0.3s;
+    }
+
+    @keyframes fadeInModal {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    .modal-content {
+      background: #f3efe5;
+      border-radius: 18px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18), 0 1.5px 6px rgba(255, 152, 0, 0.10);
+      padding: 32px 28px 24px 28px;
+      min-width: 200px;
+      max-width: 90vw;
+      max-height: 80vh;
+      overflow-y: auto;
+      position: relative;
+      text-align: right;
+      animation: popupIn 0.4s cubic-bezier(.23, 1.01, .32, 1);
+    }
+
+    @media (max-width: 600px) {
+      .modal-content {
+        width: 98vw;
+        min-width: 0;
+        max-width: 98vw;
+        padding: 16px 6px 12px 6px;
+        border-radius: 12px;
+      }
+    }
+
+    @keyframes popupIn {
+      from {
+        transform: scale(0.92) translateY(40px);
+        opacity: 0;
+      }
+
+      to {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .modal-title {
+      font-size: 1.25em;
+      font-weight: bold;
+      color: #eb5d0b;
+      letter-spacing: 0.5px;
+    }
+
+    .modal-close {
+      background: none;
+      border: black;
+      font-size: 1.7em;
+      color: #ea6e09;
+      cursor: pointer;
+      font-weight: bold;
+      margin-left: 8px;
+      transition: color 0.2s;
+      line-height: 1;
+    }
+
+    .modal-close:hover {
+      color: #361603;
+    }
+
+    .modal-body {
+      font-size: 1.08em;
+      color: #361603;
+      line-height: 1.7;
+      padding-top: 6px;
+      padding-bottom: 2px;
+      word-break: break-word;
+    }
+
+    .main-logo {
+      float: right;
+      margin-left: 12px;
+      margin-top: -4px;
+      height: 38px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+      background: white;
+      padding: 2px 4px;
+      object-fit: contain;
+    }
+
+    .close-button {
+      background: linear-gradient(135deg, #ff6b35 0%, #f7941d 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 500;
+      margin-top: 20px;
+      width: 100%;
+    }
+
+    .close-button:hover {
+      background: linear-gradient(135deg, #e55a2b 0%, #e67e22 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+    }
+
+    .close-button:active {
+      transform: translateY(-1px);
+    }
+  </style>
+  <script src="/static/marked.min.js"></script>
+  <script>
+    const PATIENT_NAME = "{{ user_name }}";
+    const PATIENT_ID = "{{ user_id }}";
+    const messageSound = new Audio('https://cdn.pixabay.com/audio/2022/03/15/audio_722d560b83.mp3');
+
+    function getCurrentTime() {
+      const now = new Date();
+      const hours = now.getHours().toString().padStart(2, '0');
+      const minutes = now.getMinutes().toString().padStart(2, '0');
+      return `${hours}:${minutes}`;
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById("userInput");
+      const micBtn = document.getElementById("micBtn");
+      const sendBtn = document.querySelector(".input-area button[onclick='sendMessage()']");
+      const chatContainer = document.querySelector(".chat-container");
+      const inputArea = document.querySelector(".input-area");
+
+      const message = input.value.trim();
+      if (message === "") return;
+
+      // Disable input and mic while waiting for bot
+      input.disabled = true;
+      micBtn.disabled = true;
+      if (sendBtn) sendBtn.disabled = true;
+
+      const userBubble = document.createElement("div");
+      userBubble.className = "chat-bubble user animated";
+      userBubble.innerHTML = `
+        <div class="user-message">
+          <span class="user-label">${PATIENT_NAME}</span>
+          <div class="message-content"></div>
+          <div class="message-meta">
+            <span class="message-status sent">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+              </svg>
+            </span>
+            <span class="message-time">${getCurrentTime()}</span>
+          </div>
+        </div>
+      `;
+      // Render markdown for user message
+      userBubble.querySelector('.message-content').innerHTML = marked.parse(message);
+      chatContainer.insertBefore(userBubble, inputArea);
+
+      // Scroll to bottom after user message
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+
+      input.value = "";
+
+      const typing = document.createElement("div");
+      typing.className = "typing-indicator";
+      typing.innerHTML = `
+        <span>PDN עוזר רפואי מקליד</span>
+        <div class="typing-dots">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      `;
+      chatContainer.insertBefore(typing, inputArea);
+
+      // Scroll to bottom after typing indicator
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+
+      // Call backend API for bot response
+      try {
+        const res = await fetch("/pdn-chat-ai/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            message,
+            user_name: PATIENT_NAME,
+            user_id: PATIENT_ID 
+          })
+        });
+        const data = await res.json();
+        typing.remove();
+        const botBubble = document.createElement("div");
+        botBubble.className = "chat-bubble bot animated";
+        botBubble.innerHTML = `
+          <div class="bot-message">
+            <span class="bot-label">PDN עוזר רפואי</span></br>
+            <img class="main-logo" src="/static/images/pdn_logo.svg" alt="PDN" height="38">
+            <div class="message-content"></div>
+            <div class="message-meta">
+              <span class="message-time">${getCurrentTime()}</span>
+            </div>
+          </div>
+        `;
+        // Render markdown for bot message
+        botBubble.querySelector('.message-content').innerHTML = marked.parse(data.message || data.response || 'מצטער, אירעה שגיאה. אנא נסה שוב.');
+        chatContainer.insertBefore(botBubble, inputArea);
+        messageSound.play();
+
+        // Scroll to bottom after bot message
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+
+        // Update message status to delivered
+        setTimeout(() => {
+          userBubble.querySelector('.message-status').className = 'message-status delivered';
+          userBubble.querySelector('.message-status').innerHTML = `
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M18 7l-1.41-1.41-6.34 6.34 1.41 1.41L18 7zm4.24-1.41L11.66 16.17 7.48 12l-1.41 1.41L11.66 19l12-12-1.42-1.41zM.41 13.41L6 19l1.41-1.41L1.83 12 .41 13.41z"/>
+            </svg>
+          `;
+        }, 1000);
+
+        // Update message status to read
+        setTimeout(() => {
+          userBubble.querySelector('.message-status').className = 'message-status read';
+          userBubble.querySelector('.message-status').innerHTML = `
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M18 7l-1.41-1.41-6.34 6.34 1.41 1.41L18 7zm4.24-1.41L11.66 16.17 7.48 12l-1.41 1.41L11.66 19l12-12-1.42-1.41zM.41 13.41L6 19l1.41-1.41L1.83 12 .41 13.41z"/>
+            </svg>
+          `;
+        }, 2000);
+
+        // Re-enable input
+        input.disabled = false;
+        micBtn.disabled = false;
+        if (sendBtn) sendBtn.disabled = false;
+        input.focus();
+      } catch (err) {
+        typing.remove();
+        const botBubble = document.createElement("div");
+        botBubble.className = "chat-bubble bot animated";
+        botBubble.innerHTML = `
+          <div class="bot-message">
+            <span class="bot-label">PDN עוזר רפואי</span></br>
+            <img class="main-logo" src="/static/images/pdn_logo.svg" alt="PDN" height="38">
+            <div class="message-content">שגיאה בשליחת ההודעה לשרת</div>
+            <div class="message-meta">
+              <span class="message-time">${getCurrentTime()}</span>
+            </div>
+          </div>
+        `;
+        chatContainer.insertBefore(botBubble, inputArea);
+        // Scroll to bottom after error message
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+        
+        // Re-enable input on error
+        input.disabled = false;
+        micBtn.disabled = false;
+        if (sendBtn) sendBtn.disabled = false;
+        input.focus();
+      }
+    }
+
+    // Voice recognition support
+    let recognition;
+    let recognizing = false;
+    function toggleMic() {
+      const micBtn = document.getElementById("micBtn");
+      if (micBtn.disabled) return;
+      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        alert('Voice recognition is not supported in this browser.');
+        return;
+      }
+      if (!recognition) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.lang = 'he-IL'; // Default to Hebrew
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+        recognition.onresult = function (event) {
+          const transcript = event.results[0][0].transcript;
+          document.getElementById("userInput").value = transcript;
+        };
+        recognition.onend = function () {
+          recognizing = false;
+          document.getElementById('micBtn').classList.remove('active');
+        };
+        recognition.onerror = function () {
+          recognizing = false;
+          document.getElementById('micBtn').classList.remove('active');
+        };
+      }
+      if (!recognizing) {
+        // Try to detect language from input placeholder or browser
+        const input = document.getElementById("userInput");
+        const lang = input.lang || navigator.language || 'he-IL';
+        recognition.lang = lang.match(/^he/) ? 'he-IL' : 'en-US';
+        recognition.start();
+        recognizing = true;
+        document.getElementById('micBtn').classList.add('active');
+      } else {
+        recognition.stop();
+        recognizing = false;
+        document.getElementById('micBtn').classList.remove('active');
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      // Set patient name in the title
+      document.getElementById("patientName").innerText = PATIENT_NAME;
+
+      const chatContainer = document.querySelector(".chat-container");
+      const initialBot = document.createElement("div");
+      initialBot.className = "chat-bubble bot animated";
+      const rawMessage = `שלום ${PATIENT_NAME}, תודה שפנית אלינו!\nאני PDN עוזר רפואי חכם, כאן כדי לעזור לך עם שאלות רפואיות, לספק מידע, או פשוט לשוחח. איך אני יכול/ה לעזור לך היום?`;
+      const formattedMessage = rawMessage.replace(/\n/g, '<br>');
+
+      initialBot.innerHTML = `
+        <div class="bot-message">
+          <span class="bot-label">PDN עוזר רפואי</span><br>
+          <img class="main-logo" src="/static/images/pdn_logo.svg" alt="PDN" height="38">
+          <div class="message-content">
+            ${formattedMessage}
+          </div>          
+          <div class="message-meta">
+            <span class="message-time">${getCurrentTime()}</span>
+          </div>
+        </div>
+      `;
+      chatContainer.insertBefore(initialBot, document.querySelector(".input-area"));
+    });
+  </script>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
-    <main class="glass-effect p-6 rounded-2xl shadow-2xl w-full max-w-4xl border border-white/20 space-y-6">
-        <!-- Header -->
-        <div class="text-center mb-6">
-            <div class="flex justify-center mb-4">
-                <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
-                    <i class="fas fa-robot text-white text-2xl"></i>
-                </div>
-            </div>
-            <h1 class="text-3xl font-bold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-                {% if user_name %}ברוך הבא, {{ user_name }}{% else %}Binat Chat AI{% endif %}
-            </h1>
-            <p class="text-gray-600 mt-2">איך אני יכול/ה לעזור לך היום?</p>
-        </div>
 
-        <!-- Hidden fields for user data -->
-        <input type="hidden" id="userName" value="{{ user_name or '' }}">
-        <input type="hidden" id="userId" value="{{ user_id or '' }}">
+<body>
+  <header style="display: flex; align-items: center; gap: 10px;">
+    <img src="/static/images/pdn_logo.svg" alt="PDN" height="50">
+    <div style="text-align: center; width: 100%;">
+      <h2>צ'אט חכם עם עוזר רפואי</h2>
+    </div>
+  </header>
 
-        <!-- Chat Messages Area -->
-        <div id="chatMessages" class="h-96 overflow-y-auto p-4 bg-gray-50 rounded-xl border border-gray-200">
-            <!-- Welcome message -->
-            <div class="message-bubble ai-message">
-                <div class="flex items-start gap-2">
-                    <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-                        <i class="fas fa-robot text-white text-sm"></i>
-                    </div>
-                    <div>
-                        <p class="text-sm font-semibold text-gray-700 mb-1">Binat AI</p>
-                        <p>שלום! אני Binat, העוזר החכם שלך. אני כאן כדי לעזור לך עם שאלות, לספק מידע, או פשוט לשוחח. איך אני יכול/ה לעזור לך היום?</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+  <div class="container">
+    <div class="title"><span id="patientName"></span>, ברוך הבא לצ'אט החכם!</div>
 
-        <!-- Typing indicator -->
-        <div id="typingIndicator" class="typing-indicator">
-            <div class="flex items-start gap-2">
-                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-                    <i class="fas fa-robot text-white text-sm"></i>
-                </div>
-                <div class="typing-dots">
-                    <div class="typing-dot"></div>
-                    <div class="typing-dot"></div>
-                    <div class="typing-dot"></div>
-                </div>
-            </div>
-        </div>
+    <div class="tabs">
+      <div class="tab active">צ'אט כללי</div>
+      <div class="tab" onclick="window.open('https://www.pdn.co.il', '_blank')">
+        אתר רשמי
+      </div>
+      <div class="tab" onclick="window.open('https://www.pdn.co.il/contact', '_blank')">
+        יצירת קשר
+      </div>
+    </div>
 
-        <!-- Input Area -->
-        <div class="input-area p-4 flex items-end gap-3">
-            <div class="flex-1">
-                <textarea 
-                    id="messageInput" 
-                    placeholder="הקלד את ההודעה שלך כאן..."
-                    class="w-full resize-none border-none outline-none bg-transparent text-gray-800 placeholder-gray-500"
-                    rows="1"
-                    maxlength="1000"
-                ></textarea>
-            </div>
-            <button 
-                id="sendButton" 
-                class="send-button text-white p-3 rounded-full disabled:opacity-50"
-                disabled
-            >
-                <i class="fas fa-paper-plane"></i>
-            </button>
-        </div>
-
-        <!-- Footer -->
-        <div class="text-center pt-4">
-            <p class="text-sm text-gray-500">
-                © 2024 Binat Chat AI - מערכת צ'אט חכמה
-            </p>
-        </div>
-    </main>
-
-    <script>
-        const chatMessages = document.getElementById('chatMessages');
-        const messageInput = document.getElementById('messageInput');
-        const sendButton = document.getElementById('sendButton');
-        const typingIndicator = document.getElementById('typingIndicator');
-        const userName = document.getElementById('userName').value;
-        const userId = document.getElementById('userId').value;
-
-        // Auto-resize textarea
-        messageInput.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-            
-            // Enable/disable send button
-            sendButton.disabled = !this.value.trim();
-        });
-
-        // Send message on Enter (but allow Shift+Enter for new line)
-        messageInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        });
-
-        // Send button click
-        sendButton.addEventListener('click', sendMessage);
-
-        function sendMessage() {
-            const message = messageInput.value.trim();
-            if (!message) return;
-
-            // Add user message to chat
-            addMessage(message, 'user');
-            
-            // Clear input
-            messageInput.value = '';
-            messageInput.style.height = 'auto';
-            sendButton.disabled = true;
-
-            // Show typing indicator
-            showTypingIndicator();
-
-            // Send to backend
-            fetch('/pdn-chat-ai/chat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    message: message,
-                    user_name: userName,
-                    user_id: userId
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                hideTypingIndicator();
-                
-                if (data.error) {
-                    addMessage('מצטער, אירעה שגיאה. אנא נסה שוב.', 'ai');
-                } else {
-                    addMessage(data.message, 'ai');
-                }
-            })
-            .catch(error => {
-                hideTypingIndicator();
-                addMessage('מצטער, אירעה שגיאה בחיבור. אנא נסה שוב.', 'ai');
-                console.error('Error:', error);
-            });
-        }
-
-        function addMessage(text, sender) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message-bubble ${sender}-message`;
-            
-            if (sender === 'user') {
-                messageDiv.innerHTML = `
-                    <div class="flex items-start gap-2 justify-end">
-                        <div class="text-right">
-                            <p>${escapeHtml(text)}</p>
-                        </div>
-                        <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
-                            <i class="fas fa-user text-white text-sm"></i>
-                        </div>
-                    </div>
-                `;
-            } else {
-                messageDiv.innerHTML = `
-                    <div class="flex items-start gap-2">
-                        <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-                            <i class="fas fa-robot text-white text-sm"></i>
-                        </div>
-                        <div>
-                            <p class="text-sm font-semibold text-gray-700 mb-1">Binat AI</p>
-                            <p>${escapeHtml(text)}</p>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        function showTypingIndicator() {
-            typingIndicator.style.display = 'block';
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        function hideTypingIndicator() {
-            typingIndicator.style.display = 'none';
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // Focus on input when page loads
-        messageInput.focus();
-    </script>
+    <div class="chat-container">
+      <!-- Chat messages will be inserted here -->
+      <div class="input-area">
+        <input id="userInput" type="text" placeholder="הקלד/י הודעה..." lang="he-IL"
+          onkeydown="if(event.key==='Enter'){sendMessage()}" />
+        <button class="mic-btn" id="micBtn" type="button" onclick="toggleMic()" title="הקלט קול">
+          <svg xmlns="http://www.w3.org/2000/svg" width="50px" height="50px" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" y1="19" x2="12" y2="23"/>
+            <line x1="8" y1="23" x2="16" y2="23"/>
+            </svg>
+        </button>
+        <button onclick="sendMessage()">שלח</button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="footer">
+    <div>
+      PDN - מערכת צ'אט חכמה המעניקה לך שירות רפואי איכותי, זמין ונגיש – בשירות אישי, אכפתי ויוצא דופן.
+    </div>
+    <div class="appointment-link" style="margin-top: 16px; text-align: center;">
+      <a href="https://www.pdn.co.il"
+         target="_blank"
+         style="display: inline-block; background-color: orange; color: white; padding: 12px 24px; border-radius: 30px; text-decoration: none; font-weight: bold; font-size: 16px; transition: background-color 0.3s ease;">
+        ביקור באתר הרשמי
+      </a>
+    </div>
+  </div>
 </body>
+
 </html> 

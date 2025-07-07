@@ -216,7 +216,7 @@
             // Simulate a small delay for better UX
             setTimeout(() => {
                 // Redirect to chat-ai with username URL-encoded
-                window.location.href = `/chat-ai?user_name=${encodeURIComponent(username)}&user_id=${encodeURIComponent(userId)}`;
+                window.location.href = `/pdn-chat-ai/chat-ai?user_name=${encodeURIComponent(username)}&user_id=${encodeURIComponent(userId)}`;
             }, 800);
         }
     });

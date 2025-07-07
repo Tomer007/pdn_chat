@@ -207,7 +207,7 @@
         });
 
         if (response.ok) {
-            window.location.href = '/chat';
+            window.location.href = '/pdn-diagnose/chat';
         } else {
           const errorData = await response.json();
           alert('שגיאה בשמירת הפרטים: ' + (errorData.detail || 'אנא נסה שוב'));
