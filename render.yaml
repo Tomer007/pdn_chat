@@ -21,6 +21,8 @@ services:
         value: XXXXX
       - key: ANSWERS_DIR
         value: /pdn/saved_results
+      - key: FLASK_ENV
+        value: production
     healthCheckPath: /
     autoDeploy: true
     disk:
