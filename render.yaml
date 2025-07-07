@@ -3,7 +3,7 @@ services:
     name: pdn-chat
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: python -m app
+    startCommand: gunicorn app.main:app
     envVars:
       - key: PYTHON_VERSION
         value: 3.9.0
