@@ -106,6 +106,14 @@ def get_question_route(question_number):
     logger.info("Response: %s", 200)
     
     questions = current_app.config.get('QUESTIONS_FILE', {})
+
+    logger.info(f" current_app.config.get('QUESTIONS_FILE' Questions: {questions}")
+
+    questions = os.environ.get('QUESTIONS_FILE', '{/app/data/questions.json}')
+
+    logger.info(f" os.environ.get('QUESTIONS_FILE Questions: {questions}")
+
+
     return get_question(question_number, questions)
 
 @pdn_diagnose_bp.route('/answer', methods=['POST'])
@@ -146,6 +154,7 @@ def submit_answer_route():
         question_text = None
         try:
             questions = current_app.config.get('QUESTIONS_FILE', {})
+            logger.info(f"Questions: {questions}")
             question_data = get_question(question_number, questions)
             if 'question' in question_data:
                 question_text = question_data['question']
