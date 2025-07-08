@@ -17,7 +17,7 @@ services:
         value: tomergur@gmail.com
       - key: SMTP_PASSWORD
         value: XXXXX
-      - key: ANSWERS_DIR
+      - key: SAVED_RESULTS_DIR
         value: /pdn/saved_results
       - key: FLASK_ENV
         value: production

@@ -1,9 +1,8 @@
 import csv
-import io
 import logging
 import secrets
-from datetime import datetime
 from pathlib import Path
+import os
 
 from flask import Blueprint, request, render_template, jsonify, current_app, send_file, abort
 
@@ -31,7 +30,7 @@ def load_user_metadata():
         List of dictionaries containing user metadata
     """
     try:
-        csv_file_path = Path('saved_results/user_metadata.csv')
+        csv_file_path = Path(os.getenv('SAVED_RESULTS_DIR', 'saved_results') ) / 'user_metadata.csv'
         if not csv_file_path.exists():
             logger.warning("user_metadata.csv file not found")
             return []
@@ -174,22 +173,15 @@ def get_metadata_csv():
     logger.info("Response: %s", 200)
 
     session_token = request.args.get('session_token')
+
     verify_session(session_token)
 
-    # Create CSV in memory
-    output = io.StringIO()
-    writer = csv.DictWriter(output, fieldnames=get_user_metadata()[0].keys())
-    writer.writeheader()
-    writer.writerows(get_user_metadata())
+    metadata = get_user_metadata()
 
-    output.seek(0)
+    logger.info(f"Metadata: {metadata}")
 
-    return send_file(
-        io.BytesIO(output.getvalue().encode('utf-8')),
-        mimetype='text/csv',
-        as_attachment=True,
-        download_name=f"pdn_metadata_{datetime.now().strftime('%Y%m%d')}.csv"
-    )
+    return jsonify({"data": metadata})
+
 
 
 @pdn_admin_bp.route('/user/questionnaire/<email>')

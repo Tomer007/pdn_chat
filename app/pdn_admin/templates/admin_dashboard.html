@@ -645,13 +645,19 @@ async function handleLogout() {
 
 async function loadMetadata() {
     showLoading();
+    console.log('loadMetadata sessionToken', sessionToken);
     try {
-        const response = await fetch('/pdn-admin/metadata');
+        const response = await fetch('/pdn-admin/metadata/csv?session_token=' + sessionToken);
         if (response.ok) {
             const data = await response.json();
             currentData = data.data;
             renderTable(currentData);
-        } else {
+        } else if (response.status === 401) {
+            // Session expired or invalid, redirect to login
+            console.log('Session expired, redirecting to login');
+            localStorage.removeItem('adminSessionToken');
+            window.location.href = '/pdn-admin/';
+        }else {
             throw new Error('Failed to load metadata');
         }
     } catch (error) {
