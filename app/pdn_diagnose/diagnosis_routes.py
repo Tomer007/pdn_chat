@@ -53,7 +53,7 @@ def user_info_page():
 
     logger.info(f" /user_info  Questions: {questions}")
     personal_instructions = questions.get("phases", {}).get("PersonalDetails", {}).get("instructions", "")
-    
+    logger.info(f" /user_info  personal_instructions: {personal_instructions}")
     return render_template("user_form.html", 
                          include_menu=True,
                          email=email,
