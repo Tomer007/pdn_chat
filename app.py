@@ -52,8 +52,47 @@ def create_app():
             app.config['QUESTIONS_FILE'] = json.load(f)
             
         logger.info("Configuration loaded successfully")
+        
+        # Log all configuration data
+        logger.info("=== CONFIGURATION DATA START ===")
+        logger.info(f"Config file path: {config_path}")
+        logger.info(f"Questions file path: {questions_path}")
+        logger.info(f"Config file exists: {config_path.exists()}")
+        logger.info(f"Questions file exists: {questions_path.exists()}")
+        
+        # Log PDN_CONFIG
+        logger.info("PDN_CONFIG content:")
+        logger.info(json.dumps(app.config['PDN_CONFIG'], indent=2, default=str))
+        
+        # Log QUESTIONS_FILE structure (be careful with large files)
+        questions_data = app.config['QUESTIONS_FILE']
+        logger.info("QUESTIONS_FILE structure:")
+        logger.info(f"Total phases: {len(questions_data.get('phases', {}))}")
+        logger.info(f"Phase names: {list(questions_data.get('phases', {}).keys())}")
+        
+        
+        # Log environment variables
+        logger.info("Environment variables:")
+        env_vars = ['FLASK_ENV', 'FLASK_DEBUG', 'ADMIN_PASSWORD']
+        for var in env_vars:
+            logger.info(f"  {var}: {os.environ.get(var, 'NOT_SET')}")
+        
+        # Log app config keys
+        logger.info("App config keys:")
+        for key in sorted(app.config.keys()):
+            if key not in ['SECRET_KEY']:  # Skip sensitive data
+                value = app.config[key]
+                if isinstance(value, (dict, list)):
+                    logger.info(f"  {key}: {type(value).__name__} with {len(value)} items")
+                else:
+                    logger.info(f"  {key}: {value}")
+        
+        logger.info("=== CONFIGURATION DATA END ===")
+        
     except Exception as e:
         logger.error(f"Error loading configuration: {e}")
+        logger.error(f"Current working directory: {os.getcwd()}")
+        logger.error(f"Files in current directory: {os.listdir('.')}")
         app.config['PDN_CONFIG'] = {}
         app.config['QUESTIONS_FILE'] = {}
     
