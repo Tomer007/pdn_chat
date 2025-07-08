@@ -9,6 +9,7 @@ from flask import Blueprint, request, render_template, jsonify, current_app, sen
 from ..utils.answer_storage import load_answers
 from ..utils.csv_metadata_handler import UserMetadataHandler
 from ..utils.email_sender import send_pdn_code_email
+from ..utils.pdn_calculator import calculate_pdn_code
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -179,10 +180,7 @@ def get_metadata_csv():
 
     metadata = get_user_metadata()
 
-    logger.info(f"Metadata: {metadata}")
-
     return jsonify({"data": metadata})
-
 
 
 @pdn_admin_bp.route('/user/questionnaire/<email>')
@@ -307,9 +305,10 @@ def send_user_email(email):
         user_answers = load_answers(email)
         if not user_answers:
             return jsonify({"error": "User answers not found"}), 404
-
+        
         # Calculate PDN code
-        pdn_code = "P10"
+        pdn_code = calculate_pdn_code(user_answers)
+
         if not pdn_code:
             return jsonify({"error": "Could not calculate PDN code"}), 400
 
