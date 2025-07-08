@@ -109,10 +109,6 @@ def get_question_route(question_number):
 
     questions = current_app.config.get('QUESTIONS_FILE', {})
 
-
-    logger.info(f" /questionnaire/ Questions: {questions}")
-
-
     return get_question(question_number, questions)
 
 @pdn_diagnose_bp.route('/answer', methods=['POST'])

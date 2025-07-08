@@ -533,21 +533,3 @@ def send_pdn_code_email(user_answers: Dict[str, Any], pdn_code: str) -> bool:
     except Exception as e:
         logger.error(f"Failed to send email: {str(e)}")
         return False
-
-
-# Convenience function for backward compatibility
-def send_email(recipient_email: str, pdn_code: str, **kwargs) -> bool:
-    """
-    Convenience function for sending PDN emails.
-    """
-    # Create a minimal user_answers structure
-    user_answers = {
-        'metadata': {
-            'email': recipient_email,
-            'first_name': kwargs.get('first_name', ''),
-            'last_name': kwargs.get('last_name', '')
-        }
-    }
-    
-    return send_pdn_code_email(user_answers, pdn_code)
-
