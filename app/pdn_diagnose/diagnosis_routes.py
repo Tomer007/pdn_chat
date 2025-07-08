@@ -50,6 +50,8 @@ def user_info_page():
     
     # Load questions.json to get the instructions
     questions = current_app.config.get('QUESTIONS_FILE', {})
+
+    logger.info(f" /user_info  Questions: {questions}")
     personal_instructions = questions.get("phases", {}).get("PersonalDetails", {}).get("instructions", "")
     
     return render_template("user_form.html", 
@@ -108,7 +110,7 @@ def get_question_route(question_number):
     questions = current_app.config.get('QUESTIONS_FILE', {})
 
 
-    logger.info(f" os.environ.get('QUESTIONS_FILE Questions: {questions}")
+    logger.info(f" /questionnaire/ Questions: {questions}")
 
 
     return get_question(question_number, questions)
@@ -151,7 +153,7 @@ def submit_answer_route():
         question_text = None
         try:
             questions = current_app.config.get('QUESTIONS_FILE', {})
-            logger.info(f"Questions: {questions}")
+            logger.info(f" answer Questions: {questions}")
             question_data = get_question(question_number, questions)
             if 'question' in question_data:
                 question_text = question_data['question']

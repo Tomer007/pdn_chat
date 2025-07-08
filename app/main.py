@@ -121,7 +121,7 @@ def create_app():
     # Root route
     @app.route('/')
     def root():
-        return {"message": "Welcome to PDN Flask Application!", "modules": [
+        return {"message": "Welcome to PDN Flask Application 1.0 ", "modules": [
             "/pdn-diagnose - Personal development interaction",
             "/pdn-admin - Admin dashboard and monitoring", 
             "/pdn-chat-ai - AI chat assistance"
