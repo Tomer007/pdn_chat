@@ -1216,17 +1216,13 @@ async function sendEmail(email) {
         return;
     }
     
-    // Check if all three codes match
-    const codesMatch = user.pdn_code === user.pdn_voice_code && 
-                      user.pdn_code === user.diagnose_pdn_code &&
-                      user.pdn_voice_code === user.diagnose_pdn_code &&
+    // Check if PDN code equals diagnose code (קוד מאבחן)
+    const codesMatch = user.pdn_code === user.diagnose_pdn_code && 
                       user.diagnose_pdn_code !== "N/A" && 
-                      user.diagnose_pdn_code !== "" &&
-                      user.pdn_voice_code !== "N/A" && 
-                      user.pdn_voice_code !== "";
+                      user.diagnose_pdn_code !== "";
     
     if (!codesMatch) {
-        showNotification('לא ניתן לשלוח אימייל - הקודים אינם תואמים', 'error');
+        showNotification('לא ניתן לשלוח אימייל - קוד פדן אינו תואם לקוד המאבחן', 'error');
         resetRowLoadingState(email, 'email');
         return;
     }
