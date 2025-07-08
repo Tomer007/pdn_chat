@@ -104,12 +104,9 @@ def get_question_route(question_number):
     logger.debug(f"API Usage: {dict(api_usage)}")
     logger.info("Request: %s %s", request.method, request.url)
     logger.info("Response: %s", 200)
-    
+
     questions = current_app.config.get('QUESTIONS_FILE', {})
 
-    logger.info(f" current_app.config.get('QUESTIONS_FILE' Questions: {questions}")
-
-    questions = os.environ.get('QUESTIONS_FILE', '{/app/data/questions.json}')
 
     logger.info(f" os.environ.get('QUESTIONS_FILE Questions: {questions}")
 
