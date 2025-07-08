@@ -70,19 +70,6 @@ def create_app():
         logger.info(f"Total phases: {len(questions_data.get('phases', {}))}")
         logger.info(f"Phase names: {list(questions_data.get('phases', {}).keys())}")
         
-        # Log each phase structure
-        for phase_name, phase_data in questions_data.get('phases', {}).items():
-            logger.info(f"Phase '{phase_name}':")
-            logger.info(f"  - Instructions: {phase_data.get('instructions', 'N/A')}")
-            logger.info(f"  - Questions count: {len(phase_data.get('questions', []))}")
-            
-            # Log first few questions as sample
-            questions = phase_data.get('questions', [])
-            for i, question in enumerate(questions[:3]):  # Log first 3 questions
-                logger.info(f"  - Question {i+1}: {question.get('question', 'N/A')[:100]}...")
-            if len(questions) > 3:
-                logger.info(f"  - ... and {len(questions) - 3} more questions")
-        
         # Log environment variables
         logger.info("Environment variables:")
         env_vars = ['FLASK_ENV', 'FLASK_DEBUG', 'ADMIN_PASSWORD', 'QUESTIONS_FILE']
