@@ -13,7 +13,7 @@ class PDNFilePath:
         Args:
             base_dir: Base directory for saved results. Defaults to 'saved_results'
         """
-        self.base_dir = Path(base_dir or os.getenv('ANSWERS_DIR', 'saved_results'))
+        self.base_dir = Path(base_dir or os.getenv('SAVED_RESULTS_DIR', 'saved_results'))
 
     def get_base_dir(self) -> Path:
         """
