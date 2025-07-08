@@ -31,6 +31,7 @@ def load_user_metadata():
     """
     try:
         csv_file_path = Path(os.getenv('SAVED_RESULTS_DIR', 'saved_results') ) / 'user_metadata.csv'
+        logger.info(f"CSV file path: {csv_file_path}")
         if not csv_file_path.exists():
             logger.warning("user_metadata.csv file not found")
             return []
