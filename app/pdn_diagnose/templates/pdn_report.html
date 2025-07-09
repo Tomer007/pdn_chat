@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Varela+Round&display=swap"
           rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { 
             background: radial-gradient(ellipse at center, #e0e7ff 0%, #c7d2fe 50%, #a5b4fc 100%); 
@@ -169,6 +170,57 @@
             .text-4xl { font-size: 2rem; }
             .text-2xl { font-size: 1.5rem; }
         }
+
+        .close-btn, .website-btn {
+            position: relative;
+            overflow: hidden;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .close-btn::before, .website-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .close-btn:hover::before, .website-btn:hover::before {
+            left: 100%;
+        }
+
+        .close-btn:active, .website-btn:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .close-btn:focus, .website-btn:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3);
+        }
+
+        /* Responsive design for buttons */
+        @media (max-width: 600px) {
+            .close-btn, .website-btn {
+                padding: 0.75rem 1.5rem;
+                font-size: 0.9rem;
+            }
+            
+            .flex.space-x-4.space-x-reverse {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .flex.space-x-4.space-x-reverse > * {
+                margin: 0;
+            }
+        }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
@@ -217,6 +269,20 @@
                 <p class="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
                     צוות PDN – קוד המקור, הצופן האישי שלך
                 </p>
+            </div>
+            
+            <!-- Close Button -->
+            <div class="flex justify-center space-x-4 space-x-reverse">
+                <button onclick="closeReport()" 
+                        class="close-btn px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center">
+                    <i class="fas fa-times mr-2"></i>
+                    סגור
+                </button>
+                <button onclick="window.open('https://www.pdn.co.il', '_blank')" 
+                        class="website-btn px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center">
+                    <i class="fas fa-globe mr-2"></i>
+                    אתר רשמי
+                </button>
             </div>
         </div>
 
@@ -342,6 +408,27 @@
                         }
                     };
                 }
+            }
+        });
+
+        // Update the closeReport function in the existing <script> section
+        function closeReport() {
+            // Add a fade-out effect
+            const main = document.querySelector('main');
+            main.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
+            main.style.opacity = '0';
+            main.style.transform = 'translateY(-20px)';
+            
+            // After animation, redirect to diagnose_login page
+            setTimeout(() => {
+                window.location.href = '/pdn-diagnose/';
+            }, 500);
+        }
+
+        // Add keyboard support for closing
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeReport();
             }
         });
     </script>
