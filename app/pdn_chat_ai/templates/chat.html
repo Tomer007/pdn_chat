@@ -6,18 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>בינת קוד המקור PDN</title>
   <style>
-    body {
-      font-family: 'Alef', sans-serif;
-      background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 50%, #7c3aed 100%);
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
+    body { 
+            font-family: 'Inter', sans-serif; 
+            background: radial-gradient(ellipse at center, #e0e7ff 0%, #c7d2fe 50%, #7c3aed 100%);
+            min-height: 100vh;
+        }
 
     header {
       background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
@@ -122,22 +115,20 @@
     }
 
     .chat-container {
-      background: #b2c4e8;
+      background: rgba(255, 255, 255, 0.95);
       border-radius: 20px;
       padding: 20px;
-      max-width: 650px;
+      max-width: 900px;
       width: 100%;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-      margin-top: 40px;
       display: flex;
       flex-direction: column;
       animation: fadeIn 1s ease-in-out;
       transition: all 0.4s ease;
-      min-height: 500px;
-      max-height: 700px;
+      min-height: 550px;
       overflow-y: auto;
       position: relative;
-      border: 1px solid #e2e8f0;
+      border: 1px solid #e9b6e2;
     }
 
     .chat-container::-webkit-scrollbar {
@@ -394,7 +385,7 @@
     .bot-message,
     .user-message {
       width: 100%;
-      padding-bottom: 16px;
+      padding-bottom: 10px;
     }
 
     .bot-label {
@@ -917,7 +908,6 @@
           botBubble.innerHTML = `
             <div class="bot-message">
               <span class="bot-label">בינת קוד המקור</span></br>
-              <img class="main-logo" src="/static/images/pdn_logo.svg" alt="PDN" height="38">
               <div class="message-content">שגיאה בשליחת ההודעה לשרת</div>
               <div class="message-meta">
                 <span class="message-time">${getCurrentTime()}</span>
@@ -1014,7 +1004,7 @@
 
       const initialBot = document.createElement("div");
       initialBot.className = "chat-bubble bot animated";
-      const rawMessage = `שלום ${USER_NAME}, תודה שפנית אלינו!\nאני בינת קוד המקור, כאן כדי לעזור לך עם שאלות בתחום התמיכה וההתפתחות האישית, לספק מידע, או פשוט לשוחח. איך אני יכול/ה לעזור לך היום?`;
+      const rawMessage = `היי ${USER_NAME}, אני בינת מקוד המקור. אם יש לך שאלה, דפוס שחוזר או תחושה לא פתורה – בוא ננסה להסתכל עליה יחד.`;
       const formattedMessage = rawMessage.replace(/\n/g, '<br>');
 
       initialBot.innerHTML = `
@@ -1035,7 +1025,7 @@
 </head>
 
 <body>
-  <header style="display: flex; align-items: center; gap: 15px; position: relative; overflow: hidden;">
+  <header style="display: flex; align-items: center; gap: 5px; position: relative; overflow: hidden;">
     <!-- Animated background elements -->
     <div style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%); animation: shimmer 3s infinite; z-index: 1;"></div>
     
@@ -1043,212 +1033,31 @@
     <div style="position: absolute; top: 20%; left: 10%; width: 4px; height: 4px; background: rgba(255,255,255,0.6); border-radius: 50%; animation: float 4s ease-in-out infinite; z-index: 1;"></div>
     <div style="position: absolute; top: 60%; right: 15%; width: 6px; height: 6px; background: rgba(255,255,255,0.4); border-radius: 50%; animation: float 5s ease-in-out infinite reverse; z-index: 1;"></div>
     <div style="position: absolute; bottom: 30%; left: 20%; width: 3px; height: 3px; background: rgba(255,255,255,0.5); border-radius: 50%; animation: float 3.5s ease-in-out infinite; z-index: 1;"></div>
-    
-    
-    
     <!-- Main title container -->
     <div style="text-align: center; width: 100%; position: relative; z-index: 2;">
-      <h2 style="
-        margin: 0;
-        font-size: 2.2em;
-        font-weight: 700;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 50%, #ffffff 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        letter-spacing: 1px;
-        animation: titleGlow 2s ease-in-out infinite alternate;
-        position: relative;
-      ">
-        בינת קוד המקור
-        <!-- Glowing effect behind text -->
-        <span style="
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: linear-gradient(135deg, #6366f1, #8b5cf6);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-          filter: blur(8px);
-          opacity: 0.3;
-          z-index: -1;
-          animation: glowPulse 3s ease-in-out infinite;
-        ">בינת קוד המקור</span>
-      </h2>
       
-      <!-- Subtitle -->
-      <p style="
-        margin: 8px 0 0 0;
-        font-size: 1.1em;
-        color: rgba(255,255,255,0.9);
-        font-weight: 400;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-        animation: fadeInUp 1s ease-out 0.5s both;
-      ">
-הנווט הראשי שלך להצלחה</p>
+    <h1 class="text-xl sm:text-1xl font-semibold bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 bg-clip-text text-transparent">
+    בינת קוד המקור
+    </h1>
     </div>
     
     <!-- Decorative elements -->
     <div style="position: absolute; top: 0; right: 0; width: 100px; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1)); z-index: 1;"></div>
     <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); z-index: 1;"></div>
   </header>
-
-  <style>
-  @keyframes shimmer {
-    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-    100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
-  }
-
-  @keyframes float {
-    0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.6; }
-    50% { transform: translateY(-20px) rotate(180deg); opacity: 1; }
-  }
-
-  @keyframes titleGlow {
-    0% { filter: brightness(1) drop-shadow(0 0 5px rgba(255,255,255,0.3)); }
-    100% { filter: brightness(1.1) drop-shadow(0 0 15px rgba(255,255,255,0.5)); }
-  }
-
-  @keyframes glowPulse {
-    0%, 100% { opacity: 0.3; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(1.02); }
-  }
-
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  /* Enhanced header styles */
-  header {
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #7c3aed 100%);
-    color: white;
-    padding: 25px 30px;
-    text-align: center;
-    font-size: 1.3em;
-    border-radius: 0 0 25px 25px;
-    box-shadow: 
-      0 8px 32px rgba(99, 102, 241, 0.4),
-      0 4px 16px rgba(139, 92, 246, 0.3),
-      inset 0 1px 0 rgba(255,255,255,0.2);
-    position: relative;
-    overflow: hidden;
-    margin-bottom: 20px;
-  }
-
-  header::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: 
-      radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, rgba(255,255,255,0.05) 0%, transparent 50%),
-      radial-gradient(circle at 40% 80%, rgba(255,255,255,0.08) 0%, transparent 50%);
-    pointer-events: none;
-  }
-
-  /* Logo hover effect */
-  header img:hover {
-    transform: scale(1.1) rotate(5deg);
-    filter: drop-shadow(0 6px 12px rgba(0,0,0,0.3));
-  }
-
-  /* Responsive design */
-  @media (max-width: 768px) {
-    header {
-      padding: 20px 15px;
-      flex-direction: column;
-      gap: 10px;
-    }
-    
-    header h2 {
-      font-size: 1.8em;
-    }
-    
-    header p {
-      font-size: 1em;
-    }
-  }
-  </style>
-
   <div class="container" dir="rtl" style="text-align: right;">
-    <!-- Center the title and subtitle with the chat -->
-    <div class="title" style="text-align: center; margin-bottom: 25px;">
-      <h1 style="
-        margin: 0;
-        font-size: 1.8em;
-        font-weight: 700;
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        text-align: center;
-      ">בינת קוד המקור</h1>
-      <p style="
-        margin: 8px 0 0 0;
-        font-size: 1.1em;
-        color: #6b7280;
-        font-weight: 400;
-        text-align: center;
-      ">הנווט הראשי שלך להצלחה</p>
-    </div>
-
-    <div class="tabs" style="justify-content: center; text-align: center;">
-      <div class="tab active" style="text-align: center;">צ'אט כללי</div>
-      <div class="tab" onclick="window.open('https://www.pdn.co.il', '_blank')" style="text-align: center;">
-        אתר רשמי
-      </div>
-      <div class="tab" onclick="openWhatsApp()" style="text-align: center;">
-        יצירת קשר
-      </div>
-    </div>
-
-    <div class="chat-container" dir="rtl" style="text-align: center;" >
-      <!-- Centered title inside chat container -->
-      <div style="text-align: center; padding: 20px 0; border-bottom: 1px solid #b2c4e8; margin-bottom: 20px; background: rgba(128,128,128,0.12); box-shadow: 0 4px 24px rgba(0,0,0,0.10); border-radius: 18px; max-width: 90%; margin-left: auto; margin-right: auto;">
-        <h2 style="
-          margin: 0;
-          font-size: 1.6em;
-          font-weight: 700;
-          background: linear-gradient(135deg, #6366f1, #8b5cf6);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-          text-align: center;
-        ">בינת קוד המקור</h2>
-        <p style="
-          margin: 8px 0 0 0;
-          font-size: 1em;
-          color: #6b7280;
-          font-weight: 400;
-          text-align: center;
-        ">הנווט הראשי שלך להצלחה</p>
-      </div>
-      
-      <!-- Chat messages will be inserted here -->
-      <div class="input-area" style="background: #b2c4e8;">
+      <div class="chat-container" dir="rtl" style="text-align: center;" >
+        
+      <div class="input-area" ">
         <input id="userInput" type="text" placeholder="הקלד/י הודעה..." lang="he-IL"
           onkeydown="if(event.key==='Enter'){sendMessage()}" />
         <button class="mic-btn" id="micBtn" type="button" onclick="toggleMic()" title="הקלט קול">
-          <svg xmlns="http://www.w3.org/2000/svg" width="50px" height="50px" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4z"/>
-            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-            <line x1="12" y1="19" x2="12" y2="23"/>
-            <line x1="8" y1="23" x2="16" y2="23"/>
-          </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="50px" height="50px" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              <line x1="12" y1="19" x2="12" y2="23"/>
+              <line x1="8" y1="23" x2="16" y2="23"/>
+            </svg>
         </button>
         <button onclick="sendMessage()">שלח</button>
       </div>
@@ -1256,7 +1065,7 @@
   </div>
   
   <!-- Footer -->
-  <div class="footer-card p-8 rounded-2xl" style="margin: 30px auto; max-width: 700px; background: transparent;">
+  <div  style="margin: 30px auto; background: transparent; text-align: center;">
     <div class="text-center space-y-6">
         <!-- Links and Info -->
         <div class="flex flex-wrap justify-center items-center space-x-8 space-x-reverse text-sm text-gray-600">
@@ -1265,9 +1074,11 @@
                 <i ></i>
                 אתר רשמי
             </a>
+            
             <span class="flex items-center">
-                <i class="fas fa-shield-alt mr-2"></i>
-                מערכת מאובטחת
+              <div class="fas fa-phone" onclick="openWhatsApp()" ">
+                יצירת קשר
+              </div>          
             </span>
         </div>
 
