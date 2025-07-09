@@ -8,7 +8,7 @@
   <style>
     body {
       font-family: 'Alef', sans-serif;
-      background: linear-gradient(135deg, #dddff3 0%, #eae3da 100%);
+      background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 50%, #7c3aed 100%);
       margin: 0;
       padding: 0;
       box-sizing: border-box;
@@ -16,13 +16,13 @@
     }
 
     header {
-      background: linear-gradient(135deg, #f7941d 0%, #ff6b35 100%);
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
       color: white;
       padding: 20px;
       text-align: center;
       font-size: 1.3em;
       border-radius: 0 0 20px 20px;
-      box-shadow: 0 4px 20px rgba(247, 148, 29, 0.3);
+      box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
       position: relative;
       overflow: hidden;
     }
@@ -67,7 +67,7 @@
     }
 
     .title {
-      background: linear-gradient(135deg, #f7941d, #ff6b35);
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -79,7 +79,7 @@
 
     .delimiter {
       margin: 0 8px;
-      color: #ff6b35;
+      color: #6366f1;
       font-weight: bold;
       font-size: 1.2em;
       vertical-align: middle;
@@ -113,9 +113,9 @@
 
     .tab.active {
       font-weight: 600;
-      background: linear-gradient(135deg, #f7941d, #ff6b35);
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
       color: white;
-      box-shadow: 0 4px 12px rgba(247, 148, 29, 0.3);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
     }
 
     .chat-container {
@@ -182,8 +182,8 @@
 
     .input-area input:focus {
       outline: none;
-      border-color: #f7941d;
-      box-shadow: 0 0 0 3px rgba(247, 148, 29, 0.1);
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
       background-color: white;
       transform: translateY(-2px);
     }
@@ -193,7 +193,7 @@
     }
 
     .input-area button {
-      background: linear-gradient(135deg, #f7941d, #ff6b35);
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
       color: white;
       border: none;
       border-radius: 25px;
@@ -223,7 +223,7 @@
 
     .input-area button:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(247, 148, 29, 0.4);
+      box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
     }
 
     .input-area button:active {
@@ -239,7 +239,7 @@
 
     .mic-btn {
       background: #f8f9fa;
-      border: 2px solid #f7941d;
+      border: 2px solid #6366f1;
       border-radius: 50%;
       width: 60px;
       height: 50px;
@@ -254,33 +254,33 @@
     }
 
     .mic-btn:hover {
-      background: #fff3e0;
+      background: #e0e7ff;
       transform: scale(1.05);
     }
 
     .mic-btn.active {
-      background: linear-gradient(135deg, #f7941d, #ff6b35);
-      border: 2px solid #ff6b35;
-      box-shadow: 0 0 0 4px rgba(247, 148, 29, 0.3);
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      border: 2px solid #8b5cf6;
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.3);
       animation: pulse 1.5s infinite;
     }
 
     @keyframes pulse {
       0% {
-        box-shadow: 0 0 0 0 rgba(247, 148, 29, 0.7);
+        box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7);
       }
       70% {
-        box-shadow: 0 0 0 10px rgba(247, 148, 29, 0);
+        box-shadow: 0 0 0 10px rgba(99, 102, 241, 0);
       }
       100% {
-        box-shadow: 0 0 0 0 rgba(247, 148, 29, 0);
+        box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
       }
     }
 
     .mic-btn svg {
       width: 32px;
       height: 32px;
-      color: #f7941d;
+      color: #6366f1;
       transition: color 0.3s ease;
     }
 
@@ -289,7 +289,7 @@
     }
 
     .footer {
-      background: linear-gradient(135deg, #f7941d, #ff6b35);
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
       padding: 25px;
       text-align: center;
       color: white;
@@ -298,7 +298,7 @@
       border-radius: 16px;
       margin-left: auto;
       margin-right: auto;
-      box-shadow: 0 8px 25px rgba(247, 148, 29, 0.3);
+      box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
     }
 
     .footer a {
@@ -341,8 +341,8 @@
     }
 
     .chat-bubble.bot {
-      background-color: #ffe0b2;
-      color: #e65100;
+      background-color: #e0e7ff;
+      color: #3730a3;
       align-self: stretch;
       margin-right: stretch;
       margin-left: 0;
@@ -357,8 +357,8 @@
     }
 
     .chat-bubble.user {
-      background-color: #e3f2fd;
-      color: #0d47a1;
+      background-color: #dbeafe;
+      color: #1e40af;
       align-self: stretch;
       margin-left: stretch;
       margin-right: 0;
@@ -451,9 +451,9 @@
       align-items: center;
       gap: 4px;
       padding: 8px 12px;
-      background: #ffe0b2;
+      background: #e0e7ff;
       border-radius: 12px;
-      color: #181717;
+      color: #3730a3;
       font-size: 0.9em;
       margin-bottom: 10px;
       width: fit-content;
@@ -467,7 +467,7 @@
     .typing-dot {
       width: 6px;
       height: 6px;
-      background: #181717;
+      background: #3730a3;
       border-radius: 50%;
       animation: typingDot 1.4s infinite;
     }
@@ -517,9 +517,9 @@
     }
 
     .modal-content {
-      background: #f3efe5;
+      background: #f8fafc;
       border-radius: 18px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18), 0 1.5px 6px rgba(255, 152, 0, 0.10);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18), 0 1.5px 6px rgba(99, 102, 241, 0.10);
       padding: 32px 28px 24px 28px;
       min-width: 200px;
       max-width: 90vw;
@@ -562,7 +562,7 @@
     .modal-title {
       font-size: 1.25em;
       font-weight: bold;
-      color: #eb5d0b;
+      color: #6366f1;
       letter-spacing: 0.5px;
     }
 
@@ -570,7 +570,7 @@
       background: none;
       border: black;
       font-size: 1.7em;
-      color: #ea6e09;
+      color: #6366f1;
       cursor: pointer;
       font-weight: bold;
       margin-left: 8px;
@@ -579,7 +579,7 @@
     }
 
     .modal-close:hover {
-      color: #361603;
+      color: #3730a3;
     }
 
     .modal-body {
@@ -604,7 +604,7 @@
     }
 
     .close-button {
-      background: linear-gradient(135deg, #ff6b35 0%, #f7941d 100%);
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
       color: white;
       border: none;
       padding: 12px 24px;
@@ -618,14 +618,138 @@
     }
 
     .close-button:hover {
-      background: linear-gradient(135deg, #e55a2b 0%, #e67e22 100%);
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
     }
 
     .close-button:active {
       transform: translateY(-1px);
     }
+
+    /* Replace the existing footer-card styles with these improved ones */
+
+.footer-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.1),
+        0 4px 16px rgba(99, 102, 241, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    animation: slideInUp 0.8s ease-out;
+    position: relative;
+    overflow: hidden;
+}
+
+.footer-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.2), transparent);
+}
+
+.footer-card a {
+    text-decoration: none;
+    color: #6b7280;
+    transition: all 0.3s ease;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 500;
+    position: relative;
+    overflow: hidden;
+}
+
+.footer-card a::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.1), transparent);
+    transition: left 0.5s;
+}
+
+.footer-card a:hover::before {
+    left: 100%;
+}
+
+.footer-card a:hover {
+    color: #6366f1;
+    background: rgba(99, 102, 241, 0.1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+}
+
+.footer-card i {
+    font-size: 14px;
+    transition: transform 0.3s ease;
+}
+
+.footer-card a:hover i {
+    transform: scale(1.1);
+}
+
+.footer-card span {
+    color: #6b7280;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 8px;
+    background: rgba(99, 102, 241, 0.05);
+    border: 1px solid rgba(99, 102, 241, 0.1);
+}
+
+.footer-card .border-t {
+    border-color: #e5e7eb;
+    position: relative;
+}
+
+.footer-card .border-t::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #6366f1, transparent);
+    border-radius: 1px;
+}
+
+.footer-card p {
+    margin: 0;
+    line-height: 1.5;
+    transition: color 0.3s ease;
+}
+
+.footer-card p:hover {
+    color: #6366f1;
+}
+
+/* Responsive design for footer */
+@media (max-width: 768px) {
+    .footer-card {
+        margin: 20px 15px;
+        padding: 20px;
+    }
+    
+    .footer-card .flex {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .footer-card .space-x-8 > * + * {
+        margin-right: 0;
+        margin-left: 0;
+    }
+    
+    .footer-card span {
+        margin: 4px 0;
+    }
+}
   </style>
   <script src="/static/marked.min.js"></script>
   <script>
@@ -657,7 +781,7 @@
 
       const userBubble = document.createElement("div");
       userBubble.className = "chat-bubble user animated";
-      userBubble.innerHTML = `
+      userBubble.innerHTML = `  
         <div class="user-message">
           <span class="user-label">${PATIENT_NAME}</span>
           <div class="message-content"></div>
@@ -823,6 +947,13 @@
       }
     }
 
+    function openWhatsApp() {
+      const phoneNumber = '972509198868'; // Remove the + and format for WhatsApp
+      const message = encodeURIComponent('שלום, אני מעוניין/ת במידע נוסף על שירותי PDN');
+      const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
+      window.open(whatsappUrl, '_blank');
+    }
+
     document.addEventListener("DOMContentLoaded", function () {
       // Set patient name in the title
       document.getElementById("patientName").innerText = PATIENT_NAME;
@@ -848,25 +979,196 @@
       chatContainer.insertBefore(initialBot, document.querySelector(".input-area"));
     });
   </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
-  <header style="display: flex; align-items: center; gap: 10px;">
-    <img src="/static/images/pdn_logo.svg" alt="PDN" height="50">
-    <div style="text-align: center; width: 100%;">
-      <h2>צ'אט חכם עם עוזר רפואי</h2>
+  <header style="display: flex; align-items: center; gap: 15px; position: relative; overflow: hidden;">
+    <!-- Animated background elements -->
+    <div style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%); animation: shimmer 3s infinite; z-index: 1;"></div>
+    
+    <!-- Floating particles -->
+    <div style="position: absolute; top: 20%; left: 10%; width: 4px; height: 4px; background: rgba(255,255,255,0.6); border-radius: 50%; animation: float 4s ease-in-out infinite; z-index: 1;"></div>
+    <div style="position: absolute; top: 60%; right: 15%; width: 6px; height: 6px; background: rgba(255,255,255,0.4); border-radius: 50%; animation: float 5s ease-in-out infinite reverse; z-index: 1;"></div>
+    <div style="position: absolute; bottom: 30%; left: 20%; width: 3px; height: 3px; background: rgba(255,255,255,0.5); border-radius: 50%; animation: float 3.5s ease-in-out infinite; z-index: 1;"></div>
+    
+    <!-- Logo with enhanced styling -->
+    <div style="position: relative; z-index: 2; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));">
+      <img src="/static/images/pdn_logo.svg" alt="PDN" height="50" style="transition: transform 0.3s ease; border-radius: 8px; background: rgba(255,255,255,0.1); padding: 4px;">
     </div>
+    
+    <!-- Main title container -->
+    <div style="text-align: center; width: 100%; position: relative; z-index: 2;">
+      <h2 style="
+        margin: 0;
+        font-size: 2.2em;
+        font-weight: 700;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 50%, #ffffff 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: 1px;
+        animation: titleGlow 2s ease-in-out infinite alternate;
+        position: relative;
+      ">
+        בינת קוד המקור
+        <!-- Glowing effect behind text -->
+        <span style="
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: linear-gradient(135deg, #6366f1, #8b5cf6);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          filter: blur(8px);
+          opacity: 0.3;
+          z-index: -1;
+          animation: glowPulse 3s ease-in-out infinite;
+        ">בינת קוד המקור</span>
+      </h2>
+      
+      <!-- Subtitle -->
+      <p style="
+        margin: 8px 0 0 0;
+        font-size: 1.1em;
+        color: rgba(255,255,255,0.9);
+        font-weight: 400;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        animation: fadeInUp 1s ease-out 0.5s both;
+      ">
+"קוד המקור" - הנווט הראשי שלך להצלחה​
+</p>
+    </div>
+    
+    <!-- Decorative elements -->
+    <div style="position: absolute; top: 0; right: 0; width: 100px; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1)); z-index: 1;"></div>
+    <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); z-index: 1;"></div>
   </header>
 
+  <style>
+  @keyframes shimmer {
+    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+    100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.6; }
+    50% { transform: translateY(-20px) rotate(180deg); opacity: 1; }
+  }
+
+  @keyframes titleGlow {
+    0% { filter: brightness(1) drop-shadow(0 0 5px rgba(255,255,255,0.3)); }
+    100% { filter: brightness(1.1) drop-shadow(0 0 15px rgba(255,255,255,0.5)); }
+  }
+
+  @keyframes glowPulse {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.02); }
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Enhanced header styles */
+  header {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #7c3aed 100%);
+    color: white;
+    padding: 25px 30px;
+    text-align: center;
+    font-size: 1.3em;
+    border-radius: 0 0 25px 25px;
+    box-shadow: 
+      0 8px 32px rgba(99, 102, 241, 0.4),
+      0 4px 16px rgba(139, 92, 246, 0.3),
+      inset 0 1px 0 rgba(255,255,255,0.2);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+      radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(255,255,255,0.05) 0%, transparent 50%),
+      radial-gradient(circle at 40% 80%, rgba(255,255,255,0.08) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  /* Logo hover effect */
+  header img:hover {
+    transform: scale(1.1) rotate(5deg);
+    filter: drop-shadow(0 6px 12px rgba(0,0,0,0.3));
+  }
+
+  /* Responsive design */
+  @media (max-width: 768px) {
+    header {
+      padding: 20px 15px;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    header h2 {
+      font-size: 1.8em;
+    }
+    
+    header p {
+      font-size: 1em;
+    }
+  }
+  </style>
+
   <div class="container">
-    <div class="title"><span id="patientName"></span>, ברוך הבא לצ'אט החכם!</div>
+    <!-- Center the title and subtitle with the chat -->
+    <div class="title" style="text-align: center; margin-bottom: 25px;">
+      <h1 style="
+        margin: 0;
+        font-size: 2.2em;
+        font-weight: 700;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: 1px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+      ">
+        בינת קוד המקור
+      </h1>
+      <p style="
+        margin: 8px 0 0 0;
+        font-size: 1.1em;
+        color: #6b7280;
+        font-weight: 400;
+        text-align: center;
+      ">
+        "קוד המקור" - הנווט הראשי שלך להצלחה
+      </p>
+    </div>
 
     <div class="tabs">
       <div class="tab active">צ'אט כללי</div>
       <div class="tab" onclick="window.open('https://www.pdn.co.il', '_blank')">
         אתר רשמי
       </div>
-      <div class="tab" onclick="window.open('https://www.pdn.co.il/contact', '_blank')">
+      <div class="tab" onclick="openWhatsApp()">
         יצירת קשר
       </div>
     </div>
@@ -882,25 +1184,40 @@
             <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
             <line x1="12" y1="19" x2="12" y2="23"/>
             <line x1="8" y1="23" x2="16" y2="23"/>
-            </svg>
+          </svg>
         </button>
         <button onclick="sendMessage()">שלח</button>
       </div>
     </div>
   </div>
   
-  <div class="footer">
-    <div>
-      PDN - מערכת צ'אט חכמה המעניקה לך שירות רפואי איכותי, זמין ונגיש – בשירות אישי, אכפתי ויוצא דופן.
+  <!-- Footer -->
+  <div class="footer-card p-8 rounded-2xl bg-gradient-to-r from-gray-50 to-slate-50 border border-gray-200" style="margin: 30px auto; max-width: 700px;">
+    <div class="text-center space-y-6">
+        <!-- Links and Info -->
+        <div class="flex flex-wrap justify-center items-center space-x-8 space-x-reverse text-sm text-gray-600">
+            <a href="https://www.pdn.co.il" target="_blank"
+               class="hover:text-indigo-600 transition-colors flex items-center">
+                <i class="fas fa-globe mr-2"></i>
+                אתר רשמי
+            </a>
+            <span class="flex items-center">
+                <i class="fas fa-shield-alt mr-2"></i>
+                מערכת מאובטחת
+            </span>
+        </div>
+
+        <!-- Copyright -->
+        <div class="border-t border-gray-200 pt-6">
+            <p class="text-xs text-gray-500">
+                © 2024 PDN Center כל הזכויות שמורות
+            </p>
+            <p class="text-xs text-gray-400 mt-2">
+                מערכת ניהול נתוני אבחון פדן - גרסה 1.0
+            </p>
+        </div>
     </div>
-    <div class="appointment-link" style="margin-top: 16px; text-align: center;">
-      <a href="https://www.pdn.co.il"
-         target="_blank"
-         style="display: inline-block; background-color: orange; color: white; padding: 12px 24px; border-radius: 30px; text-decoration: none; font-weight: bold; font-size: 16px; transition: background-color 0.3s ease;">
-        ביקור באתר הרשמי
-      </a>
-    </div>
-  </div>
+</div>
 </body>
 
 </html> 
