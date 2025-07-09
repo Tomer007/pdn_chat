@@ -1293,6 +1293,23 @@ document.addEventListener('click', function(e) {
     }
 });
 
+// Add keyboard event listeners for modal
+document.addEventListener('keydown', function(event) {
+    const questionnaireModal = document.getElementById('questionnaireModal');
+    
+    // Check if questionnaire modal is visible
+    if (questionnaireModal && questionnaireModal.style.display === 'flex') {
+        // Close on Escape key
+        if (event.key === 'Escape') {
+            closeModal('questionnaireModal');
+        }
+        // Close on Enter key
+        if (event.key === 'Enter') {
+            closeModal('questionnaireModal');
+        }
+    }
+});
+
 function showNotification(message, type = 'info') {
     // Create notification element
     const notification = document.createElement('div');
