@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>PDN עוזר רפואי - צ'אט חכם</title>
+  <title>בינת קוד המקור PDN</title>
   <style>
     body {
       font-family: 'Alef', sans-serif;
@@ -13,6 +13,10 @@
       padding: 0;
       box-sizing: border-box;
       min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
     }
 
     header {
@@ -44,14 +48,13 @@
     }
 
     .container {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(20px);
-      margin: 30px auto;
+      background: transparent;
+      margin: auto;
       padding: 30px;
       border-radius: 24px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      box-shadow: none;
       max-width: 700px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      border: none;
       animation: slideInUp 0.8s ease-out;
     }
 
@@ -119,7 +122,7 @@
     }
 
     .chat-container {
-      background: white;
+      background: #b2c4e8;
       border-radius: 20px;
       padding: 20px;
       max-width: 650px;
@@ -320,32 +323,56 @@
     }
 
     .chat-bubble {
-      background: #f5f5f5;
-      border-radius: 12px;
-      padding: 12px 16px;
-      margin-bottom: 10px;
+      border-radius: 24px;
+      padding: 16px 20px;
+      margin-bottom: 14px;
       font-size: 16px;
       line-height: 1.6;
       display: flex;
       flex-direction: column;
       animation: slideIn 0.5s ease;
-      direction: rtl;
-      text-align: right;
-      max-width: 85%;
+      max-width: 75%;
       position: relative;
       transition: transform 0.2s ease;
+      box-shadow: 0 2px 8px rgba(99,102,241,0.07);
     }
-
-    .chat-bubble:hover {
-      transform: translateY(-1px);
+    .chat-bubble.user {
+      background-color: #dbeafe;
+      color: #1e40af;
+      align-self: flex-end;
+      border-bottom-right-radius: 8px;
+      border-top-right-radius: 24px;
+      border-top-left-radius: 24px;
+      border-bottom-left-radius: 24px;
+      margin-left: 0;
+      margin-right: 8px;
+      text-align: right;
     }
-
     .chat-bubble.bot {
       background-color: #e0e7ff;
       color: #3730a3;
-      align-self: stretch;
-      margin-right: stretch;
-      margin-left: 0;
+      align-self: flex-start;
+      border-bottom-left-radius: 8px;
+      border-top-right-radius: 24px;
+      border-top-left-radius: 24px;
+      border-bottom-right-radius: 24px;
+      margin-right: 0;
+      margin-left: 8px;
+      text-align: left;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      text-align: center;
+    }
+    .footer-card {
+      position: sticky;
+      bottom: 0;
+      z-index: 100;
+      text-align: center;
+      background: rgba(255,255,255,0.95);
+      margin-bottom: 0;
     }
 
     .disabled-summary-button {
@@ -751,11 +778,11 @@
     }
 }
   </style>
-  <script src="/static/marked.min.js"></script>
-  <script>
-    const PATIENT_NAME = "{{ user_name }}";
-    const PATIENT_ID = "{{ user_id }}";
-    const messageSound = new Audio('https://cdn.pixabay.com/audio/2022/03/15/audio_722d560b83.mp3');
+<script src="/static/js/marked.min.js"></script>
+<script>
+    const USER_NAME = "{{ user_name }}";
+    const USER_ID = "{{ user_id }}";
+    const messageSound = new Audio('/static/notification.mp3');
 
     function getCurrentTime() {
       const now = new Date();
@@ -782,16 +809,21 @@
       const userBubble = document.createElement("div");
       userBubble.className = "chat-bubble user animated";
       userBubble.innerHTML = `  
-        <div class="user-message">
-          <span class="user-label">${PATIENT_NAME}</span>
-          <div class="message-content"></div>
-          <div class="message-meta">
-            <span class="message-status sent">
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
-              </svg>
-            </span>
-            <span class="message-time">${getCurrentTime()}</span>
+        <div style="display: flex; align-items: flex-end;">
+          <div class="avatar user">${USER_NAME[0] || 'U'}</div>
+          <div style="flex:1">
+            <div class="user-message" dir="rtl" style="text-align: right;">
+              <span class="user-label">${USER_NAME}</span>
+              <div class="message-content" dir="rtl" style="text-align: right;"></div>
+              <div class="message-meta">
+                <span class="message-status sent">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                  </svg>
+                </span>
+                <span class="message-time">${getCurrentTime()}</span>
+              </div>
+            </div>
           </div>
         </div>
       `;
@@ -807,7 +839,7 @@
       const typing = document.createElement("div");
       typing.className = "typing-indicator";
       typing.innerHTML = `
-        <span>PDN עוזר רפואי מקליד</span>
+        <span>בינת קוד המקור מקליד/ה...</span>
         <div class="typing-dots">
           <div class="typing-dot"></div>
           <div class="typing-dot"></div>
@@ -815,92 +847,94 @@
         </div>
       `;
       chatContainer.insertBefore(typing, inputArea);
-
-      // Scroll to bottom after typing indicator
       chatContainer.scrollTop = chatContainer.scrollHeight;
 
-      // Call backend API for bot response
-      try {
-        const res = await fetch("/pdn-chat-ai/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            message,
-            user_name: PATIENT_NAME,
-            user_id: PATIENT_ID 
-          })
-        });
-        const data = await res.json();
-        typing.remove();
-        const botBubble = document.createElement("div");
-        botBubble.className = "chat-bubble bot animated";
-        botBubble.innerHTML = `
-          <div class="bot-message">
-            <span class="bot-label">PDN עוזר רפואי</span></br>
-            <img class="main-logo" src="/static/images/pdn_logo.svg" alt="PDN" height="38">
-            <div class="message-content"></div>
-            <div class="message-meta">
-              <span class="message-time">${getCurrentTime()}</span>
+      // Simulate typing delay
+      setTimeout(async () => {
+        // Call backend API for bot response
+        try {
+          const res = await fetch("/pdn-chat-ai/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+              message,
+              user_name: USER_NAME,
+              user_id: USER_ID 
+            })
+          });
+          const data = await res.json();
+          typing.remove();
+          const botBubble = document.createElement("div");
+          botBubble.className = "chat-bubble bot animated";
+          botBubble.innerHTML = `
+            <div style="display: flex; align-items: flex-end;">
+              <div class="avatar bot"><i class="fas fa-robot"></i></div>
+              <div style="flex:1">
+                <div class="bot-message" dir="rtl" style="text-align: right;">
+                  <span class="bot-label">בינת קוד המקור</span></br>
+                  <div class="message-content" dir="rtl" style="text-align: right;"></div>
+                  <div class="message-meta">
+                    <span class="message-time">${getCurrentTime()}</span>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-        `;
-        // Render markdown for bot message
-        botBubble.querySelector('.message-content').innerHTML = marked.parse(data.message || data.response || 'מצטער, אירעה שגיאה. אנא נסה שוב.');
-        chatContainer.insertBefore(botBubble, inputArea);
-        messageSound.play();
-
-        // Scroll to bottom after bot message
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-
-        // Update message status to delivered
-        setTimeout(() => {
-          userBubble.querySelector('.message-status').className = 'message-status delivered';
-          userBubble.querySelector('.message-status').innerHTML = `
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M18 7l-1.41-1.41-6.34 6.34 1.41 1.41L18 7zm4.24-1.41L11.66 16.17 7.48 12l-1.41 1.41L11.66 19l12-12-1.42-1.41zM.41 13.41L6 19l1.41-1.41L1.83 12 .41 13.41z"/>
-            </svg>
           `;
-        }, 1000);
+          botBubble.querySelector('.message-content').innerHTML = marked.parse(data.message || data.response || 'מצטער, אירעה שגיאה. אנא נסה שוב.');
+          chatContainer.insertBefore(botBubble, inputArea);
+          messageSound.play();
+          chatContainer.scrollTop = chatContainer.scrollHeight;
 
-        // Update message status to read
-        setTimeout(() => {
-          userBubble.querySelector('.message-status').className = 'message-status read';
-          userBubble.querySelector('.message-status').innerHTML = `
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M18 7l-1.41-1.41-6.34 6.34 1.41 1.41L18 7zm4.24-1.41L11.66 16.17 7.48 12l-1.41 1.41L11.66 19l12-12-1.42-1.41zM.41 13.41L6 19l1.41-1.41L1.83 12 .41 13.41z"/>
-            </svg>
-          `;
-        }, 2000);
+          // Update message status to delivered
+          setTimeout(() => {
+            userBubble.querySelector('.message-status').className = 'message-status delivered';
+            userBubble.querySelector('.message-status').innerHTML = `
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18 7l-1.41-1.41-6.34 6.34 1.41 1.41L18 7zm4.24-1.41L11.66 16.17 7.48 12l-1.41 1.41L11.66 19l12-12-1.42-1.41zM.41 13.41L6 19l1.41-1.41L1.83 12 .41 13.41z"/>
+              </svg>
+            `;
+          }, 1000);
 
-        // Re-enable input
-        input.disabled = false;
-        micBtn.disabled = false;
-        if (sendBtn) sendBtn.disabled = false;
-        input.focus();
-      } catch (err) {
-        typing.remove();
-        const botBubble = document.createElement("div");
-        botBubble.className = "chat-bubble bot animated";
-        botBubble.innerHTML = `
-          <div class="bot-message">
-            <span class="bot-label">PDN עוזר רפואי</span></br>
-            <img class="main-logo" src="/static/images/pdn_logo.svg" alt="PDN" height="38">
-            <div class="message-content">שגיאה בשליחת ההודעה לשרת</div>
-            <div class="message-meta">
-              <span class="message-time">${getCurrentTime()}</span>
+          // Update message status to read
+          setTimeout(() => {
+            userBubble.querySelector('.message-status').className = 'message-status read';
+            userBubble.querySelector('.message-status').innerHTML = `
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18 7l-1.41-1.41-6.34 6.34 1.41 1.41L18 7zm4.24-1.41L11.66 16.17 7.48 12l-1.41 1.41L11.66 19l12-12-1.42-1.41zM.41 13.41L6 19l1.41-1.41L1.83 12 .41 13.41z"/>
+              </svg>
+            `;
+          }, 2000);
+
+          // Re-enable input
+          input.disabled = false;
+          micBtn.disabled = false;
+          if (sendBtn) sendBtn.disabled = false;
+          input.focus();
+        } catch (err) {
+          typing.remove();
+          const botBubble = document.createElement("div");
+          botBubble.className = "chat-bubble bot animated";
+          botBubble.innerHTML = `
+            <div class="bot-message">
+              <span class="bot-label">בינת קוד המקור</span></br>
+              <img class="main-logo" src="/static/images/pdn_logo.svg" alt="PDN" height="38">
+              <div class="message-content">שגיאה בשליחת ההודעה לשרת</div>
+              <div class="message-meta">
+                <span class="message-time">${getCurrentTime()}</span>
+              </div>
             </div>
-          </div>
-        `;
-        chatContainer.insertBefore(botBubble, inputArea);
-        // Scroll to bottom after error message
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-        
-        // Re-enable input on error
-        input.disabled = false;
-        micBtn.disabled = false;
-        if (sendBtn) sendBtn.disabled = false;
-        input.focus();
-      }
+          `;
+          chatContainer.insertBefore(botBubble, inputArea);
+          // Scroll to bottom after error message
+          chatContainer.scrollTop = chatContainer.scrollHeight;
+          
+          // Re-enable input on error
+          input.disabled = false;
+          micBtn.disabled = false;
+          if (sendBtn) sendBtn.disabled = false;
+          input.focus();
+        }
+      }, 1200); // 1.2s typing delay
     }
 
     // Voice recognition support
@@ -954,21 +988,39 @@
       window.open(whatsappUrl, '_blank');
     }
 
-    document.addEventListener("DOMContentLoaded", function () {
-      // Set patient name in the title
-      document.getElementById("patientName").innerText = PATIENT_NAME;
+    document.addEventListener("DOMContentLoaded", async function () {
+      // Set user name in the title (removed because element does not exist)
+      // document.getElementById("patientName").innerText = USER_NAME;
 
       const chatContainer = document.querySelector(".chat-container");
+      // Load history
+      try {
+        const res = await fetch('/pdn-chat-ai/history');
+        const data = await res.json();
+        if (data.history && Array.isArray(data.history)) {
+          data.history.forEach(msg => {
+            const bubble = document.createElement("div");
+            if (msg.sender === 'user') {
+              bubble.className = "chat-bubble user animated";
+              bubble.innerHTML = `<div style='display:flex;align-items:flex-end;'><div class='avatar user'>${USER_NAME[0] || 'U'}</div><div style='flex:1'><div class='user-message' dir='rtl' style='text-align:right;'><span class='user-label'>${USER_NAME}</span><div class='message-content' dir='rtl' style='text-align:right;'>${marked.parse(msg.text)}</div><div class='message-meta'><span class='message-time'>${msg.time || ''}</span></div></div></div></div>`;
+            } else {
+              bubble.className = "chat-bubble bot animated";
+              bubble.innerHTML = `<div style='display:flex;align-items:flex-end;'><div class='avatar bot'><i class='fas fa-robot'></i></div><div style='flex:1'><div class='bot-message' dir='rtl' style='text-align:right;'><span class='bot-label'>בינת קוד המקור</span><div class='message-content' dir='rtl' style='text-align:right;'>${marked.parse(msg.text)}</div><div class='message-meta'><span class='message-time'>${msg.time || ''}</span></div></div></div></div>`;
+            }
+            chatContainer.insertBefore(bubble, document.querySelector('.input-area'));
+          });
+        }
+      } catch (e) { /* ignore */ }
+
       const initialBot = document.createElement("div");
       initialBot.className = "chat-bubble bot animated";
-      const rawMessage = `שלום ${PATIENT_NAME}, תודה שפנית אלינו!\nאני PDN עוזר רפואי חכם, כאן כדי לעזור לך עם שאלות רפואיות, לספק מידע, או פשוט לשוחח. איך אני יכול/ה לעזור לך היום?`;
+      const rawMessage = `שלום ${USER_NAME}, תודה שפנית אלינו!\nאני בינת קוד המקור, כאן כדי לעזור לך עם שאלות בתחום התמיכה וההתפתחות האישית, לספק מידע, או פשוט לשוחח. איך אני יכול/ה לעזור לך היום?`;
       const formattedMessage = rawMessage.replace(/\n/g, '<br>');
 
       initialBot.innerHTML = `
-        <div class="bot-message">
-          <span class="bot-label">PDN עוזר רפואי</span><br>
-          <img class="main-logo" src="/static/images/pdn_logo.svg" alt="PDN" height="38">
-          <div class="message-content">
+        <div class="bot-message" dir="rtl" style="text-align: right;">
+          <span class="bot-label">בינת קוד המקור</span><br>
+          <div class="message-content" dir="rtl" style="text-align: right;">
             ${formattedMessage}
           </div>          
           <div class="message-meta">
@@ -992,10 +1044,7 @@
     <div style="position: absolute; top: 60%; right: 15%; width: 6px; height: 6px; background: rgba(255,255,255,0.4); border-radius: 50%; animation: float 5s ease-in-out infinite reverse; z-index: 1;"></div>
     <div style="position: absolute; bottom: 30%; left: 20%; width: 3px; height: 3px; background: rgba(255,255,255,0.5); border-radius: 50%; animation: float 3.5s ease-in-out infinite; z-index: 1;"></div>
     
-    <!-- Logo with enhanced styling -->
-    <div style="position: relative; z-index: 2; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));">
-      <img src="/static/images/pdn_logo.svg" alt="PDN" height="50" style="transition: transform 0.3s ease; border-radius: 8px; background: rgba(255,255,255,0.1); padding: 4px;">
-    </div>
+    
     
     <!-- Main title container -->
     <div style="text-align: center; width: 100%; position: relative; z-index: 2;">
@@ -1040,8 +1089,7 @@
         text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
         animation: fadeInUp 1s ease-out 0.5s both;
       ">
-"קוד המקור" - הנווט הראשי שלך להצלחה​
-</p>
+הנווט הראשי שלך להצלחה</p>
     </div>
     
     <!-- Decorative elements -->
@@ -1136,46 +1184,62 @@
   }
   </style>
 
-  <div class="container">
+  <div class="container" dir="rtl" style="text-align: right;">
     <!-- Center the title and subtitle with the chat -->
     <div class="title" style="text-align: center; margin-bottom: 25px;">
       <h1 style="
         margin: 0;
-        font-size: 2.2em;
+        font-size: 1.8em;
         font-weight: 700;
         background: linear-gradient(135deg, #6366f1, #8b5cf6);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
-        letter-spacing: 1px;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-      ">
-        בינת קוד המקור
-      </h1>
+        text-align: center;
+      ">בינת קוד המקור</h1>
       <p style="
         margin: 8px 0 0 0;
         font-size: 1.1em;
         color: #6b7280;
         font-weight: 400;
         text-align: center;
-      ">
-        "קוד המקור" - הנווט הראשי שלך להצלחה
-      </p>
+      ">הנווט הראשי שלך להצלחה</p>
     </div>
 
-    <div class="tabs">
-      <div class="tab active">צ'אט כללי</div>
-      <div class="tab" onclick="window.open('https://www.pdn.co.il', '_blank')">
+    <div class="tabs" style="justify-content: center; text-align: center;">
+      <div class="tab active" style="text-align: center;">צ'אט כללי</div>
+      <div class="tab" onclick="window.open('https://www.pdn.co.il', '_blank')" style="text-align: center;">
         אתר רשמי
       </div>
-      <div class="tab" onclick="openWhatsApp()">
+      <div class="tab" onclick="openWhatsApp()" style="text-align: center;">
         יצירת קשר
       </div>
     </div>
 
-    <div class="chat-container">
+    <div class="chat-container" dir="rtl" style="text-align: center;" >
+      <!-- Centered title inside chat container -->
+      <div style="text-align: center; padding: 20px 0; border-bottom: 1px solid #b2c4e8; margin-bottom: 20px; background: rgba(128,128,128,0.12); box-shadow: 0 4px 24px rgba(0,0,0,0.10); border-radius: 18px; max-width: 90%; margin-left: auto; margin-right: auto;">
+        <h2 style="
+          margin: 0;
+          font-size: 1.6em;
+          font-weight: 700;
+          background: linear-gradient(135deg, #6366f1, #8b5cf6);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          text-align: center;
+        ">בינת קוד המקור</h2>
+        <p style="
+          margin: 8px 0 0 0;
+          font-size: 1em;
+          color: #6b7280;
+          font-weight: 400;
+          text-align: center;
+        ">הנווט הראשי שלך להצלחה</p>
+      </div>
+      
       <!-- Chat messages will be inserted here -->
-      <div class="input-area">
+      <div class="input-area" style="background: #b2c4e8;">
         <input id="userInput" type="text" placeholder="הקלד/י הודעה..." lang="he-IL"
           onkeydown="if(event.key==='Enter'){sendMessage()}" />
         <button class="mic-btn" id="micBtn" type="button" onclick="toggleMic()" title="הקלט קול">
@@ -1192,13 +1256,13 @@
   </div>
   
   <!-- Footer -->
-  <div class="footer-card p-8 rounded-2xl bg-gradient-to-r from-gray-50 to-slate-50 border border-gray-200" style="margin: 30px auto; max-width: 700px;">
+  <div class="footer-card p-8 rounded-2xl" style="margin: 30px auto; max-width: 700px; background: transparent;">
     <div class="text-center space-y-6">
         <!-- Links and Info -->
         <div class="flex flex-wrap justify-center items-center space-x-8 space-x-reverse text-sm text-gray-600">
             <a href="https://www.pdn.co.il" target="_blank"
                class="hover:text-indigo-600 transition-colors flex items-center">
-                <i class="fas fa-globe mr-2"></i>
+                <i ></i>
                 אתר רשמי
             </a>
             <span class="flex items-center">
@@ -1208,12 +1272,9 @@
         </div>
 
         <!-- Copyright -->
-        <div class="border-t border-gray-200 pt-6">
+        <div>
             <p class="text-xs text-gray-500">
                 © 2024 PDN Center כל הזכויות שמורות
-            </p>
-            <p class="text-xs text-gray-400 mt-2">
-                מערכת ניהול נתוני אבחון פדן - גרסה 1.0
             </p>
         </div>
     </div>

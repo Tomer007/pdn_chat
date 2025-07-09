@@ -36,7 +36,7 @@ def chat_interface():
     user_id = request.args.get('user_id', '')
 
     config = current_app.config.get('PDN_CONFIG', {})
-    welcome_message = config.get("chatbots", {}).get("chatbot_PDN", {}).get("welcome_message", "ברוך הבא לצ'אט AI!")
+    welcome_message = config.get("chatbots", {}).get("chatbot_PDN", {}).get("welcome_message", "ברוך הבא לבינת קוד המקור ")
 
     return render_template(
         "chat.html",
@@ -58,32 +58,14 @@ def chat_message():
         data = request.get_json()
         message = data.get('message', '')
         user_name = data.get('user_name', 'Anonymous')
-        user_id = data.get('user_id', '')
         email = session.get('email', 'anonymous')
 
-        # Load user context if available
-        user_context = {}
-        try:
-            user_answers = load_answers(email)
-            if user_answers:
-                # Calculate PDN code for context
-                pdn_code = calculate_pdn_code(user_answers)
-                if pdn_code:
-                    report_data = load_pdn_report(pdn_code)
-                    if report_data:
-                        user_context = {
-                            'pdn_code': pdn_code,
-                            'report_data': report_data,
-                            'user_answers': user_answers
-                        }
-        except Exception as e:
-            logger.warning(f"Could not load user context: {e}")
-
+       
         # TODO: Implement actual AI chat logic here
         # For now, return a simple response
         response = {
             "message": f"שלום {user_name}! תודה על ההודעה שלך: '{message}'. זהו תגובה זמנית. בהמשך כאן תהיה לוגיקת AI אמיתית.",
-            "user_context": user_context
+            "user_context": "„„„ך"
         }
 
         return jsonify(response)
