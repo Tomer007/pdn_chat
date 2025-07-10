@@ -376,11 +376,11 @@
                 נתוני מאובחנים
             </h3>
             <div class="flex items-center space-x-4 space-x-reverse">
-                <span id="rowCount" class="text-base text-gray-600">סה"כ שורות: 0</span>
+                <span id="rowCount" class="text-base text-gray-600">סה"כ מאובחנים:</span>
                 <button id="downloadCsvBtn"
                         class="download-csv-btn flex items-center px-5 py-2 rounded-xl font-semibold text-white shadow-md transition-all duration-300">
                     <i class="fas fa-download ml-2 text-lg"></i>
-                    הורד CSV
+                    הורד מאובחנים
                 </button>
             </div>
         </div>
@@ -449,6 +449,11 @@
         <div id="questionnaireContent" class="space-y-4">
             <!-- Questionnaire data will be populated here -->
         </div>
+        <button id="downloadPdfBtn"
+                class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded mt-4"
+                onclick="downloadDiagnosisAsPDF()">
+            הורד דוח 
+        </button>
     </div>
 </div>
 
@@ -543,7 +548,49 @@
     </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
+// Utility: Get user email from modal content (assumes email is present in a data attribute or visible field)
+function getDiagnosisUserEmail() {
+    // Try to find an element with data-email or fallback to text content
+    const emailElem = document.querySelector('#questionnaireContent [data-email]');
+    if (emailElem) return emailElem.getAttribute('data-email');
+    // Fallback: try to find a visible email in the content
+    const match = document.getElementById('questionnaireContent').innerText.match(/[\w.-]+@[\w.-]+/);
+    return match ? match[0] : 'user';
+}
+
+// Main PDF export function
+function downloadDiagnosisAsPDF() {
+    const content = document.getElementById('questionnaireContent');
+    if (!content) {
+        alert('לא נמצאו נתונים לייצוא');
+        return;
+    }
+    // Clone and wrap for RTL and font
+    const clone = content.cloneNode(true);
+    clone.style.fontFamily = 'Noto Sans Hebrew, Arial, sans-serif';
+    clone.style.direction = 'rtl';
+    clone.style.textAlign = 'right';
+    clone.style.fontSize = '14px';
+    // Optionally, add dir="rtl" to all children
+    clone.setAttribute('dir', 'rtl');
+    // Create a container for html2pdf
+    const wrapper = document.createElement('div');
+    wrapper.appendChild(clone);
+    // PDF options
+    const opt = {
+        margin:       [0.5, 0.5, 0.5, 0.5], // inches (top, left, bottom, right)
+        filename:     `diagnosis_${getDiagnosisUserEmail()}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
+        pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+    };
+    // Use html2pdf
+    html2pdf().set(opt).from(wrapper).save();
+}
+
 let sessionToken = null;
 let currentData = [];
 let currentEditEmail = null;
