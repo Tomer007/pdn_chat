@@ -1,0 +1,73 @@
+📊 PDN Calculator Test Report
+============================================================
+Total Tests: 11
+Successful: 11
+Failed: 0
+Success Rate: 100.0%
+
+PDN Code Distribution:
+  A11: 1 (9.1%)
+  A7: 1 (9.1%)
+  E5: 1 (9.1%)
+  E9: 1 (9.1%)
+  P10: 2 (18.2%)
+  P2: 1 (9.1%)
+  P6: 3 (27.3%)
+  T8: 1 (9.1%)
+
+Detailed Results:
+----------------------------------------
+1. ✅ Tomer Gur
+   PDN Code: P6
+   Questions: 59
+   Stages: A(26) B(11) C(5) D(14) E(3)
+
+2. ✅ Tomer Gur
+   PDN Code: P2
+   Questions: 59
+   Stages: A(26) B(11) C(5) D(14) E(3)
+
+3. ✅ Tomer Gur
+   PDN Code: E5
+   Questions: 59
+   Stages: A(26) B(11) C(5) D(14) E(3)
+
+4. ✅ yael sdfsd
+   PDN Code: P6
+   Questions: 59
+   Stages: A(26) B(11) C(5) D(14) E(3)
+
+5. ✅ Edith Gur
+   PDN Code: P10
+   Questions: 59
+   Stages: A(26) B(11) C(5) D(14) E(3)
+
+6. ✅ Tomer Gur
+   PDN Code: P10
+   Questions: 59
+   Stages: A(26) B(11) C(5) D(14) E(3)
+
+7. ✅ Pure A (Analytical) Profile
+   PDN Code: A7
+   Questions: 59
+   Stages: A(26) B(11) C(5) D(14) E(3)
+
+8. ✅ Pure T (Theoretical) Profile
+   PDN Code: T8
+   Questions: 59
+   Stages: A(26) B(11) C(5) D(14) E(3)
+
+9. ✅ Pure P (Practical) Profile
+   PDN Code: P6
+   Questions: 59
+   Stages: A(26) B(11) C(5) D(14) E(3)
+
+10. ✅ Pure E (Emotional) Profile
+   PDN Code: E9
+   Questions: 59
+   Stages: A(26) B(11) C(5) D(14) E(3)
+
+11. ✅ Balanced Profile
+   PDN Code: A11
+   Questions: 59
+   Stages: A(26) B(11) C(5) D(14) E(3)

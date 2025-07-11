@@ -1,1131 +1,1756 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>בינת קוד המקור PDN</title>
-  <style>
-    body { 
-            font-family: 'Inter', sans-serif; 
-            background: radial-gradient(ellipse at center, #e0e7ff 0%, #c7d2fe 50%, #7c3aed 100%);
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data:; connect-src 'self';">
+    <title>בינת קוד המקור - שיחה עם הנווט הפנימי</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="/static/js/marked.min.js"></script>
+    <style>
+        /* 🎨 Visual Design & Branding */
+        :root {
+            --primary-color: #6366f1;
+            --secondary-color: #8b5cf6;
+            --accent-color: #a855f7;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f9fafb;
+            --border-color: #e5e7eb;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --gradient-start: #e0e7ff;
+            --gradient-end: #6366f1;
+        }
+
+        /* Dark mode variables */
+        [data-theme="dark"] {
+            --primary-color: #818cf8;
+            --secondary-color: #a78bfa;
+            --accent-color: #c084fc;
+            --text-primary: #f9fafb;
+            --text-secondary: #d1d5db;
+            --bg-primary: #1f2937;
+            --bg-secondary: #111827;
+            --border-color: #374151;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --gradient-start: #312e81;
+            --gradient-end: #1e1b4b;
+        }
+
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
             min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            direction: rtl;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
         }
 
-    header {
-      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-      color: white;
-      padding: 20px;
-      text-align: center;
-      font-size: 1.3em;
-      border-radius: 0 0 20px 20px;
-      box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
-      position: relative;
-      overflow: hidden;
-    }
-
-    header::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-      animation: shimmer 3s infinite;
-    }
-
-    @keyframes shimmer {
-      0% { left: -100%; }
-      100% { left: 100%; }
-    }
-
-    .container {
-      background: transparent;
-      margin: auto;
-      padding: 30px;
-      border-radius: 24px;
-      box-shadow: none;
-      max-width: 700px;
-      border: none;
-      animation: slideInUp 0.8s ease-out;
-    }
-
-    @keyframes slideInUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .title {
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      font-weight: bold;
-      font-size: 1.6em;
-      margin-bottom: 25px;
-      text-align: center;
-    }
-
-    .delimiter {
-      margin: 0 8px;
-      color: #6366f1;
-      font-weight: bold;
-      font-size: 1.2em;
-      vertical-align: middle;
-    }
-
-    .tabs {
-      display: flex;
-      margin-bottom: 15px;
-      background: #f8f9fa;
-      border-radius: 12px;
-      padding: 4px;
-    }
-
-    .message-content {
-      color: #2d3748;
-      line-height: 1.6;
-    }
-
-    .tab {
-      flex: 1;
-      padding: 12px;
-      text-align: center;
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      font-weight: 500;
-      border-radius: 8px;
-      transition: all 0.3s ease;
-      color: #718096;
-    }
-
-    .tab.active {
-      font-weight: 600;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      color: white;
-      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-    }
-
-    .chat-container {
-      background: rgba(255, 255, 255, 0.95);
-      border-radius: 20px;
-      padding: 20px;
-      max-width: 900px;
-      width: 100%;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-      display: flex;
-      flex-direction: column;
-      animation: fadeIn 1s ease-in-out;
-      transition: all 0.4s ease;
-      min-height: 550px;
-      overflow-y: auto;
-      position: relative;
-      border: 1px solid #e9b6e2;
-    }
-
-    .chat-container::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    .chat-container::-webkit-scrollbar-track {
-      background: #f1f1f1;
-      border-radius: 4px;
-    }
-
-    .chat-container::-webkit-scrollbar-thumb {
-      background: #c1c1c1;
-      border-radius: 4px;
-    }
-
-    .chat-container::-webkit-scrollbar-thumb:hover {
-      background: #a8a8a8;
-    }
-
-    .input-area {
-      display: flex;
-      margin-top: auto;
-      gap: 12px;
-      animation: fadeIn 1.2s ease;
-      align-items: center;
-      position: sticky;
-      bottom: 0;
-      background: white;
-      padding: 15px 0;
-      z-index: 1;
-      border-top: 1px solid rgba(0, 0, 0, 0.1);
-    }
-
-    .input-area input {
-      flex-grow: 1;
-      padding: 16px 20px;
-      border-radius: 25px;
-      border: 2px solid #e2e8f0;
-      font-size: 16px;
-      background-color: #f8f9fa;
-      color: #2d3748;
-      transition: all 0.3s ease;
-    }
-
-    .input-area input:focus {
-      outline: none;
-      border-color: #6366f1;
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-      background-color: white;
-      transform: translateY(-2px);
-    }
-
-    .input-area input::placeholder {
-      color: #a0aec0;
-    }
-
-    .input-area button {
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      color: white;
-      border: none;
-      border-radius: 25px;
-      padding: 16px 24px;
-      font-size: 16px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-weight: 600;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .input-area button::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-      transition: left 0.5s;
-    }
-
-    .input-area button:hover::before {
-      left: 100%;
-    }
-
-    .input-area button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
-    }
-
-    .input-area button:active {
-      transform: translateY(0);
-    }
-
-    .input-area button:disabled {
-      background: #a0aec0;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-
-    .mic-btn {
-      background: #f8f9fa;
-      border: 2px solid #6366f1;
-      border-radius: 50%;
-      width: 60px;
-      height: 50px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      margin-left: 4px;
-      margin-right: 4px;
-      position: relative;
-    }
-
-    .mic-btn:hover {
-      background: #e0e7ff;
-      transform: scale(1.05);
-    }
-
-    .mic-btn.active {
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      border: 2px solid #8b5cf6;
-      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.3);
-      animation: pulse 1.5s infinite;
-    }
-
-    @keyframes pulse {
-      0% {
-        box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7);
-      }
-      70% {
-        box-shadow: 0 0 0 10px rgba(99, 102, 241, 0);
-      }
-      100% {
-        box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
-      }
-    }
-
-    .mic-btn svg {
-      width: 32px;
-      height: 32px;
-      color: #6366f1;
-      transition: color 0.3s ease;
-    }
-
-    .mic-btn.active svg {
-      color: white;
-    }
-
-    .footer {
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      padding: 25px;
-      text-align: center;
-      color: white;
-      margin-top: 30px;
-      font-size: 1.1em;
-      border-radius: 16px;
-      margin-left: auto;
-      margin-right: auto;
-      box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
-    }
-
-    .footer a {
-      display: inline-block;
-      margin-top: 15px;
-      padding: 12px 30px;
-      background: rgba(255, 255, 255, 0.2);
-      color: white;
-      text-decoration: none;
-      border-radius: 25px;
-      font-weight: 600;
-      transition: all 0.3s ease;
-      backdrop-filter: blur(10px);
-    }
-
-    .footer a:hover {
-      background: rgba(255, 255, 255, 0.3);
-      transform: translateY(-2px);
-    }
-
-    .chat-bubble {
-      border-radius: 24px;
-      padding: 16px 20px;
-      margin-bottom: 14px;
-      font-size: 16px;
-      line-height: 1.6;
-      display: flex;
-      flex-direction: column;
-      animation: slideIn 0.5s ease;
-      max-width: 75%;
-      position: relative;
-      transition: transform 0.2s ease;
-      box-shadow: 0 2px 8px rgba(99,102,241,0.07);
-    }
-    .chat-bubble.user {
-      background-color: #dbeafe;
-      color: #1e40af;
-      align-self: flex-end;
-      border-bottom-right-radius: 8px;
-      border-top-right-radius: 24px;
-      border-top-left-radius: 24px;
-      border-bottom-left-radius: 24px;
-      margin-left: 0;
-      margin-right: 8px;
-      text-align: right;
-    }
-    .chat-bubble.bot {
-      background-color: #e0e7ff;
-      color: #3730a3;
-      align-self: flex-start;
-      border-bottom-left-radius: 8px;
-      border-top-right-radius: 24px;
-      border-top-left-radius: 24px;
-      border-bottom-right-radius: 24px;
-      margin-right: 0;
-      margin-left: 8px;
-      text-align: left;
-    }
-    header {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      text-align: center;
-    }
-    .footer-card {
-      position: sticky;
-      bottom: 0;
-      z-index: 100;
-      text-align: center;
-      background: rgba(255,255,255,0.95);
-      margin-bottom: 0;
-    }
-
-    .disabled-summary-button {
-      background-color: #f7941d !important;
-      cursor: not-allowed;
-      opacity: 0.7;
-      box-shadow: none;
-      transform: none;
-    }
-
-    .chat-bubble.user {
-      background-color: #dbeafe;
-      color: #1e40af;
-      align-self: stretch;
-      margin-left: stretch;
-      margin-right: 0;
-    }
-
-    .bot-message,
-    .user-message {
-      width: 100%;
-      padding-bottom: 10px;
-    }
-
-    .bot-label {
-      position: absolute;
-      top: 4px;
-      right: 12px;
-      font-size: 0.75em;
-      color: #181717;
-      font-weight: 500;
-      opacity: 0.9;
-    }
-
-    .user-label {
-      position: absolute;
-      top: 4px;
-      right: 12px;
-      font-size: 0.75em;
-      color: #181717;
-      font-weight: 500;
-      opacity: 0.9;
-    }
-
-    .message-meta {
-      position: absolute;
-      bottom: 4px;
-      left: 12px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 0.7em;
-      color: #666;
-      opacity: 0.8;
-    }
-
-    .message-time {
-      position: static;
-      font-size: 1.0em;
-      color: #201d1d;
-      opacity: 0.8;
-      margin: 0;
-      padding: 0;
-      font-weight: bold;
-    }
-
-    .message-status {
-      position: static;
-      display: flex;
-      align-items: center;
-      gap: 2px;
-      font-size: 0.7em;
-      margin: 0;
-      padding: 0;
-    }
-
-    .message-status svg {
-      width: 14px;
-      height: 14px;
-    }
-
-    .message-status.sent svg {
-      color: #666;
-    }
-
-    .message-status.delivered svg {
-      color: #4CAF50;
-    }
-
-    .message-status.read svg {
-      color: #2196F3;
-    }
-
-    .summaryText {
-      direction: rtl;
-      font-family: "Arial", sans-serif;
-      line-height: 1.6;
-      font-size: 1rem;
-    }
-
-    .typing-indicator {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      padding: 8px 12px;
-      background: #e0e7ff;
-      border-radius: 12px;
-      color: #3730a3;
-      font-size: 0.9em;
-      margin-bottom: 10px;
-      width: fit-content;
-    }
-
-    .typing-dots {
-      display: flex;
-      gap: 2px;
-    }
-
-    .typing-dot {
-      width: 6px;
-      height: 6px;
-      background: #3730a3;
-      border-radius: 50%;
-      animation: typingDot 1.4s infinite;
-    }
-
-    .typing-dot:nth-child(2) {
-      animation-delay: 0.2s;
-    }
-
-    .typing-dot:nth-child(3) {
-      animation-delay: 0.4s;
-    }
-
-    @keyframes typingDot {
-      0%,
-      60%,
-      100% {
-        transform: translateY(0);
-      }
-
-      30% {
-        transform: translateY(-4px);
-      }
-    }
-
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.35);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 2000;
-      animation: fadeInModal 0.3s;
-    }
-
-    @keyframes fadeInModal {
-      from {
-        opacity: 0;
-      }
-
-      to {
-        opacity: 1;
-      }
-    }
-
-    .modal-content {
-      background: #f8fafc;
-      border-radius: 18px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18), 0 1.5px 6px rgba(99, 102, 241, 0.10);
-      padding: 32px 28px 24px 28px;
-      min-width: 200px;
-      max-width: 90vw;
-      max-height: 80vh;
-      overflow-y: auto;
-      position: relative;
-      text-align: right;
-      animation: popupIn 0.4s cubic-bezier(.23, 1.01, .32, 1);
-    }
-
-    @media (max-width: 600px) {
-      .modal-content {
-        width: 98vw;
-        min-width: 0;
-        max-width: 98vw;
-        padding: 16px 6px 12px 6px;
-        border-radius: 12px;
-      }
-    }
-
-    @keyframes popupIn {
-      from {
-        transform: scale(0.92) translateY(40px);
-        opacity: 0;
-      }
-
-      to {
-        transform: scale(1) translateY(0);
-        opacity: 1;
-      }
-    }
-
-    .modal-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 18px;
-    }
-
-    .modal-title {
-      font-size: 1.25em;
-      font-weight: bold;
-      color: #6366f1;
-      letter-spacing: 0.5px;
-    }
-
-    .modal-close {
-      background: none;
-      border: black;
-      font-size: 1.7em;
-      color: #6366f1;
-      cursor: pointer;
-      font-weight: bold;
-      margin-left: 8px;
-      transition: color 0.2s;
-      line-height: 1;
-    }
-
-    .modal-close:hover {
-      color: #3730a3;
-    }
-
-    .modal-body {
-      font-size: 1.08em;
-      color: #361603;
-      line-height: 1.7;
-      padding-top: 6px;
-      padding-bottom: 2px;
-      word-break: break-word;
-    }
-
-    .main-logo {
-      float: right;
-      margin-left: 12px;
-      margin-top: -4px;
-      height: 38px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
-      background: white;
-      padding: 2px 4px;
-      object-fit: contain;
-    }
-
-    .close-button {
-      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-size: 14px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-weight: 500;
-      margin-top: 20px;
-      width: 100%;
-    }
-
-    .close-button:hover {
-      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-    }
-
-    .close-button:active {
-      transform: translateY(-1px);
-    }
-
-    /* Replace the existing footer-card styles with these improved ones */
-
-.footer-card {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    box-shadow: 
-        0 10px 30px rgba(0, 0, 0, 0.1),
-        0 4px 16px rgba(99, 102, 241, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    animation: slideInUp 0.8s ease-out;
-    position: relative;
-    overflow: hidden;
-}
-
-.footer-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.2), transparent);
-}
-
-.footer-card a {
-    text-decoration: none;
-    color: #6b7280;
-    transition: all 0.3s ease;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-weight: 500;
-    position: relative;
-    overflow: hidden;
-}
-
-.footer-card a::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.1), transparent);
-    transition: left 0.5s;
-}
-
-.footer-card a:hover::before {
-    left: 100%;
-}
-
-.footer-card a:hover {
-    color: #6366f1;
-    background: rgba(99, 102, 241, 0.1);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
-}
-
-.footer-card i {
-    font-size: 14px;
-    transition: transform 0.3s ease;
-}
-
-.footer-card a:hover i {
-    transform: scale(1.1);
-}
-
-.footer-card span {
-    color: #6b7280;
-    font-weight: 500;
-    padding: 8px 16px;
-    border-radius: 8px;
-    background: rgba(99, 102, 241, 0.05);
-    border: 1px solid rgba(99, 102, 241, 0.1);
-}
-
-.footer-card .border-t {
-    border-color: #e5e7eb;
-    position: relative;
-}
-
-.footer-card .border-t::before {
-    content: '';
-    position: absolute;
-    top: -1px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 60px;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, #6366f1, transparent);
-    border-radius: 1px;
-}
-
-.footer-card p {
-    margin: 0;
-    line-height: 1.5;
-    transition: color 0.3s ease;
-}
-
-.footer-card p:hover {
-    color: #6366f1;
-}
-
-/* Responsive design for footer */
-@media (max-width: 768px) {
-    .footer-card {
-        margin: 20px 15px;
-        padding: 20px;
-    }
-    
-    .footer-card .flex {
-        flex-direction: column;
-        gap: 12px;
-    }
-    
-    .footer-card .space-x-8 > * + * {
-        margin-right: 0;
-        margin-left: 0;
-    }
-    
-    .footer-card span {
-        margin: 4px 0;
-    }
-}
-  </style>
-<script src="/static/js/marked.min.js"></script>
-<script>
-    const USER_NAME = "{{ user_name }}";
-    const USER_ID = "{{ user_id }}";
-    const messageSound = new Audio('/static/notification.mp3');
-
-    function getCurrentTime() {
-      const now = new Date();
-      const hours = now.getHours().toString().padStart(2, '0');
-      const minutes = now.getMinutes().toString().padStart(2, '0');
-      return `${hours}:${minutes}`;
-    }
-
-    async function sendMessage() {
-      const input = document.getElementById("userInput");
-      const micBtn = document.getElementById("micBtn");
-      const sendBtn = document.querySelector(".input-area button[onclick='sendMessage()']");
-      const chatContainer = document.querySelector(".chat-container");
-      const inputArea = document.querySelector(".input-area");
-
-      const message = input.value.trim();
-      if (message === "") return;
-
-      // Disable input and mic while waiting for bot
-      input.disabled = true;
-      micBtn.disabled = true;
-      if (sendBtn) sendBtn.disabled = true;
-
-      const userBubble = document.createElement("div");
-      userBubble.className = "chat-bubble user animated";
-      userBubble.innerHTML = `  
-        <div style="display: flex; align-items: flex-end;">
-          <div class="avatar user">${USER_NAME[0] || 'U'}</div>
-          <div style="flex:1">
-            <div class="user-message" dir="rtl" style="text-align: right;">
-              <span class="user-label">${USER_NAME}</span>
-              <div class="message-content" dir="rtl" style="text-align: right;"></div>
-              <div class="message-meta" 
-                <span class="message-time">${getCurrentTime()}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-      // Render markdown for user message
-      userBubble.querySelector('.message-content').innerHTML = marked.parse(message);
-      chatContainer.insertBefore(userBubble, inputArea);
-
-      // Scroll to bottom after user message
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-
-      input.value = "";
-
-      const typing = document.createElement("div");
-      typing.className = "typing-indicator";
-      typing.innerHTML = `
-        <span>בינת קוד המקור מקליד/ה...</span>
-        <div class="typing-dots">
-          <div class="typing-dot"></div>
-          <div class="typing-dot"></div>
-          <div class="typing-dot"></div>
-        </div>
-      `;
-      chatContainer.insertBefore(typing, inputArea);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-
-      // Simulate typing delay
-      setTimeout(async () => {
-        // Call backend API for bot response
-        try {
-          const res = await fetch("/pdn-chat-ai/chat", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ 
-              message,
-              user_name: USER_NAME,
-              user_id: USER_ID 
-            })
-          });
-          const data = await res.json();
-          typing.remove();
-          const botBubble = document.createElement("div");
-          botBubble.className = "chat-bubble bot animated";
-          botBubble.innerHTML = `
-            <div style="display: flex; align-items: flex-end;">
-                <div class="bot-message" dir="rtl" style="text-align: right;">
-                  <span class="bot-label">בינת קוד המקור</span>
-                  <div class="message-content" dir="rtl" style="text-align: right;"></div>
-                  <div class="message-meta">
-                    <span class="message-time">${getCurrentTime()}</span>                  
-                  </div>
-              </div>
-            </div>
-          `;
-          botBubble.querySelector('.message-content').innerHTML = marked.parse(data.message || data.response || 'מצטער, אירעה שגיאה. אנא נסה שוב.');
-          chatContainer.insertBefore(botBubble, inputArea);
-          messageSound.play();
-          chatContainer.scrollTop = chatContainer.scrollHeight;
-
-          // Update message status to delivered
-          setTimeout(() => {
-            userBubble.querySelector('.message-status').className = 'message-status delivered';
-            userBubble.querySelector('.message-status').innerHTML = `
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M18 7l-1.41-1.41-6.34 6.34 1.41 1.41L18 7zm4.24-1.41L11.66 16.17 7.48 12l-1.41 1.41L11.66 19l12-12-1.42-1.41zM.41 13.41L6 19l1.41-1.41L1.83 12 .41 13.41z"/>
-              </svg>
-            `;
-          }, 1000);
-
-          // Update message status to read
-          setTimeout(() => {
-            userBubble.querySelector('.message-status').className = 'message-status read';
-            userBubble.querySelector('.message-status').innerHTML = `
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M18 7l-1.41-1.41-6.34 6.34 1.41 1.41L18 7zm4.24-1.41L11.66 16.17 7.48 12l-1.41 1.41L11.66 19l12-12-1.42-1.41zM.41 13.41L6 19l1.41-1.41L1.83 12 .41 13.41z"/>
-              </svg>
-            `;
-          }, 2000);
-
-          // Re-enable input
-          input.disabled = false;
-          micBtn.disabled = false;
-          if (sendBtn) sendBtn.disabled = false;
-          input.focus();
-        } catch (err) {
-          typing.remove();
-          const botBubble = document.createElement("div");
-          botBubble.className = "chat-bubble bot animated";
-          botBubble.innerHTML = `
-            <div class="bot-message">
-              <span class="bot-label">בינת קוד המקור</span></br>
-              <div class="message-content">שגיאה בשליחת ההודעה לשרת</div>
-              <div class="message-meta">
-                <span class="message-time">${getCurrentTime()}</span>
-              </div>
-            </div>
-          `;
-          chatContainer.insertBefore(botBubble, inputArea);
-          // Scroll to bottom after error message
-          chatContainer.scrollTop = chatContainer.scrollHeight;
-          
-          // Re-enable input on error
-          input.disabled = false;
-          micBtn.disabled = false;
-          if (sendBtn) sendBtn.disabled = false;
-          input.focus();
+        /* Smooth transition between header and body */
+        .header-gradient {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 50%, var(--accent-color) 100%);
+            position: relative;
+            overflow: hidden;
         }
-      }, 1200); // 1.2s typing delay
-    }
 
-    // Voice recognition support
-    let recognition;
-    let recognizing = false;
-    function toggleMic() {
-      const micBtn = document.getElementById("micBtn");
-      if (micBtn.disabled) return;
-      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-        alert('Voice recognition is not supported in this browser.');
-        return;
-      }
-      if (!recognition) {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        recognition = new SpeechRecognition();
-        recognition.lang = 'he-IL'; // Default to Hebrew
-        recognition.interimResults = false;
-        recognition.maxAlternatives = 1;
-        recognition.onresult = function (event) {
-          const transcript = event.results[0][0].transcript;
-          document.getElementById("userInput").value = transcript;
-        };
-        recognition.onend = function () {
-          recognizing = false;
-          document.getElementById('micBtn').classList.remove('active');
-        };
-        recognition.onerror = function () {
-          recognizing = false;
-          document.getElementById('micBtn').classList.remove('active');
-        };
-      }
-      if (!recognizing) {
-        // Try to detect language from input placeholder or browser
-        const input = document.getElementById("userInput");
-        const lang = input.lang || navigator.language || 'he-IL';
-        recognition.lang = lang.match(/^he/) ? 'he-IL' : 'en-US';
-        recognition.start();
-        recognizing = true;
-        document.getElementById('micBtn').classList.add('active');
-      } else {
-        recognition.stop();
-        recognizing = false;
-        document.getElementById('micBtn').classList.remove('active');
-      }
-    }
-
-    function openWhatsApp() {
-      const phoneNumber = '972509198868'; // Remove the + and format for WhatsApp
-      const message = encodeURIComponent('שלום, אני מעוניין/ת במידע נוסף על שירותי PDN');
-      const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
-      window.open(whatsappUrl, '_blank');
-    }
-
-    document.addEventListener("DOMContentLoaded", async function () {
-      // Set user name in the title (removed because element does not exist)
-      // document.getElementById("patientName").innerText = USER_NAME;
-
-      const chatContainer = document.querySelector(".chat-container");
-      // Load history
-      try {
-        const res = await fetch('/pdn-chat-ai/history');
-        const data = await res.json();
-        if (data.history && Array.isArray(data.history)) {
-          data.history.forEach(msg => {
-            const bubble = document.createElement("div");
-            if (msg.sender === 'user') {
-              bubble.className = "chat-bubble user animated";
-              bubble.innerHTML = `<div style='display:flex;align-items:flex-end;'><div class='avatar user'>${USER_NAME[0] || 'U'}</div><div style='flex:1'><div class='user-message' dir='rtl' style='text-align:right;'><span class='user-label'>${USER_NAME}</span><div class='message-content' dir='rtl' style='text-align:right;'>${marked.parse(msg.text)}</div><div class='message-meta'><span class='message-time'>${msg.time || ''}</span></div></div></div></div>`;
-            } else {
-              bubble.className = "chat-bubble bot animated";
-              bubble.innerHTML = `<div style='display:flex;align-items:flex-end;'><div class='avatar bot'><i class='fas fa-robot'></i></div><div style='flex:1'><div class='bot-message' dir='rtl' style='text-align:right;'><span class='bot-label'>בינת קוד המקור</span><div class='message-content' dir='rtl' style='text-align:right;'>${marked.parse(msg.text)}</div><div class='message-meta'><span class='message-time'>${msg.time || ''}</span></div></div></div></div>`;
-            }
-            chatContainer.insertBefore(bubble, document.querySelector('.input-area'));
-          });
+        .header-gradient::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 20px;
+            background: linear-gradient(to bottom, transparent, rgba(224, 231, 255, 0.8));
         }
-      } catch (e) { /* ignore */ }
 
-      const initialBot = document.createElement("div");
-      initialBot.className = "chat-bubble bot animated";
-      const rawMessage = `🌿 ברוך הבא, ${USER_NAME}\nבינת מקוד המקור ממתינה לך כאן, בקצב שלך.\nאם יש שאלה שלא עוזבת, דפוס שחוזר, או תחושה לא פתורה –\nבוא נסתכל עליה יחד.\nבלי למהר. בלי לשפוט. רק להבין מה פועל בך עכשיו.`;
-      const formattedMessage = rawMessage.replace(/\n/g, '<br>');
+        /* Enhanced chat container */
+        .chat-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 24px;
+            max-width: 900px;
+            width: 100%;
+            box-shadow: 0 20px 40px var(--shadow-color);
+            display: flex;
+            flex-direction: column;
+            animation: fadeIn 1s ease-in-out;
+            transition: all 0.4s ease;
+            min-height: 600px;
+            overflow-y: auto;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            scroll-behavior: smooth;
+        }
 
-      initialBot.innerHTML = `
-        <div style="display: flex; align-items: flex-end;">
-            <div class="bot-message" dir="rtl" style="text-align: right;">
-              <div class="message-content" dir="rtl" style="text-align: right;">
-                ${formattedMessage}
-              </div>
-          </div>
-        </div>
-      `;
-      chatContainer.insertBefore(initialBot, document.querySelector(".input-area"));
-    });
-  </script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
+        [data-theme="dark"] .chat-container {
+            background: rgba(31, 41, 55, 0.95);
+            border: 1px solid rgba(55, 65, 81, 0.3);
+        }
 
-<body>
-  <header style="display: flex; align-items: center; gap: 5px; position: relative; overflow: hidden;">
-    <!-- Animated background elements -->
-    <div style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%); animation: shimmer 3s infinite; z-index: 1;"></div>
-    
-    <!-- Floating particles -->
-    <div style="position: absolute; top: 20%; left: 10%; width: 4px; height: 4px; background: rgba(255,255,255,0.6); border-radius: 50%; animation: float 4s ease-in-out infinite; z-index: 1;"></div>
-    <div style="position: absolute; top: 60%; right: 15%; width: 6px; height: 6px; background: rgba(255,255,255,0.4); border-radius: 50%; animation: float 5s ease-in-out infinite reverse; z-index: 1;"></div>
-    <div style="position: absolute; bottom: 30%; left: 20%; width: 3px; height: 3px; background: rgba(255,255,255,0.5); border-radius: 50%; animation: float 3.5s ease-in-out infinite; z-index: 1;"></div>
-    <!-- Main title container -->
-    <div style="text-align: center; width: 100%; position: relative; z-index: 2;">
-       
-     <h1 class="text-xl sm:text-1xl font-semibold bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 bg-clip-text text-transparent">
-      <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
-        <a href="https://www.pdn.co.il" target="_blank" style="cursor: pointer; transition: transform 0.2s ease;">
-          <img src="/static/images/pdn_logo.png" alt="PDN Logo" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; box-shadow: 0 4px 16px rgba(0,0,0,0.2); border: 3px solid rgba(255,255,255,0.3);" />
-        </a>
-        <span>בינת קוד המקור - שיחה עם הנווט הפנימי</span>
-      </div>
-     </h1>
-     </div>
-    
-    <!-- Decorative elements -->
-    <div style="position: absolute; top: 0; right: 0; width: 100px; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1)); z-index: 1;"></div>
-    <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); z-index: 1;"></div>
-  </header>
-  <div class="container" dir="rtl" style="text-align: right;">
-      <div class="chat-container" dir="rtl" style="text-align: center;" >
-        
-      <div class="input-area" ">
-        <input id="userInput" type="text" placeholder="הקלד/י הודעה..." lang="he-IL"
-          onkeydown="if(event.key==='Enter'){sendMessage()}" />
-        <button class="mic-btn" id="micBtn" type="button" onclick="toggleMic()" title="הקלט קול">
-            <svg xmlns="http://www.w3.org/2000/svg" width="50px" height="50px" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4z"/>
-              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-              <line x1="12" y1="19" x2="12" y2="23"/>
-              <line x1="8" y1="23" x2="16" y2="23"/>
-            </svg>
-        </button>
-        <button onclick="sendMessage()">שלח</button>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Footer -->
-  <div  style="margin: 30px auto; background: transparent; text-align: center;">
-    <div class="text-center space-y-6">
-        <!-- Links and Info -->
-        <div class="flex flex-wrap justify-center items-center space-x-8 space-x-reverse text-sm text-gray-600">
-            <a href="https://www.pdn.co.il" target="_blank"
-               class="hover:text-indigo-600 transition-colors flex items-center">
-                <i class="fas fa-globe mr-2"></i>
-                אתר רשמי
-            </a>
-            
-            <span class="flex items-center">
-              <div class="fas fa-phone" onclick="openWhatsApp()" ">
-                יצירת קשר
-              </div>          
-            </span>
-        </div>
+        /* Enhanced chat bubbles with better contrast and shadows */
+        .chat-bubble {
+            border-radius: 20px;
+            padding: 16px 20px;
+            margin-bottom: 16px;
+            font-size: 16px;
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            animation: slideIn 0.5s ease;
+            max-width: 80%;
+            position: relative;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px var(--shadow-color);
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
 
-        <!-- Disclaimer -->
-        <div style="
-          background: rgba(255, 255, 255, 0.1);
-          backdrop-filter: blur(10px);
-          border-radius: 16px;
-          padding: 20px;
-          margin: 20px auto;
-          max-width: 800px;
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          text-align: right;
-          direction: rtl;
-        ">
-          <h3 style="
-            font-size: 1.1em;
+        .chat-bubble.user {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            color: #1e40af;
+            align-self: flex-end;
+            border-bottom-right-radius: 8px;
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.15);
+        }
+
+        [data-theme="dark"] .chat-bubble.user {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+            color: #dbeafe;
+        }
+
+        .chat-bubble.bot {
+            background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+            color: #7c3aed;
+            align-self: flex-start;
+            border-bottom-left-radius: 8px;
+            box-shadow: 0 4px 16px rgba(124, 58, 237, 0.15);
+        }
+
+        [data-theme="dark"] .chat-bubble.bot {
+            background: linear-gradient(135deg, #581c87 0%, #7c3aed 100%);
+            color: #f3e8ff;
+        }
+
+        /* Enhanced input area */
+        .input-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 4px 16px var(--shadow-color);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            margin-top: 20px;
+        }
+
+        [data-theme="dark"] .input-area {
+            background: rgba(31, 41, 55, 0.9);
+            border: 1px solid rgba(55, 65, 81, 0.3);
+        }
+
+        .input-area input {
+            flex: 1;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 16px;
+            padding: 12px 16px;
+            border-radius: 16px;
+            color: var(--text-primary);
+            direction: rtl;
+        }
+
+        .input-area input::placeholder {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .send-button {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
             font-weight: 600;
-            margin-bottom: 12px;
-            color: #374151;
-            ">הסכמה מודעת למסע עם קוד המקור</h3>
-          
-          <p style="
-            font-size: 0.9em;
-            line-height: 1.6;
-            margin-bottom: 12px;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .send-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .send-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Attachment and mic buttons */
+        .action-button {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            color: var(--primary-color);
+            padding: 10px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        [data-theme="dark"] .action-button {
+            background: rgba(31, 41, 55, 0.8);
+            border: 1px solid rgba(129, 140, 248, 0.2);
+        }
+
+        .action-button:hover {
+            background: rgba(99, 102, 241, 0.1);
+            transform: scale(1.05);
+        }
+
+        /* Typing indicator */
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+            border-radius: 16px;
+            color: #7c3aed;
+            font-size: 14px;
+            animation: pulse 2s infinite;
+            max-width: 200px;
+            margin-bottom: 16px;
+        }
+
+        [data-theme="dark"] .typing-indicator {
+            background: linear-gradient(135deg, #581c87 0%, #7c3aed 100%);
+            color: #f3e8ff;
+        }
+
+        /* Recording indicator */
+        .recording-indicator {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 16px;
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border-radius: 16px;
+            color: #dc2626;
+            font-size: 14px;
+            animation: pulse 2s infinite;
+            max-width: 400px;
+            margin-bottom: 16px;
+            border: 2px solid rgba(220, 38, 38, 0.2);
+        }
+
+        [data-theme="dark"] .recording-indicator {
+            background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 100%);
+            color: #fca5a5;
+            border: 2px solid rgba(252, 165, 165, 0.2);
+        }
+
+        .recording-indicator .recording-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .recording-indicator .recording-time {
+            background: rgba(220, 38, 38, 0.1);
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-weight: bold;
+        }
+
+        .recording-indicator .transcription-text {
+            margin-top: 8px;
+            font-size: 14px;
+            line-height: 1.4;
             color: #6b7280;
-          ">המסע עם קוד המקור נועד לעורר תודעה, לאפשר גילוי עצמי, ולהאיר כיוונים פנימיים. הוא לא מחליף ייעוץ או טיפול מקצועי – רגשי, רפואי או אחר – ואינו מתיימר לאבחן או לרפא.</p>
-          
-          <p style="
-            font-size: 0.9em;
-            line-height: 1.6;
+            max-height: 100px;
+            overflow-y: auto;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 8px;
+        }
+
+        [data-theme="dark"] .recording-indicator .transcription-text {
+            background: rgba(0, 0, 0, 0.3);
+            color: #d1d5db;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dots span {
+            width: 6px;
+            height: 6px;
+            background: currentColor;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+        /* Quick reply buttons */
+        .quick-replies {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .quick-reply-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: var(--primary-color);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        [data-theme="dark"] .quick-reply-btn {
+            background: rgba(31, 41, 55, 0.9);
+            border: 1px solid rgba(129, 140, 248, 0.3);
+        }
+
+        .quick-reply-btn:hover {
+            background: rgba(99, 102, 241, 0.1);
+            transform: translateY(-1px);
+        }
+
+        /* Message timestamps */
+        .message-time {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            opacity: 0.8;
+            font-weight: bold;
+        }
+
+        .chat-bubble:hover .message-time {
+            opacity: 1;
+        }
+
+        /* Theme toggle */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            color: var(--primary-color);
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        [data-theme="dark"] .theme-toggle {
+            background: rgba(31, 41, 55, 0.9);
+            border: 1px solid rgba(129, 140, 248, 0.2);
+        }
+
+        .theme-toggle:hover {
+            background: rgba(99, 102, 241, 0.1);
+            transform: scale(1.1);
+        }
+
+        /* Export button */
+        .export-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            color: var(--primary-color);
+            padding: 10px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            font-size: 14px;
+        }
+
+        [data-theme="dark"] .export-button {
+            background: rgba(31, 41, 55, 0.9);
+            border: 1px solid rgba(129, 140, 248, 0.2);
+        }
+
+        .export-button:hover {
+            background: rgba(99, 102, 241, 0.1);
+            transform: translateY(-1px);
+        }
+
+        /* Floating logout button */
+        .floating-logout-button {
+          position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            color: var(--primary-color);
+            padding: 10px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            font-size: 14px;
+        }
+
+        [data-theme="dark"] .floating-logout-button {
+            background: rgba(31, 41, 55, 0.9);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+        }
+
+        .floating-logout-button:hover {
+            background: rgba(239, 68, 68, 0.1);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+        }
+
+        .floating-logout-button i {
+            font-size: 16px;
+        }
+
+        /* Header layout improvements */
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo-link {
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            display: block;
+        }
+
+        .logo-link:hover {
+            transform: scale(1.05);
+        }
+
+        .header-logo {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+            border: 4px solid rgba(255,255,255,0.3);
+        }
+
+        .header-text {
+            text-align: right;
+        }
+
+        /* Improved logout button */
+        .logout-button {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            min-height: 48px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .logout-button:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .logout-button:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .logout-button:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3), 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .logout-button i {
+            font-size: 18px;
+        }
+
+        .logout-text {
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        /* Error message styling */
+        .error-message {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            color: #dc2626;
+            border: 1px solid #fecaca;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin: 8px 0;
+            font-size: 14px;
+        }
+
+        [data-theme="dark"] .error-message {
+            background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 100%);
+            color: #fca5a5;
+            border: 1px solid #991b1b;
+        }
+
+        /* Loading spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* File upload area */
+        .file-upload-area {
+            display: none;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px dashed rgba(99, 102, 241, 0.3);
+            border-radius: 12px;
+            margin: 8px 0;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        [data-theme="dark"] .file-upload-area {
+            background: rgba(31, 41, 55, 0.9);
+            border: 2px dashed rgba(129, 140, 248, 0.3);
+        }
+
+        .file-upload-area.dragover {
+            border-color: var(--primary-color);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        /* Animations */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        @keyframes typing {
+            0%, 80%, 100% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .chat-container {
+                margin: 10px;
+                padding: 16px;
+                border-radius: 16px;
+            }
+
+            .chat-bubble {
+                max-width: 90%;
+                font-size: 15px;
+                padding: 12px 16px;
+            }
+
+            .input-area {
+                padding: 12px;
+                gap: 8px;
+            }
+
+            .input-area input {
+                font-size: 15px;
+                padding: 10px 12px;
+            }
+
+            .send-button {
+                padding: 10px 16px;
+                font-size: 14px;
+            }
+
+            .theme-toggle, .export-button {
+                top: 10px;
+                padding: 8px;
+            }
+
+            .theme-toggle {
+                left: 10px;
+            }
+
+            .export-button {
+                right: 10px;
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+
+            /* Mobile header layout */
+            .header-content {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+
+            .header-left {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .header-text {
+                text-align: center;
+            }
+
+            .logout-button {
+                padding: 10px 16px;
+                font-size: 13px;
+                min-height: 44px;
+            }
+            
+            .logout-text {
+                display: block;
+            }
+            
+            .logout-button i {
+                font-size: 16px;
+            }
+        }
+
+        /* Accessibility improvements */
+        .chat-bubble:focus-within {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+
+        .input-area input:focus {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            .chat-bubble {
+                border: 2px solid #000;
+            }
+            
+            .input-area {
+                border: 2px solid #000;
+            }
+        }
+
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+            .chat-bubble, .send-button, .action-button {
+                animation: none;
+                transition: none;
+            }
+        }
+
+        /* Screen reader only text */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Custom confirmation modal */
+        .confirmation-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .confirmation-modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .confirmation-content {
+            background: var(--bg-primary);
+            border-radius: 24px;
+            padding: 32px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 40px var(--shadow-color);
+            border: 1px solid var(--border-color);
+            transform: scale(0.9) translateY(20px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .confirmation-modal.show .confirmation-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .confirmation-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        }
+
+        .confirmation-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 28px;
+            color: #d97706;
+            box-shadow: 0 8px 20px rgba(217, 119, 6, 0.2);
+        }
+
+        [data-theme="dark"] .confirmation-icon {
+            background: linear-gradient(135deg, #451a03 0%, #78350f 100%);
+            color: #fbbf24;
+        }
+
+        .confirmation-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
             margin-bottom: 12px;
-            color: #6b7280;
-          ">האבחון והליווי דרך קוד המקור מזמינים אותך להתבונן, להקשיב לעצמך, ולבחור איך לפעול. האחריות על הדרך, הבחירות וההשלכות – היא שלך בלבד.</p>
-          
-          <p style="
-            font-size: 0.9em;
+            line-height: 1.3;
+        }
+
+        .confirmation-message {
+            font-size: 1rem;
+            color: var(--text-secondary);
             line-height: 1.6;
-            margin-bottom: 12px;
-            color: #6b7280;
-          ">אם עולה קושי רגשי עמוק, מצוקה מתמשכת או צורך בתמיכה – חשוב לפנות לאיש מקצוע מתאים.</p>
-          
-          <p style="
-            font-size: 0.9em;
-            line-height: 1.6;
-            font-weight: 500;
-            color: #4f46e5;
-          ">אנחנו כאן רק להזכיר – שהכוח כבר בתוכך.</p>
+            margin-bottom: 32px;
+        }
+
+        .confirmation-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .confirmation-btn {
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            min-width: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .confirmation-btn.cancel {
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .confirmation-btn.cancel:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .confirmation-btn.confirm {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .confirmation-btn.confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .confirmation-btn:active {
+            transform: translateY(0);
+        }
+
+        [data-theme="dark"] .confirmation-btn.cancel {
+            background: rgba(31, 41, 55, 0.9);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        [data-theme="dark"] .confirmation-btn.cancel:hover {
+            background: rgba(31, 41, 55, 1);
+        }
+
+        /* Mobile responsiveness for confirmation modal */
+        @media (max-width: 768px) {
+            .confirmation-content {
+                padding: 24px;
+                margin: 20px;
+            }
+
+            .confirmation-icon {
+                width: 56px;
+                height: 56px;
+                font-size: 24px;
+                margin-bottom: 16px;
+            }
+
+            .confirmation-title {
+                font-size: 1.25rem;
+            }
+
+            .confirmation-message {
+                font-size: 0.9rem;
+                margin-bottom: 24px;
+            }
+
+            .confirmation-buttons {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .confirmation-btn {
+                width: 100%;
+                padding: 14px 20px;
+            }
+        }
+
+        /* Recording microphone button */
+        .action-button.recording {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            border-color: #dc2626;
+            animation: pulse 1.5s ease-in-out infinite;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+        }
+
+        .action-button.recording:hover {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            transform: scale(1.05);
+        }
+
+        .action-button.recording i {
+            color: white;
+        }
+
+        /* Recording indicator animation */
+        @keyframes recordingPulse {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+                transform: scale(1);
+            }
+            50% {
+                box-shadow: 0 0 30px rgba(239, 68, 68, 0.8);
+                transform: scale(1.05);
+            }
+        }
+
+        .action-button.recording {
+            animation: recordingPulse 1.5s ease-in-out infinite;
+        }
+
+        /* Transcription feedback */
+        .transcription-feedback {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.95) 0%, rgba(139, 92, 246, 0.95) 100%);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 80vw;
+            text-align: center;
+        }
+
+        .transcription-feedback.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        [data-theme="dark"] .transcription-feedback {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.9) 0%, rgba(139, 92, 246, 0.9) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Theme toggle -->
+    <button class="theme-toggle" onclick="toggleTheme()" title="החלף ערכת נושא" aria-label="החלף ערכת נושא">
+        <i class="fas fa-moon"></i>
+    </button>
+
+    <!-- Export button -->
+    <button class="export-button" onclick="exportChat()" title="ייצא שיחה" aria-label="ייצא שיחה">
+        <i class="fas fa-download"></i> ייצא
+    </button>
+
+    <!-- Floating logout button (below export and theme toggle) -->
+    <button class="floating-logout-button" onclick="handleThankYouClick()" title="סיים שיחה וחזור להתחברות" aria-label="סיים שיחה וחזור להתחברות">
+        <i class="fas fa-sign-out-alt"></i>
+        סיים שיחה
+    </button>
+
+    <style>
+        .floating-logout-button {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            color: var(--primary-color);
+            padding: 10px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+        [data-theme="dark"] .floating-logout-button {
+            background: rgba(31, 41, 55, 0.9);
+            border: 1px solid rgba(129, 140, 248, 0.2);
+            color: var(--primary-color);
+        }
+        .floating-logout-button:hover {
+            background: rgba(99, 102, 241, 0.1);
+            transform: translateY(-1px);
+        }
+        .floating-logout-button i {
+            font-size: 16px;
+        }
+        @media (max-width: 768px) {
+            .floating-logout-button {
+                top: 60px;
+                right: 12px;
+                padding: 10px 12px;
+                font-size: 13px;
+            }
+        }
+    </style>
+
+    <!-- Header with improved layout -->
+    <header class="header-gradient text-white p-6 relative">
+        <div class="header-content">
+            <!-- Logo and title section -->
+            <div class="header-left">
+                <a href="https://www.pdn.co.il" target="_blank" class="logo-link">
+                    <img src="/static/images/pdn_logo.png" alt="PDN Logo" class="header-logo" />
+                </a>
+                <div class="header-text">
+                    <h1 class="text-2xl font-bold mb-2">בינת קוד המקור</h1>
+                    <p class="text-lg opacity-90">שיחה עם הנווט הפנימי</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main container -->
+    <div class="container mx-auto p-6 max-w-4xl">
+        <div class="chat-container" id="chatContainer">
+            <!-- Chat messages will be inserted here -->
+        </div>
+
+        <!-- Enhanced input area -->
+        <div class="input-area">
+            <input type="text" id="userInput" 
+                   placeholder="כתוב לי עכשיו..." 
+                   lang="he-IL"
+                   onkeydown="handleKeyPress(event)"
+                   aria-label="הודעת טקסט" />
+            
+            <button class="action-button" onclick="toggleMicrophone()" title="הקלטה קולית" id="micBtn" aria-label="הקלטה קולית">
+                <i class="fas fa-microphone"></i>
+            </button>
+            
+            <button class="send-button" onclick="sendMessage()" id="sendBtn" aria-label="שלח הודעה">
+                <i class="fas fa-paper-plane"></i> שלח
+            </button>
         </div>
     </div>
-  </div>
-</body>
 
+    <!-- Custom Confirmation Modal -->
+    <div class="confirmation-modal" id="confirmationModal">
+        <div class="confirmation-content">
+            <div class="confirmation-icon">
+                <i class="fas fa-question"></i>
+            </div>
+            <h3 class="confirmation-title">סיים שיחה</h3>
+            <p class="confirmation-message">האם אתה בטוח שברצונך לסיים את השיחה ולחזור לדף ההתחברות?</p>
+            <div class="confirmation-buttons">
+                <button class="confirmation-btn cancel" onclick="hideConfirmationModal()">
+                    <i class="fas fa-times"></i>
+                    ביטול
+                </button>
+                <button class="confirmation-btn confirm" onclick="confirmLogout()">
+                    <i class="fas fa-check"></i>
+                    אישור
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        const USER_NAME = "{{ user_name }}";
+        const USER_ID = "{{ user_id }}";
+        let isDarkMode = false;
+        let messageQueue = [];
+        let isProcessing = false;
+        
+        // Voice recording variables
+        let speechRecognition = null;
+        let isListening = false;
+        let finalTranscript = '';
+        let interimTranscript = '';
+
+        // Utility functions
+        function getCurrentTime() {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            return `${hours}:${minutes}`;
+        }
+
+        // Initialize Web Speech API
+        function initializeSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (!SpeechRecognition) {
+                console.warn('Speech recognition not supported');
+                return null;
+            }
+
+            const recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'he-IL'; // Hebrew language
+            recognition.maxAlternatives = 1;
+
+            recognition.onstart = () => {
+                isListening = true;
+                finalTranscript = '';
+                interimTranscript = '';
+                updateMicrophoneUI(true);
+                showTranscriptionFeedback('🎤 מקשיב...');
+            };
+
+            recognition.onresult = (event) => {
+                let interimTranscript = '';
+                let finalTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript;
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+
+                // Update the input field with real-time transcription
+                const userInput = document.getElementById('userInput');
+                userInput.value = finalTranscript + interimTranscript;
+                
+                // Show real-time feedback
+                if (interimTranscript) {
+                    showTranscriptionFeedback(`🎤 מקשיב... "${interimTranscript}"`);
+                } else if (finalTranscript) {
+                    showTranscriptionFeedback(`✅ הושלם: "${finalTranscript}"`);
+                }
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                isListening = false;
+                updateMicrophoneUI(false);
+                hideTranscriptionFeedback();
+                
+                let errorMessage = 'שגיאה בהקלטה';
+                switch (event.error) {
+                    case 'no-speech':
+                        errorMessage = 'לא זוהתה דיבור';
+                        break;
+                    case 'audio-capture':
+                        errorMessage = 'בעיה במיקרופון';
+                        break;
+                    case 'not-allowed':
+                        errorMessage = 'אין הרשאה למיקרופון';
+                        break;
+                    case 'network':
+                        errorMessage = 'בעיית רשת';
+                        break;
+                }
+                showError(errorMessage);
+            };
+
+            recognition.onend = () => {
+                isListening = false;
+                updateMicrophoneUI(false);
+                hideTranscriptionFeedback();
+                
+                // If we have final transcript, send the message
+                const userInput = document.getElementById('userInput');
+                if (userInput.value.trim()) {
+                    // Auto-focus on input for potential editing
+                    userInput.focus();
+                    userInput.setSelectionRange(userInput.value.length, userInput.value.length);
+                    
+                    // Auto-send after a short delay
+                    setTimeout(() => {
+                        if (userInput.value.trim() && !isListening) {
+                            sendMessage();
+                        }
+                    }, 1000);
+                }
+            };
+
+            return recognition;
+        }
+
+        // Update microphone button UI
+        function updateMicrophoneUI(isActive) {
+            const micBtn = document.getElementById('micBtn');
+            const micIcon = micBtn.querySelector('i');
+            
+            if (isActive) {
+                micBtn.classList.add('recording');
+                micIcon.className = 'fas fa-stop';
+                micBtn.title = 'עצור הקלטה';
+                micBtn.setAttribute('aria-label', 'עצור הקלטה');
+            } else {
+                micBtn.classList.remove('recording');
+                micIcon.className = 'fas fa-microphone';
+                micBtn.title = 'הקלטה קולית';
+                micBtn.setAttribute('aria-label', 'הקלטה קולית');
+            }
+        }
+
+        // Show transcription feedback
+        function showTranscriptionFeedback(message) {
+            let feedback = document.getElementById('transcriptionFeedback');
+            if (!feedback) {
+                feedback = document.createElement('div');
+                feedback.id = 'transcriptionFeedback';
+                feedback.className = 'transcription-feedback';
+                document.body.appendChild(feedback);
+            }
+            
+            feedback.textContent = message;
+            feedback.classList.add('show');
+        }
+
+        // Hide transcription feedback
+        function hideTranscriptionFeedback() {
+            const feedback = document.getElementById('transcriptionFeedback');
+            if (feedback) {
+                feedback.classList.remove('show');
+            }
+        }
+
+        // Voice recording and speech recognition functionality
+        function toggleMicrophone() {
+            if (!speechRecognition) {
+                speechRecognition = initializeSpeechRecognition();
+                if (!speechRecognition) {
+                    showError('הדפדפן שלך אינו תומך בהקלטה קולית');
+                    return;
+                }
+            }
+
+            if (isListening) {
+                // Stop listening
+                speechRecognition.stop();
+            } else {
+                // Start listening
+                try {
+                    speechRecognition.start();
+                } catch (error) {
+                    console.error('Error starting speech recognition:', error);
+                    showError('שגיאה בהתחלת ההקלטה');
+                }
+            }
+        }
+
+        // Security: Input sanitization function
+        function sanitizeInput(input) {
+            const div = document.createElement('div');
+            div.textContent = input;
+            return div.innerHTML;
+        }
+
+        // Security: XSS prevention for markdown
+        function safeMarkdownParse(text) {
+            // First sanitize the input
+            const sanitized = sanitizeInput(text);
+            // Then parse with marked (which should be configured to escape HTML)
+            return marked.parse(sanitized);
+        }
+
+        // Error handling utility
+        function showError(message, duration = 5000) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${sanitizeInput(message)}`;
+            
+            const chatContainer = document.getElementById('chatContainer');
+            chatContainer.appendChild(errorDiv);
+            scrollToBottom();
+            
+            setTimeout(() => {
+                if (errorDiv.parentNode) {
+                    errorDiv.remove();
+                }
+            }, duration);
+        }
+
+        // Enhanced scroll management
+        let userScrolledUp = false;
+        let lastScrollTop = 0;
+
+        // Check if user has manually scrolled up
+        function checkUserScroll() {
+            const chatContainer = document.getElementById('chatContainer');
+            if (!chatContainer) return;
+            
+            const currentScrollTop = chatContainer.scrollTop;
+            const scrollHeight = chatContainer.scrollHeight;
+            const clientHeight = chatContainer.clientHeight;
+            
+            // User is considered to have scrolled up if they're not at the bottom
+            // and the scroll position has changed (not just initial load)
+            if (lastScrollTop > 0) {
+                userScrolledUp = currentScrollTop + clientHeight < scrollHeight - 10;
+            }
+            
+            lastScrollTop = currentScrollTop;
+        }
+
+        // Enhanced scroll to bottom with smart behavior
+        function scrollToBottom(force = false) {
+            const chatContainer = document.getElementById('chatContainer');
+            if (!chatContainer) return;
+            
+            // Don't auto-scroll if user manually scrolled up (unless forced)
+            if (userScrolledUp && !force) {
+                return;
+            }
+            
+            // Use requestAnimationFrame to ensure DOM is updated
+            requestAnimationFrame(() => {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                userScrolledUp = false; // Reset flag after auto-scrolling
+            });
+        }
+
+        // Enhanced scroll to bottom with delay
+        function scrollToBottomDelayed(delay = 100, force = false) {
+            setTimeout(() => {
+                scrollToBottom(force);
+            }, delay);
+        }
+
+        // Smooth scroll to bottom
+        function smoothScrollToBottom(force = false) {
+            const chatContainer = document.getElementById('chatContainer');
+            if (!chatContainer) return;
+            
+            // Don't auto-scroll if user manually scrolled up (unless forced)
+            if (userScrolledUp && !force) {
+                return;
+            }
+            
+            const lastMessage = chatContainer.lastElementChild;
+            if (lastMessage) {
+                lastMessage.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'end',
+                    inline: 'nearest'
+                });
+                userScrolledUp = false; // Reset flag after auto-scrolling
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            } else if (event.key === 'Tab') {
+                event.preventDefault();
+                // Navigate between controls
+                const controls = ['userInput', 'micBtn', 'sendBtn'];
+                const currentIndex = controls.indexOf(document.activeElement.id);
+                const nextIndex = (currentIndex + 1) % controls.length;
+                document.getElementById(controls[nextIndex]).focus();
+            }
+        }
+
+        // Theme toggle with proper state management
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+            
+            const themeIcon = document.querySelector('.theme-toggle i');
+            themeIcon.className = isDarkMode ? 'fas fa-sun' : 'fas fa-moon';
+            
+            // Save preference
+            localStorage.setItem('darkMode', isDarkMode);
+        }
+
+        // Enhanced export chat with better formatting
+        function exportChat() {
+            try {
+                const chatContainer = document.getElementById('chatContainer');
+                const messages = Array.from(chatContainer.querySelectorAll('.chat-bubble'));
+                
+                let exportText = `שיחת בינת קוד המקור - ${new Date().toLocaleDateString('he-IL')}\n`;
+                exportText += '='.repeat(50) + '\n\n';
+                
+                messages.forEach(msg => {
+                    const isUser = msg.classList.contains('user');
+                    const content = msg.querySelector('.message-content').textContent;
+                    const time = msg.querySelector('.message-time').textContent;
+                    const sender = isUser ? USER_NAME : 'בינת קוד המקור';
+                    
+                    exportText += `[${time}] ${sender}:\n${content}\n\n`;
+                });
+                
+                const blob = new Blob([exportText], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `chat-export-${new Date().toISOString().split('T')[0]}.txt`;
+                a.click();
+                
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                console.error('Export error:', error);
+                showError('שגיאה בייצוא השיחה');
+            }
+        }
+
+        // Enhanced send message function with queue and error handling
+        async function sendMessage() {
+            const input = document.getElementById("userInput");
+            const sendBtn = document.getElementById("sendBtn");
+            const message = input.value.trim();
+
+            if (message === "" || isProcessing) return;
+
+            // Check if user typed "תודה על השיחה" manually
+            if (message.toLowerCase().includes("תודה על השיחה") || 
+                message.toLowerCase().includes("תודה") && message.toLowerCase().includes("שיחה")) {
+                handleThankYouClick();
+                return;
+            }
+
+            // Add to queue
+            messageQueue.push(message);
+            input.value = "";
+            
+            // Process queue
+            if (!isProcessing) {
+                processMessageQueue();
+            }
+        }
+
+        async function processMessageQueue() {
+            if (messageQueue.length === 0) return;
+            
+            isProcessing = true;
+            const message = messageQueue.shift();
+            
+            const sendBtn = document.getElementById("sendBtn");
+            const chatContainer = document.getElementById("chatContainer");
+
+            // Show loading state
+            sendBtn.innerHTML = '<span class="loading-spinner"></span>';
+            sendBtn.disabled = true;
+
+            // Create user message bubble
+            const userBubble = document.createElement("div");
+            userBubble.className = "chat-bubble user animated";
+            userBubble.innerHTML = `
+                <div class="message-content">${safeMarkdownParse(message)}</div>
+                <div class="message-time">${getCurrentTime()}</div>
+            `;
+
+            chatContainer.appendChild(userBubble);
+            scrollToBottomDelayed(50, true); // Force scroll for new user message
+
+            // Show typing indicator
+            const typing = document.createElement("div");
+            typing.className = "typing-indicator";
+            typing.innerHTML = `
+                <i class="fas fa-robot"></i>
+                בינת מקוד המקור מקליד/ה
+                <div class="typing-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            `;
+            chatContainer.appendChild(typing);
+            scrollToBottomDelayed(50, true); // Force scroll for typing indicator
+
+            try {
+                const res = await fetch("/pdn-chat-ai/chat", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Requested-With": "XMLHttpRequest"
+                    },
+                    body: JSON.stringify({
+                        message: sanitizeInput(message),
+                        user_name: USER_NAME,
+                        user_id: USER_ID
+                    })
+                });
+
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+
+                const data = await res.json();
+                typing.remove();
+
+                // Create bot message bubble
+                const botBubble = document.createElement("div");
+                botBubble.className = "chat-bubble bot animated";
+                botBubble.innerHTML = `
+                    <div class="message-content">${safeMarkdownParse(data.message || data.response || 'מצטער, אירעה שגיאה. אנא נסה שוב.')}</div>
+                    <div class="message-time">${getCurrentTime()}</div>
+                `;
+
+                chatContainer.appendChild(botBubble);
+                scrollToBottomDelayed(100, true); // Force scroll for bot message
+
+                // Add quick reply buttons for bot messages
+                addQuickReplies(botBubble);
+                scrollToBottomDelayed(200, true); // Force scroll after quick replies
+
+            } catch (error) {
+                console.error('Error sending message:', error);
+                typing.remove();
+                showError('שגיאה בשליחת ההודעה לשרת');
+            } finally {
+                // Restore button state
+                sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> שלח';
+                sendBtn.disabled = false;
+                isProcessing = false;
+                
+                // Process next message in queue
+                if (messageQueue.length > 0) {
+                    setTimeout(processMessageQueue, 100);
+                }
+            }
+        }
+
+        // Add quick reply buttons
+        function addQuickReplies(botBubble) {
+            const quickReplies = [
+                "תוכל/י להסביר יותר על הקוד שלי?",
+                "איך אני יכול/ה להשתמש בזה בחיי היומיום?",
+                "מה השלב הבא במסע שלי?",
+                "תודה על השיחה"
+            ];
+
+            const quickRepliesDiv = document.createElement("div");
+            quickRepliesDiv.className = "quick-replies";
+            
+            quickReplies.forEach(reply => {
+                const button = document.createElement("button");
+                button.className = "quick-reply-btn";
+                button.textContent = reply;
+                button.onclick = () => {
+                    // Special handling for "תודה על השיחה" - redirect to login
+                    if (reply === "תודה על השיחה") {
+                        handleThankYouClick();
+                    } else {
+                        document.getElementById("userInput").value = reply;
+                        sendMessage();
+                    }
+                };
+                quickRepliesDiv.appendChild(button);
+            });
+
+            botBubble.appendChild(quickRepliesDiv);
+        }
+
+        // Handle "תודה על השיחה" click - redirect to login page
+        function handleThankYouClick() {
+            // Show custom confirmation modal
+            showConfirmationModal();
+        }
+
+        // Custom confirmation modal functions
+        function showConfirmationModal() {
+            const modal = document.getElementById('confirmationModal');
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+            
+            // Focus on the first button for accessibility
+            setTimeout(() => {
+                modal.querySelector('.confirmation-btn.cancel').focus();
+            }, 100);
+        }
+
+        function hideConfirmationModal() {
+            const modal = document.getElementById('confirmationModal');
+            modal.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        function confirmLogout() {
+            hideConfirmationModal();
+            
+            // Clear session storage
+            sessionStorage.removeItem('username');
+            
+            // Clear any stored chat data
+            localStorage.removeItem('binat_chat_history');
+            
+            // Show goodbye message before redirecting
+            const chatContainer = document.getElementById("chatContainer");
+            const goodbyeBubble = document.createElement("div");
+            goodbyeBubble.className = "chat-bubble bot animated";
+            goodbyeBubble.innerHTML = `
+                <div class="message-content">
+                    🌿 תודה לך על השיחה היפה!<br>
+                    בינת קוד המקור תמיד כאן בשבילך.<br>
+                    עד הפעם הבאה... 💜
+                </div>
+                <div class="message-time">${getCurrentTime()}</div>
+            `;
+            
+            chatContainer.appendChild(goodbyeBubble);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            
+            // Redirect after a short delay to show the goodbye message
+            setTimeout(() => {
+                window.location.href = '/pdn-chat-ai/';
+            }, 2000);
+        }
+
+        // Handle escape key to close modal
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                hideConfirmationModal();
+            }
+        });
+
+        // Handle click outside modal to close
+        document.addEventListener('click', function(e) {
+            const modal = document.getElementById('confirmationModal');
+            if (e.target === modal) {
+                hideConfirmationModal();
+            }
+        });
+
+        // Initialize chat with proper error handling
+        document.addEventListener("DOMContentLoaded", function () {
+            try {
+                // Load theme preference
+                const savedTheme = localStorage.getItem('darkMode');
+                if (savedTheme === 'true') {
+                    isDarkMode = true;
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    const themeIcon = document.querySelector('.theme-toggle i');
+                    themeIcon.className = 'fas fa-sun';
+                }
+
+                // Set up scroll tracking
+                const chatContainer = document.getElementById('chatContainer');
+                if (chatContainer) {
+                    chatContainer.addEventListener('scroll', checkUserScroll);
+                }
+
+                // Add welcome message
+                const initialBot = document.createElement("div");
+                initialBot.className = "chat-bubble bot animated";
+                
+                const rawMessage = `🌿 ברוך הבא, ${USER_NAME}\nבינת מקוד המקור ממתינה לך כאן, בקצב שלך.\n\nאם יש שאלה שלא עוזבת, דפוס שחוזר, או תחושה לא פתורה –\nבוא נסתכל עליה יחד.\nבלי למהר. בלי לשפוט. רק להבין מה פועל בך עכשיו.`;
+                const formattedMessage = rawMessage.replace(/\n/g, '<br>');
+
+                initialBot.innerHTML = `
+                    <div class="message-content">${formattedMessage}</div>
+                    <div class="message-time">${getCurrentTime()}</div>
+                `;
+
+                chatContainer.appendChild(initialBot);
+                addQuickReplies(initialBot);
+
+                // Focus on input
+                document.getElementById("userInput").focus();
+                
+                // Load chat history
+                loadChatHistory();
+                
+            } catch (error) {
+                console.error('Initialization error:', error);
+                showError('שגיאה בטעינת הממשק');
+            }
+        });
+
+        // Load chat history with error handling
+        async function loadChatHistory() {
+            try {
+                const response = await fetch('/pdn-chat-ai/history');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const history = await response.json();
+                
+                if (history.messages && history.messages.length > 0) {
+                    const chatContainer = document.getElementById("chatContainer");
+                    
+                    history.messages.forEach(msg => {
+                        const bubble = document.createElement("div");
+                        bubble.className = `chat-bubble ${msg.type} animated`;
+                        bubble.innerHTML = `
+                            <div class="message-content">${safeMarkdownParse(msg.content)}</div>
+                            <div class="message-time">${msg.timestamp}</div>
+                        `;
+                        chatContainer.appendChild(bubble);
+                    });
+                    scrollToBottom();
+                }
+            } catch (error) {
+                console.error('Error loading chat history:', error);
+                // Don't show error for history loading failure
+            }
+        }
+
+        // Configure marked for security
+        if (typeof marked !== 'undefined') {
+            marked.setOptions({
+                breaks: true,
+                gfm: true,
+                sanitize: false, // We handle sanitization manually
+                smartLists: true,
+                smartypants: true
+            });
+        }
+    </script>
+
+    <!-- Custom Confirmation Modal -->
+    <div class="confirmation-modal" id="confirmationModal">
+        <div class="confirmation-content">
+            <div class="confirmation-icon">
+                <i class="fas fa-question"></i>
+            </div>
+            <h3 class="confirmation-title">סיים שיחה</h3>
+            <p class="confirmation-message">האם אתה בטוח שברצונך לסיים את השיחה ולחזור לדף ההתחברות?</p>
+            <div class="confirmation-buttons">
+                <button class="confirmation-btn cancel" onclick="hideConfirmationModal()">
+                    <i class="fas fa-times"></i>
+                    ביטול
+                </button>
+                <button class="confirmation-btn confirm" onclick="confirmLogout()">
+                    <i class="fas fa-check"></i>
+                    אישור
+                </button>
+            </div>
+        </div>
+    </div>
+</body>
 </html> 
