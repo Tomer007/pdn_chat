@@ -120,20 +120,58 @@
                         <i class="fas fa-globe mr-2"></i>
                         אתר רשמי
                     </a>
-                    <span class="flex items-center">
-                        <i class="fas fa-shield-alt mr-2"></i>
-                        מערכת מאובטחת
+                    <span class="flex items-center cursor-pointer hover:text-indigo-600 transition-colors" onclick="openWhatsApp()">
+                        <i class="fab fa-whatsapp mr-2"></i>
+                        יצירת קשר
                     </span>
                 </div>
 
-                <!-- Copyright -->
-                <div class="border-t border-gray-200 pt-4">
-                    <p class="text-xs text-gray-500">
-                        © 2024 PDN Center כל הזכויות שמורות
-                    </p>
-                    <p class="text-xs text-gray-400 mt-2">
-                        מערכת ניהול נתוני אבחון פדן - גרסה 1.0
-                    </p>
+                <!-- Disclaimer -->
+                <div style="
+                  background: rgba(255, 255, 255, 0.1);
+                  backdrop-filter: blur(10px);
+                  border-radius: 12px;
+                  padding: 16px;
+                  margin: 16px auto;
+                  width: 100%;
+                  border: 1px solid rgba(255, 255, 255, 0.2);
+                  text-align: right;
+                  direction: rtl;
+                ">
+                  <h3 style="
+                    font-size: 1em;
+                    font-weight: 600;
+                    margin-bottom: 10px;
+                    color: #374151;
+                  ">הסכמה מודעת למסע עם קוד המקור – הצופן האישי שלך</h3>
+                  
+                  <p style="
+                    font-size: 0.8em;
+                    line-height: 1.6;
+                    margin-bottom: 10px;
+                    color: #6b7280;
+                  ">המסע עם קוד המקור נועד לעורר תודעה, לאפשר גילוי עצמי, ולהאיר כיוונים פנימיים. הוא לא מחליף ייעוץ או טיפול מקצועי – רגשי, רפואי או אחר – ואינו מתיימר לאבחן או לרפא.</p>
+                  
+                  <p style="
+                    font-size: 0.8em;
+                    line-height: 1.6;
+                    margin-bottom: 10px;
+                    color: #6b7280;
+                  ">האבחון והליווי דרך קוד המקור מזמינים אותך להתבונן, להקשיב לעצמך, ולבחור איך לפעול. האחריות על הדרך, הבחירות וההשלכות – היא שלך בלבד.</p>
+                  
+                  <p style="
+                    font-size: 0.8em;
+                    line-height: 1.6;
+                    margin-bottom: 10px;
+                    color: #6b7280;
+                  ">אם עולה קושי רגשי עמוק, מצוקה מתמשכת או צורך בתמיכה – חשוב לפנות לאיש מקצוע מתאים.</p>
+                  
+                  <p style="
+                    font-size: 0.8em;
+                    line-height: 1.6;
+                    font-weight: 500;
+                    color: #4f46e5;
+                  ">אנחנו כאן רק להזכיר – שהכוח כבר בתוכך.</p>
                 </div>
             </div>
         </div>
@@ -145,6 +183,14 @@
     const loginError = document.getElementById('loginError');
     const usernameInput = document.getElementById('username');
     const submitButton = form.querySelector('button[type="submit"]');
+
+    // Function to open WhatsApp
+    function openWhatsApp() {
+        const phoneNumber = '972501234567'; // Replace with actual phone number
+        const message = 'שלום, אני מעוניין/ת במידע נוסף על בינת קוד המקור';
+        const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+        window.open(whatsappUrl, '_blank');
+    }
 
     // Function to generate UUID
     function generateUUID() {
