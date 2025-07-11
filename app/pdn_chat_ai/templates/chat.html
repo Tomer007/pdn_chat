@@ -806,12 +806,7 @@
             <div class="user-message" dir="rtl" style="text-align: right;">
               <span class="user-label">${USER_NAME}</span>
               <div class="message-content" dir="rtl" style="text-align: right;"></div>
-              <div class="message-meta">
-                <span class="message-status sent">
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
-                  </svg>
-                </span>
+              <div class="message-meta" 
                 <span class="message-time">${getCurrentTime()}</span>
               </div>
             </div>
@@ -859,15 +854,12 @@
           botBubble.className = "chat-bubble bot animated";
           botBubble.innerHTML = `
             <div style="display: flex; align-items: flex-end;">
-              <div class="avatar bot"><i class="fas fa-robot"></i></div>
-              <div style="flex:1">
                 <div class="bot-message" dir="rtl" style="text-align: right;">
-                  <span class="bot-label">בינת קוד המקור</span></br>
+                  <span class="bot-label">בינת קוד המקור</span>
                   <div class="message-content" dir="rtl" style="text-align: right;"></div>
                   <div class="message-meta">
-                    <span class="message-time">${getCurrentTime()}</span>
+                    <span class="message-time">${getCurrentTime()}</span>                  
                   </div>
-                </div>
               </div>
             </div>
           `;
@@ -1004,17 +996,15 @@
 
       const initialBot = document.createElement("div");
       initialBot.className = "chat-bubble bot animated";
-      const rawMessage = `היי ${USER_NAME}, אני בינת מקוד המקור. אם יש לך שאלה, דפוס שחוזר או תחושה לא פתורה – בוא ננסה להסתכל עליה יחד.`;
+      const rawMessage = `🌿 ברוך הבא, ${USER_NAME}\nבינת מקוד המקור ממתינה לך כאן, בקצב שלך.\nאם יש שאלה שלא עוזבת, דפוס שחוזר, או תחושה לא פתורה –\nבוא נסתכל עליה יחד.\nבלי למהר. בלי לשפוט. רק להבין מה פועל בך עכשיו.`;
       const formattedMessage = rawMessage.replace(/\n/g, '<br>');
 
       initialBot.innerHTML = `
-        <div class="bot-message" dir="rtl" style="text-align: right;">
-          <span class="bot-label">בינת קוד המקור</span><br>
-          <div class="message-content" dir="rtl" style="text-align: right;">
-            ${formattedMessage}
-          </div>          
-          <div class="message-meta">
-            <span class="message-time">${getCurrentTime()}</span>
+        <div style="display: flex; align-items: flex-end;">
+            <div class="bot-message" dir="rtl" style="text-align: right;">
+              <div class="message-content" dir="rtl" style="text-align: right;">
+                ${formattedMessage}
+              </div>
           </div>
         </div>
       `;
@@ -1037,7 +1027,7 @@
     <div style="text-align: center; width: 100%; position: relative; z-index: 2;">
       
     <h1 class="text-xl sm:text-1xl font-semibold bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 bg-clip-text text-transparent">
-    בינת קוד המקור
+      בינת קוד המקור - שיחה עם הנווט הפנימי
     </h1>
     </div>
     
