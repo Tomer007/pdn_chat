@@ -1068,11 +1068,9 @@
     <!-- Custom Confirmation Modal -->
     <div class="confirmation-modal" id="confirmationModal">
         <div class="confirmation-content">
-            <div class="confirmation-icon">
-                <i class="fas fa-question"></i>
-            </div>
             <h3 class="confirmation-title">סיים שיחה</h3>
             <p class="confirmation-message">האם אתה בטוח שברצונך לסיים את השיחה ולחזור לדף ההתחברות?</p>
+            <p class="confirmation-message">שים לב: השיחה לא תישמר. אם ברצונך לשמור את תוכן השיחה, אנא ייצא אותה לפני היציאה.</p>
             <div class="confirmation-buttons">
                 <button class="confirmation-btn cancel" onclick="hideConfirmationModal()">
                     <i class="fas fa-times"></i>
@@ -1434,9 +1432,9 @@
 
             if (message === "" || isProcessing) return;
 
-            // Check if user typed "תודה על השיחה" manually
-            if (message.toLowerCase().includes("תודה על השיחה") || 
-                message.toLowerCase().includes("תודה") && message.toLowerCase().includes("שיחה")) {
+            // Check if user typed ""סיים שיחה" manually
+            if (message.toLowerCase().includes("סיים שיחה") || 
+                message.toLowerCase().includes("סיים") && message.toLowerCase().includes("שיחה")) {
                 handleThankYouClick();
                 return;
             }
@@ -1549,7 +1547,7 @@
                 "תוכל/י להסביר יותר על הקוד שלי?",
                 "איך אני יכול/ה להשתמש בזה בחיי היומיום?",
                 "מה השלב הבא במסע שלי?",
-                "תודה על השיחה"
+                "סיים שיחה"
             ];
 
             const quickRepliesDiv = document.createElement("div");
@@ -1739,7 +1737,7 @@
                 <i class="fas fa-question"></i>
             </div>
             <h3 class="confirmation-title">סיים שיחה</h3>
-            <p class="confirmation-message">האם אתה בטוח שברצונך לסיים את השיחה ולחזור לדף ההתחברות?</p>
+            
             <div class="confirmation-buttons">
                 <button class="confirmation-btn cancel" onclick="hideConfirmationModal()">
                     <i class="fas fa-times"></i>
