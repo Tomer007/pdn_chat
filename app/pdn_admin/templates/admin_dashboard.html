@@ -492,14 +492,14 @@
         <form id="editDiagnoseForm" class="space-y-4">
             <div>
                 <label for="diagnosePdnCode" class="block text-sm font-medium text-gray-700 mb-2">
-                    <i class="fas fa-code mr-2"></i>קוד PDN אבחון
+                    <i></i><span>קוד PDN אבחון</span>
                 </label>
                 <input type="text" id="diagnosePdnCode" name="diagnose_pdn_code" required
                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300">
             </div>
             <div>
                 <label for="diagnoseComments" class="block text-sm font-medium text-gray-700 mb-2">
-                    <i></i>הערות אבחון
+                    <i ></i><span>הערות אבחון</span>
                 </label>
                 <textarea id="diagnoseComments" name="diagnose_comments" rows="4" required
                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"></textarea>
@@ -1124,7 +1124,7 @@ function displayVoice(data) {
     const content = document.getElementById('voiceContent');
     
     // Check if we have the required data
-    if (!data || !data.voice_url) {
+    if (!data || !data.voice_recordings || Object.keys(data.voice_recordings).length === 0) {
         content.innerHTML = `
             <div class="bg-red-50 p-6 rounded-xl border border-red-200">
                 <h3 class="text-lg font-semibold mb-4 text-red-800 flex items-center">
@@ -1137,17 +1137,73 @@ function displayVoice(data) {
         return;
     }
     
-    // Fix the path construction - remove 'saved_results/' prefix if it exists
-    let filePath = data.voice_url;
-    if (filePath.startsWith('saved_results/')) {
-        filePath = filePath.substring('saved_results/'.length);
+    // Build HTML for multiple recordings
+    let recordingsHtml = '';
+    const recordings = data.voice_recordings;
+    
+    // Helper function to create audio URL
+    function createAudioUrl(filePath) {
+        // Remove 'saved_results/' prefix if it exists
+        let processedPath = filePath;
+        if (processedPath.startsWith('saved_results/')) {
+            processedPath = processedPath.substring('saved_results/'.length);
+        }
+        return `/pdn-admin/audio/${encodeURIComponent(processedPath)}?session_token=${sessionToken}`;
     }
     
-    const audioUrl = `/pdn-admin/audio/${encodeURIComponent(filePath)}?session_token=${sessionToken}`;
+    // Add question1 recording if exists
+    if (recordings.question1) {
+        const audioUrl = createAudioUrl(recordings.question1.path);
+        recordingsHtml += `
+            <div class="bg-white p-6 rounded-xl border border-gray-200 mb-4">
+                <h4 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
+                    <i class="fas fa-microphone mr-2 text-indigo-600"></i>שאלה 1 - חוויה חיובית
+                </h4>
+                <audio controls class="w-full" preload="metadata">
+                    <source src="${audioUrl}" type="audio/wav">
+                    <source src="${audioUrl}" type="audio/mp3">
+                    <source src="${audioUrl}" type="audio/mpeg">
+                    הדפדפן שלך לא תומך בנגינת אודיו.
+                </audio>
+            </div>
+        `;
+    }
     
-    console.log('Original voice_url:', data.voice_url); // Debug log
-    console.log('Processed filePath:', filePath); // Debug log
-    console.log('Final audio URL:', audioUrl); // Debug log
+    // Add question2 recording if exists
+    if (recordings.question2) {
+        const audioUrl = createAudioUrl(recordings.question2.path);
+        recordingsHtml += `
+            <div class="bg-white p-6 rounded-xl border border-gray-200 mb-4">
+                <h4 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
+                    <i class="fas fa-microphone mr-2 text-purple-600"></i>שאלה 2 - אתגר משמעותי
+                </h4>
+                <audio controls class="w-full" preload="metadata">
+                    <source src="${audioUrl}" type="audio/wav">
+                    <source src="${audioUrl}" type="audio/mp3">
+                    <source src="${audioUrl}" type="audio/mpeg">
+                    הדפדפן שלך לא תומך בנגינת אודיו.
+                </audio>
+            </div>
+        `;
+    }
+    
+    // Add legacy recording if exists
+    if (recordings.legacy) {
+        const audioUrl = createAudioUrl(recordings.legacy.path);
+        recordingsHtml += `
+            <div class="bg-white p-6 rounded-xl border border-gray-200 mb-4">
+                <h4 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
+                    <i class="fas fa-microphone mr-2 text-green-600"></i>הקלטה קולית
+                </h4>
+                <audio controls class="w-full" preload="metadata">
+                    <source src="${audioUrl}" type="audio/wav">
+                    <source src="${audioUrl}" type="audio/mp3">
+                    <source src="${audioUrl}" type="audio/mpeg">
+                    הדפדפן שלך לא תומך בנגינת אודיו.
+                </audio>
+            </div>
+        `;
+    }
     
     content.innerHTML = `
         <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200 mb-6">
@@ -1156,35 +1212,25 @@ function displayVoice(data) {
             </h3>
             <div class="grid grid-cols-2 gap-4">
                 <div><strong>אימייל:</strong> ${data.email || 'לא זמין'}</div>
-                <div><strong>סטטוס:</strong> <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-sm">זמין</span></div>
+                <div><strong>מספר הקלטות:</strong> <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-sm">${Object.keys(recordings).length}</span></div>
             </div>
         </div>
-        <div class="bg-white p-6 rounded-xl border border-gray-200">
-            <h3 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
-                <i class="fas fa-play mr-2 text-indigo-600"></i>הקלטה קולית
-            </h3>
-            <audio controls class="w-full" preload="metadata">
-                <source src="${audioUrl}" type="audio/wav">
-                <source src="${audioUrl}" type="audio/mp3">
-                <source src="${audioUrl}" type="audio/mpeg">
-                הדפדפן שלך לא תומך בנגינת אודיו.
-            </audio>
-        </div>
+        ${recordingsHtml}
     `;
     
     document.getElementById('voiceModal').style.display = 'flex';
     
-    // Add event listeners to the audio element for debugging
-    const audioElement = content.querySelector('audio');
-    if (audioElement) {
-        audioElement.addEventListener('loadstart', () => console.log('Audio loading started'));
-        audioElement.addEventListener('canplay', () => console.log('Audio can play'));
+    // Add event listeners to all audio elements for debugging
+    const audioElements = content.querySelectorAll('audio');
+    audioElements.forEach((audioElement, index) => {
+        audioElement.addEventListener('loadstart', () => console.log(`Audio ${index + 1} loading started`));
+        audioElement.addEventListener('canplay', () => console.log(`Audio ${index + 1} can play`));
         audioElement.addEventListener('error', (e) => {
-            console.error('Audio error:', e);
-            console.error('Audio error details:', audioElement.error);
+            console.error(`Audio ${index + 1} error:`, e);
+            console.error(`Audio ${index + 1} error details:`, audioElement.error);
         });
-        audioElement.addEventListener('loadeddata', () => console.log('Audio data loaded'));
-    }
+        audioElement.addEventListener('loadeddata', () => console.log(`Audio ${index + 1} data loaded`));
+    });
 }
 
 function editDiagnose(email) {

@@ -147,10 +147,6 @@
             <div class="bg-white p-4 rounded border-r-4 border-blue-400">
                 <span>1.</span> ספר לי על חוויה חיובית או מרגשת שחווית בשנה האחרונה. משהו שנגע בך או שימח אותך במיוחד.
             </div>
-            <div class="bg-white p-4 rounded border-r-4 border-blue-400">
-                <span>2.</span> ספר לי על אתגר משמעותי שהתמודדת איתו לאחרונה – משהו שהיה לך לא פשוט, ואיך הצלחת לעבור
-                אותו.
-            </div>
             </br>
             <div>
                 <button id="startRecordBtn"
@@ -170,6 +166,37 @@
             <div id="uploadStatus" class="text-center mt-4 hidden">
                 <div class="text-green-600 font-semibold">הקלטה נשמרה בהצלחה!</div>
             </div>
+        </div>
+    </div>
+
+    <!-- Second Voice Record Area -->
+    <div id="voiceRecordArea2"
+         class="p-6 rounded-xl border border-indigo-100 bg-gradient-to-r from-purple-100 to-indigo-100 text-gray-800 shadow-sm fade-in text-right hidden"
+         dir="rtl">
+        <p class="text-lg mb-4">תודה על התשובה הראשונה!</p>
+        <p class="text-lg mb-4">עכשיו בוא נעמיק קצת יותר. אנא ענה על השאלה הבאה:</p>
+        <div class="bg-white p-4 rounded border-r-4 border-blue-400">
+            <span>2.</span> ספר לי על אתגר משמעותי שהתמודדת איתו לאחרונה – משהו שהיה לך לא פשוט, ואיך הצלחת לעבור
+            אותו.
+        </div>
+        </br>
+        <div>
+            <button id="startRecordBtn2"
+                    class="text-lg py-3 px-7 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl shadow-lg font-semibold">
+                התחל להקליט
+            </button>
+            <button id="stopRecordBtn2"
+                    class="hidden text-lg py-3 px-7 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-xl shadow-lg font-semibold ml-2">
+                סיים הקלטה
+            </button>
+        </div>
+        <div id="recordStatus2" class="text-lg text-purple-700"></div>
+        <div id="visualizer2" class="flex justify-center items-end space-x-1 mb-1"
+             style="height:24px;direction:ltr"></div>
+        <audio id="audioPlayback2" controls class="hidden mx-auto" style="max-width:260px"></audio>
+        <!-- Audio upload status -->
+        <div id="uploadStatus2" class="text-center mt-4 hidden">
+            <div class="text-green-600 font-semibold">הקלטה נשמרה בהצלחה!</div>
         </div>
     </div>
     <div id="questionArea" class="hidden space-y-6">
@@ -260,7 +287,7 @@ startBtn.onclick = async function() {
             
             // Upload audio to backend
             try {
-                const result = await saveUserAudio(currentUsername, audioBlob);
+                const result = await saveUserAudio(currentUsername, audioBlob, 'question1');
                 uploadStatus.classList.remove('hidden');
                 console.log('Audio uploaded successfully:', result);
             } catch (error) {
@@ -304,8 +331,9 @@ stopBtn.onclick = function() {
         finishRecording();
     } else {
         document.getElementById('voiceRecordArea').classList.add('hidden');
-        document.getElementById('questionArea').classList.remove('hidden');
-        loadQuestion(currentQuestion);
+        document.getElementById('voiceRecordArea2').classList.remove('hidden');
+        // Reset the second voice UI
+        resetVoiceUI2();
     }
 };
 
@@ -320,6 +348,107 @@ function resetVoiceUI() {
     uploadStatus.classList.add('hidden');
     if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
     if (recordTimer) clearInterval(recordTimer);
+}
+
+// Second Voice Record Area Logic
+let mediaRecorder2;
+let audioChunks2 = [];
+let recordTimer2 = null;
+let recordElapsed2 = 0;
+
+const startBtn2 = document.getElementById('startRecordBtn2');
+const stopBtn2 = document.getElementById('stopRecordBtn2');
+const recordStatus2 = document.getElementById('recordStatus2');
+const audioPlayback2 = document.getElementById('audioPlayback2');
+const visualizer2 = document.getElementById('visualizer2');
+const uploadStatus2 = document.getElementById('uploadStatus2');
+
+startBtn2.onclick = async function() {
+    audioChunks2 = [];
+    recordStatus2.innerHTML = '<span class="recording">מקליט... (00:00 / 01:00)</span>';
+    startBtn2.classList.add('hidden');
+    stopBtn2.classList.remove('hidden');
+    audioPlayback2.classList.add('hidden');
+    visualizer2.innerHTML = '';
+    // Add fake bars for animation
+    for(let i=0;i<5;i++){
+        const bar = document.createElement('div');
+        bar.className = 'audio-bar';
+        visualizer2.appendChild(bar);
+    }
+    recordElapsed2 = 0;
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder2 = new MediaRecorder(stream);
+        mediaRecorder2.ondataavailable = e => audioChunks2.push(e.data);
+        mediaRecorder2.onstop = async e => {
+            const audioBlob = new Blob(audioChunks2, { type: 'audio/webm' });
+            audioPlayback2.src = URL.createObjectURL(audioBlob);
+            audioPlayback2.classList.remove('hidden');
+            visualizer2.innerHTML = '';
+            
+            // Upload audio to backend with different filename
+            try {
+                const result = await saveUserAudio(currentUsername, audioBlob, 'question2');
+                uploadStatus2.classList.remove('hidden');
+                console.log('Second audio uploaded successfully:', result);
+            } catch (error) {
+                console.error('Failed to upload second audio:', error);
+                uploadStatus2.classList.remove('hidden');
+                uploadStatus2.innerHTML = '<div class="text-red-600 font-semibold">שגיאה בשמירת ההקלטה</div>';
+            }
+        };
+        mediaRecorder2.start();
+        // Timer for duration
+        recordTimer2 = setInterval(() => {
+            recordElapsed2++;
+            let sec = recordElapsed2 % 60, min = Math.floor(recordElapsed2 / 60);
+            recordStatus2.innerHTML = `<span class="recording">מקליט... (${("0"+min).slice(-2)}:${("0"+sec).slice(-2)} / 01:00)</span>`;
+            if(recordElapsed2 >= 60) {
+                finishRecording2();
+            }
+        }, 1000);
+    } catch (err) {
+        recordStatus2.innerHTML = '<span class="text-red-600 font-semibold">שגיאה בגישה למיקרופון</span>';
+        stopBtn2.classList.add('hidden');
+        startBtn2.classList.remove('hidden');
+        visualizer2.innerHTML = '';
+    }
+};
+
+function finishRecording2() {
+    if (mediaRecorder2 && mediaRecorder2.state === 'recording') {
+        mediaRecorder2.stop();
+        clearInterval(recordTimer2);
+        recordStatus2.innerHTML = '<span class="text-black-600 font-bold">ההקלטה הסתיימה.</span>';
+        stopBtn2.innerText = 'המשך לאיבחון';
+        stopBtn2.classList.remove('hidden');
+        startBtn2.classList.add('hidden');
+        visualizer2.innerHTML = '';
+    }
+}
+
+stopBtn2.onclick = function() {
+    if (mediaRecorder2 && mediaRecorder2.state === 'recording') {
+        finishRecording2();
+    } else {
+        document.getElementById('voiceRecordArea2').classList.add('hidden');
+        document.getElementById('questionArea').classList.remove('hidden');
+        loadQuestion(currentQuestion);
+    }
+};
+
+function resetVoiceUI2() {
+    startBtn2.classList.remove('hidden');
+    stopBtn2.classList.add('hidden');
+    stopBtn2.innerText = 'סיים הקלטה';
+    recordStatus2.innerHTML = '';
+    audioPlayback2.classList.add('hidden');
+    audioPlayback2.src = '';
+    visualizer2.innerHTML = '';
+    uploadStatus2.classList.add('hidden');
+    if (mediaRecorder2 && mediaRecorder2.state === 'recording') mediaRecorder2.stop();
+    if (recordTimer2) clearInterval(recordTimer2);
 }
 
 // Question/Modal logic

@@ -10,6 +10,7 @@ from ..utils.answer_storage import load_answers
 from ..utils.csv_metadata_handler import UserMetadataHandler
 from ..utils.email_sender import send_pdn_code_email
 from ..utils.pdn_calculator import calculate_pdn_code
+from ..utils.pdn_file_path import PDNFilePath
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -214,22 +215,52 @@ def get_user_voice(email):
     try:
         # Find user in data
         csv_metadata_handler = UserMetadataHandler()
-        user_audio_path = csv_metadata_handler.get_user_audio_path(email, "wav")
+        pdn_file_path = PDNFilePath()
+        user_dir = pdn_file_path.get_user_dir(email)
+        
+        # Look for both question recordings
+        question1_filename = f"{email}_question1.wav"
+        question2_filename = f"{email}_question2.wav"
+        
+        question1_path = user_dir / question1_filename
+        question2_path = user_dir / question2_filename
+        
+        voice_recordings = {}
+        
+        if question1_path.exists():
+            voice_recordings['question1'] = {
+                'filename': question1_filename,
+                'path': str(question1_path),
+                'exists': True
+            }
+        
+        if question2_path.exists():
+            voice_recordings['question2'] = {
+                'filename': question2_filename,
+                'path': str(question2_path),
+                'exists': True
+            }
+        
+        # If no new format recordings found, try old format for backward compatibility
+        if not voice_recordings:
+            user_audio_path = csv_metadata_handler.get_user_audio_path(email, "wav")
+            if user_audio_path:
+                audio_file_path = Path(user_audio_path)
+                if audio_file_path.exists():
+                    voice_recordings['legacy'] = {
+                        'filename': audio_file_path.name,
+                        'path': user_audio_path,
+                        'exists': True
+                    }
 
-        # Check if path is None or empty
-        if not user_audio_path:
+        if not voice_recordings:
             return jsonify({"error": "User voice recording not found"}), 404
-
-        # Verify the file actually exists
-        audio_file_path = Path(user_audio_path)
-        if not audio_file_path.exists():
-            return jsonify({"error": "Voice recording file not found"}), 404
 
         # Return voice file info
         return jsonify({
             "email": email,
-            "voice_url": user_audio_path,
-            "file_exists": True
+            "voice_recordings": voice_recordings,
+            "has_recordings": True
         })
     except Exception as e:
         logger.error(f"Error finding user metadata: {e}")
