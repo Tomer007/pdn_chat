@@ -26,7 +26,7 @@ admin_sessions = set()
 
 def load_user_metadata():
     """
-    Load user metadata from the CSV file.
+    Load user metadata from the CSV file and JSON files.
     
     Returns:
         List of dictionaries containing user metadata
@@ -39,6 +39,8 @@ def load_user_metadata():
             return []
 
         metadata_list = []
+        csv_metadata_handler = UserMetadataHandler()
+        
         with open(csv_file_path, 'r', encoding='utf-8') as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
@@ -46,30 +48,42 @@ def load_user_metadata():
                 if not row.get("Email", "").strip():
                     continue
 
-                # Convert CSV column names to the expected format
+                email = row.get("Email", "").strip()
+                
+                # Load additional metadata from JSON file
+                json_metadata = {}
+                try:
+                    questionnaire_data = csv_metadata_handler.get_user_files(email, "answers")
+                    if questionnaire_data and 'metadata' in questionnaire_data:
+                        json_metadata = questionnaire_data['metadata']
+                except Exception as e:
+                    logger.warning(f"Could not load JSON metadata for {email}: {e}")
+
+                # Convert CSV column names to the expected format and merge with JSON metadata
                 user_data = {
-                    "email": row.get("Email", "").strip(),
-                    "date": row.get("Date", "").strip(),
-                    "pdn_code": row.get("PDN Code", "").strip(),
-                    "pdn_voice_code": row.get("PDN Voice Code", "").strip(),
-                    "diagnose_pdn_code": row.get("Diagnose PDN Code", "").strip(),
-                    "diagnose_comments": row.get("Diagnose Comments", "").strip(),
-                    # Add default values for missing fields
-                    "first_name": "",
-                    "last_name": "",
-                    "phone": "",
-                    "native_language": "",
-                    "gender": "",
-                    "education_level": "",
-                    "job_title": "",
-                    "birth_year": "",
-                    "link_to_user": f"/user/{row.get('Email', '').strip()}",
-                    "questionnaire": f"/api/user/questionnaire/{row.get('Email', '').strip()}",
-                    "voice": f"/api/user/voice/{row.get('Email', '').strip()}"
+                    "user_id": (row.get("User ID") or "").strip(),
+                    "email": email,
+                    "date": (row.get("Date") or "").strip(),
+                    "pdn_code": (row.get("PDN Code") or "").strip(),
+                    "pdn_voice_code": (row.get("PDN Voice Code") or "").strip(),
+                    "diagnose_pdn_code": (row.get("Diagnose PDN Code") or "").strip(),
+                    "diagnose_comments": (row.get("Diagnose Comments") or "").strip(),
+                    # Load from JSON metadata if available, otherwise use CSV or defaults
+                    "first_name": (json_metadata.get("first_name") or row.get("First Name") or "").strip(),
+                    "last_name": (json_metadata.get("last_name") or row.get("Last Name") or "").strip(),
+                    "phone": (json_metadata.get("phone") or row.get("Phone") or "").strip(),
+                    "native_language": (json_metadata.get("native_language") or json_metadata.get("mother_language") or row.get("Native Language") or "").strip(),
+                    "gender": (json_metadata.get("gender") or row.get("Gender") or "").strip(),
+                    "education_level": (json_metadata.get("education_level") or json_metadata.get("education") or row.get("Education Level") or "").strip(),
+                    "job_title": (json_metadata.get("job_title") or row.get("Job Title") or "").strip(),
+                    "birth_year": (json_metadata.get("birth_year") or row.get("Birth Year") or "").strip(),
+                    "link_to_user": f"/user/{email}",
+                    "questionnaire": f"/api/user/questionnaire/{email}",
+                    "voice": f"/api/user/voice/{email}"
                 }
                 metadata_list.append(user_data)
 
-        logger.info(f"Loaded {len(metadata_list)} user records from CSV")
+        logger.info(f"Loaded {len(metadata_list)} user records from CSV and JSON")
         return metadata_list
 
     except Exception as e:
@@ -184,6 +198,41 @@ def get_metadata_csv():
     return jsonify({"data": metadata})
 
 
+@pdn_admin_bp.route('/download/csv')
+def download_csv_file():
+    """Download the actual CSV file"""
+    logger.debug("GET /pdn-admin/download/csv called")
+    logger.info("Request: %s %s", request.method, request.url)
+
+    session_token = request.args.get('session_token')
+    verify_session(session_token)
+
+    try:
+        csv_file_path = Path("saved_results/user_metadata.csv")
+        if not csv_file_path.exists():
+            logger.error("CSV file not found: %s", csv_file_path)
+            return jsonify({"error": "CSV file not found"}), 404
+
+        return send_file(
+            csv_file_path,
+            as_attachment=True,
+            download_name="user_metadata.csv",
+            mimetype="text/csv"
+        )
+    except Exception as e:
+        logger.error(f"Error downloading CSV file: {e}")
+        return jsonify({"error": "Failed to download CSV file"}), 500
+
+
+def remove_none_keys(obj):
+    """Recursively remove None keys from dicts/lists."""
+    if isinstance(obj, dict):
+        return {k: remove_none_keys(v) for k, v in obj.items() if k is not None}
+    elif isinstance(obj, list):
+        return [remove_none_keys(item) for item in obj]
+    else:
+        return obj
+
 @pdn_admin_bp.route('/user/questionnaire/<email>')
 def get_user_questionnaire(email):
     """Get user questionnaire data"""
@@ -194,12 +243,45 @@ def get_user_questionnaire(email):
     session_token = request.args.get('session_token')
     verify_session(session_token)
 
-    # Find user in data
-    csv_metadata_handler = UserMetadataHandler()
-    questionnaire_data = csv_metadata_handler.get_user_files(email, "answers")
-    if not questionnaire_data:
-        return jsonify({"error": "User not found"}), 404
-    return jsonify(questionnaire_data)
+    try:
+        # Find user in data
+        csv_metadata_handler = UserMetadataHandler()
+        logger.info(f"Loading questionnaire data for {email}")
+        
+        questionnaire_data = csv_metadata_handler.get_user_files(email, "answers")
+        logger.info(f"Questionnaire data loaded: {questionnaire_data is not None}")
+        
+        if not questionnaire_data:
+            logger.warning(f"No questionnaire data found for user: {email}")
+            return jsonify({"error": "User questionnaire not found"}), 404
+        
+        # Get user metadata from CSV (including User ID)
+        logger.info(f"Loading CSV metadata for {email}")
+        user_metadata = csv_metadata_handler.get_user_by_email(email)
+        logger.info(f"CSV metadata loaded: {user_metadata is not None}")
+        
+        if user_metadata:
+            # Add user metadata to the questionnaire data
+            questionnaire_data['metadata'] = user_metadata
+            logger.info(f"Successfully loaded questionnaire data for {email} with User ID: {user_metadata.get('User ID', 'N/A')}")
+        else:
+            logger.warning(f"No CSV metadata found for user: {email}")
+            # Create a minimal metadata structure
+            questionnaire_data['metadata'] = {
+                'email': email,
+                'User ID': 'N/A'
+            }
+        
+        logger.info(f"Returning questionnaire data with {len(questionnaire_data)} keys")
+        # Clean None keys before returning
+        clean_data = remove_none_keys(questionnaire_data)
+        return jsonify(clean_data)
+        
+    except Exception as e:
+        logger.error(f"Error loading questionnaire for {email}: {e}")
+        import traceback
+        logger.error(f"Full traceback: {traceback.format_exc()}")
+        return jsonify({"error": f"Failed to load questionnaire: {str(e)}"}), 500
 
 
 @pdn_admin_bp.route('/user/voice/<email>')

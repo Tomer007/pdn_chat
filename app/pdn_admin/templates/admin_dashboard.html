@@ -227,6 +227,59 @@
             background-color: #fef2f2 !important; /* Light red background */
             border-left: 4px solid #ef4444; /* Red left border for emphasis */
         }
+        
+        /* Table header improvements to prevent text truncation */
+        .table-header th {
+            min-width: 120px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 12px 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        /* Specific column widths for better layout */
+        .table-header th:nth-child(1) { /* User ID */
+            min-width: 100px;
+            max-width: 120px;
+        }
+        .table-header th:nth-child(2) { /* Email */
+            min-width: 180px;
+            max-width: 220px;
+        }
+        .table-header th:nth-child(3) { /* Date */
+            min-width: 120px;
+            max-width: 140px;
+        }
+        .table-header th:nth-child(4) { /* System Code */
+            min-width: 120px;
+            max-width: 140px;
+        }
+        .table-header th:nth-child(5) { /* Voice Analysis */
+            min-width: 140px;
+            max-width: 160px;
+        }
+        .table-header th:nth-child(6) { /* Diagnose Code */
+            min-width: 140px;
+            max-width: 160px;
+        }
+        .table-header th:nth-child(7) { /* Comments */
+            min-width: 150px;
+            max-width: 200px;
+        }
+        .table-header th:nth-child(8) { /* Actions */
+            min-width: 100px;
+            max-width: 120px;
+        }
+        
+        /* Ensure table cells don't truncate content */
+        .table-container td {
+            padding: 12px 8px;
+            vertical-align: middle;
+            word-wrap: break-word;
+            max-width: 200px;
+        }
         /* Alternative styling - you can choose which one you prefer */
         .highlight-difference td {
             color: #0e0e0d; 
@@ -370,12 +423,12 @@
 
     <!-- Data Table -->
     <div class="card p-8 rounded-2xl">
-        <div class="mb-6 flex items-center justify-between">
-            <h3 class="text-xl font-semibold text-gray-800 flex items-center">
+        <div class="mb-6">
+            <h3 class="text-xl font-semibold text-gray-800 flex items-center mb-2">
                 <i class="fas fa-users mr-2"></i>
                 נתוני מאובחנים
             </h3>
-            <div class="flex items-center space-x-4 space-x-reverse">
+            <div class="flex items-center justify-between">
                 <span id="rowCount" class="text-base text-gray-600">סה"כ מאובחנים:</span>
                 <button id="downloadCsvBtn"
                         class="download-csv-btn flex items-center px-5 py-2 rounded-xl font-semibold text-white shadow-md transition-all duration-300">
@@ -388,12 +441,14 @@
             <table class="w-full">
                 <thead class="table-header sticky top-0">
                 <tr>
-                    <th class="px-4 py-4 text-right font-semibold text-gray-700">אימייל</th>
-                    <th class="px-4 py-4 text-right font-semibold text-gray-700">תאריך איבחון</th>
-                    <th class="px-4 py-4 text-right font-semibold text-gray-700">קוד המערכת </th>                    <th class="px-4 py-4 text-right font-semibold text-gray-700">ניתוח קול </th>
-                    <th class="px-4 py-4 text-right font-semibold text-gray-700">קוד מאבחן</th>
-                    <th class="px-4 py-4 text-right font-semibold text-gray-700">הערות המאבחן</th>
-                    <th class="px-4 py-4 text-right font-semibold text-gray-700">פעולות</th>
+                    <th class="px-4 py-4 text-right font-semibold text-gray-700" title="מזהה משתמש">מזהה</th>
+                    <th class="px-4 py-4 text-right font-semibold text-gray-700" title="אימייל">אימייל</th>
+                    <th class="px-4 py-4 text-right font-semibold text-gray-700" title="תאריך איבחון">תאריך</th>
+                    <th class="px-4 py-4 text-right font-semibold text-gray-700" title="קוד המערכת">קוד מערכת</th>                    
+                    <th class="px-4 py-4 text-right font-semibold text-gray-700" title="ניתוח קול">ניתוח קול</th>
+                    <th class="px-4 py-4 text-right font-semibold text-gray-700" title="קוד מאבחן">קוד מאבחן</th>
+                    <th class="px-4 py-4 text-right font-semibold text-gray-700" title="הערות המאבחן">הערות</th>
+                    <th class="px-4 py-4 text-right font-semibold text-gray-700" title="פעולות">פעולות</th>
                 </tr>
                 </thead>
                 <tbody id="tableBody">
@@ -670,7 +725,7 @@ function setupEventListeners() {
     
     // CSV download button
     document.getElementById('downloadCsvBtn').addEventListener('click', function() {
-        downloadTableAsCsv(currentData);
+        downloadCsvFile();
     });
 }
 
@@ -743,6 +798,9 @@ function renderTable(data) {
         }
         
         row.innerHTML = `
+            <td class="px-4 py-4">
+                <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium font-mono">🆔 ${user.user_id || 'N/A'}</span>
+            </td>
             <td class="px-4 py-4 font-medium text-gray-900">${user.email}</td>
             <td class="px-4 py-4 text-gray-700">${user.date}</td>
             <td class="px-4 py-4">
@@ -967,21 +1025,24 @@ function displayQuestionsWithText(questions, metadata, questionsData) {
     const content = document.getElementById('questionnaireContent');
     
     content.innerHTML = `
-        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200">
-            <h3 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
-                <i class="fas fa-user mr-2 text-blue-600"></i>פרטי משתמש
-            </h3>
-            <div ">
-                <div><strong>אימייל:</strong> ${metadata.email || 'לא זמין'}</div>
-                <div><strong>שם פרטי:</strong> ${metadata.first_name || 'לא זמין'}</div>
-                <div><strong>שם משפחה:</strong> ${metadata.last_name || 'לא זמין'}</div>
-                <div><strong>טלפון:</strong> ${metadata.phone || 'לא זמין'}</div>
-                <div><strong>שנת לידה:</strong> ${metadata.birth_year || 'לא זמין'}</div>
-                <div><strong>שפת אם:</strong> ${metadata.mother_language || 'לא זמין'}</div>
-                <div><strong>מגדר:</strong> ${metadata.gender || 'לא זמין'}</div>
-                <div><strong>השכלה:</strong> ${metadata.education || 'לא זמין'}</div>
-                <div><strong>תפקיד:</strong> ${metadata.job_title || 'לא זמין'}</div>
-                <div><strong>תאריך איבחון:</strong> ${metadata.timestamp ? formatTimestamp(metadata.timestamp) : 'לא זמין'}</div>
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                <h3 class="text-lg font-semibold mb-2 text-gray-800 flex items-center">
+                    <i class="fas fa-user mr-2 text-blue-600"></i>פרטי משתמש
+                </h3>
+                <div class="flex items-center gap-4">
+                    <div class="text-base text-gray-700 font-bold">
+                        <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-lg shadow-sm border border-indigo-200">מזהה משתמש:
+                            <span class="font-mono text-indigo-900">${metadata.user_id || metadata["User ID"] || 'לא זמין'}</span>
+                        </span>
+                    </div>
+                    <button id="downloadPdfBtn"
+                        class="ml-2 flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white font-bold rounded-lg shadow hover:from-yellow-500 hover:to-yellow-700 transition-all duration-200 text-base action-btn download"
+                        onclick="downloadDiagnosisAsPDF()">
+                        <i class="fas fa-file-arrow-down"></i>
+                        הורד דוח
+                    </button>
+                </div>
             </div>
         </div>
         <div class="bg-white p-6 rounded-xl border border-gray-200">
@@ -1524,6 +1585,43 @@ function resetAlpineLoadingState() {
             element._x_dataStack[0].showModal = false;
         }
     });
+}
+
+async function downloadCsvFile() {
+    try {
+        showLoading();
+        const response = await fetch(`/pdn-admin/download/csv?session_token=${sessionToken}`);
+        
+        if (response.ok) {
+            // Get the blob from the response
+            const blob = await response.blob();
+            
+            // Create a download link
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'user_metadata.csv';
+            
+            // Trigger download
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Clean up the URL object
+            window.URL.revokeObjectURL(url);
+            
+            showNotification('הקובץ הורד בהצלחה!', 'success');
+        } else if (response.status === 404) {
+            showNotification('קובץ CSV לא נמצא', 'error');
+        } else {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+    } catch (error) {
+        console.error('Error downloading CSV:', error);
+        showNotification('שגיאה בהורדת הקובץ', 'error');
+    } finally {
+        hideLoading();
+    }
 }
 
 function downloadTableAsCsv(data) {
