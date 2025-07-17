@@ -115,51 +115,51 @@
         }
 
         .chat-bubble.user {
-            background: linear-gradient(135deg, #86efac 0%, #4ade80 100%);
+            background: linear-gradient(135deg, #bbf7d0 0%, #86efac 100%);
             color: #064e3b;
             align-self: flex-end;
             border-bottom-right-radius: 8px;
-            box-shadow: 0 4px 16px rgba(74, 222, 128, 0.3);
-            border: 1px solid rgba(74, 222, 128, 0.3);
+            box-shadow: 0 4px 16px rgba(134, 239, 172, 0.3);
+            border: 1px solid rgba(134, 239, 172, 0.3);
         }
 
         .chat-bubble.user:hover {
-            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
-            box-shadow: 0 6px 20px rgba(74, 222, 128, 0.4);
+            background: linear-gradient(135deg, #86efac 0%, #4ade80 100%);
+            box-shadow: 0 6px 20px rgba(134, 239, 172, 0.4);
         }
 
         [data-theme="dark"] .chat-bubble.user {
-            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            background: linear-gradient(135deg, #86efac 0%, #4ade80 100%);
             color: #ffffff;
-            border: 1px solid rgba(74, 222, 128, 0.4);
+            border: 1px solid rgba(134, 239, 172, 0.4);
         }
 
         [data-theme="dark"] .chat-bubble.user:hover {
-            background: linear-gradient(135deg, #86efac 0%, #4ade80 100%);
+            background: linear-gradient(135deg, #bbf7d0 0%, #86efac 100%);
         }
 
         .chat-bubble.bot {
-            background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
-            color: #1e293b;
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            color: #92400e;
             align-self: flex-start;
             border-bottom-left-radius: 8px;
-            box-shadow: 0 4px 16px rgba(148, 163, 184, 0.2);
-            border: 1px solid rgba(203, 213, 225, 0.6);
+            box-shadow: 0 4px 16px rgba(251, 191, 36, 0.2);
+            border: 1px solid rgba(251, 191, 36, 0.3);
         }
 
         .chat-bubble.bot:hover {
-            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-            box-shadow: 0 6px 20px rgba(148, 163, 184, 0.25);
+            background: linear-gradient(135deg, #fef9e7 0%, #fef3c7 100%);
+            box-shadow: 0 6px 20px rgba(251, 191, 36, 0.25);
         }
 
         [data-theme="dark"] .chat-bubble.bot {
-            background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
-            color: #f9fafb;
-            border: 1px solid rgba(75, 85, 99, 0.3);
+            background: linear-gradient(135deg, #78350f 0%, #92400e 100%);
+            color: #fef3c7;
+            border: 1px solid rgba(251, 191, 36, 0.3);
         }
 
         [data-theme="dark"] .chat-bubble.bot:hover {
-            background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%);
+            background: linear-gradient(135deg, #92400e 0%, #a16207 100%);
         }
 
         /* Enhanced input area */
@@ -247,21 +247,21 @@
             align-items: center;
             gap: 8px;
             padding: 12px 16px;
-            background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
             border-radius: 16px;
-            color: #1e293b;
+            color: #92400e;
             font-size: 14px;
             animation: pulse 2s infinite;
             max-width: 200px;
             margin-bottom: 16px;
-            border: 1px solid rgba(203, 213, 225, 0.6);
-            box-shadow: 0 2px 8px rgba(148, 163, 184, 0.15);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            box-shadow: 0 2px 8px rgba(251, 191, 36, 0.15);
         }
 
         [data-theme="dark"] .typing-indicator {
-            background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
-            color: #f1f5f9;
-            border: 1px solid rgba(75, 85, 99, 0.3);
+            background: linear-gradient(135deg, #78350f 0%, #92400e 100%);
+            color: #fef3c7;
+            border: 1px solid rgba(251, 191, 36, 0.3);
         }
 
         /* Recording indicator */
@@ -370,6 +370,31 @@
             background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%);
         }
 
+        /* Message headers */
+        .message-header {
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            opacity: 0.9;
+            letter-spacing: 0.5px;
+        }
+
+        .chat-bubble.user .message-header {
+            color: rgba(6, 78, 59, 0.8);
+        }
+
+        .chat-bubble.bot .message-header {
+            color: #a16207;
+        }
+
+        [data-theme="dark"] .chat-bubble.user .message-header {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        [data-theme="dark"] .chat-bubble.bot .message-header {
+            color: #fde68a;
+        }
+
         /* Message timestamps */
         .message-time {
             font-size: 11px;
@@ -388,11 +413,11 @@
         }
 
         .chat-bubble.bot .message-time {
-            color: #475569;
+            color: #a16207;
         }
 
         [data-theme="dark"] .chat-bubble.bot .message-time {
-            color: #94a3b8;
+            color: #fde68a;
         }
 
         .chat-bubble:hover .message-time {
@@ -1652,6 +1677,7 @@
             const userBubble = document.createElement("div");
             userBubble.className = "chat-bubble user animated";
             userBubble.innerHTML = `
+                <div class="message-header">${USER_NAME}:</div>
                 <div class="message-content">${safeMarkdownParse(message)}</div>
                 <div class="message-time">${getCurrentTime()}</div>
             `;
@@ -1663,7 +1689,6 @@
             const typing = document.createElement("div");
             typing.className = "typing-indicator";
             typing.innerHTML = `
-                <i class="fas fa-robot"></i>
                 בינת מקוד המקור מקליד/ה
                 <div class="typing-dots">
                     <span></span>
@@ -1699,6 +1724,7 @@
                 const botBubble = document.createElement("div");
                 botBubble.className = "chat-bubble bot animated";
                 botBubble.innerHTML = `
+                    <div class="message-header">בינת קוד המקור:</div>
                     <div class="message-content">${safeMarkdownParse(data.message || data.response || 'מצטער, אירעה שגיאה. אנא נסה שוב.')}</div>
                     <div class="message-time">${getCurrentTime()}</div>
                 `;
@@ -1796,6 +1822,7 @@
             const goodbyeBubble = document.createElement("div");
             goodbyeBubble.className = "chat-bubble bot animated";
             goodbyeBubble.innerHTML = `
+                <div class="message-header">בינת קוד המקור:</div>
                 <div class="message-content">
                     🌿 תודה לך על השיחה היפה!<br>
                     בינת קוד המקור תמיד כאן בשבילך.<br>
@@ -1854,6 +1881,7 @@
                 const formattedMessage = rawMessage.replace(/\n/g, '<br>');
 
                 initialBot.innerHTML = `
+                    <div class="message-header">בינת קוד המקור:</div>
                     <div class="message-content">${formattedMessage}</div>
                     <div class="message-time">${getCurrentTime()}</div>
                 `;

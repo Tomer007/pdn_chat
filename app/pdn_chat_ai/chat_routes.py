@@ -432,10 +432,10 @@ def generate_ai_response(message, user_name, user_context):
         }
     
     # PDN code related responses
-    if any(word in message_lower for word in ['קוד', 'pdn', 'קוד המקור', 'הקוד שלי']):
-        if user_context.get('pdn_code'):
-            pdn_code = "P6"
-            return {
+    if any(word in message_lower for word in ['קוד', 'pdn', 'קוד המקור', 'הקוד שלי', 'הסביר יותר']):
+        # For demo purposes, always show P6 explanation
+        pdn_code = "P6"
+        return {
 "message": f"""כמובן 🌿 הנה הסבר מלא על **קוד {pdn_code} – "צמיחה והדרכה"** מתוך שפת קוד המקור:
 
 ---
@@ -503,13 +503,8 @@ def generate_ai_response(message, user_name, user_context):
 
 > **"אני מדריך מתוך שמחה – לא מתוך חובה."**
 """,
-                "user_context": user_context
-            }
-        else:
-            return {
-                "message": "אני רואה שאתה/ה מתעניין/ת בקוד המקור שלך. כדי שאוכל לעזור לך, אנא השלם/י את השאלון הקצר שלנו.",
-                "user_context": user_context
-            }
+            "user_context": user_context
+        }
     
     # Spiritual/meditation responses
     if any(word in message_lower for word in ['מדיטציה', 'רוחני', 'פנימי', 'מסע', 'התפתחות']):
