@@ -277,18 +277,33 @@ class UserMetadataHandler:
         """
         try:
             pdn_file_path = PDNFilePath()
+            user_dir = pdn_file_path.get_user_dir(email)
             
-            # Construct filename based on file type
+            # Look for the new naming format: email_question1.wav, email_question2.wav
+            question1_filename = f"{email}_question1.wav"
+            question2_filename = f"{email}_question2.wav"
+            
+            question1_path = user_dir / question1_filename
+            question2_path = user_dir / question2_filename
+            
+            # Return the first available question file, or question1 if both exist
+            if question1_path.exists():
+                return str(question1_path)
+            elif question2_path.exists():
+                return str(question2_path)
+            
+            # Fallback to old method for backward compatibility
             if file_type == "wav":
                 file_path = pdn_file_path.find_user_file(email, file_type)
+                if file_path and os.path.exists(file_path):
+                    return str(file_path)
             else:
                 filename = f"{email}_{file_type}"
                 file_path = pdn_file_path.get_user_file_path(email, filename)
+                if os.path.exists(file_path):
+                    return str(file_path)
 
-            if not os.path.exists(file_path):
-                return None
-
-            return str(file_path)
+            return None
 
         except Exception as e:
             logger.error(f"Error finding user audio path: {e}")

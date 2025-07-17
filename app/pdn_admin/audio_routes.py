@@ -116,9 +116,8 @@ def save_audio():
         user_dir = pdn_file_path.get_user_dir(username)
         user_dir.mkdir(parents=True, exist_ok=True)
 
-        # Create filename
-        file_extension = Path(audio.filename).suffix if audio.filename else '.wav'
-        filename = secure_filename(f"{username}{file_extension}")
+        # Use the filename sent from frontend (e.g., username_question1.wav)
+        filename = secure_filename(audio.filename) if audio.filename else f"{username}_audio.wav"
         file_path = user_dir / filename
 
         # Save the file

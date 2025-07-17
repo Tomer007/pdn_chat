@@ -2,13 +2,22 @@
  * Sends user audio to the backend server for storage
  * @param {string} username - The name of the user
  * @param {Blob|File} audioBlob - The audio data to upload
+ * @param {string} question - The question number (e.g., 'question1', 'question2')
  * @returns {Promise<Object>} - Response with file path and status
  */
-async function saveUserAudio(username, audioBlob) {
+async function saveUserAudio(username, audioBlob, question = 'audio') {
     try {
+        // Create filename based on question parameter
+        let filename;
+        if (question === 'question1' || question === 'question2') {
+            filename = `${username}_${question}.wav`;
+        } else {
+            filename = `${username}_audio_${getTimestamp()}.wav`;
+        }
+        
         // Create FormData to send the audio file
         const formData = new FormData();
-        formData.append('audio', audioBlob, `${username}_audio_${getTimestamp()}.wav`);
+        formData.append('audio', audioBlob, filename);
         formData.append('username', username);
 
         // Send POST request to backend
@@ -62,7 +71,7 @@ async function handleVoiceRecording(username, mediaRecorder) {
         mediaRecorder.onstop = async () => {
             try {
                 const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                const result = await saveUserAudio(username, audioBlob);
+                const result = await saveUserAudio(username, audioBlob, 'audio');
                 resolve(result);
             } catch (error) {
                 reject(error);
