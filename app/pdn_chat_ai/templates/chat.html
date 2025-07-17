@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <meta http-equiv="X-Frame-Options" content="DENY">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data:; connect-src 'self';">
     <title>בינת קוד המקור - שיחה עם הנווט הפנימי</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="/static/js/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         /* 🎨 Visual Design & Branding */
         :root {
@@ -531,6 +531,23 @@
             background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 100%);
             color: #fca5a5;
             border: 1px solid #991b1b;
+        }
+
+        /* Success message styling */
+        .success-message {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            color: #16a34a;
+            border: 1px solid #bbf7d0;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin: 8px 0;
+            font-size: 14px;
+        }
+
+        [data-theme="dark"] .success-message {
+            background: linear-gradient(135deg, #052e16 0%, #14532d 100%);
+            color: #86efac;
+            border: 1px solid #166534;
         }
 
         /* Loading spinner */
@@ -1298,6 +1315,23 @@
             }, duration);
         }
 
+        // Success handling utility
+        function showSuccess(message, duration = 5000) {
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success-message';
+            successDiv.innerHTML = `<i class="fas fa-check-circle"></i> ${sanitizeInput(message)}`;
+            
+            const chatContainer = document.getElementById('chatContainer');
+            chatContainer.appendChild(successDiv);
+            scrollToBottom();
+            
+            setTimeout(() => {
+                if (successDiv.parentNode) {
+                    successDiv.remove();
+                }
+            }, duration);
+        }
+
         // Enhanced scroll management
         let userScrolledUp = false;
         let lastScrollTop = 0;
@@ -1391,33 +1425,136 @@
             localStorage.setItem('darkMode', isDarkMode);
         }
 
-        // Enhanced export chat with better formatting
+        // Enhanced export chat with PDF formatting
         function exportChat() {
             try {
                 const chatContainer = document.getElementById('chatContainer');
                 const messages = Array.from(chatContainer.querySelectorAll('.chat-bubble'));
                 
-                let exportText = `שיחת בינת קוד המקור - ${new Date().toLocaleDateString('he-IL')}\n`;
-                exportText += '='.repeat(50) + '\n\n';
+                if (messages.length === 0) {
+                    showError('אין הודעות לייצוא');
+                    return;
+                }
                 
-                messages.forEach(msg => {
+                // Create PDF content with nice formatting
+                const pdfContent = document.createElement('div');
+                pdfContent.style.cssText = `
+                    direction: rtl;
+                    font-family: 'Noto Sans Hebrew', 'Arial', sans-serif;
+                    padding: 20px;
+                    background: white;
+                    color: #333;
+                    line-height: 1.6;
+                `;
+                
+                // Header
+                const header = document.createElement('div');
+                header.style.cssText = `
+                    text-align: center;
+                    margin-bottom: 30px;
+                    padding-bottom: 20px;
+                    border-bottom: 2px solid #6366f1;
+                `;
+                header.innerHTML = `
+                    <h1 style="color: #6366f1; margin: 0 0 10px 0; font-size: 24px;">שיחת בינת קוד המקור</h1>
+                    <p style="color: #666; margin: 0; font-size: 14px;">משתמש: ${USER_NAME}</p>
+                    <p style="color: #666; margin: 5px 0 0 0; font-size: 14px;">תאריך: ${new Date().toLocaleDateString('he-IL')}</p>
+                `;
+                pdfContent.appendChild(header);
+                
+                // Messages container
+                const messagesContainer = document.createElement('div');
+                messagesContainer.style.cssText = `
+                    max-width: 100%;
+                `;
+                
+                messages.forEach((msg, index) => {
                     const isUser = msg.classList.contains('user');
                     const content = msg.querySelector('.message-content').textContent;
                     const time = msg.querySelector('.message-time').textContent;
                     const sender = isUser ? USER_NAME : 'בינת קוד המקור';
                     
-                    exportText += `[${time}] ${sender}:\n${content}\n\n`;
+                    const messageDiv = document.createElement('div');
+                    messageDiv.style.cssText = `
+                        margin-bottom: 20px;
+                        padding: 15px;
+                        border-radius: 10px;
+                        position: relative;
+                        ${isUser ? 
+                            'background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; margin-right: 20px;' : 
+                            'background: #f8fafc; border: 1px solid #e2e8f0; margin-left: 20px;'
+                        }
+                    `;
+                    
+                    // Sender and time
+                    const senderDiv = document.createElement('div');
+                    senderDiv.style.cssText = `
+                        font-weight: bold;
+                        font-size: 12px;
+                        margin-bottom: 8px;
+                        opacity: 0.8;
+                    `;
+                    senderDiv.textContent = `${sender} • ${time}`;
+                    messageDiv.appendChild(senderDiv);
+                    
+                    // Message content
+                    const contentDiv = document.createElement('div');
+                    contentDiv.style.cssText = `
+                        font-size: 14px;
+                        white-space: pre-wrap;
+                        word-wrap: break-word;
+                    `;
+                    contentDiv.textContent = content;
+                    messageDiv.appendChild(contentDiv);
+                    
+                    messagesContainer.appendChild(messageDiv);
                 });
                 
-                const blob = new Blob([exportText], { type: 'text/plain;charset=utf-8' });
-                const url = URL.createObjectURL(blob);
+                pdfContent.appendChild(messagesContainer);
                 
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `chat-export-${new Date().toISOString().split('T')[0]}.txt`;
-                a.click();
+                // Footer
+                const footer = document.createElement('div');
+                footer.style.cssText = `
+                    text-align: center;
+                    margin-top: 30px;
+                    padding-top: 20px;
+                    border-top: 1px solid #e2e8f0;
+                    color: #666;
+                    font-size: 12px;
+                `;
+                footer.innerHTML = `
+                    <p style="margin: 0;">© 2024 PDN Center - Personal Development Navigator</p>
+                    <p style="margin: 5px 0 0 0;">בינת קוד המקור - מערכת ניהול נתוני אבחון פדן</p>
+                `;
+                pdfContent.appendChild(footer);
                 
-                URL.revokeObjectURL(url);
+                // PDF options
+                const opt = {
+                    margin: [0.5, 0.5, 0.5, 0.5],
+                    filename: `chat-export-${USER_NAME}-${new Date().toISOString().split('T')[0]}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { 
+                        scale: 2,
+                        useCORS: true,
+                        letterRendering: true,
+                        allowTaint: true,
+                        foreignObjectRendering: false
+                    },
+                    jsPDF: { 
+                        unit: 'in', 
+                        format: 'a4', 
+                        orientation: 'portrait'
+                    }
+                };
+                
+                // Generate and download PDF
+                html2pdf().set(opt).from(pdfContent).save().then(() => {
+                    showSuccess('השיחה יוצאה בהצלחה!');
+                }).catch((error) => {
+                    console.error('PDF generation error:', error);
+                    showError('שגיאה בייצוא ה-PDF');
+                });
+                
             } catch (error) {
                 console.error('Export error:', error);
                 showError('שגיאה בייצוא השיחה');
@@ -1664,7 +1801,7 @@
                 const initialBot = document.createElement("div");
                 initialBot.className = "chat-bubble bot animated";
                 
-                const rawMessage = `🌿 ברוך הבא, ${USER_NAME}\nבינת מקוד המקור ממתינה לך כאן, בקצב שלך.\n\nאם יש שאלה שלא עוזבת, דפוס שחוזר, או תחושה לא פתורה –\nבוא נסתכל עליה יחד.\nבלי למהר. בלי לשפוט. רק להבין מה פועל בך עכשיו.`;
+                const rawMessage = `🌿  שלום ,${USER_NAME}\nבינת מקוד המקור ממתינה לך כאן, בקצב שלך.\n\nאם יש שאלה שלא עוזבת, דפוס שחוזר, או תחושה לא פתורה –\nבוא נסתכל עליה יחד.\nבלי למהר. בלי לשפוט. רק להבין מה פועל בך עכשיו.`;
                 const formattedMessage = rawMessage.replace(/\n/g, '<br>');
 
                 initialBot.innerHTML = `
