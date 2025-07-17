@@ -2,6 +2,7 @@ import csv
 import json
 import logging
 import os
+import uuid
 from datetime import datetime
 from typing import Dict, Any, List, Optional, Generator
 
@@ -22,6 +23,7 @@ class UserMetadataHandler:
         self.csv_filename = user_dir / "user_metadata.csv"
 
         self.headers = [
+            "User ID",
             "Email",
             "Date",
             "PDN Code",
@@ -34,6 +36,33 @@ class UserMetadataHandler:
         self._data_cache = None
         self._cache_timestamp = None
         self._cache_validity_seconds = 30  # Cache valid for 30 seconds
+
+    def _generate_unique_id(self) -> str:
+        """
+        Generate a unique user ID.
+        
+        Returns:
+            A unique user ID string in format UID followed by 6 characters
+        """
+        # Generate a UUID and take the first 6 characters
+        unique_part = str(uuid.uuid4()).replace('-', '')[:6].upper()
+        return f"UID{unique_part}"
+
+    def _get_next_user_id(self) -> str:
+        """
+        Get the next available user ID by checking existing IDs.
+        
+        Returns:
+            A unique user ID that doesn't exist in the current data
+        """
+        existing_data = self._read_csv_data()
+        existing_ids = {row.get("User ID", "") for row in existing_data if row.get("User ID")}
+        
+        # Generate IDs until we find one that doesn't exist
+        while True:
+            new_id = self._generate_unique_id()
+            if new_id not in existing_ids:
+                return new_id
 
     def _is_cache_valid(self) -> bool:
         """Check if the current cache is still valid."""
@@ -64,8 +93,64 @@ class UserMetadataHandler:
                     writer = csv.writer(csvfile)
                     writer.writerow(self.headers)
                 logger.info(f"Created new CSV file: {self.csv_filename}")
+            else:
+                # Check if the file needs migration (missing User ID column)
+                self._migrate_csv_if_needed()
         except Exception as e:
             logger.error(f"Error creating CSV file: {e}")
+            raise
+
+    def _migrate_csv_if_needed(self) -> None:
+        """Migrate existing CSV file to include User ID column if needed."""
+        try:
+            with open(self.csv_filename, 'r', encoding='utf-8') as csvfile:
+                reader = csv.reader(csvfile)
+                first_row = next(reader, None)
+                
+                if not first_row or "User ID" not in first_row:
+                    logger.info("Migrating CSV file to include User ID column")
+                    self._perform_csv_migration()
+        except Exception as e:
+            logger.error(f"Error checking CSV migration: {e}")
+
+    def _perform_csv_migration(self) -> None:
+        """Perform the actual CSV migration to add User ID column."""
+        try:
+            # Read existing data
+            existing_data = []
+            with open(self.csv_filename, 'r', encoding='utf-8') as csvfile:
+                reader = csv.DictReader(csvfile)
+                existing_data = list(reader)
+            
+            # Create backup
+            backup_filename = f"{self.csv_filename}.backup.{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            with open(backup_filename, 'w', newline='', encoding='utf-8') as backupfile:
+                writer = csv.DictWriter(backupfile, fieldnames=existing_data[0].keys() if existing_data else [])
+                writer.writeheader()
+                writer.writerows(existing_data)
+            
+            logger.info(f"Created backup: {backup_filename}")
+            
+            # Add User ID to existing records
+            migrated_data = []
+            for row in existing_data:
+                if not row.get("User ID"):
+                    row["User ID"] = self._get_next_user_id()
+                migrated_data.append(row)
+            
+            # Write migrated data
+            with open(self.csv_filename, 'w', newline='', encoding='utf-8') as csvfile:
+                writer = csv.DictWriter(csvfile, fieldnames=self.headers)
+                writer.writeheader()
+                writer.writerows(migrated_data)
+            
+            # Invalidate cache
+            self._invalidate_cache()
+            
+            logger.info(f"Successfully migrated {len(migrated_data)} records with User IDs")
+            
+        except Exception as e:
+            logger.error(f"Error during CSV migration: {e}")
             raise
 
     def _validate_email(self, email: str) -> bool:
@@ -152,6 +237,7 @@ class UserMetadataHandler:
 
             # Prepare new row
             new_row = {
+                "User ID": self._get_next_user_id(),
                 "Email": email,
                 "Date": datetime.now().strftime("%Y-%m-%d"),
                 "PDN Code": "",
@@ -295,7 +381,7 @@ class UserMetadataHandler:
             # Fallback to old method for backward compatibility
             if file_type == "wav":
                 file_path = pdn_file_path.find_user_file(email, file_type)
-                if file_path and os.path.exists(file_path):
+                if file_path is not None and os.path.exists(file_path):
                     return str(file_path)
             else:
                 filename = f"{email}_{file_type}"
