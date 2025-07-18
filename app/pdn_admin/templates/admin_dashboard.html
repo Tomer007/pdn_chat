@@ -441,7 +441,7 @@
             <table class="w-full">
                 <thead class="table-header sticky top-0">
                 <tr>
-                    <th class="px-4 py-4 text-right font-semibold text-gray-700" title="מזהה משתמש">מזהה</th>
+                    <th class="px-4 py-4 text-right font-semibold text-gray-700" title="מזהה מערכת">מזהה מערכת</th>
                     <th class="px-4 py-4 text-right font-semibold text-gray-700" title="אימייל">אימייל</th>
                     <th class="px-4 py-4 text-right font-semibold text-gray-700" title="תאריך איבחון">תאריך</th>
                     <th class="px-4 py-4 text-right font-semibold text-gray-700" title="קוד המערכת">קוד מערכת</th>                    
@@ -503,11 +503,6 @@
         <div id="questionnaireContent" class="space-y-4">
             <!-- Questionnaire data will be populated here -->
         </div>
-        <button id="downloadPdfBtn"
-                class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded mt-4"
-                onclick="downloadDiagnosisAsPDF()">
-            הורד דוח 
-        </button>
     </div>
 </div>
 
@@ -621,28 +616,150 @@ function downloadDiagnosisAsPDF() {
         alert('לא נמצאו נתונים לייצוא');
         return;
     }
-    // Clone and wrap for RTL and font
-    const clone = content.cloneNode(true);
-    clone.style.fontFamily = 'Noto Sans Hebrew, Arial, sans-serif';
-    clone.style.direction = 'rtl';
-    clone.style.textAlign = 'right';
-    clone.style.fontSize = '14px';
-    // Optionally, add dir="rtl" to all children
-    clone.setAttribute('dir', 'rtl');
-    // Create a container for html2pdf
-    const wrapper = document.createElement('div');
-    wrapper.appendChild(clone);
-    // PDF options
+    
+    // Create a new container for the complete report
+    const reportContainer = document.createElement('div');
+    reportContainer.style.cssText = `
+        font-family: 'Noto Sans Hebrew', 'Arial', sans-serif !important;
+        direction: rtl !important;
+        text-align: right !important;
+        font-size: 14px !important;
+        line-height: 1.6 !important;
+        color: #000 !important;
+        background: white !important;
+        padding: 20px !important;
+        width: 100% !important;
+        max-width: 800px !important;
+        margin: 0 auto !important;
+    `;
+    reportContainer.setAttribute('dir', 'rtl');
+    reportContainer.setAttribute('lang', 'he');
+    
+    // Clone the questionnaire content
+    const questionnaireClone = content.cloneNode(true);
+    
+    // Remove the user metadata section from the clone
+    const metadataSection = questionnaireClone.querySelector('.bg-gradient-to-br.from-blue-50.via-indigo-50.to-purple-50');
+    if (metadataSection) {
+        metadataSection.remove();
+    }
+    
+    // Find the questionnaire section and add user ID before it
+    const questionnaireSection = questionnaireClone.querySelector('.bg-white.p-8.rounded-2xl.border.border-gray-200.shadow-lg.mt-6');
+    if (questionnaireSection) {
+        // Create user ID section
+        const userIdSection = document.createElement('div');
+        userIdSection.style.cssText = `
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #d1d5db;
+            text-align: center;
+            font-family: 'Noto Sans Hebrew', 'Arial', sans-serif !important;
+            direction: rtl !important;
+        `;
+        
+        const userId = getUserMetadata('user_id');
+        userIdSection.innerHTML = `
+            <div style="font-size: 16px; font-weight: bold; color: #374151; margin-bottom: 8px; font-family: 'Noto Sans Hebrew', 'Arial', sans-serif;">
+                מזהה מערכת
+            </div>
+            <div style="font-family: monospace; font-size: 18px; font-weight: bold; color: #1e40af; background: white; padding: 8px 16px; border-radius: 8px; display: inline-block; border: 1px solid #d1d5db;">
+                ${userId}
+            </div>
+        `;
+        
+        // Insert the user ID section before the questionnaire section
+        questionnaireSection.parentNode.insertBefore(userIdSection, questionnaireSection);
+    }
+    
+    // Apply RTL and font styles to all elements in the clone
+    const allElements = questionnaireClone.querySelectorAll('*');
+    allElements.forEach(element => {
+        element.style.fontFamily = "'Noto Sans Hebrew', 'Arial', sans-serif";
+        element.style.direction = 'rtl';
+        element.style.textAlign = 'right';
+    });
+    
+    // Add the modified content to the report container
+    reportContainer.appendChild(questionnaireClone);
+    
+    // Generate filename with user ID and date
+    const userId = getUserMetadata('user_id');
+    const date = new Date().toLocaleDateString('he-IL', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    
+    // Create filename: user_id_date.pdf
+    const filename = `${userId}_${date}.pdf`;
+    
+    // PDF options with better Hebrew support
     const opt = {
         margin:       [0.5, 0.5, 0.5, 0.5], // inches (top, left, bottom, right)
-        filename:     `diagnosis_${getDiagnosisUserEmail()}.pdf`,
+        filename:     filename,
         image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
+        html2canvas:  { 
+            scale: 2, 
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#ffffff'
+        },
+        jsPDF:        { 
+            unit: 'in', 
+            format: 'a4', 
+            orientation: 'portrait',
+            compress: true
+        },
         pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
     };
+    
     // Use html2pdf
-    html2pdf().set(opt).from(wrapper).save();
+    html2pdf().set(opt).from(reportContainer).save();
+}
+
+// Helper function to get user metadata from the current data
+function getUserMetadata(field) {
+    // Try to get from the current user data
+    const currentUser = getCurrentUserFromModal();
+    if (currentUser && currentUser[field]) {
+        return currentUser[field];
+    }
+    
+    // Try to get from the metadata in the modal content
+    const metadataElement = document.querySelector('#questionnaireContent .font-mono.font-bold.text-blue-600.text-lg');
+    if (metadataElement && field === 'user_id') {
+        return metadataElement.textContent.trim();
+    }
+    
+    // Try to get from the metadata object in the displayQuestionsWithText function
+    const metadataSection = document.querySelector('#questionnaireContent .bg-gradient-to-br.from-blue-50.via-indigo-50.to-purple-50');
+    if (metadataSection) {
+        const userIdElement = metadataSection.querySelector('.font-mono.font-bold.text-blue-600.text-lg');
+        if (userIdElement && field === 'user_id') {
+            return userIdElement.textContent.trim();
+        }
+    }
+    
+    // Fallback values
+    const fallbacks = {
+        'user_id': 'לא זמין',
+        'email': getDiagnosisUserEmail(),
+        'date': 'לא זמין',
+        'pdn_code': 'לא זמין',
+        'pdn_voice_code': 'לא זמין',
+        'diagnose_pdn_code': 'לא זמין',
+        'diagnose_comments': 'אין הערות'
+    };
+    
+    return fallbacks[field] || 'לא זמין';
+}
+
+// Helper function to get current user data from the modal
+function getCurrentUserFromModal() {
+    const userEmail = getDiagnosisUserEmail();
+    if (userEmail && currentData) {
+        return currentData.find(user => user.email === userEmail);
+    }
+    return null;
 }
 
 let sessionToken = null;
@@ -799,12 +916,12 @@ function renderTable(data) {
         
         row.innerHTML = `
             <td class="px-4 py-4">
-                <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium font-mono">🆔 ${user.user_id || 'N/A'}</span>
+                <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium font-mono">${user.user_id || 'N/A'}</span>
             </td>
             <td class="px-4 py-4 font-medium text-gray-900">${user.email}</td>
             <td class="px-4 py-4 text-gray-700">${user.date}</td>
             <td class="px-4 py-4">
-                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">🔵 ${user.pdn_code}</span>
+                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium"> ${user.pdn_code}</span>
             </td>
             <td class="px-4 py-4">
                 <span class="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">🎤 ${user.pdn_voice_code || 'N/A'}</span>
@@ -1025,31 +1142,98 @@ function displayQuestionsWithText(questions, metadata, questionsData) {
     const content = document.getElementById('questionnaireContent');
     
     content.innerHTML = `
-        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-                <h3 class="text-lg font-semibold mb-2 text-gray-800 flex items-center">
-                    <i class="fas fa-user mr-2 text-blue-600"></i>פרטי משתמש
+        <div class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-8 rounded-2xl border border-blue-200 shadow-lg">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">
+                    פרטי משתמש
                 </h3>
-                <div class="flex items-center gap-4">
-                    <div class="text-base text-gray-700 font-bold">
-                        <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-lg shadow-sm border border-indigo-200">מזהה משתמש:
-                            <span class="font-mono text-indigo-900">${metadata.user_id || metadata["User ID"] || 'לא זמין'}</span>
-                        </span>
+                <button id="downloadPdfBtn"
+                    class="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white font-bold rounded-xl shadow-lg hover:from-yellow-500 hover:to-yellow-700 transition-all duration-300 text-base transform hover:scale-105"
+                    onclick="downloadDiagnosisAsPDF()">
+                    <i class="fas fa-file-arrow-down text-lg"></i>
+                    הורד דוח
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                <!-- Personal Information Section -->
+                <div class="space-y-4">
+                    <h4 class="text-lg font-semibold text-gray-700 border-b-2 border-blue-200 pb-2">
+                        מידע אישי
+                    </h4>
+                    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="text-sm text-gray-500 mb-1">שם פרטי</div>
+                        <div class="font-bold text-gray-900 text-lg">${metadata.first_name || metadata["First Name"] || 'לא זמין'}</div>
                     </div>
-                    <button id="downloadPdfBtn"
-                        class="ml-2 flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white font-bold rounded-lg shadow hover:from-yellow-500 hover:to-yellow-700 transition-all duration-200 text-base action-btn download"
-                        onclick="downloadDiagnosisAsPDF()">
-                        <i class="fas fa-file-arrow-down"></i>
-                        הורד דוח
-                    </button>
+                    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="text-sm text-gray-500 mb-1">שם משפחה</div>
+                        <div class="font-bold text-gray-900 text-lg">${metadata.last_name || metadata["Last Name"] || 'לא זמין'}</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="text-sm text-gray-500 mb-1">שנת לידה</div>
+                        <div class="font-bold text-gray-900 text-lg">${metadata.birth_year || metadata["Birth Year"] || 'לא זמין'}</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="text-sm text-gray-500 mb-1">מין</div>
+                        <div class="font-bold text-gray-900 text-lg">${metadata.gender || metadata["Gender"] || 'לא זמין'}</div>
+                    </div>
+                </div>
+
+                <!-- System Information Section -->
+                <div class="space-y-4">
+                    <h4 class="text-lg font-semibold text-gray-700 border-b-2 border-green-200 pb-2">
+                        מידע אישי
+
+                    </h4>
+                    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="text-sm text-gray-500 mb-1">מזהה מערכת</div>
+                        <div class="font-mono font-bold text-blue-600 text-lg">${metadata.user_id || metadata["User ID"] || 'לא זמין'}</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="text-sm text-gray-500 mb-1">אימייל</div>
+                        <div class="font-bold text-gray-900 text-lg break-all">${metadata.email || 'לא זמין'}</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="text-sm text-gray-500 mb-1">תאריך אבחון</div>
+                        <div class="font-bold text-gray-900 text-lg">${metadata.diagnosis_date || metadata["Diagnosis Date"] || 'לא זמין'}</div>
+                    </div>
+                     <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="text-sm text-gray-500 mb-1">שפת אם</div>
+                        <div class="font-bold text-gray-900 text-lg">${metadata.native_language || metadata["Native Language"] || 'לא זמין'}</div>
+                    </div>
+                </div>
+
+                <!-- Diagnosis Information Section -->
+                <div class="space-y-4">
+                    <h4 class="text-lg font-semibold text-gray-700 border-b-2 border-purple-200 pb-2">
+                        מידע אבחון
+                    </h4>
+                    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="text-sm text-gray-500 mb-1">קוד פדן</div>
+                        <div class="font-bold text-blue-600 text-lg">${metadata.pdn_code || metadata["PDN Code"] || 'לא זמין'}</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="text-sm text-gray-500 mb-1">קוד ניתוח קול</div>
+                        <div class="font-bold text-purple-600 text-lg">${metadata.pdn_voice_code || metadata["PDN Voice Code"] || 'לא זמין'}</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="text-sm text-gray-500 mb-1">קוד מאבחן</div>
+                        <div class="font-bold text-green-600 text-lg">${metadata.diagnose_pdn_code || metadata["Diagnose PDN Code"] || 'לא זמין'}</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="text-sm text-gray-500 mb-1">הערות המאבחן</div>
+                        <div class="font-bold text-gray-900 text-lg">${metadata.diagnose_comments || metadata["Diagnose Comments"] || 'אין הערות'}</div>
+                    </div>
+                    
                 </div>
             </div>
         </div>
-        <div class="bg-white p-6 rounded-xl border border-gray-200">
-            <h3 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
-                <i></i>תשובות מאובחן (${Object.keys(questions).length} שאלות)
+        
+        <div class="bg-white p-8 rounded-2xl border border-gray-200 shadow-lg mt-6">
+            <h3 class="text-2xl font-bold text-gray-800 mb-6">
+                תשובות מאובחן (${Object.keys(questions).length} שאלות)
             </h3>
-            <div class="space-y-4">
+            <div class="space-y-6">
                 ${Object.entries(questions).map(([questionNumber, questionData]) => {
                     // Handle different question types
                     let answerDisplay = '';
