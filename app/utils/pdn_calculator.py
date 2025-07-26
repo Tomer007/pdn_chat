@@ -27,11 +27,11 @@ def calculate_pdn_code(answers: dict) -> dict:
         if str(i) in answers:
             answer = answers[str(i)]['selected_option_code']
             if answer == 'AP':
-                trait_counts['A'] += 1
-                trait_counts['P'] += 1
+                trait_counts['A'] += 0
+                trait_counts['P'] += 0
             elif answer == 'ET':
-                trait_counts['E'] += 1
-                trait_counts['T'] += 1
+                trait_counts['E'] += 0
+                trait_counts['T'] += 0
             elif answer == 'AE':
                 trait_counts['A'] += 1
                 trait_counts['E'] += 1
@@ -90,8 +90,8 @@ def calculate_pdn_code(answers: dict) -> dict:
                 result['scores'][trait1] -= score_adjustment
                 result['scores'][trait2] += score_adjustment
 
-    for trait, score in trait_counts.items():
-        result['scores'][trait] += score
+    # for trait, score in trait_counts.items():
+    #     result['scores'][trait] += score
     dominant_trait = max(result['scores'], key=result['scores'].get)
     result['trait'] = dominant_trait
 
@@ -140,7 +140,6 @@ def calculate_pdn_code(answers: dict) -> dict:
     logger.info("Stage D dominant trait %s", dominant_trait)
 
     # StageE: Strengthen Dominant Trait
-    trait_counts = {'A': 0, 'T': 0, 'P': 0, 'E': 0}
     for i in range(57, 60):
         if str(i) in answers:
             ranking = answers[str(i)]['ranking']
@@ -148,11 +147,11 @@ def calculate_pdn_code(answers: dict) -> dict:
                 if rank == 1:
                     result['scores'][trait] += 8
                 elif rank == 2:
-                    result['scores'][trait] += 6
-                elif rank == 3:
                     result['scores'][trait] += 4
-                elif rank == 4:
+                elif rank == 3:
                     result['scores'][trait] += 2
+                elif rank == 4:
+                    result['scores'][trait] += 0
 
     dominant_trait = max(result['scores'], key=result['scores'].get)
     result['trait'] = dominant_trait
