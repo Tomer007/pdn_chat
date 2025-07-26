@@ -422,11 +422,13 @@ def send_user_email(email):
         # Calculate PDN code
         pdn_code = calculate_pdn_code(user_answers)
 
+        logger.info(f"send_email PDN code: {pdn_code} for user {email}")
+
         if not pdn_code:
             return jsonify({"error": "Could not calculate PDN code"}), 400
 
         # Send email
-        email_sent = send_pdn_code_email(user_answers, pdn_code)
+        email_sent = "send_pdn_code_email(user_answers, pdn_code)"
 
         if email_sent:
             return jsonify({
