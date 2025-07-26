@@ -1121,6 +1121,7 @@ async function viewQuestionnaire(email) {
 }
 
 function displayQuestionnaire(data) {
+
     const content = document.getElementById('questionnaireContent');
     
     // Extract metadata and questions
@@ -1134,7 +1135,7 @@ function displayQuestionnaire(data) {
             questions[key] = data[key];
         }
     });
-    
+ 
     displayQuestionsWithText(questions, metadata, questionsData);
 }
 
@@ -1158,73 +1159,38 @@ function displayQuestionsWithText(questions, metadata, questionsData) {
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
                 <!-- Personal Information Section -->
                 <div class="space-y-4">
-                    <h4 class="text-lg font-semibold text-gray-700 border-b-2 border-blue-200 pb-2">
-                        מידע אישי
-                    </h4>
-                    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                   <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                         <div class="text-sm text-gray-500 mb-1">שם פרטי</div>
-                        <div class="font-bold text-gray-900 text-lg">${metadata.first_name || metadata["First Name"] || 'לא זמין'}</div>
+                        <div class="font-bold text-gray-900 text-lg">${ metadata["First Name"] || 'לא זמין'}</div>
                     </div>
                     <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                         <div class="text-sm text-gray-500 mb-1">שם משפחה</div>
-                        <div class="font-bold text-gray-900 text-lg">${metadata.last_name || metadata["Last Name"] || 'לא זמין'}</div>
-                    </div>
-                    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                        <div class="text-sm text-gray-500 mb-1">שנת לידה</div>
-                        <div class="font-bold text-gray-900 text-lg">${metadata.birth_year || metadata["Birth Year"] || 'לא זמין'}</div>
-                    </div>
-                    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                        <div class="text-sm text-gray-500 mb-1">מין</div>
-                        <div class="font-bold text-gray-900 text-lg">${metadata.gender || metadata["Gender"] || 'לא זמין'}</div>
+                        <div class="font-bold text-gray-900 text-lg">${metadata["Last Name"] || 'לא זמין'}</div>
                     </div>
                 </div>
 
                 <!-- System Information Section -->
                 <div class="space-y-4">
-                    <h4 class="text-lg font-semibold text-gray-700 border-b-2 border-green-200 pb-2">
-                        מידע אישי
-
-                    </h4>
-                    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                     <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                         <div class="text-sm text-gray-500 mb-1">מזהה מערכת</div>
-                        <div class="font-mono font-bold text-blue-600 text-lg">${metadata.user_id || metadata["User ID"] || 'לא זמין'}</div>
+                        <div  class="font-bold text-gray-900 text-lg break-all">${metadata["User ID"] || 'לא זמין'}</div>
                     </div>
                     <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                         <div class="text-sm text-gray-500 mb-1">אימייל</div>
-                        <div class="font-bold text-gray-900 text-lg break-all">${metadata.email || 'לא זמין'}</div>
-                    </div>
-                    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                        <div class="text-sm text-gray-500 mb-1">תאריך אבחון</div>
-                        <div class="font-bold text-gray-900 text-lg">${metadata.diagnosis_date || metadata["Diagnosis Date"] || 'לא זמין'}</div>
-                    </div>
-                     <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                        <div class="text-sm text-gray-500 mb-1">שפת אם</div>
-                        <div class="font-bold text-gray-900 text-lg">${metadata.native_language || metadata["Native Language"] || 'לא זמין'}</div>
+                        <div class="font-bold text-gray-900 text-lg break-all">${metadata["Email"] || 'לא זמין'}</div>
                     </div>
                 </div>
 
                 <!-- Diagnosis Information Section -->
                 <div class="space-y-4">
-                    <h4 class="text-lg font-semibold text-gray-700 border-b-2 border-purple-200 pb-2">
-                        מידע אבחון
-                    </h4>
                     <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                         <div class="text-sm text-gray-500 mb-1">קוד פדן</div>
-                        <div class="font-bold text-blue-600 text-lg">${metadata.pdn_code || metadata["PDN Code"] || 'לא זמין'}</div>
+                        <div >${metadata["PDN Code"] || 'לא זמין'}</div>
                     </div>
-                    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                        <div class="text-sm text-gray-500 mb-1">קוד ניתוח קול</div>
-                        <div class="font-bold text-purple-600 text-lg">${metadata.pdn_voice_code || metadata["PDN Voice Code"] || 'לא זמין'}</div>
+                     <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="text-sm text-gray-500 mb-1">תאריך אבחון</div>
+                        <div class="font-bold text-gray-900 text-lg">${metadata["Date"] || 'לא זמין'}</div>
                     </div>
-                    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                        <div class="text-sm text-gray-500 mb-1">קוד מאבחן</div>
-                        <div class="font-bold text-green-600 text-lg">${metadata.diagnose_pdn_code || metadata["Diagnose PDN Code"] || 'לא זמין'}</div>
-                    </div>
-                    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                        <div class="text-sm text-gray-500 mb-1">הערות המאבחן</div>
-                        <div class="font-bold text-gray-900 text-lg">${metadata.diagnose_comments || metadata["Diagnose Comments"] || 'אין הערות'}</div>
-                    </div>
-                    
                 </div>
             </div>
         </div>
