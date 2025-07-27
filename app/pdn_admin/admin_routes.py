@@ -547,14 +547,29 @@ def serve_audio(file_path):
     # Verify session
     verify_session(session_token)
 
-    # Construct the full path to the audio file
-    audio_path = Path('saved_results') / file_path
+    # Use the environment variable for saved_results directory
+    saved_results_dir = os.getenv('SAVED_RESULTS_DIR', 'saved_results')
+    
+    # Handle the file path correctly
+    # If the file_path already starts with the saved_results directory structure, use it as is
+    if file_path.startswith('pdn/saved_results/'):
+        # Remove the 'pdn/saved_results/' prefix and use the environment variable
+        relative_path = file_path.replace('pdn/saved_results/', '')
+        audio_path = Path(saved_results_dir) / relative_path
+    elif file_path.startswith('saved_results/'):
+        # Remove the 'saved_results/' prefix
+        relative_path = file_path.replace('saved_results/', '')
+        audio_path = Path(saved_results_dir) / relative_path
+    else:
+        # Use the file_path as is
+        audio_path = Path(saved_results_dir) / file_path
+    
     logger.debug(f"Looking for file at: {audio_path.absolute()}")
 
     # Security check: ensure the path is within the allowed directory
     try:
         audio_path = audio_path.resolve()
-        saved_results_path = Path('saved_results').resolve()
+        saved_results_path = Path(saved_results_dir).resolve()
         if not str(audio_path).startswith(str(saved_results_path)):
             logger.warning("Path traversal attempt detected")
             abort(403, description="Access denied")
