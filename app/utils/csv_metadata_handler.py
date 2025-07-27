@@ -29,7 +29,8 @@ class UserMetadataHandler:
             "PDN Code",
             "PDN Voice Code",
             "Diagnose PDN Code",
-            "Diagnose Comments"
+            "Diagnose Comments",
+            "PDN Update Comments"
         ]
 
         # Cache for frequently accessed data
@@ -239,11 +240,12 @@ class UserMetadataHandler:
             new_row = {
                 "User ID": self._get_next_user_id(),
                 "Email": email,
-                "Date": datetime.now().strftime("%Y-%m-%d"),
+                "Date": datetime.now().strftime("%d/%m/%Y"),
                 "PDN Code": "",
                 "PDN Voice Code": "",
                 "Diagnose PDN Code": "",
-                "Diagnose Comments": ""
+                "Diagnose Comments": "",
+                "PDN Update Comments": ""
             }
 
             # Add new row
@@ -510,6 +512,38 @@ class UserMetadataHandler:
         """
         return self._update_user_field(email, "PDN Code", pdn_code)
 
+    def update_pdn_code_with_comment(self, email: str, pdn_code: str, updated_by: str) -> bool:
+        """
+        Update PDN Code for a specific user with comment about who updated it and when.
+        
+        Args:
+            email: User's email address
+            pdn_code: The calculated PDN code
+            updated_by: Name/email of the person who updated the PDN code
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            # Update PDN code
+            pdn_updated = self.update_pdn_code(email, pdn_code)
+            
+            if pdn_updated:
+                # Create comment with timestamp and user info
+                current_time = datetime.now().strftime("%d/%m/%Y %H:%M")
+                comment = f"Updated on {current_time} by {updated_by}"
+                
+                # Update the comment field
+                comment_updated = self._update_user_field(email, "PDN Update Comments", comment)
+                
+                return comment_updated
+            else:
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error updating PDN code with comment: {e}")
+            return False
+
     def update_diagnose_code(self, email: str, diagnose_code: str, diagnose_comments: str = "") -> bool:
         """
         Update Diagnose PDN Code and comments for a specific user.
@@ -586,5 +620,64 @@ class UserMetadataHandler:
         except Exception as e:
             logger.error(f"Error getting statistics: {e}")
             return {}
+
+    def format_date_readable(self, date_str: str) -> str:
+        """
+        Convert date from YYYY-MM-DD format to DD/MM/YYYY format for better readability.
+        
+        Args:
+            date_str: Date string in YYYY-MM-DD format
+            
+        Returns:
+            Date string in DD/MM/YYYY format
+        """
+        try:
+            if not date_str or date_str.strip() == "":
+                return ""
+            
+            # Check if it's already in DD/MM/YYYY format
+            if "/" in date_str:
+                return date_str
+            
+            # Parse YYYY-MM-DD format and convert to DD/MM/YYYY
+            parsed_date = datetime.strptime(date_str.strip(), "%Y-%m-%d")
+            return parsed_date.strftime("%d/%m/%Y")
+            
+        except Exception as e:
+            logger.error(f"Error formatting date {date_str}: {e}")
+            return date_str
+
+    def update_all_dates_to_readable(self) -> bool:
+        """
+        Update all dates in the CSV file to readable format (DD/MM/YYYY).
+        
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            data = self._read_csv_data()
+            updated = False
+            
+            for row in data:
+                if row.get("Date", "").strip():
+                    old_date = row["Date"]
+                    new_date = self.format_date_readable(old_date)
+                    if new_date != old_date:
+                        row["Date"] = new_date
+                        updated = True
+            
+            if updated:
+                if self._write_csv_data(data):
+                    logger.info("Successfully updated all dates to readable format")
+                    return True
+                else:
+                    logger.error("Failed to write updated dates to CSV")
+                    return False
+            
+            return True  # No updates needed
+            
+        except Exception as e:
+            logger.error(f"Error updating dates to readable format: {e}")
+            return False
 
 

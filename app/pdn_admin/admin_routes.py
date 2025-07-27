@@ -3,6 +3,7 @@ import logging
 import secrets
 from pathlib import Path
 import os
+from datetime import datetime
 
 from flask import Blueprint, request, render_template, jsonify, current_app, send_file, abort
 
@@ -21,7 +22,7 @@ pdn_admin_bp = Blueprint('pdn_admin', __name__,
                          static_folder='../static')
 
 # Admin sessions storage (in production, use Redis or database)
-admin_sessions = set()
+admin_sessions = {}  # session_token -> user_info
 
 
 def load_user_metadata():
@@ -68,6 +69,7 @@ def load_user_metadata():
                     "pdn_voice_code": (row.get("PDN Voice Code") or "").strip(),
                     "diagnose_pdn_code": (row.get("Diagnose PDN Code") or "").strip(),
                     "diagnose_comments": (row.get("Diagnose Comments") or "").strip(),
+                    "pdn_update_comments": (row.get("PDN Update Comments") or "").strip(),
                     # Load from JSON metadata if available, otherwise use CSV or defaults
                     "first_name": (json_metadata.get("first_name") or row.get("First Name") or "").strip(),
                     "last_name": (json_metadata.get("last_name") or row.get("Last Name") or "").strip(),
@@ -107,6 +109,12 @@ def verify_session(session_token: str):
         abort(401, description="Invalid session")
     return True
 
+def get_session_user_info(session_token: str):
+    """Get user info from session token"""
+    if session_token in admin_sessions:
+        return admin_sessions[session_token]
+    return None
+
 
 @pdn_admin_bp.route('/')
 def admin_login_page():
@@ -140,7 +148,12 @@ def admin_login():
         # Simple password check (you can make this more secure)
         if password.lower() == current_app.config.get('ADMIN_PASSWORD', 'pdn').lower():
             session_token = secrets.token_urlsafe(32)
-            admin_sessions.add(session_token)
+            # Store user info with session token
+            admin_sessions[session_token] = {
+                "username": "Admin",
+                "email": "admin@pdn.co.il",
+                "login_time": datetime.now().strftime("%d/%m/%Y %H:%M")
+            }
             return jsonify({
                 "success": True,
                 "message": "Login successful",
@@ -166,7 +179,7 @@ def admin_logout():
 
     session_token = request.args.get('session_token')
     if session_token and session_token in admin_sessions:
-        admin_sessions.remove(session_token)
+        del admin_sessions[session_token]
     return jsonify({"success": True, "message": "Logout successful"})
 
 
@@ -442,6 +455,73 @@ def send_user_email(email):
     except Exception as e:
         logger.error(f"Error sending email: {e}")
         return jsonify({"error": f"Error sending email: {str(e)}"}), 500
+
+
+@pdn_admin_bp.route('/user/recalculate_pdn/<email>', methods=['POST'])
+def recalculate_user_pdn(email):
+    """Recalculate PDN code for a user"""
+    logger.debug(f"POST /pdn-admin/user/recalculate_pdn/{email} called")
+    logger.info("Request: %s %s", request.method, request.url)
+    logger.info("Response: %s", 200)
+
+    session_token = request.args.get('session_token')
+    verify_session(session_token)
+
+    try:
+        # Load user answers
+        user_answers = load_answers(email)
+        if not user_answers:
+            return jsonify({"error": "User answers not found"}), 404
+        
+        # Calculate PDN code using the calculate_pdn_code function
+        pdn_code = calculate_pdn_code(user_answers)
+
+        logger.info(f"recalculate_pdn PDN code: {pdn_code} for user {email}")
+
+        if not pdn_code:
+            return jsonify({"error": "Could not calculate PDN code"}), 400
+
+        # Update CSV with the new PDN code and current date
+        try:
+            csv_handler = UserMetadataHandler()
+            
+            # Get user info from session
+            user_info = get_session_user_info(session_token)
+            updated_by = user_info.get("username", "Admin") if user_info else "Admin"
+            
+            # Update PDN code with comment
+            pdn_updated = csv_handler.update_pdn_code_with_comment(email, pdn_code, updated_by)
+            
+            # Update date to current date
+            current_date = datetime.now().strftime("%d/%m/%Y")
+            date_updated = csv_handler._update_user_field(email, "Date", current_date)
+            
+            if pdn_updated and date_updated:
+                logger.info(f"Successfully updated CSV with PDN code {pdn_code} and date {current_date} for {email} by {updated_by}")
+                
+                # Get the updated comment from CSV
+                user_data = csv_handler.get_user_by_email(email)
+                pdn_update_comments = user_data.get("PDN Update Comments", "") if user_data else ""
+                
+                return jsonify({
+                    "success": True,
+                    "message": f"PDN code recalculated successfully for {email}",
+                    "pdn_code": pdn_code,
+                    "date": current_date,
+                    "updated_by": updated_by,
+                    "pdn_update_comments": pdn_update_comments
+                })
+            else:
+                logger.error(f"Failed to update CSV for {email}")
+                return jsonify({"error": "Failed to update CSV with new PDN code"}), 500
+                
+        except Exception as csv_error:
+            logger.error(f"Failed to update CSV with PDN code: {csv_error}")
+            return jsonify({"error": f"Failed to update CSV: {str(csv_error)}"}), 500
+
+    except Exception as e:
+        logger.error(f"Error recalculating PDN code: {e}")
+        return jsonify({"error": f"Error recalculating PDN code: {str(e)}"}), 500
 
 
 @pdn_admin_bp.route('/audio/<path:file_path>')
