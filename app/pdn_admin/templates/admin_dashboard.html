@@ -1271,44 +1271,26 @@ function displayQuestionsWithText(questions, metadata, questionsData) {
                         // For regular questions with answer and code
                         let cleanAnswer = questionData.answer;
                         
-                        // Method 1: Split by question mark and take first part
-                        if (cleanAnswer.includes('?')) {
-                            cleanAnswer = cleanAnswer.split('?')[0].trim();
-                        }
-                        
-                        // Method 2: If there are multiple numbered options, find the selected one
-                        const numberedOptions = cleanAnswer.match(/(\d+)\.\s*([^0-9\n]+)/g);
-                        if (numberedOptions && numberedOptions.length > 1) {
-                            // Look for patterns that indicate which option was selected
-                            // Usually the selected option comes first or has some indicator
-                            cleanAnswer = numberedOptions[0]; // Take the first one as selected
-                        }
-                        
-                        // Method 3: Clean up any remaining question text
-                        const questionPatterns = [
-                            /עד כמה קשה לך להסתדר עם מצבי חוסר ודאות\?/,
-                            /באיזו מידה.*\?/,
-                            /איך.*\?/,
-                            /מה.*\?/,
-                            /האם.*\?/
-                        ];
-                        
-                        for (const pattern of questionPatterns) {
-                            cleanAnswer = cleanAnswer.replace(pattern, '').trim();
-                        }
-                        
-                        // Method 4: If we still have multiple options, take the first one
-                        const options = cleanAnswer.split(/\d+\./).filter(opt => opt.trim());
-                        if (options.length > 1) {
-                            // Find the first non-empty option
-                            const firstOption = options.find(opt => opt.trim());
-                            if (firstOption) {
-                                // Find its number
-                                const numberMatch = cleanAnswer.match(new RegExp(`(\\d+)\\.\\s*${firstOption.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
-                                if (numberMatch) {
-                                    cleanAnswer = `${numberMatch[1]}. ${firstOption.trim()}`;
-                                }
+                        // Clean up the answer to show only the selected option text
+                        if (questionData.question_options && questionData.question_options.length > 0) {
+                            // Try to find the selected option by matching the answer text
+                            const selectedOption = questionData.question_options.find(option => 
+                                questionData.answer.includes(option.text)
+                            );
+                            if (selectedOption) {
+                                cleanAnswer = selectedOption.text;
                             }
+                        }
+                        
+                        // Remove any question text that might be mixed in
+                        if (cleanAnswer.includes('?')) {
+                            cleanAnswer = cleanAnswer.split('?').pop()?.trim() || cleanAnswer;
+                        }
+                        
+                        // For ranking questions, extract only the selected position
+                        const rankingMatch = cleanAnswer.match(/(\d+)\.\s*([^0-9\n]+)/);
+                        if (rankingMatch) {
+                            cleanAnswer = `${rankingMatch[1]}. ${rankingMatch[2].trim()}`;
                         }
                         
                         answerDisplay = cleanAnswer;
@@ -1397,11 +1379,24 @@ function displayVoice(data) {
     
     // Helper function to create audio URL
     function createAudioUrl(filePath) {
-        // Remove 'saved_results/' prefix if it exists
+        // Extract just the relative path from the full file path
         let processedPath = filePath;
+        
+        // Remove 'saved_results/' prefix if it exists
         if (processedPath.startsWith('saved_results/')) {
             processedPath = processedPath.substring('saved_results/'.length);
         }
+        
+        // Remove '/pdn/saved_results/' prefix if it exists
+        if (processedPath.startsWith('/pdn/saved_results/')) {
+            processedPath = processedPath.substring('/pdn/saved_results/'.length);
+        }
+        
+        // Remove 'pdn/saved_results/' prefix if it exists
+        if (processedPath.startsWith('pdn/saved_results/')) {
+            processedPath = processedPath.substring('pdn/saved_results/'.length);
+        }
+        
         return `/pdn-admin/audio/${encodeURIComponent(processedPath)}?session_token=${sessionToken}`;
     }
     
