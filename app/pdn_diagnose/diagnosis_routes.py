@@ -51,7 +51,6 @@ def user_info_page():
     # Load questions.json to get the instructions
     questions = current_app.config.get('QUESTIONS_FILE', {})
 
-    logger.info(f" /user_info  Questions: {questions}")
     personal_instructions = questions.get("phases", {}).get("PersonalDetails", {}).get("instructions", "")
     logger.info(f" /user_info  personal_instructions: {personal_instructions}")
     return render_template("user_form.html", 
@@ -129,7 +128,7 @@ def submit_answer_route():
         ranking = data.get('ranking')
         email = session.get('email', 'anonymous')
         
-        logger.info(f"Processed data - question_number: {question_number}, selected_option_code: {selected_option_code}, ranking: {ranking}, email: {email}")
+        logger.debug(f"Processed data - question_number: {question_number}, selected_option_code: {selected_option_code}, ranking: {ranking}, email: {email}")
         
         # Validate required fields
         if question_number is None:

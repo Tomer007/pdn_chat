@@ -402,7 +402,7 @@
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-4 space-x-reverse">
                 <label for="searchInput" class="text-lg font-medium text-gray-700 flex items-center">
-                    <i"></i>
+                    <i></i>
                     חיפוש מאובחן לפי אימייל:
                 </label>
                 <input type="text" id="searchInput" placeholder="הקלד אימייל לחיפוש..."
@@ -1233,24 +1233,98 @@ function displayQuestionsWithText(questions, metadata, questionsData) {
                     }
                     
                     if (questionData.ranking) {
-                        // For ranking questions, show the actual text options in order
+                        // Check if this is a scale question (has exactly 2 options with numeric values)
                         const rankingEntries = Object.entries(questionData.ranking);
-                        const sortedRanking = rankingEntries.sort((a, b) => a[1] - b[1]);
                         
-                        // Get the text options from question options
-                        let rankedTexts = [];
-                        if (questionData.question_options && questionData.question_options.length > 0) {
-                            rankedTexts = sortedRanking.map(([code, rank]) => {
-                                const option = questionData.question_options.find(opt => opt.code === code);
-                                return `${rank}. ${option ? option.text : code}`;
-                            });
+                        if (rankingEntries.length === 2 && 
+                            typeof rankingEntries[0][1] === 'number' && 
+                            typeof rankingEntries[1][1] === 'number') {
+                            
+                            // This is a scale question - decode it properly
+                            const [leftCode, leftValue] = rankingEntries[0];
+                            const [rightCode, rightValue] = rankingEntries[1];
+                            
+                            // Get the question options to find the text labels
+                            let leftText = leftCode;
+                            let rightText = rightCode;
+                            
+                            if (questionData.question_options && questionData.question_options.length >= 2) {
+                                const leftOption = questionData.question_options.find(opt => opt.code === leftCode);
+                                const rightOption = questionData.question_options.find(opt => opt.code === rightCode);
+                                
+                                if (leftOption) leftText = leftOption.text;
+                                if (rightOption) rightText = rightOption.text;
+                            }
+                            
+                            // Determine the scale position and create readable description
+                            const scaleMap = [
+                                { position: 0, description: `${leftText} (במידה רבה מאוד)`, leftValue: 12, rightValue: 0 },
+                                { position: 1, description: `${leftText} (במידה רבה)`, leftValue: 10, rightValue: 2 },
+                                { position: 2, description: `${leftText} (במידה מסוימת)`, leftValue: 8, rightValue: 4 },
+                                { position: 3, description: `באמצע (ניטרלי)`, leftValue: 6, rightValue: 6 },
+                                { position: 4, description: `${rightText} (במידה מסוימת)`, leftValue: 4, rightValue: 8 },
+                                { position: 5, description: `${rightText} (במידה רבה)`, leftValue: 2, rightValue: 10 },
+                                { position: 6, description: `${rightText} (במידה רבה מאוד)`, leftValue: 0, rightValue: 12 }
+                            ];
+                            
+                            // Find the matching scale position
+                            const scalePosition = scaleMap.find(pos => 
+                                pos.leftValue === leftValue && pos.rightValue === rightValue
+                            );
+                            
+                            if (scalePosition) {
+                                // Create visual scale indicator
+                                const filledDots = '●'.repeat(scalePosition.position + 1);
+                                const emptyDots = '○'.repeat(6 - scalePosition.position);
+                                const scaleIndicator = filledDots + emptyDots;
+                                
+                                answerDisplay = `
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between text-xs text-gray-600">
+                                            <span>${leftText}</span>
+                                            <span>${rightText}</span>
+                                        </div>
+                                        <div class="flex items-center justify-center">
+                                            <span class="text-lg tracking-wider">${scaleIndicator}</span>
+                                        </div>
+                                        <div class="text-center text-sm font-medium text-purple-600">
+                                            ${scalePosition.description}
+                                        </div>
+                                    </div>
+                                `;
+                                codeDisplay = 'סולם העדפה';
+                            } else {
+                                // Fallback if exact match not found
+                                answerDisplay = `
+                                    <div class="space-y-2">
+                                        <div class="text-sm text-gray-600">
+                                            ${leftText}: ${leftValue} | ${rightText}: ${rightValue}
+                                        </div>
+                                        <div class="text-xs text-gray-500">
+                                            (לא ניתן לפענח את המיקום המדויק בסולם)
+                                        </div>
+                                    </div>
+                                `;
+                                codeDisplay = 'סולם העדפה';
+                            }
+                            
                         } else {
-                            // Fallback to codes if no text options available
-                            rankedTexts = sortedRanking.map(([code, rank]) => `${rank}. ${code}`);
+                            // This is a regular ranking question - use existing logic
+                            const sortedRanking = rankingEntries.sort((a, b) => a[1] - b[1]);
+                            
+                            let rankedTexts = [];
+                            if (questionData.question_options && questionData.question_options.length > 0) {
+                                rankedTexts = sortedRanking.map(([code, rank]) => {
+                                    const option = questionData.question_options.find(opt => opt.code === code);
+                                    return `${rank}. ${option ? option.text : code}`;
+                                });
+                            } else {
+                                rankedTexts = sortedRanking.map(([code, rank]) => `${rank}. ${code}`);
+                            }
+                            
+                            answerDisplay = rankedTexts.join('<br>');
+                            codeDisplay = 'דירוג';
                         }
-                        
-                        answerDisplay = rankedTexts.join('<br>');
-                        codeDisplay = 'דירוג';
                     } else if (questionData.selected_option_code) {
                         // For questions with selected_option_code - find the actual text
                         let selectedText = questionData.selected_option_code; // Default to code if text not found
