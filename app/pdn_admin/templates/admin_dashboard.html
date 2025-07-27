@@ -1144,7 +1144,6 @@ function displayQuestionnaire(data) {
             questions[key] = data[key];
         }
     });
- 
     displayQuestionsWithText(questions, metadata, questionsData);
 }
 
@@ -1170,11 +1169,11 @@ function displayQuestionsWithText(questions, metadata, questionsData) {
                 <div class="space-y-4">
                    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                         <div class="text-sm text-gray-500 mb-1">שם פרטי</div>
-                        <div class="font-bold text-gray-900 text-lg">${ metadata["First Name"] || 'לא זמין'}</div>
+                        <div class="font-bold text-gray-900 text-lg">${ metadata["first_name"] || 'לא זמין'}</div>
                     </div>
                     <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                         <div class="text-sm text-gray-500 mb-1">שם משפחה</div>
-                        <div class="font-bold text-gray-900 text-lg">${metadata["Last Name"] || 'לא זמין'}</div>
+                        <div class="font-bold text-gray-900 text-lg">${metadata["last_name"] || 'לא זמין'}</div>
                     </div>
                 </div>
 
