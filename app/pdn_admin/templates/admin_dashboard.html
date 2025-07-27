@@ -448,6 +448,7 @@
                     <th class="px-4 py-4 text-right font-semibold text-gray-700" title="ניתוח קול">ניתוח קול</th>
                     <th class="px-4 py-4 text-right font-semibold text-gray-700" title="קוד מאבחן">קוד מאבחן</th>
                     <th class="px-4 py-4 text-right font-semibold text-gray-700" title="הערות המאבחן">הערות</th>
+                    <th class="px-4 py-4 text-right font-semibold text-gray-700" title="הערות עדכון קוד פדן">עדכון קוד פדן</th>
                     <th class="px-4 py-4 text-right font-semibold text-gray-700" title="פעולות">פעולות</th>
                 </tr>
                 </thead>
@@ -930,6 +931,7 @@ function renderTable(data) {
                 <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">🟢 ${user.diagnose_pdn_code || 'N/A'}</span>
             </td>
             <td class="px-4 py-4 text-gray-700 max-w-xs truncate" title="${user.diagnose_comments || ''}">${user.diagnose_comments || ''}</td>
+            <td class="px-4 py-4 text-gray-700 max-w-xs truncate" title="${user.pdn_update_comments || ''}">${user.pdn_update_comments || ''}</td>
             <td class="px-4 py-4">
                 <div class="relative" x-data="{ open: false, loadingBtn: '', modalText: '', showModal: false }">
                     <button @click="open = !open" 
@@ -976,6 +978,13 @@ function renderTable(data) {
                                     :disabled="loadingBtn === 'email'">
                                 <i class="fas fa-envelope ml-2"></i>
                                 שלח אימייל
+                            </button>
+                            
+                            <button @click="loadingBtn = 'recalculate'; modalText = 'מחשב מחדש קוד פדן...'; showModal = true; recalculatePdnCode('${user.email}'); open = false" 
+                                    class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                    :disabled="loadingBtn === 'recalculate'">
+                                <i class="fas fa-calculator ml-2"></i>
+                                חשב מחדש קוד פדן
                             </button>
                         </div>
                     </div>
@@ -1571,6 +1580,77 @@ async function sendEmail(email) {
         showNotification(`שגיאה בשליחת האימייל: ${error.message}`, 'error');
         // Reset loading state for this specific row
         resetRowLoadingState(email, 'email');
+    }
+}
+
+async function recalculatePdnCode(email) {
+    if (!sessionToken) {
+        window.location.href = '/pdn-admin/';
+        return;
+    }
+    
+    // Find user data
+    const user = currentData.find(u => u.email === email);
+    if (!user) {
+        showNotification('משתמש לא נמצא', 'error');
+        resetRowLoadingState(email, 'recalculate');
+        return;
+    }
+    
+    // Prompt for admin password
+    const password = prompt('הזן סיסמת מנהל לחישוב מחדש של קוד פדן:');
+    if (!password) {
+        resetRowLoadingState(email, 'recalculate');
+        return;
+    }
+    
+    if (password !== 'admin') {
+        showNotification('סיסמה שגויה', 'error');
+        resetRowLoadingState(email, 'recalculate');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/pdn-admin/user/recalculate_pdn/${email}?session_token=${sessionToken}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ password: password })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            showNotification(`קוד פדן חושב מחדש בהצלחה: ${data.pdn_code} על ידי ${data.updated_by}`, 'success');
+            
+            // Update local data
+            const userIndex = currentData.findIndex(u => u.email === email);
+            if (userIndex !== -1) {
+                currentData[userIndex].pdn_code = data.pdn_code;
+                currentData[userIndex].date = data.date;
+                // Update the PDN update comments if available
+                if (data.pdn_update_comments) {
+                    currentData[userIndex].pdn_update_comments = data.pdn_update_comments;
+                }
+                renderTable(currentData);
+            }
+            
+            // Reset loading state for this specific row
+            resetRowLoadingState(email, 'recalculate');
+        } else if (response.status === 401) {
+            // Session expired or invalid, redirect to login
+            console.log('Session expired, redirecting to login');
+            localStorage.removeItem('adminSessionToken');
+            window.location.href = '/pdn-admin/';
+        } else {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Failed to recalculate PDN code');
+        }
+    } catch (error) {
+        console.error('Error recalculating PDN code:', error);
+        showNotification(`שגיאה בחישוב מחדש של קוד פדן: ${error.message}`, 'error');
+        // Reset loading state for this specific row
+        resetRowLoadingState(email, 'recalculate');
     }
 }
 
