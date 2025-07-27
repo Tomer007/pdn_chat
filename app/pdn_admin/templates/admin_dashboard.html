@@ -402,7 +402,7 @@
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-4 space-x-reverse">
                 <label for="searchInput" class="text-lg font-medium text-gray-700 flex items-center">
-                    <i class="fas fa-search mr-2"></i>
+                    <i"></i>
                     חיפוש מאובחן לפי אימייל:
                 </label>
                 <input type="text" id="searchInput" placeholder="הקלד אימייל לחיפוש..."
@@ -426,10 +426,10 @@
         <div class="mb-6">
             <h3 class="text-xl font-semibold text-gray-800 flex items-center mb-2">
                 <i class="fas fa-users mr-2"></i>
-                נתוני מאובחנים
+                נתוני מאובחנים 
             </h3>
             <div class="flex items-center justify-between">
-                <span id="rowCount" class="text-base text-gray-600">סה"כ מאובחנים:</span>
+                <span id="rowCount" class="text-base text-gray-600 font-bold">סה"כ מאובחנים:</span>
                 <button id="downloadCsvBtn"
                         class="download-csv-btn flex items-center px-5 py-2 rounded-xl font-semibold text-white shadow-md transition-all duration-300">
                     <i class="fas fa-download ml-2 text-lg"></i>
@@ -892,7 +892,7 @@ function renderTable(data) {
     tbody.innerHTML = '';
     
     // Update row count
-    document.getElementById('rowCount').textContent = `סה\"כ שורות: ${data.length}`;
+    document.getElementById('rowCount').textContent = `סה"כ שורות: ${data.length}`;
     
     data.forEach(user => {
         const row = document.createElement('tr');
