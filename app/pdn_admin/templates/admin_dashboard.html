@@ -1233,65 +1233,101 @@ function displayQuestionsWithText(questions, metadata, questionsData) {
                     }
                     
                     if (questionData.ranking) {
-                        // For ranking questions, show the ranking data
+                        // For ranking questions, show the actual text options in order
                         const rankingEntries = Object.entries(questionData.ranking);
                         const sortedRanking = rankingEntries.sort((a, b) => a[1] - b[1]);
-                        answerDisplay = sortedRanking.map(([key, value]) => `${key}: ${value}`).join(', ');
+                        
+                        // Get the text options from question options
+                        let rankedTexts = [];
+                        if (questionData.question_options && questionData.question_options.length > 0) {
+                            rankedTexts = sortedRanking.map(([code, rank]) => {
+                                const option = questionData.question_options.find(opt => opt.code === code);
+                                return `${rank}. ${option ? option.text : code}`;
+                            });
+                        } else {
+                            // Fallback to codes if no text options available
+                            rankedTexts = sortedRanking.map(([code, rank]) => `${rank}. ${code}`);
+                        }
+                        
+                        answerDisplay = rankedTexts.join('<br>');
                         codeDisplay = 'דירוג';
                     } else if (questionData.selected_option_code) {
-                        // For questions with selected_option_code
-                        answerDisplay = questionData.selected_option_code;
+                        // For questions with selected_option_code - find the actual text
+                        let selectedText = questionData.selected_option_code; // Default to code if text not found
+                        
+                        // Try to find the selected text from question options
+                        if (questionData.question_options && questionData.question_options.length > 0) {
+                            const selectedOption = questionData.question_options.find(option => 
+                                option.code === questionData.selected_option_code
+                            );
+                            if (selectedOption) {
+                                selectedText = selectedOption.text;
+                            }
+                        }
+                        
+                        answerDisplay = selectedText;
                         codeDisplay = questionText;
                     } else if (questionData.answer && questionData.code) {
                         // For regular questions with answer and code
-                        answerDisplay = questionData.answer;
-                        codeDisplay = questionText; // Use the actual question text instead of the code
+                        let cleanAnswer = questionData.answer;
+                        
+                        // Method 1: Split by question mark and take first part
+                        if (cleanAnswer.includes('?')) {
+                            cleanAnswer = cleanAnswer.split('?')[0].trim();
+                        }
+                        
+                        // Method 2: If there are multiple numbered options, find the selected one
+                        const numberedOptions = cleanAnswer.match(/(\d+)\.\s*([^0-9\n]+)/g);
+                        if (numberedOptions && numberedOptions.length > 1) {
+                            // Look for patterns that indicate which option was selected
+                            // Usually the selected option comes first or has some indicator
+                            cleanAnswer = numberedOptions[0]; // Take the first one as selected
+                        }
+                        
+                        // Method 3: Clean up any remaining question text
+                        const questionPatterns = [
+                            /עד כמה קשה לך להסתדר עם מצבי חוסר ודאות\?/,
+                            /באיזו מידה.*\?/,
+                            /איך.*\?/,
+                            /מה.*\?/,
+                            /האם.*\?/
+                        ];
+                        
+                        for (const pattern of questionPatterns) {
+                            cleanAnswer = cleanAnswer.replace(pattern, '').trim();
+                        }
+                        
+                        // Method 4: If we still have multiple options, take the first one
+                        const options = cleanAnswer.split(/\d+\./).filter(opt => opt.trim());
+                        if (options.length > 1) {
+                            // Find the first non-empty option
+                            const firstOption = options.find(opt => opt.trim());
+                            if (firstOption) {
+                                // Find its number
+                                const numberMatch = cleanAnswer.match(new RegExp(`(\\d+)\\.\\s*${firstOption.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
+                                if (numberMatch) {
+                                    cleanAnswer = `${numberMatch[1]}. ${firstOption.trim()}`;
+                                }
+                            }
+                        }
+                        
+                        answerDisplay = cleanAnswer;
+                        codeDisplay = questionText;
                     } else {
                         // Fallback for any other structure
                         answerDisplay = 'לא זמין';
                         codeDisplay = 'לא זמין';
                     }
                     
-                    // Get question options if available
-                    let optionsDisplay = '';
-                    if (questionData.question_options && questionData.question_options.length > 0) {
-                        optionsDisplay = `
-                            <div class="mt-3 p-3 bg-gray-50 rounded-lg">
-                                <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center">
-                                    <i"></i>אפשרויות :
-                                </h4>
-                                <div class="space-y-2">
-                                    ${questionData.question_options.map(option => {
-                                        const isSelected = questionData.selected_option_code === option.code;
-                                        return `
-                                            <div class="flex items-center space-x-3 space-x-reverse ${isSelected ? 'bg-green-50 border border-green-200' : 'bg-white border border-gray-200'} rounded-lg p-2">
-                                                <span class="px-2 py-1 bg-${isSelected ? 'green' : 'gray'}-100 text-${isSelected ? 'green' : 'gray'}-800 rounded text-xs font-medium flex-shrink-0">
-                                                    ${option.code}
-                                                </span>
-                                                <span class="text-sm text-gray-700 flex-1">${option.text}</span>
-                                                ${isSelected ? '<i class="fas fa-check text-green-600"></i>' : ''}
-                                            </div>
-                                        `;
-                                    }).join('')}
-                                </div>
-                            </div>
-                        `;
-                    }
-                    
                     return `
-                        <div class="border-b border-gray-100 pb-4 last:border-b-0">
-                            <div class="flex items-start justify-between mb-2">
-                                <p class="font-medium text-gray-800 flex-1">${questionText}</p>
-                                <span  class="px-2 py-1 bg-indigo-100 text-indigo-800 rounded text-xs font-medium ml-2 flex-shrink-0">
-                                    שאלה ${questionNumber}
-                                </span>
+                        <div class="border-b border-gray-200 pb-6 last:border-b-0">
+                            <div class="mb-4">
+                                <p class="text-gray-800 text-lg leading-relaxed">${questionNumber}. ${questionText}</p>
                             </div>
-                            <div class="flex items-center space-x-4 space-x-reverse mb-2">
-                                <p class="text-gray-600 bg-gray-50 px-3 py-2 rounded-lg inline-block">
-                                    <i class="fas fa-check mr-2 text-green-600"></i>תשובה: ${answerDisplay}
-                                </p>
+                            <div class="bg-gray-50 px-4 py-3 rounded-lg border border-gray-200">
+                                <p class="text-gray-600 text-sm mb-1">תשובה:</p>
+                                <p class="text-gray-800 text-sm mb-1">${answerDisplay}</p>
                             </div>
-                            ${optionsDisplay}
                         </div>
                     `;
                 }).join('')}
