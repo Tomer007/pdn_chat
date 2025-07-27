@@ -274,16 +274,21 @@ def get_user_questionnaire(email):
         logger.info(f"CSV metadata loaded: {user_metadata is not None}")
         
         if user_metadata:
-            # Add user metadata to the questionnaire data
-            questionnaire_data['metadata'] = user_metadata
+            # Merge CSV metadata with existing JSON metadata
+            if 'metadata' in questionnaire_data:
+                # Preserve JSON metadata and add CSV metadata
+                questionnaire_data['metadata'].update(user_metadata)
+            else:
+                questionnaire_data['metadata'] = user_metadata
             logger.info(f"Successfully loaded questionnaire data for {email} with User ID: {user_metadata.get('User ID', 'N/A')}")
         else:
             logger.warning(f"No CSV metadata found for user: {email}")
             # Create a minimal metadata structure
-            questionnaire_data['metadata'] = {
-                'email': email,
-                'User ID': 'N/A'
-            }
+            if 'metadata' not in questionnaire_data:
+                questionnaire_data['metadata'] = {
+                    'email': email,
+                    'User ID': 'N/A'
+                }
         
         logger.info(f"Returning questionnaire data with {len(questionnaire_data)} keys")
         # Clean None keys before returning
