@@ -9,9 +9,20 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --primary-color: #0b2e6b;
+            --secondary-color: #0b2e6b;
+            --accent-color: #0b2e6b;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --gradient-start: #0b2e6b;
+            --gradient-end: #0b2e6b;
+        }
+
         body { 
             font-family: 'Inter', sans-serif; 
-            background: radial-gradient(ellipse at center, #e0e7ff 0%, #c7d2fe 50%, #7c3aed 100%);
+            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
             min-height: 100vh;
         }
         .card {
@@ -44,31 +55,31 @@
             border-radius: 3px;
         }
         .table-container::-webkit-scrollbar-thumb {
-            background: #6366f1;
+            background: #0b2e6b;
             border-radius: 3px;
         }
         .table-container::-webkit-scrollbar-thumb:hover {
-            background: #4f46e5;
+            background: #0a2a5f;
         }
         .btn-primary {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            background: linear-gradient(135deg, #0b2e6b 0%, #0a2a5f 100%);
             transition: all 0.3s ease;
         }
         .btn-primary:hover {
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 4px 12px rgba(11, 46, 107, 0.4);
         }
         .btn-success {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            background: linear-gradient(135deg, #0b2e6b 0%, #0a2a5f 100%);
         }
         .btn-danger {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            background: linear-gradient(135deg, #0b2e6b 0%, #0a2a5f 100%);
         }
         .btn-secondary {
-            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+            background: linear-gradient(135deg, #0b2e6b 0%, #0a2a5f 100%);
         }
         .table-header {
-            background: linear-gradient(135deg, #b2d1ef 0%, #f1f5f9 100%);
+            background: linear-gradient(135deg, #e0e7ff 0%, #f1f5f9 100%);
             border-bottom: 2px solid #e2e8f0;
         }
         .table-row:hover {
@@ -93,7 +104,7 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         .action-btn:focus-visible {
-            outline: 2px solid #6366f1;
+            outline: 2px solid #0b2e6b;
             outline-offset: 2px;
         }
         .action-btn:hover {
@@ -122,49 +133,49 @@
             100% { transform: rotate(360deg); }
         }
         .action-btn.questionnaire {
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            background: linear-gradient(135deg, #0b2e6b 0%, #0a2a5f 100%);
             color: white;
         }
         .action-btn.questionnaire:hover {
-            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            background: linear-gradient(135deg, #0a2a5f 0%, #092a5a 100%);
         }
         .action-btn.voice {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            background: linear-gradient(135deg, #0b2e6b 0%, #0a2a5f 100%);
             color: white;
         }
         .action-btn.voice:hover {
-            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            background: linear-gradient(135deg, #0a2a5f 0%, #092a5a 100%);
         }
         .action-btn.edit {
-            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            background: linear-gradient(135deg, #0b2e6b 0%, #0a2a5f 100%);
             color: white;
         }
         .action-btn.edit:hover {
-            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            background: linear-gradient(135deg, #0a2a5f 0%, #092a5a 100%);
         }
         .action-btn.download {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            background: linear-gradient(135deg, #0b2e6b 0%, #0a2a5f 100%);
             color: white;
         }
         .action-btn.download:hover {
-            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+            background: linear-gradient(135deg, #0a2a5f 0%, #092a5a 100%);
         }
         .action-btn.delete {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            background: linear-gradient(135deg, #0b2e6b 0%, #0a2a5f 100%);
             color: white;
         }
         .action-btn.delete:hover {
-            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            background: linear-gradient(135deg, #0a2a5f 0%, #092a5a 100%);
         }
         .action-btn.email {
-            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            background: linear-gradient(135deg, #0b2e6b 0%, #0a2a5f 100%);
             color: white;
             flex-direction: column;
             min-height: 60px;
             padding: 8px 12px;
         }
         .action-btn.email:hover {
-            background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+            background: linear-gradient(135deg, #0a2a5f 0%, #092a5a 100%);
         }
         .tooltip {
             position: relative;
@@ -213,8 +224,8 @@
         }
         .search-input:focus {
             background: white;
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+            border-color: #0b2e6b;
+            box-shadow: 0 0 0 3px rgba(11, 46, 107, 0.1);
         }
         .animate-fade-in {
             animation: fadeIn 0.7s ease-out;
@@ -225,7 +236,7 @@
         }
         .highlight-difference {
             background-color: #fef2f2 !important; /* Light red background */
-            border-left: 4px solid #ef4444; /* Red left border for emphasis */
+            border-left: 4px solid #efa5a5; /* Red left border for emphasis */
         }
         
         /* Table header improvements to prevent text truncation */
@@ -335,23 +346,23 @@
         }
         
         .notification-item[class*="border-blue"] {
-            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2), 0 0 0 1px rgba(59, 130, 246, 0.3);
+            box-shadow: 0 10px 25px rgba(11, 46, 107, 0.2), 0 0 0 1px rgba(11, 46, 107, 0.3);
         }
         
         .notification-item[class*="border-yellow"] {
             box-shadow: 0 10px 25px rgba(234, 179, 8, 0.2), 0 0 0 1px rgba(234, 179, 8, 0.3);
         }
         .download-csv-btn {
-            box-shadow: 0 4px 16px 0 rgba(99, 102, 241, 0.10), 0 1.5px 4px 0 rgba(139, 92, 246, 0.10);
+            box-shadow: 0 4px 16px 0 rgba(11, 46, 107, 0.10), 0 1.5px 4px 0 rgba(11, 46, 107, 0.10);
             border: 1.5px solid #a5b4fc;
             letter-spacing: 0.02em;
-            background: linear-gradient(90deg, #6366f1 0%, #a21caf 60%, #ec4899 100%);
+            background: linear-gradient(90deg, #0b2e6b 0%, #0a2a5f 60%, #092a5a 100%);
         }
         .download-csv-btn:hover, .download-csv-btn:focus {
-            box-shadow: 0 6px 20px 0 rgba(99, 102, 241, 0.18), 0 2px 8px 0 rgba(139, 92, 246, 0.15);
-            border-color: #6366f1;
+            box-shadow: 0 6px 20px 0 rgba(11, 46, 107, 0.18), 0 2px 8px 0 rgba(11, 46, 107, 0.15);
+            border-color: #0b2e6b;
             outline: none;
-            background: linear-gradient(90deg, #4f46e5 0%, #7c3aed 60%, #db2777 100%);
+            background: linear-gradient(90deg, #0a2a5f 0%, #092a5a 60%, #082a55 100%);
         }
 
     </style>
@@ -361,7 +372,7 @@
 <!-- Main Dashboard -->
 <div id="dashboard" class="space-y-8">
     <!-- Header -->
-    <div class="card p-8 rounded-2xl bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200">
+    <div class="card p-8 rounded-2xl bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200">
         <div class="flex justify-between items-center">
             <div class="flex items-center space-x-6 space-x-reverse">
                 <div class="flex-shrink-0">
@@ -370,28 +381,21 @@
                          class="h-20 w-auto object-contain drop-shadow-lg"
                          style="max-width: 250px;">
                 </div>
-                <div class="border-r border-indigo-300 pr-6">
-                    <h1 class="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                <div class="border-r border-blue-300 pr-6">
+                    <h1 class="text-4xl font-bold bg-gradient-to-r from-blue-900 to-blue-900 bg-clip-text text-transparent">
                         מערכת שליטה וניהול
                     </h1>
-                    <p class="text-lg text-gray-700 mt-2 font-medium">ניהול נתוני אבחון פדן</p>
-                    <div class="flex items-center mt-2 space-x-4 space-x-reverse">
-                        <span class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm font-medium">
-                            <i class="fas fa-shield-alt mr-1"></i>מערכת ניהול מאובטחת
-                        </span>
-                    </div>
                 </div>
             </div>
             <div class="flex space-x-4 space-x-reverse">
                 <button id="refreshBtn"
                         class="btn-success text-white px-6 py-3 rounded-lg font-semibold text-base transition-all duration-300 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-                    <i class="fas fa-sync-alt mr-2"></i>
-                    רענן נתונים
+                    <i class="fas fa-sync-alt mr-2">  רענן נתונים </i>
+                   
                 </button>
                 <button id="logoutBtn"
                         class="btn-danger text-white px-6 py-3 rounded-lg font-semibold text-base transition-all duration-300 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-                    <i class="fas fa-sign-out-alt mr-2"></i>
-                    התנתק
+                    <i class="fas fa-sign-out-alt mr-2"> התנתק </i>
                 </button>
             </div>
         </div>
@@ -425,8 +429,7 @@
     <div class="card p-8 rounded-2xl">
         <div class="mb-6">
             <h3 class="text-xl font-semibold text-gray-800 flex items-center mb-2">
-                <i class="fas fa-users mr-2"></i>
-                נתוני מאובחנים 
+                <i class="fas fa-users mr-2"> נתוני מאובחנים </i>
             </h3>
             <div class="flex items-center justify-between">
                 <span id="rowCount" class="text-base text-gray-600 font-bold">סה"כ מאובחנים:</span>
@@ -465,13 +468,11 @@
             <!-- Links and Info -->
             <div class="flex flex-wrap justify-center items-center space-x-8 space-x-reverse text-sm text-gray-600">
                 <a href="https://www.pdn.co.il" target="_blank"
-                   class="hover:text-indigo-600 transition-colors flex items-center">
-                    <i class="fas fa-globe mr-2"></i>
-                    אתר רשמי
+                   class="hover:text-blue-600 transition-colors flex items-center">
+                    <i class="fas fa-globe mr-2"> אתר רשמי </i>
                 </a>
                 <span class="flex items-center">
-                    <i class="fas fa-shield-alt mr-2"></i>
-                    מערכת מאובטחת
+                    <i class="fas fa-shield-alt mr-2"> מערכת ניהול מאובטחת </i>
                 </span>
             </div>
 
@@ -493,12 +494,11 @@
     <div class="card p-8 max-w-4xl w-full mx-4 max-h-[80vh] overflow-y-auto rounded-2xl">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold text-gray-800 flex items-center">
-                <i class="fas fa-clipboard-list mr-2 text-indigo-600"></i>
-                נתוני שאלון
+                <i class="fas fa-clipboard-list mr-2 text-blue-900"> נתוני שאלון </i>
             </h2>
             <button onclick="closeModal('questionnaireModal')"
                     class="text-gray-500 hover:text-gray-700 text-2xl transition-colors">
-                <i class="fas fa-times"></i>
+                <i class="fas fa-times mr-2"></i>
             </button>
         </div>
         <div id="questionnaireContent" class="space-y-4">
@@ -512,12 +512,11 @@
     <div class="card p-8 max-w-2xl w-full mx-4 rounded-2xl">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold text-gray-800 flex items-center">
-                <i class="fas fa-microphone mr-2 text-indigo-600"></i>
-                הקלטה קולית
+                <i class="fas fa-microphone mr-2 text-blue-900"> ניתוח קול </i>
             </h2>
             <button onclick="closeModal('voiceModal')"
                     class="text-gray-500 hover:text-gray-700 text-2xl transition-colors">
-                <i class="fas fa-times"></i>
+                <i class="fas fa-times mr-2"></i>
             </button>
         </div>
         <div id="voiceContent" class="space-y-4">
@@ -531,39 +530,37 @@
     <div class="card p-8 max-w-2xl w-full mx-4 rounded-2xl">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold text-gray-800 flex items-center">
-                <i></i>
-                עריכת אבחון
+                <i class="fas fa-edit mr-2 text-blue-900"> עריכת אבחון </i>
             </h2>
             <button onclick="closeModal('editDiagnoseModal')"
                     class="text-gray-500 hover:text-gray-700 text-2xl transition-colors">
-                <i class="fas fa-times"></i>
+                <i class="fas fa-times mr-2"></i>
             </button>
         </div>
         <form id="editDiagnoseForm" class="space-y-4">
             <div>
                 <label for="diagnosePdnCode" class="block text-sm font-medium text-gray-700 mb-2">
-                    <i></i><span>קוד PDN אבחון</span>
+                    <i> קוד PDN אבחון </i>
                 </label>
                 <input type="text" id="diagnosePdnCode" name="diagnose_pdn_code" required
-                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300">
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
             </div>
             <div>
                 <label for="diagnoseComments" class="block text-sm font-medium text-gray-700 mb-2">
-                    <i ></i><span>הערות אבחון</span>
+                    <i class="fas fa-comment mr-2"> הערות אבחון </i>
                 </label>
                 <textarea id="diagnoseComments" name="diagnose_comments" rows="4" required
-                          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"></textarea>
+                          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"></textarea>
             </div>
             <div class="flex space-x-4 space-x-reverse">
                 <button type="submit"
                         class="flex-1 py-3 px-6 btn-success text-white font-semibold rounded-lg transition-all duration-300 flex items-center justify-center">
-                    <i class="fas fa-save mr-2"></i>
-                    שמור
+                    <i class="fas fa-save mr-2"> שמור </i>
                 </button>
                 <button type="button" onclick="closeModal('editDiagnoseModal')"
                         class="flex-1 py-3 px-6 btn-secondary text-white font-semibold rounded-lg transition-all duration-300 flex items-center justify-center">
-                    <i class="fas fa-times mr-2"></i>
-                    ביטול
+                    <i class="fas fa-times mr-2"> סגור </i>
+                        
                 </button>
             </div>
         </form>
@@ -580,10 +577,10 @@
         <h2 class="text-lg font-semibold mb-4">פעולה מתבצעת</h2>
         <p x-text="modalText" class="text-gray-700 mb-4"></p>
         <div class="flex justify-center mb-4">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>
         <button @click="showActionModal = false"
-                class="mt-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors">
+                class="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
             סגור
         </button>
     </div>
@@ -593,7 +590,7 @@
 <div id="loadingSpinner"
      class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 backdrop-blur-sm">
     <div class="card p-8 text-center rounded-2xl">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
         <p class="text-lg text-gray-700">טוען...</p>
     </div>
 </div>
@@ -639,8 +636,8 @@ function downloadDiagnosisAsPDF() {
     // Clone the questionnaire content
     const questionnaireClone = content.cloneNode(true);
     
-    // Remove the user metadata section from the clone
-    const metadataSection = questionnaireClone.querySelector('.bg-gradient-to-br.from-blue-50.via-indigo-50.to-purple-50');
+            // Remove the user metadata section from the clone
+        const metadataSection = questionnaireClone.querySelector('.bg-gradient-to-br.from-blue-50.via-blue-50.to-blue-100');
     if (metadataSection) {
         metadataSection.remove();
     }
@@ -732,7 +729,7 @@ function getUserMetadata(field) {
     }
     
     // Try to get from the metadata object in the displayQuestionsWithText function
-    const metadataSection = document.querySelector('#questionnaireContent .bg-gradient-to-br.from-blue-50.via-indigo-50.to-purple-50');
+    const metadataSection = document.querySelector('#questionnaireContent .bg-gradient-to-br.from-blue-50.via-blue-50.to-blue-100');
     if (metadataSection) {
         const userIdElement = metadataSection.querySelector('.font-mono.font-bold.text-blue-600.text-lg');
         if (userIdElement && field === 'user_id') {
@@ -925,7 +922,7 @@ function renderTable(data) {
                 <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium"> ${user.pdn_code}</span>
             </td>
             <td class="px-4 py-4">
-                <span class="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">🎤 ${user.pdn_voice_code || 'N/A'}</span>
+                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">🎤 ${user.pdn_voice_code || 'N/A'}</span>
             </td>
             <td class="px-4 py-4">
                 <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">🟢 ${user.diagnose_pdn_code || 'N/A'}</span>
@@ -935,9 +932,8 @@ function renderTable(data) {
             <td class="px-4 py-4">
                 <div class="relative" x-data="{ open: false, loadingBtn: '', modalText: '', showModal: false }">
                     <button @click="open = !open" 
-                            class="action-btn bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-all duration-300 flex items-center">
-                        <i class="fas fa-cogs mr-2"></i>
-                        פעולות
+                            class="action-btn bg-blue-900 hover:bg-blue-900 text-white px-4 py-2 rounded-lg transition-all duration-300 flex items-center">
+                        <i > פעולות </i>
                         <i class="fas fa-chevron-down mr-2 transition-transform" :class="{ 'rotate-180': open }"></i>
                     </button>
                     
@@ -949,39 +945,39 @@ function renderTable(data) {
                          x-transition:leave="transition ease-in duration-75"
                          x-transition:leave-start="transform opacity-100 scale-100"
                          x-transition:leave-end="transform opacity-0 scale-95"
-                         class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                         class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-blue-200 z-50">
                         
                         <div class="py-1">
                             <button @click="loadingBtn = 'questionnaire'; modalText = 'טוען נתוני שאלון...'; showModal = true; viewQuestionnaire('${user.email}'); open = false" 
-                                    class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                    class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center"
                                     :disabled="loadingBtn === 'questionnaire'">
                                 <i class="fas fa-clipboard-list ml-2"></i>
                                 צפה בשאלון
                             </button>
                             
                             <button @click="loadingBtn = 'voice'; modalText = 'טוען הקלטה קולית...'; showModal = true; playVoice('${user.email}'); open = false" 
-                                    class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                    class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center"
                                     :disabled="loadingBtn === 'voice'">
                                 <i class="fas fa-microphone ml-2"></i>
                                 האזן להקלטה
                             </button>
                             
                             <button @click="loadingBtn = 'edit'; modalText = 'ערוך איבחון...'; showModal = true; editDiagnose('${user.email}'); open = false" 
-                                    class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                    class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center"
                                     :disabled="loadingBtn === 'edit'">
                                 <i class="fas fa-edit ml-2"></i>
                                 ערוך אבחון
                             </button>
                             
                             <button @click="loadingBtn = 'email'; modalText = 'שולח אימייל...'; showModal = true; sendEmail('${user.email}'); open = false" 
-                                    class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                    class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center"
                                     :disabled="loadingBtn === 'email'">
                                 <i class="fas fa-envelope ml-2"></i>
                                 שלח אימייל
                             </button>
                             
                             <button @click="loadingBtn = 'recalculate'; modalText = 'מחשב מחדש קוד פדן...'; showModal = true; recalculatePdnCode('${user.email}'); open = false" 
-                                    class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                    class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center"
                                     :disabled="loadingBtn === 'recalculate'">
                                 <i class="fas fa-calculator ml-2"></i>
                                 חשב מחדש קוד פדן
@@ -1151,15 +1147,15 @@ function displayQuestionsWithText(questions, metadata, questionsData) {
     const content = document.getElementById('questionnaireContent');
     
     content.innerHTML = `
-        <div class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-8 rounded-2xl border border-blue-200 shadow-lg">
+        <div class="bg-gradient-to-br from-blue-50 via-blue-50 to-blue-100 p-8 rounded-2xl border border-blue-200 shadow-lg">
             <div class="flex items-center justify-between mb-6">
                 <h3 class="text-2xl font-bold text-gray-800">
                     פרטי משתמש
                 </h3>
                 <button id="downloadPdfBtn"
-                    class="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white font-bold rounded-xl shadow-lg hover:from-yellow-500 hover:to-yellow-700 transition-all duration-300 text-base transform hover:scale-105"
+                    class="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-900 to-blue-900 text-white font-bold rounded-xl shadow-lg hover:from-blue-900 hover:to-blue-900 transition-all duration-300 text-base transform hover:scale-105"
                     onclick="downloadDiagnosisAsPDF()">
-                    <i class="fas fa-file-arrow-down text-lg"></i>
+                    <i class="fas fa-file-arrow-down mr-2 text-lg"></i>
                     הורד דוח
                 </button>
             </div>
@@ -1311,7 +1307,7 @@ function displayQuestionsWithText(questions, metadata, questionsData) {
                                         <div class="flex items-center justify-center">
                                             <span class="text-lg tracking-wider">${scaleIndicator}</span>
                                         </div>
-                                        <div class="text-center text-sm font-medium text-purple-600">
+                                        <div class="text-center text-sm font-medium text-blue-600">
                                             ${scalePosition.description}
                                         </div>
                                     </div>
@@ -1504,7 +1500,7 @@ function displayVoice(data) {
         recordingsHtml += `
             <div class="bg-white p-6 rounded-xl border border-gray-200 mb-4">
                 <h4 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
-                    <i class="fas fa-microphone mr-2 text-indigo-600"></i>שאלה 1 - חוויה חיובית
+                    <i class="fas fa-microphone mr-2 text-blue-600"></i>שאלה 1 - חוויה חיובית
                 </h4>
                 <audio controls class="w-full" preload="metadata">
                     <source src="${audioUrl}" type="audio/wav">
@@ -1522,7 +1518,7 @@ function displayVoice(data) {
         recordingsHtml += `
             <div class="bg-white p-6 rounded-xl border border-gray-200 mb-4">
                 <h4 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
-                    <i class="fas fa-microphone mr-2 text-purple-600"></i>שאלה 2 - אתגר משמעותי
+                    <i class="fas fa-microphone mr-2 text-blue-600"></i>שאלה 2 - אתגר משמעותי
                 </h4>
                 <audio controls class="w-full" preload="metadata">
                     <source src="${audioUrl}" type="audio/wav">
@@ -1540,7 +1536,7 @@ function displayVoice(data) {
         recordingsHtml += `
             <div class="bg-white p-6 rounded-xl border border-gray-200 mb-4">
                 <h4 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
-                    <i class="fas fa-microphone mr-2 text-green-600"></i>הקלטה קולית
+                    <i class="fas fa-microphone mr-2 text-blue-900"> הקלטה קולית </i>
                 </h4>
                 <audio controls class="w-full" preload="metadata">
                     <source src="${audioUrl}" type="audio/wav">
@@ -1553,13 +1549,13 @@ function displayVoice(data) {
     }
     
     content.innerHTML = `
-        <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200 mb-6">
+        <div class="bg-gradient-to-r from-blue-100 to-blue-100 p-6 rounded-xl border border-blue-200 mb-6">
             <h3 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
-                <i class="fas fa-info-circle mr-2 text-green-600"></i>פרטי הקלטה
+                <i class="fas fa-info-circle mr-2 text-blue-900"> פרטי הקלטה </i>
             </h3>
             <div class="grid grid-cols-2 gap-4">
                 <div><strong>אימייל:</strong> ${data.email || 'לא זמין'}</div>
-                <div><strong>מספר הקלטות:</strong> <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-sm">${Object.keys(recordings).length}</span></div>
+                <div><strong>מספר הקלטות:</strong> <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">${Object.keys(recordings).length}</span></div>
             </div>
         </div>
         ${recordingsHtml}
@@ -1866,7 +1862,7 @@ function showNotification(message, type = 'info') {
             <div class="flex-shrink-0">
                 <button onclick="this.closest('.notification-item').remove()" 
                         class="inline-flex text-gray-400 hover:text-gray-600 transition-colors duration-200">
-                    <i class="fas fa-times text-lg"></i>
+                    <i class="fas fa-times mr-2 text-lg"></i>
                 </button>
             </div>
         </div>
