@@ -21,6 +21,14 @@ services:
         value: /pdn/saved_results
       - key: FLASK_ENV
         value: production
+      - key: CHROMA_DB_PERSIST_DIR
+        value: "./pdn_chat_rag/chroma_db"
+      - key: RAG_CHUNK_SIZE
+        value: "800"
+      - key: RAG_CHUNK_OVERLAP
+        value: "150"
+      - key: RAG_SEARCH_K
+        value: "6"
     healthCheckPath: /
     autoDeploy: true
     disk:
