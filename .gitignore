@@ -10861,3 +10861,4 @@ chroma_db/8e0c7080-1a3a-48db-bfaa-9c7d420243c3/link_lists.bin
 tests/test_pdn_calculator.py
 pdn_rag.log
 app/pdn_chat_ai/pdn_chat_rag.py
+app/pdn_chat_ai/pdn_chat_rag.py
