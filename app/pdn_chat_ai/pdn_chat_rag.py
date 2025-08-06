@@ -22,8 +22,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Set OpenAI API key
-os.environ["OPENAI_API_KEY"] = "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"
+# Set OpenAI API key from environment variable
+api_key = os.getenv("OPENAI_API_KEY")
+if not api_key:
+    raise ValueError("OPENAI_API_KEY environment variable is not set. Please set it before running the application.")
+os.environ["OPENAI_API_KEY"] = api_key
 
 # Import system prompt from prompts module
 from ..prompts import BINT_CHAT_SOURCE_PROMPT
