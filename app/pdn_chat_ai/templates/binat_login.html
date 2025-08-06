@@ -1,54 +1,211 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-    <meta charset="UTF-8"/>
-    <title>Login - Binat Source Code AI</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data:; connect-src 'self';">
+    <title>בינת קוד המקור - התחברות</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --primary-color: #1c0f97;
+            --secondary-color: #1c0f97;
+            --accent-color: #1c0f97;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --gradient-start: #0b2e6b;
+            --gradient-end: #0b2e6b;
+        }
+
+        /* Dark mode variables */
+        [data-theme="dark"] {
+            --primary-color: #3570d7;
+            --secondary-color: #3570d7;
+            --accent-color: #3570d7;
+            --text-primary: #f9fafb;
+            --text-secondary: #d1d5db;
+            --bg-primary: #1f2937;
+            --bg-secondary: #111827;
+            --border-color: #374151;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --gradient-start: #0b2e6b;
+            --gradient-end: #0b2e6b;
+        }
+
         body { 
-            font-family: 'Inter', sans-serif; 
-            background: radial-gradient(ellipse at center, #e0e7ff 0%, #c7d2fe 50%, #7c3aed 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+            background: linear-gradient(135deg, #0b2e6b 0%, #0b2e6b 100%);
             min-height: 100vh;
-        }
-        .card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-        .modal-backdrop {
-            position: fixed; 
-            inset: 0; 
-            background: rgba(0, 0, 0, 0.5); 
-            display: flex;
-            align-items: center; 
-            justify-content: center; 
-            z-index: 50;
-            backdrop-filter: blur(4px);
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            margin: 0;
+            padding: 0;
+            direction: rtl;
+            color: var(--text-primary);
             transition: all 0.3s ease;
         }
-        .btn-primary:hover {
+
+        /* Header with improved layout */
+        .header-gradient {
+            background: linear-gradient(135deg, #0b2e6b 0%, #0b2e6b 50%, #0b2e6b 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-gradient::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 20px;
+            background: linear-gradient(to bottom, transparent, rgba(224, 231, 255, 0.8));
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo-link {
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            display: block;
+        }
+
+        .logo-link:hover {
+            transform: scale(1.05);
+        }
+
+        .header-logo {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+            border: 4px solid rgba(255,255,255,0.3);
+        }
+
+        .header-text {
+            text-align: right;
+        }
+
+        /* Enhanced login container */
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 32px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 40px var(--shadow-color);
+            display: flex;
+            flex-direction: column;
+            animation: fadeIn 1s ease-in-out;
+            transition: all 0.4s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin: 40px auto;
+        }
+
+        [data-theme="dark"] .login-container {
+            background: rgba(31, 41, 55, 0.95);
+            border: 1px solid rgba(55, 65, 81, 0.3);
+        }
+
+        /* Enhanced form styling */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid rgba(11, 46, 107, 0.2);
+            border-radius: 16px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            direction: rtl;
+        }
+
+        [data-theme="dark"] .form-input {
+            background: rgba(31, 41, 55, 0.9);
+            border: 2px solid rgba(11, 46, 107, 0.3);
+            color: var(--text-primary);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #0b2e6b;
+            box-shadow: 0 0 0 3px rgba(11, 46, 107, 0.1);
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
         }
-        .error-message {
-            display: none;
-            animation: fadeIn 0.3s ease-in-out;
+
+        .form-input::placeholder {
+            color: var(--text-secondary);
+            font-style: italic;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+
+        /* Enhanced submit button */
+        .submit-button {
+            width: 100%;
+            background: #0b2e6b;
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 16px;
+            box-shadow: 0 4px 12px rgba(11, 46, 107, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
+
+        .submit-button:hover {
+            background: #0a2a5f;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(11, 46, 107, 0.4);
+        }
+
+        .submit-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Loading state */
         .loading {
             position: relative;
             color: transparent !important;
         }
+
         .loading::after {
             content: '';
             position: absolute;
@@ -62,224 +219,390 @@
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* Error message styling */
+        .error-message {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            color: #dc2626;
+            border: 1px solid #fecaca;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin: 8px 0;
+            font-size: 14px;
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        [data-theme="dark"] .error-message {
+            background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 100%);
+            color: #fca5a5;
+            border: 1px solid #991b1b;
+        }
+
+        /* Theme toggle */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: #0b2e6b;
+            border: 1px solid rgba(11, 46, 107, 0.2);
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        [data-theme="dark"] .theme-toggle {
+            background: #0b2e6b;
+            border: 1px solid rgba(11, 46, 107, 0.2);
+        }
+
+        .theme-toggle:hover {
+            background: #0a2a5f;
+            transform: scale(1.1);
+        }
+
+        /* Disclaimer styling */
+        .disclaimer {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 16px;
+            margin: 16px 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: right;
+            direction: rtl;
+        }
+
+        .disclaimer h3 {
+            font-size: 1em;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .disclaimer p {
+            font-size: 0.8em;
+            line-height: 1.6;
+            margin-bottom: 10px;
+            color: var(--text-secondary);
+        }
+
+        .disclaimer p:last-child {
+            font-weight: 500;
+            color: #0b2e6b;
+        }
+
+        /* Footer links */
+        .footer-links {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 24px;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(11, 46, 107, 0.2);
+        }
+
+        .footer-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .footer-link:hover {
+            color: #0b2e6b;
+            transform: translateY(-1px);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .login-container {
+                margin: 20px;
+                padding: 24px;
+                border-radius: 16px;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+
+            .header-left {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .header-text {
+                text-align: center;
+            }
+
+            .theme-toggle {
+                top: 10px;
+                left: 10px;
+                padding: 8px;
+            }
+
+            .footer-links {
+                flex-direction: column;
+                gap: 16px;
+            }
+        }
+
+        /* Accessibility improvements */
+        .form-input:focus {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            .login-container {
+                border: 2px solid #000;
+            }
+            
+            .form-input {
+                border: 2px solid #000;
+            }
+        }
+
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+            .login-container, .submit-button {
+                animation: none;
+                transition: none;
+            }
+        }
     </style>
 </head>
-<body class="p-6">
+<body>
+    <!-- Theme toggle -->
+    <button class="theme-toggle" onclick="toggleTheme()" title="החלף ערכת נושא" aria-label="החלף ערכת נושא">
+        <i class="fas fa-moon"></i>
+    </button>
 
-<!-- Login Modal -->
-<div class="modal-backdrop">
-    <div class="card p-8 max-w-md w-full mx-4 rounded-2xl">
-        <div class="text-center mb-6">
-            <!-- Binat Chat AI Logo -->
-            <div class="flex justify-center mb-4">
-                <img src="static/images/pdn_logo.png"
-                     alt="PDN Logo"
-                     class="h-24 w-auto object-contain drop-shadow-lg"
-                     style="max-width: 300px;">
+    <!-- Header with improved layout -->
+    <header class="header-gradient">
+        <div class="header-content">
+            <!-- Logo and title section -->
+            <div class="header-left">
+                <a href="https://www.pdn.co.il" target="_blank" class="logo-link">
+                    <img src="/static/images/pdn_logo.png" alt="PDN Logo" class="header-logo" />
+                </a>
+                <div class="header-text">
+                    <h1 class="text-2xl font-bold mb-2 text-white">בינת קוד המקור</h1>
+                    <p class="text-2xl opacity-90 text-white">המאמן האישי שמכיר אותך מבפנים</p>
+                </div>
             </div>
-            <h2 class="text-4xl sm:text-3xl font-extrabold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-              בינת "קוד המקור"
-            </h2>
-            <h2 class="text-xl sm:text-1xl font-semibold bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 bg-clip-text text-transparent">
-              המאמן האישי שמכיר אותך מבפנים
-            </h2></div><br>
-        <form id="loginForm" class="space-y-4">
-            <div>
-                <label for="username" class="block text-sm font-medium text-gray-700 mb-2">
-                    <i class="fas fa-envelope mr-4"></i> אימייל: 
-                </label>
-                <input type="username" id="username" name="email" required
-                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
-                       placeholder="הזן כתובת אימייל"
-                       autocomplete="email">
-            </div>            <div>
-                    <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
-                        <i class="fas fa-lock mr-4"></i> סיסמה:
+        </div>
+    </header>
+
+    <!-- Main container -->
+    <div class="container mx-auto p-6 max-w-4xl">
+        <div class="login-container">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-blue-900 mb-2">ברוך הבא לבינת קוד המקור</h2>
+                <p class="text-blue-700">התחבר כדי להתחיל את המסע שלך</p>
+            </div>
+
+            <form id="loginForm" class="space-y-6">
+                <div class="form-group">
+                    <label for="username" class="form-label">
+                        <i class="fas fa-envelope"></i>
+                        אימייל
+                    </label>
+                    <input type="email" id="username" name="email" required
+                           class="form-input"
+                           placeholder="הזן כתובת אימייל"
+                           autocomplete="email">
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="form-label">
+                        <i class="fas fa-lock"></i>
+                        סיסמה
                     </label>
                     <input type="password" id="password" name="password" required
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
-                        placeholder="הזן סיסמה" 
-                        autocomplete="current-password"
-                        maxlength="50">
+                           class="form-input"
+                           placeholder="הזן סיסמה" 
+                           autocomplete="current-password"
+                           maxlength="50">
+                </div>
+
+                <button type="submit" class="submit-button">
+                    <i class="fas fa-sign-in-alt"></i>
+                    התחל שיחה עם בינת קוד המקור
+                </button>
+            </form>
+
+            <div id="loginError" class="error-message">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                <span>אנא הזן שם משתמש תקין (לפחות 2 תווים)</span>
             </div>
 
-            <button type="submit"
-                    class="w-full py-3 px-6 btn-primary text-white font-semibold rounded-lg focus:outline-none focus:ring-4 focus:ring-indigo-500/50 transition-all duration-300">
-                <i ></i>התחל שיחה עם בינת קוד המקור
-            </button>
-        </form>
-        <div id="loginError" class="text-red-600 mt-4 hidden text-center">
-            <i class="fas fa-exclamation-triangle mr-2"></i>
-            <span>אנא הזן שם משתמש תקין (לפחות 2 תווים)</span>
-        </div>
-        
-        <!-- Footer -->
-        <div class="mt-8 pt-6 border-t border-gray-200">
-            <div class="text-center space-y-4">
-                <!-- Links and Info -->
-                <div class="flex flex-wrap justify-center items-center space-x-6 space-x-reverse text-sm text-gray-600">
-                    <a href="https://www.pdn.co.il" target="_blank"
-                       class="hover:text-indigo-600 transition-colors flex items-center">
-                        <i class="fas fa-globe mr-4"></i>  
-                        <label for="website">אתר רשמי</label>
-                    </a>
-                    <span class="flex items-center cursor-pointer hover:text-indigo-600 transition-colors" onclick="openWhatsApp()">
-                        <i class="fab fa-whatsapp mr-4"></i>
-                        <label for="openWhatsApp">יצירת קשר</label>
-                    </span>
-                </div>
+            <!-- Disclaimer -->
+            <div class="disclaimer">
+                <h2 class="text-blue-900 text-2xl">הסכמה מודעת למסע עם קוד המקור</h3>
+                <p>המסע עם קוד המקור נועד לעורר תודעה, לאפשר גילוי עצמי, ולהאיר כיוונים פנימיים. הוא לא מחליף ייעוץ או טיפול מקצועי – רגשי, רפואי או אחר – ואינו מתיימר לאבחן או לרפא.</p>
+                <p>האבחון והליווי דרך קוד המקור מזמינים אותך להתבונן, להקשיב לעצמך, ולבחור איך לפעול. האחריות על הדרך, הבחירות וההשלכות – היא שלך בלבד.</p>
+                <p>אם עולה קושי רגשי עמוק, מצוקה מתמשכת או צורך בתמיכה – חשוב לפנות לאיש מקצוע מתאים.</p>
+                <p>אנחנו כאן להזכיר – שהכוח כבר בתוכך.</p>
+            </div>
 
-                <!-- Disclaimer -->
-                <div style="
-                  background: rgba(255, 255, 255, 0.1);
-                  backdrop-filter: blur(10px);
-                  border-radius: 12px;
-                  padding: 16px;
-                  margin: 16px auto;
-                  width: 100%;
-                  border: 1px solid rgba(255, 255, 255, 0.2);
-                  text-align: right;
-                  direction: rtl;
-                ">
-                  <h3 style="
-                    font-size: 1em;
-                    font-weight: 600;
-                    margin-bottom: 10px;
-                    color: #374151;
-                    ">הסכמה מודעת למסע עם קוד המקור</h3>
-                  
-                  <p style="
-                    font-size: 0.8em;
-                    line-height: 1.6;
-                    margin-bottom: 10px;
-                    color: #6b7280;
-                  ">המסע עם קוד המקור נועד לעורר תודעה, לאפשר גילוי עצמי, ולהאיר כיוונים פנימיים. הוא לא מחליף ייעוץ או טיפול מקצועי – רגשי, רפואי או אחר – ואינו מתיימר לאבחן או לרפא.</p>
-                  
-                  <p style="
-                    font-size: 0.8em;
-                    line-height: 1.6;
-                    margin-bottom: 10px;
-                    color: #6b7280;
-                  ">האבחון והליווי דרך קוד המקור מזמינים אותך להתבונן, להקשיב לעצמך, ולבחור איך לפעול. האחריות על הדרך, הבחירות וההשלכות – היא שלך בלבד.</p>
-                  
-                  <p style="
-                    font-size: 0.8em;
-                    line-height: 1.6;
-                    margin-bottom: 10px;
-                    color: #6b7280;
-                  ">אם עולה קושי רגשי עמוק, מצוקה מתמשכת או צורך בתמיכה – חשוב לפנות לאיש מקצוע מתאים.</p>
-                  
-                  <p style="
-                    font-size: 0.8em;
-                    line-height: 1.6;
-                    font-weight: 500;
-                    color: #4f46e5;
-                  ">אנחנו כאן להזכיר – שהכוח כבר בתוכך.</p>
-                </div>
+            <!-- Footer -->
+            <div class="footer-links">
+                <a href="https://www.pdn.co.il" target="_blank" class="footer-link">
+                    <i class="fas fa-globe text-blue-900"> אתר רשמי</i>
+                </a>
+                <span class="footer-link" onclick="openWhatsApp()">
+                    <i class="fab fa-whatsapp text-blue-900"> יצירת קשר</i>
+                </span>
             </div>
         </div>
     </div>
-</div>
 
-<script>
-    const form = document.getElementById('loginForm');
-    const loginError = document.getElementById('loginError');
-    const usernameInput = document.getElementById('username');
-    const submitButton = form.querySelector('button[type="submit"]');
+    <script>
+        let isDarkMode = false;
 
-    // Function to open WhatsApp
-    function openWhatsApp() {
-        const phoneNumber = '972501234567'; // Replace with actual phone number
-        const message = 'שלום, אני מעוניין/ת במידע נוסף על בינת קוד המקור';
-        const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
-        window.open(whatsappUrl, '_blank');
-    }
-
-    // Function to generate UUID
-    function generateUUID() {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-            var r = Math.random() * 16 | 0,
-                v = c == 'x' ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-        });
-    }
-
-    // Function to show error message
-    function showError() {
-        loginError.classList.remove('hidden');
-    }
-
-    // Function to hide error message
-    function hideError() {
-        loginError.classList.add('hidden');
-    }
-
-    // Function to validate username
-    function validateUsername() {
-        const username = usernameInput.value.trim();
-        if (username.length < 2) {
-            showError();
-            submitButton.disabled = true;
-            return false;
-        } else {
-            hideError();
-            submitButton.disabled = false;
-            return true;
+        // Function to open WhatsApp
+        function openWhatsApp() {
+            const phoneNumber = '972501234567'; // Replace with actual phone number
+            const message = 'שלום, אני מעוניין/ת במידע נוסף על בינת קוד המקור';
+            const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
         }
-    }
 
-    // Hide error when user starts typing
-    usernameInput.addEventListener('input', function() {
-        hideError();
-        validateUsername();
-    });
-
-    // Focus on username input when page loads
-    document.addEventListener('DOMContentLoaded', function() {
-        usernameInput.focus();
-        
-        // Check if we have a stored username
-        const storedUsername = localStorage.getItem('binat_username');
-        if (storedUsername) {
-            usernameInput.value = storedUsername;
-            validateUsername();
+        // Function to generate UUID
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0,
+                    v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
         }
-    });
 
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        if (validateUsername()) {
+        // Function to show error message
+        function showError() {
+            const loginError = document.getElementById('loginError');
+            loginError.style.display = 'block';
+        }
+
+        // Function to hide error message
+        function hideError() {
+            const loginError = document.getElementById('loginError');
+            loginError.style.display = 'none';
+        }
+
+        // Function to validate username
+        function validateUsername() {
+            const usernameInput = document.getElementById('username');
+            const submitButton = document.querySelector('.submit-button');
             const username = usernameInput.value.trim();
-            const userId = generateUUID();
             
-            // Show loading state
-            submitButton.classList.add('loading');
-            submitButton.disabled = true;
-            
-            // Store username in localStorage
-            localStorage.setItem('binat_username', username);
-            localStorage.setItem('binat_user_id', userId);
-            
-            // Simulate a small delay for better UX
-            setTimeout(() => {
-                // Redirect to chat-ai with username URL-encoded
-                window.location.href = `/pdn-chat-ai/chat-ai?user_name=${encodeURIComponent(username)}&user_id=${encodeURIComponent(userId)}`;
-            }, 800);
+            if (username.length < 2) {
+                showError();
+                submitButton.disabled = true;
+                return false;
+            } else {
+                hideError();
+                submitButton.disabled = false;
+                return true;
+            }
         }
-    });
 
-    // Handle Enter key press
-    usernameInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter' && !submitButton.disabled) {
-            form.dispatchEvent(new Event('submit'));
+        // Theme toggle with proper state management
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+            
+            const themeIcon = document.querySelector('.theme-toggle i');
+            themeIcon.className = isDarkMode ? 'fas fa-sun' : 'fas fa-moon';
+            
+            // Save preference
+            localStorage.setItem('darkMode', isDarkMode);
         }
-    });
-</script>
+
+        // Hide error when user starts typing
+        document.getElementById('username').addEventListener('input', function() {
+            hideError();
+            validateUsername();
+        });
+
+        // Focus on username input when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            const usernameInput = document.getElementById('username');
+            usernameInput.focus();
+            
+            // Load theme preference
+            const savedTheme = localStorage.getItem('darkMode');
+            if (savedTheme === 'true') {
+                isDarkMode = true;
+                document.documentElement.setAttribute('data-theme', 'dark');
+                const themeIcon = document.querySelector('.theme-toggle i');
+                themeIcon.className = 'fas fa-sun';
+            }
+            
+            // Check if we have a stored username
+            const storedUsername = localStorage.getItem('binat_username');
+            if (storedUsername) {
+                usernameInput.value = storedUsername;
+                validateUsername();
+            }
+        });
+
+        // Form submission
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (validateUsername()) {
+                const usernameInput = document.getElementById('username');
+                const submitButton = document.querySelector('.submit-button');
+                const username = usernameInput.value.trim();
+                const userId = generateUUID();
+                
+                // Show loading state
+                submitButton.classList.add('loading');
+                submitButton.disabled = true;
+                
+                // Store username in localStorage
+                localStorage.setItem('binat_username', username);
+                localStorage.setItem('binat_user_id', userId);
+                
+                // Simulate a small delay for better UX
+                setTimeout(() => {
+                    // Redirect to chat-ai with username URL-encoded
+                    window.location.href = `/pdn-chat-ai/chat-ai?user_name=${encodeURIComponent(username)}&user_id=${encodeURIComponent(userId)}`;
+                }, 800);
+            }
+        });
+
+        // Handle Enter key press
+        document.getElementById('username').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !document.querySelector('.submit-button').disabled) {
+                document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+            }
+        });
+    </script>
 </body>
 </html>
  

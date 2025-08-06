@@ -8,126 +8,488 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --primary-color: #1c0f97;
+            --secondary-color: #1c0f97;
+            --accent-color: #1c0f97;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --gradient-start: #0b2e6b;
+            --gradient-end: #0b2e6b;
+        }
+
+        /* Dark mode variables */
+        [data-theme="dark"] {
+            --primary-color: #3570d7;
+            --secondary-color: #3570d7;
+            --accent-color: #3570d7;
+            --text-primary: #f9fafb;
+            --text-secondary: #d1d5db;
+            --bg-primary: #1f2937;
+            --bg-secondary: #111827;
+            --border-color: #374151;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --gradient-start: #0b2e6b;
+            --gradient-end: #0b2e6b;
+        }
+
         body { 
-            font-family: 'Inter', sans-serif; 
-            background: radial-gradient(ellipse at center, #e0e7ff 0%, #c7d2fe 50%, #7c3aed 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+            background: linear-gradient(135deg, #0b2e6b 0%, #0b2e6b 100%);
             min-height: 100vh;
-        }
-        .card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            margin: 0;
+            padding: 0;
+            direction: rtl;
+            color: var(--text-primary);
             transition: all 0.3s ease;
         }
-        .btn-primary:hover {
+
+        /* Header with improved layout */
+        .header-gradient {
+            background: linear-gradient(135deg, #0b2e6b 0%, #0b2e6b 50%, #0b2e6b 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-gradient::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 20px;
+            background: linear-gradient(to bottom, transparent, rgba(224, 231, 255, 0.8));
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo-link {
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            display: block;
+        }
+
+        .logo-link:hover {
+            transform: scale(1.05);
+        }
+
+        .header-logo {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+            border: 4px solid rgba(255,255,255,0.3);
+        }
+
+        .header-text {
+            text-align: right;
+        }
+
+        /* Enhanced login container */
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 32px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 40px var(--shadow-color);
+            display: flex;
+            flex-direction: column;
+            animation: fadeIn 1s ease-in-out;
+            transition: all 0.4s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin: 40px auto;
+        }
+
+        [data-theme="dark"] .login-container {
+            background: rgba(31, 41, 55, 0.95);
+            border: 1px solid rgba(55, 65, 81, 0.3);
+        }
+
+        /* Enhanced form styling */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid rgba(11, 46, 107, 0.2);
+            border-radius: 16px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            direction: rtl;
+        }
+
+        [data-theme="dark"] .form-input {
+            background: rgba(31, 41, 55, 0.9);
+            border: 2px solid rgba(11, 46, 107, 0.3);
+            color: var(--text-primary);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #0b2e6b;
+            box-shadow: 0 0 0 3px rgba(11, 46, 107, 0.1);
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
         }
+
+        .form-input::placeholder {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        /* Enhanced submit button */
+        .submit-button {
+            width: 100%;
+            background: #0b2e6b;
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 16px;
+            box-shadow: 0 4px 12px rgba(11, 46, 107, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .submit-button:hover {
+            background: #0a2a5f;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(11, 46, 107, 0.4);
+        }
+
+        .submit-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Loading state */
         .loading {
-            pointer-events: none;
-            opacity: 0.7;
+            position: relative;
+            color: transparent !important;
         }
+
         .loading::after {
             content: '';
             position: absolute;
-            width: 16px;
-            height: 16px;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin: -10px 0 0 -10px;
             border: 2px solid transparent;
-            border-top: 2px solid currentColor;
+            border-top: 2px solid white;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
 
+        /* Error message styling */
+        .error-message {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            color: #dc2626;
+            border: 1px solid #fecaca;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin: 8px 0;
+            font-size: 14px;
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        [data-theme="dark"] .error-message {
+            background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 100%);
+            color: #fca5a5;
+            border: 1px solid #991b1b;
+        }
+
+        /* Theme toggle */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: #0b2e6b;
+            border: 1px solid rgba(11, 46, 107, 0.2);
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        [data-theme="dark"] .theme-toggle {
+            background: #0b2e6b;
+            border: 1px solid rgba(11, 46, 107, 0.2);
+        }
+
+        .theme-toggle:hover {
+            background: #0a2a5f;
+            transform: scale(1.1);
+        }
+
+        /* Footer links */
+        .footer-links {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 24px;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(11, 46, 107, 0.2);
+        }
+
+        .footer-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .footer-link:hover {
+            color: #0b2e6b;
+            transform: translateY(-1px);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .login-container {
+                margin: 20px;
+                padding: 24px;
+                border-radius: 16px;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+
+            .header-left {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .header-text {
+                text-align: center;
+            }
+
+            .theme-toggle {
+                top: 10px;
+                left: 10px;
+                padding: 8px;
+            }
+
+            .footer-links {
+                flex-direction: column;
+                gap: 16px;
+            }
+        }
+
+        /* Accessibility improvements */
+        .form-input:focus {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            .login-container {
+                border: 2px solid #000;
+            }
+            
+            .form-input {
+                border: 2px solid #000;
+            }
+        }
+
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+            .login-container, .submit-button {
+                animation: none;
+                transition: none;
+            }
+        }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-6">
-<div class="card p-8 max-w-md w-full mx-4 rounded-2xl">
-    <div class="text-center mb-6">
-        <!-- PDN Logo -->
-        <div class="flex justify-center mb-4">
-            <img src="static/images/pdn_logo.png"
-                 alt="PDN Logo"
-                 class="h-24 w-auto object-contain drop-shadow-lg"
-                 style="max-width: 300px;">
-        </div>
-        <h2 class="text-4xl sm:text-3xl font-extrabold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-            PDN Center
-        </h2>
-        <h2 class="text-xl sm:text-1xl font-semibold bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 bg-clip-text text-transparent">
-            מערכת שליטה וניהול</h2>
-        <p class="text-gray-600 mt-2">הזן סיסמה כדי להתחבר</p>
-    </div>
-    <form id="loginForm" class="space-y-4">
-         <div>
-            <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
-                <i class="fas fa-envelope mr-4"></i>אימייל: 
-            </label>
-            <input type="email" id="email" name="email" required
-                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
-                   placeholder="הזן כתובת אימייל"
-                   autocomplete="email">
-        </div>
+<body>
+    <!-- Theme toggle -->
+    <button class="theme-toggle" onclick="toggleTheme()" title="החלף ערכת נושא" aria-label="החלף ערכת נושא">
+        <i class="fas fa-moon"></i>
+    </button>
 
-        <input type="text" name="username" autocomplete="username" style="display: none;">
-        <div>
-            <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
-                <i class="fas fa-lock mr-4"></i>סיסמה
-            </label>
-            <input type="password" id="password" name="password" required
-                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
-                   placeholder="הזן סיסמה"
-                   autocomplete="current-password">
+    <!-- Header with improved layout -->
+    <header class="header-gradient">
+        <div class="header-content">
+            <!-- Logo and title section -->
+            <div class="header-left">
+                <a href="https://www.pdn.co.il" target="_blank" class="logo-link">
+                    <img src="/static/images/pdn_logo.png" alt="PDN Logo" class="header-logo" />
+                </a>
+                <div class="header-text">
+                    <h1 class="text-2xl font-bold mb-2 text-white">PDN Center</h1>
+                    <p class="text-2xl opacity-90 text-white">מערכת שליטה וניהול</p>
+                </div>
+            </div>
         </div>
-        <button type="submit"
-                class="w-full py-3 px-6 btn-primary text-white font-semibold rounded-lg focus:outline-none focus:ring-4 focus:ring-indigo-500/50 transition-all duration-300 relative">
-            <span id="loginBtnText">כניסה</span>
-        </button>
-    </form>
-    <div id="loginError" class="text-red-600 mt-4 hidden text-center">
-        <i class="fas fa-exclamation-triangle mr-2"></i>
-        <span>סיסמה שגויה</span>
-    </div>
+    </header>
 
-    <!-- Footer -->
-    <div class="mt-8 text-center">
-        <div class="flex flex-wrap justify-center items-center space-x-8 space-x-reverse text-sm text-gray-600">
-            <a href="https://www.pdn.co.il" target="_blank"
-               class="hover:text-indigo-600 transition-colors flex items-center">
-                <i class="fas fa-globe mr-2"></i>
-                אתר רשמי
-            </a>
-            <span class="flex items-center">
-                    <i class="fas fa-shield-alt mr-2"></i>
-                    מערכת מאובטחת
+    <!-- Main container -->
+    <div class="container mx-auto p-6 max-w-4xl">
+        <div class="login-container">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-blue-900 mb-2">ברוך הבא למערכת הניהול</h2>
+                <p class="text-blue-700">הזן סיסמה כדי להתחבר</p>
+            </div>
+
+            <form id="loginForm" class="space-y-6">
+                <div class="form-group">
+                    <label for="email" class="form-label">
+                        <i class="fas fa-envelope"></i>
+                        אימייל
+                    </label>
+                    <input type="email" id="email" name="email" required
+                           class="form-input"
+                           placeholder="הזן כתובת אימייל"
+                           autocomplete="email">
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="form-label">
+                        <i class="fas fa-lock"></i>
+                        סיסמה
+                    </label>
+                    <input type="password" id="password" name="password" required
+                           class="form-input"
+                           placeholder="הזן סיסמה" 
+                           autocomplete="current-password"
+                           maxlength="50">
+                </div>
+
+                <button type="submit" class="submit-button">
+                    <i class="fas fa-sign-in-alt"></i>
+                    כניסה למערכת
+                </button>
+            </form>
+
+            <div id="loginError" class="error-message">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                <span>סיסמה שגויה</span>
+            </div>
+
+            <!-- Footer -->
+            <div class="footer-links">
+                <a href="https://www.pdn.co.il" target="_blank" class="footer-link">
+                    <i class="fas fa-globe text-blue-900"> אתר רשמי</i>
+                </a>
+                <span class="footer-link">
+                    <i class="fas fa-shield-alt text-blue-900"> מערכת מאובטחת</i>
                 </span>
-        </div>
-        <div class="mt-4">
-            <p class="text-xs text-gray-500">
-                © 2024 PDN Center כל הזכויות שמורות
-            </p>
+            </div>
         </div>
     </div>
-</div>
 
-<script>
+    <script>
+        let isDarkMode = false;
         let sessionToken = null;
+
+        // Theme toggle with proper state management
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+            
+            const themeIcon = document.querySelector('.theme-toggle i');
+            themeIcon.className = isDarkMode ? 'fas fa-sun' : 'fas fa-moon';
+            
+            // Save preference
+            localStorage.setItem('darkMode', isDarkMode);
+        }
+
+        // Function to show error message
+        function showError(message) {
+            const loginError = document.getElementById('loginError');
+            loginError.querySelector('span').textContent = message;
+            loginError.style.display = 'block';
+        }
+
+        // Function to hide error message
+        function hideError() {
+            const loginError = document.getElementById('loginError');
+            loginError.style.display = 'none';
+        }
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             setupEventListeners();
+            
+            // Load theme preference
+            const savedTheme = localStorage.getItem('darkMode');
+            if (savedTheme === 'true') {
+                isDarkMode = true;
+                document.documentElement.setAttribute('data-theme', 'dark');
+                const themeIcon = document.querySelector('.theme-toggle i');
+                themeIcon.className = 'fas fa-sun';
+            }
         });
 
         function setupEventListeners() {
             // Login form
             document.getElementById('loginForm').addEventListener('submit', handleLogin);
+            
+            // Hide error when user starts typing
+            document.getElementById('password').addEventListener('input', function() {
+                hideError();
+            });
         }
 
         async function handleLogin(e) {
@@ -156,29 +518,30 @@
                     throw new Error('Invalid credentials');
                 }
             } catch (error) {
-                document.getElementById('loginError').textContent = 'סיסמה שגויה';
-                document.getElementById('loginError').classList.remove('hidden');
+                showError('סיסמה שגויה');
             } finally {
                 hideLoading();
             }
         }
 
         function showLoading() {
-            const button = document.querySelector('button[type="submit"]');
-            const btnText = document.getElementById('loginBtnText');
-            
+            const button = document.querySelector('.submit-button');
             button.classList.add('loading');
-            btnText.textContent = 'מתחבר...';
+            button.disabled = true;
         }
 
         function hideLoading() {
-            const button = document.querySelector('button[type="submit"]');
-            const btnText = document.getElementById('loginBtnText');
-            
+            const button = document.querySelector('.submit-button');
             button.classList.remove('loading');
-            btnText.textContent = 'כניסה';
+            button.disabled = false;
         }
 
-</script>
+        // Handle Enter key press
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+            }
+        });
+    </script>
 </body>
 </html> 
