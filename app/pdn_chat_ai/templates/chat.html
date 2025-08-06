@@ -12,34 +12,30 @@
     <script src="/static/js/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        /* 🎨 Visual Design & Branding */
         :root {
-            --primary-color: #6366f1;
-            --secondary-color: #8b5cf6;
-            --accent-color: #a855f7;
+            --primary-color: #1c0f97;
+            --secondary-color: #1c0f97;
+            --accent-color: #1c0f97;
             --text-primary: #1f2937;
             --text-secondary: #6b7280;
-            --bg-primary: #ffffff;
-            --bg-secondary: #f9fafb;
-            --border-color: #e5e7eb;
             --shadow-color: rgba(0, 0, 0, 0.1);
-            --gradient-start: #e0e7ff;
-            --gradient-end: #6366f1;
+            --gradient-start: #0b2e6b;
+            --gradient-end: #0b2e6b;
         }
 
         /* Dark mode variables */
         [data-theme="dark"] {
-            --primary-color: #818cf8;
-            --secondary-color: #a78bfa;
-            --accent-color: #c084fc;
+            --primary-color: #3570d7;
+            --secondary-color: #3570d7;
+            --accent-color: #3570d7;
             --text-primary: #f9fafb;
             --text-secondary: #d1d5db;
             --bg-primary: #1f2937;
             --bg-secondary: #111827;
             --border-color: #374151;
             --shadow-color: rgba(0, 0, 0, 0.3);
-            --gradient-start: #312e81;
-            --gradient-end: #1e1b4b;
+            --gradient-start: #3570d7;
+            --gradient-end: #3570d7;
         }
 
         body { 
@@ -111,56 +107,34 @@
             box-shadow: 0 4px 12px var(--shadow-color);
             word-wrap: break-word;
             overflow-wrap: break-word;
-            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .chat-bubble.user {
-            background: linear-gradient(135deg, #bbf7d0 0%, #86efac 100%);
-            color: #064e3b;
+            background: #0b2e6b;
+            color: #ffffff;
             align-self: flex-end;
             border-bottom-right-radius: 8px;
-            box-shadow: 0 4px 16px rgba(134, 239, 172, 0.3);
-            border: 1px solid rgba(134, 239, 172, 0.3);
-        }
-
-        .chat-bubble.user:hover {
-            background: linear-gradient(135deg, #86efac 0%, #4ade80 100%);
-            box-shadow: 0 6px 20px rgba(134, 239, 172, 0.4);
+            border: 1px solid rgba(53, 112, 215, 0.3);
         }
 
         [data-theme="dark"] .chat-bubble.user {
-            background: linear-gradient(135deg, #86efac 0%, #4ade80 100%);
+            background: #0b2e6b;
             color: #ffffff;
-            border: 1px solid rgba(134, 239, 172, 0.4);
-        }
-
-        [data-theme="dark"] .chat-bubble.user:hover {
-            background: linear-gradient(135deg, #bbf7d0 0%, #86efac 100%);
+            border: 1px solid rgba(53, 112, 215, 0.4);
         }
 
         .chat-bubble.bot {
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            color: #92400e;
+            background: #dcdfe9;
+            color: #181818;
             align-self: flex-start;
-            border-bottom-left-radius: 8px;
-            box-shadow: 0 4px 16px rgba(251, 191, 36, 0.2);
-            border: 1px solid rgba(251, 191, 36, 0.3);
-        }
-
-        .chat-bubble.bot:hover {
-            background: linear-gradient(135deg, #fef9e7 0%, #fef3c7 100%);
-            box-shadow: 0 6px 20px rgba(251, 191, 36, 0.25);
+            border-bottom-left-radius: 8px; 
         }
 
         [data-theme="dark"] .chat-bubble.bot {
-            background: linear-gradient(135deg, #78350f 0%, #92400e 100%);
-            color: #fef3c7;
-            border: 1px solid rgba(251, 191, 36, 0.3);
+            background: #e97b3b;
+            color: #ffffff;
         }
 
-        [data-theme="dark"] .chat-bubble.bot:hover {
-            background: linear-gradient(135deg, #92400e 0%, #a16207 100%);
-        }
 
         /* Enhanced input area */
         .input-area {
@@ -198,7 +172,7 @@
         }
 
         .send-button {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            background: #0b2e6b;
             color: white;
             border: none;
             padding: 12px 20px;
@@ -206,12 +180,12 @@
             cursor: pointer;
             transition: all 0.3s ease;
             font-weight: 600;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            box-shadow: 0 4px 12px rgba(11, 46, 107, 0.3);
         }
 
         .send-button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 6px 20px rgba(11, 46, 107, 0.4);
         }
 
         .send-button:disabled {
@@ -222,9 +196,9 @@
 
         /* Attachment and mic buttons */
         .action-button {
-            background: rgba(255, 255, 255, 0.8);
-            border: 1px solid rgba(99, 102, 241, 0.2);
-            color: var(--primary-color);
+            background: #0b2e6b;
+            border: 1px solid rgba(11, 46, 107, 0.2);
+            color: #ffffff;
             padding: 10px;
             border-radius: 12px;
             cursor: pointer;
@@ -232,12 +206,13 @@
         }
 
         [data-theme="dark"] .action-button {
-            background: rgba(31, 41, 55, 0.8);
-            border: 1px solid rgba(129, 140, 248, 0.2);
+            background: #0b2e6b;
+            border: 1px solid rgba(11, 46, 107, 0.2);
+            color: #ffffff;
         }
 
         .action-button:hover {
-            background: rgba(99, 102, 241, 0.1);
+            background: #0a2a5f;
             transform: scale(1.05);
         }
 
@@ -247,20 +222,20 @@
             align-items: center;
             gap: 8px;
             padding: 12px 16px;
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            background:  #8ea4ed;
             border-radius: 16px;
-            color: #92400e;
+            color: #ffffff;
             font-size: 14px;
             animation: pulse 2s infinite;
             max-width: 200px;
             margin-bottom: 16px;
-            border: 1px solid rgba(251, 191, 36, 0.3);
-            box-shadow: 0 2px 8px rgba(251, 191, 36, 0.15);
+            border: 1px solid #8ea4ed;
+            box-shadow: 0 2px 8px #8ea4ed;
         }
 
         [data-theme="dark"] .typing-indicator {
-            background: linear-gradient(135deg, #78350f 0%, #92400e 100%);
-            color: #fef3c7;
+            background: #e97b3b;
+            color: #ffffff;
             border: 1px solid rgba(251, 191, 36, 0.3);
         }
 
@@ -343,31 +318,31 @@
         }
 
         .quick-reply-btn {
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-            border: 1px solid rgba(148, 163, 184, 0.3);
-            color: #475569;
+            background: linear-gradient(135deg, #0b2e6b 0%, #0a2a5f 100%);
+            border: 1px solid rgba(11, 46, 107, 0.3);
+            color: #ffffff;
             padding: 8px 16px;
             border-radius: 20px;
             cursor: pointer;
             font-size: 14px;
             transition: all 0.3s ease;
-            box-shadow: 0 2px 4px rgba(148, 163, 184, 0.1);
+            box-shadow: 0 2px 4px rgba(11, 46, 107, 0.1);
         }
 
         [data-theme="dark"] .quick-reply-btn {
-            background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
-            border: 1px solid rgba(75, 85, 99, 0.3);
-            color: #f1f5f9;
+            background: linear-gradient(135deg, #0b2e6b 0%, #0a2a5f 100%);
+            border: 1px solid rgba(11, 46, 107, 0.3);
+            color: #ffffff;
         }
 
         .quick-reply-btn:hover {
-            background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+            background: linear-gradient(135deg, #0a2a5f 0%, #092a5a 100%);
             transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(148, 163, 184, 0.2);
+            box-shadow: 0 4px 8px rgba(11, 46, 107, 0.2);
         }
 
         [data-theme="dark"] .quick-reply-btn:hover {
-            background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%);
+            background: linear-gradient(135deg, #0a2a5f 0%, #092a5a 100%);
         }
 
         /* Message headers */
@@ -380,19 +355,24 @@
         }
 
         .chat-bubble.user .message-header {
-            color: rgba(6, 78, 59, 0.8);
+            color: #ffffff;
+            font-weight: 700;
         }
 
         .chat-bubble.bot .message-header {
-            color: #a16207;
-        }
-
-        [data-theme="dark"] .chat-bubble.user .message-header {
-            color: rgba(255, 255, 255, 0.9);
+            color: #000000;
+            font-weight: 700;
         }
 
         [data-theme="dark"] .chat-bubble.bot .message-header {
-            color: #fde68a;
+            color: #000000;
+            font-weight: 700;
+        }
+
+
+        [data-theme="dark"] .chat-bubble.bot .message-header {
+            color: #ffffff;
+            font-weight: 700;
         }
 
         /* Message timestamps */
@@ -400,28 +380,33 @@
             font-size: 11px;
             margin-top: 6px;
             opacity: 0.7;
-            font-weight: 500;
+            font-weight: 700;
             letter-spacing: 0.5px;
+            text-align: left;
         }
 
         .chat-bubble.user .message-time {
-            color: rgba(6, 78, 59, 0.7);
+            color: #ffffff;
+            text-align: left;
+            font-weight: 700;
         }
 
         [data-theme="dark"] .chat-bubble.user .message-time {
-            color: rgba(255, 255, 255, 0.8);
+            color: #000000;
+            text-align: left;
+            font-weight: 700;
         }
 
         .chat-bubble.bot .message-time {
-            color: #a16207;
+            color: #000000;
+            text-align: left;
+            font-weight: 700;
         }
 
         [data-theme="dark"] .chat-bubble.bot .message-time {
-            color: #fde68a;
-        }
-
-        .chat-bubble:hover .message-time {
-            opacity: 0.9;
+            color: #000000;
+            text-align: left;
+            font-weight: 700;
         }
 
         /* Theme toggle */
@@ -429,9 +414,9 @@
             position: fixed;
             top: 20px;
             left: 20px;
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid rgba(99, 102, 241, 0.2);
-            color: var(--primary-color);
+            background: #0b2e6b;
+            border: 1px solid rgba(11, 46, 107, 0.2);
+            color: #ffffff;
             padding: 10px;
             border-radius: 50%;
             cursor: pointer;
@@ -440,12 +425,12 @@
         }
 
         [data-theme="dark"] .theme-toggle {
-            background: rgba(31, 41, 55, 0.9);
-            border: 1px solid rgba(129, 140, 248, 0.2);
+            background: #0b2e6b;
+            border: 1px solid rgba(11, 46, 107, 0.2);
         }
 
         .theme-toggle:hover {
-            background: rgba(99, 102, 241, 0.1);
+            background: #0a2a5f;
             transform: scale(1.1);
         }
 
@@ -454,9 +439,9 @@
             position: fixed;
             top: 20px;
             right: 20px;
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid rgba(99, 102, 241, 0.2);
-            color: var(--primary-color);
+            background: #0b2e6b;
+            border: 1px solid rgba(11, 46, 107, 0.2);
+            color: #ffffff;
             padding: 10px 16px;
             border-radius: 20px;
             cursor: pointer;
@@ -466,45 +451,14 @@
         }
 
         [data-theme="dark"] .export-button {
-            background: rgba(31, 41, 55, 0.9);
-            border: 1px solid rgba(129, 140, 248, 0.2);
+            background: #0b2e6b;
+            border: 1px solid rgba(11, 46, 107, 0.2);
+            color: #ffffff;
         }
 
         .export-button:hover {
-            background: rgba(99, 102, 241, 0.1);
+            background: #0a2a5f;
             transform: translateY(-1px);
-        }
-
-        /* Floating logout button */
-        .floating-logout-button {
-          position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid rgba(99, 102, 241, 0.2);
-            color: var(--primary-color);
-            padding: 10px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            z-index: 1000;
-            font-size: 14px;
-        }
-
-        [data-theme="dark"] .floating-logout-button {
-            background: rgba(31, 41, 55, 0.9);
-            border: 1px solid rgba(239, 68, 68, 0.2);
-            color: #fca5a5;
-        }
-
-        .floating-logout-button:hover {
-            background: rgba(239, 68, 68, 0.1);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
-        }
-
-        .floating-logout-button i {
-            font-size: 16px;
         }
 
         /* Header layout improvements */
@@ -812,14 +766,14 @@
             border: 0;
         }
 
-        /* Custom confirmation modal */
+        /* Custom confirmation modal 1 */
         .confirmation-modal {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(8px);
             display: flex;
             align-items: center;
@@ -836,14 +790,14 @@
         }
 
         .confirmation-content {
-            background: var(--bg-primary);
+            background: #ffffff;
             border-radius: 24px;
             padding: 32px;
             max-width: 400px;
             width: 90%;
             text-align: center;
-            box-shadow: 0 20px 40px var(--shadow-color);
-            border: 1px solid var(--border-color);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(0, 0, 0, 0.1);
             transform: scale(0.9) translateY(20px);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
@@ -861,7 +815,7 @@
             left: 0;
             right: 0;
             height: 4px;
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            background: #0b2e6b;
         }
 
         .confirmation-icon {
@@ -886,14 +840,14 @@
         .confirmation-title {
             font-size: 1.5rem;
             font-weight: 700;
-            color: var(--text-primary);
+            color: #000000;
             margin-bottom: 12px;
             line-height: 1.3;
         }
 
         .confirmation-message {
             font-size: 1rem;
-            color: var(--text-secondary);
+            color: #333333;
             line-height: 1.6;
             margin-bottom: 32px;
         }
@@ -920,26 +874,26 @@
         }
 
         .confirmation-btn.cancel {
-            background: rgba(255, 255, 255, 0.9);
-            color: var(--text-secondary);
-            border: 1px solid var(--border-color);
+            background: #0b2e6b;
+            color: #ffffff;
+            border: 1px solid rgba(11, 46, 107, 0.2);
         }
 
         .confirmation-btn.cancel:hover {
-            background: rgba(255, 255, 255, 1);
+            background: #0a2a5f;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(11, 46, 107, 0.3);
         }
 
         .confirmation-btn.confirm {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            background: #0b2e6b;
             color: white;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            box-shadow: 0 4px 12px rgba(11, 46, 107, 0.3);
         }
 
         .confirmation-btn.confirm:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 6px 20px rgba(11, 46, 107, 0.4);
         }
 
         .confirmation-btn:active {
@@ -947,13 +901,13 @@
         }
 
         [data-theme="dark"] .confirmation-btn.cancel {
-            background: rgba(31, 41, 55, 0.9);
-            color: var(--text-secondary);
-            border: 1px solid var(--border-color);
+            background: #0b2e6b;
+            color: #ffffff;
+            border: 1px solid rgba(11, 46, 107, 0.2);
         }
 
         [data-theme="dark"] .confirmation-btn.cancel:hover {
-            background: rgba(31, 41, 55, 1);
+            background: #0a2a5f;
         }
 
         /* Mobile responsiveness for confirmation modal */
@@ -992,14 +946,14 @@
 
         /* Recording microphone button */
         .action-button.recording {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            border-color: #dc2626;
+            background: linear-gradient(135deg, #0b2e6b 0%, #0a2a5f 100%);
+            border-color: #0b2e6b;
             animation: pulse 1.5s ease-in-out infinite;
-            box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+            box-shadow: 0 0 20px rgba(11, 46, 107, 0.5);
         }
 
         .action-button.recording:hover {
-            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            background: linear-gradient(135deg, #0a2a5f 0%, #092a5a 100%);
             transform: scale(1.05);
         }
 
@@ -1029,8 +983,9 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.95) 0%, rgba(139, 92, 246, 0.95) 100%);
-            color: white;
+            background: #0b2e6b;
+            border: 1px solid rgba(11, 46, 107, 0.2);
+            color: #ffffff;
             padding: 16px 24px;
             border-radius: 16px;
             font-size: 16px;
@@ -1053,8 +1008,9 @@
         }
 
         [data-theme="dark"] .transcription-feedback {
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.9) 0%, rgba(139, 92, 246, 0.9) 100%);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: #0b2e6b;
+            border: 1px solid rgba(11, 46, 107, 0.2);
+            color: #ffffff;
         }
     </style>
 </head>
@@ -1080,9 +1036,9 @@
             position: fixed;
             top: 70px;
             right: 20px;
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid rgba(99, 102, 241, 0.2);
-            color: var(--primary-color);
+            background: #0b2e6b;
+            border: 1px solid rgba(11, 46, 107, 0.2);
+            color: #ffffff;
             padding: 10px 16px;
             border-radius: 20px;
             cursor: pointer;
@@ -1095,12 +1051,12 @@
             font-weight: 600;
         }
         [data-theme="dark"] .floating-logout-button {
-            background: rgba(31, 41, 55, 0.9);
-            border: 1px solid rgba(129, 140, 248, 0.2);
-            color: var(--primary-color);
+            background: #0b2e6b;
+            border: 1px solid rgba(11, 46, 107, 0.2);
+            color: #ffffff;
         }
         .floating-logout-button:hover {
-            background: rgba(99, 102, 241, 0.1);
+            background: #0a2a5f;
             transform: translateY(-1px);
         }
         .floating-logout-button i {
@@ -1117,7 +1073,7 @@
     </style>
 
     <!-- Header with improved layout -->
-    <header class="header-gradient text-white p-6 relative">
+    <header >
         <div class="header-content">
             <!-- Logo and title section -->
             <div class="header-left">
@@ -1125,8 +1081,8 @@
                     <img src="/static/images/pdn_logo.png" alt="PDN Logo" class="header-logo" />
                 </a>
                 <div class="header-text">
-                    <h1 class="text-2xl font-bold mb-2">בינת קוד המקור</h1>
-                    <p class="text-lg opacity-90">שיחה עם הנווט הפנימי</p>
+                    <h1 class="text-2xl font-bold mb-2 text-white">בינת קוד המקור</h1>
+                    <p class="text-2xl opacity-90 text-white ">שיחה עם הנווט הפנימי</p>
                 </div>
             </div>
         </div>
@@ -1555,7 +1511,7 @@
                         border-radius: 10px;
                         position: relative;
                         ${isUser ? 
-                            'background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; margin-right: 20px;' : 
+                            'background: linear-gradient(135deg, #0b2e6b, #0a2a5f); color: white; margin-right: 20px;' : 
                             'background: #f8fafc; border: 1px solid #e2e8f0; margin-left: 20px;'
                         }
                     `;
@@ -1877,11 +1833,11 @@
                 const initialBot = document.createElement("div");
                 initialBot.className = "chat-bubble bot animated";
                 
-                const rawMessage = `🌿  שלום ,${USER_NAME}\nבינת מקוד המקור ממתינה לך כאן, בקצב שלך.\n\nאם יש שאלה שלא עוזבת, דפוס שחוזר, או תחושה לא פתורה –\nבוא נסתכל עליה יחד.\nבלי למהר. בלי לשפוט. רק להבין מה פועל בך עכשיו.`;
+                const rawMessage = `🌿 שלום ${USER_NAME},\nבינת מקוד המקור ממתינה לך כאן, בקצב שלך.\n\nאם יש שאלה שלא עוזבת, דפוס שחוזר, או תחושה לא פתורה –\nבוא נסתכל עליה יחד.\nבלי למהר. בלי לשפוט. רק להבין מה פועל בך עכשיו.`;
                 const formattedMessage = rawMessage.replace(/\n/g, '<br>');
 
                 initialBot.innerHTML = `
-                    <div class="message-header">בינת קוד המקור:</div>
+                    <div class="message-header ">בינת קוד המקור:</div>
                     <div class="message-content">${formattedMessage}</div>
                     <div class="message-time">${getCurrentTime()}</div>
                 `;
