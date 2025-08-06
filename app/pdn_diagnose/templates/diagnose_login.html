@@ -8,208 +8,574 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --primary-color: #1c0f97;
+            --secondary-color: #1c0f97;
+            --accent-color: #1c0f97;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --gradient-start: #0b2e6b;
+            --gradient-end: #0b2e6b;
+        }
+
+        /* Dark mode variables */
+        [data-theme="dark"] {
+            --primary-color: #3570d7;
+            --secondary-color: #3570d7;
+            --accent-color: #3570d7;
+            --text-primary: #f9fafb;
+            --text-secondary: #d1d5db;
+            --bg-primary: #1f2937;
+            --bg-secondary: #111827;
+            --border-color: #374151;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --gradient-start: #0b2e6b;
+            --gradient-end: #0b2e6b;
+        }
+
         body { 
-            font-family: 'Inter', sans-serif; 
-            background: radial-gradient(ellipse at center, #e0e7ff 0%, #c7d2fe 50%, #7c3aed 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+            background: linear-gradient(135deg, #0b2e6b 0%, #0b2e6b 100%);
             min-height: 100vh;
-        }
-        .card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-        .modal-backdrop {
-            position: fixed; 
-            inset: 0; 
-            background: rgba(0, 0, 0, 0.5); 
-            display: flex;
-            align-items: center; 
-            justify-content: center; 
-            z-index: 50;
-            backdrop-filter: blur(4px);
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            margin: 0;
+            padding: 0;
+            direction: rtl;
+            color: var(--text-primary);
             transition: all 0.3s ease;
         }
-        .btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+
+        /* Header with improved layout */
+        .header-gradient {
+            background: linear-gradient(135deg, #0b2e6b 0%, #0b2e6b 50%, #0b2e6b 100%);
+            position: relative;
+            overflow: hidden;
         }
+
+        .header-gradient::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 20px;
+            background: linear-gradient(to bottom, transparent, rgba(224, 231, 255, 0.8));
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo-link {
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            display: block;
+        }
+
+        .logo-link:hover {
+            transform: scale(1.05);
+        }
+
+        .header-logo {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+            border: 4px solid rgba(255,255,255,0.3);
+        }
+
+        .header-text {
+            text-align: right;
+        }
+
+        /* Enhanced login container */
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 32px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 40px var(--shadow-color);
+            display: flex;
+            flex-direction: column;
+            animation: fadeIn 1s ease-in-out;
+            transition: all 0.4s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin: 40px auto;
+        }
+
+        [data-theme="dark"] .login-container {
+            background: rgba(31, 41, 55, 0.95);
+            border: 1px solid rgba(55, 65, 81, 0.3);
+        }
+
+        /* Enhanced form styling */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid rgba(11, 46, 107, 0.2);
+            border-radius: 16px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            direction: rtl;
+        }
+
+        [data-theme="dark"] .form-input {
+            background: rgba(31, 41, 55, 0.9);
+            border: 2px solid rgba(11, 46, 107, 0.3);
+            color: var(--text-primary);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #0b2e6b;
+            box-shadow: 0 0 0 3px rgba(11, 46, 107, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        /* Enhanced submit button */
+        .submit-button {
+            width: 100%;
+            background: #0b2e6b;
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 16px;
+            box-shadow: 0 4px 12px rgba(11, 46, 107, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .submit-button:hover {
+            background: #0a2a5f;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(11, 46, 107, 0.4);
+        }
+
+        .submit-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Loading state */
+        .loading {
+            position: relative;
+            color: transparent !important;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin: -10px 0 0 -10px;
+            border: 2px solid transparent;
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Error message styling */
         .error-message {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            color: #dc2626;
+            border: 1px solid #fecaca;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin: 8px 0;
+            font-size: 14px;
             display: none;
             animation: fadeIn 0.3s ease-in-out;
         }
+
+        [data-theme="dark"] .error-message {
+            background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 100%);
+            color: #fca5a5;
+            border: 1px solid #991b1b;
+        }
+
+        /* Theme toggle */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: #0b2e6b;
+            border: 1px solid rgba(11, 46, 107, 0.2);
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        [data-theme="dark"] .theme-toggle {
+            background: #0b2e6b;
+            border: 1px solid rgba(11, 46, 107, 0.2);
+        }
+
+        .theme-toggle:hover {
+            background: #0a2a5f;
+            transform: scale(1.1);
+        }
+
+        /* Disclaimer styling */
+        .disclaimer {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 16px;
+            margin: 16px 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: right;
+            direction: rtl;
+        }
+
+        .disclaimer h3 {
+            font-size: 1em;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .disclaimer p {
+            font-size: 0.8em;
+            line-height: 1.6;
+            margin-bottom: 10px;
+            color: var(--text-secondary);
+        }
+
+        .disclaimer p:last-child {
+            font-weight: 500;
+            color: #0b2e6b;
+        }
+
+        /* Footer links */
+        .footer-links {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 24px;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(11, 46, 107, 0.2);
+        }
+
+        .footer-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .footer-link:hover {
+            color: #0b2e6b;
+            transform: translateY(-1px);
+        }
+
+        /* Animations */
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
+            from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .footer {
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      padding: 25px;
-      text-align: center;
-      color: white;
-      margin-top: 30px;
-      font-size: 1.1em;
-      border-radius: 16px;
-      margin-left: auto;
-      margin-right: auto;
-      box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
-    }
 
-    .footer a {
-      display: inline-block;
-      margin-top: 15px;
-      padding: 12px 30px;
-      background: rgba(255, 255, 255, 0.2);
-      color: white;
-      text-decoration: none;
-      border-radius: 25px;
-      font-weight: 600;
-      transition: all 0.3s ease;
-      backdrop-filter: blur(10px);
-    }
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .login-container {
+                margin: 20px;
+                padding: 24px;
+                border-radius: 16px;
+            }
 
-    .footer a:hover {
-      background: rgba(255, 255, 255, 0.3);
-      transform: translateY(-2px);
-    }
+            .header-content {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
 
+            .header-left {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .header-text {
+                text-align: center;
+            }
+
+            .theme-toggle {
+                top: 10px;
+                left: 10px;
+                padding: 8px;
+            }
+
+            .footer-links {
+                flex-direction: column;
+                gap: 16px;
+            }
+        }
+
+        /* Accessibility improvements */
+        .form-input:focus {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            .login-container {
+                border: 2px solid #000;
+            }
+            
+            .form-input {
+                border: 2px solid #000;
+            }
+        }
+
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+            .login-container, .submit-button {
+                animation: none;
+                transition: none;
+            }
+        }
     </style>
 </head>
-<body class="p-6">
+<body>
+    <!-- Theme toggle -->
+    <button class="theme-toggle" onclick="toggleTheme()" title="החלף ערכת נושא" aria-label="החלף ערכת נושא">
+        <i class="fas fa-moon"></i>
+    </button>
 
-<!-- Login Modal -->
-<div class="modal-backdrop">
-    <div class="card p-8 max-w-md w-full mx-4 rounded-2xl">
-        <div class="text-center mb-6">
-            <!-- PDN Logo -->
-            <div class="flex justify-center mb-4">
-                <img src="/static/images/pdn_logo.png"
-                     alt="PDN Logo"
-                     class="h-24 w-auto object-contain drop-shadow-lg"
-                     style="max-width: 300px;">
+    <!-- Header with improved layout -->
+    <header class="header-gradient">
+        <div class="header-content">
+            <!-- Logo and title section -->
+            <div class="header-left">
+                <a href="https://www.pdn.co.il" target="_blank" class="logo-link">
+                    <img src="/static/images/pdn_logo.png" alt="PDN Logo" class="header-logo" />
+                </a>
+                <div class="header-text">
+                    <h1 class="text-2xl font-bold mb-2 text-white">PDN Center</h1>
+                    <p class="text-2xl opacity-90 text-white">מערכת אבחון אישי</p>
+                </div>
             </div>
-            <h2 class="text-4xl sm:text-3xl font-extrabold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-                PDN Center
-            </h2>
-            <h2 class="text-xl sm:text-1xl font-semibold bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 bg-clip-text text-transparent">
-                מערכת אבחון אישי</h2>
-            <p class="text-gray-600 mt-2">הזן פרטים כדי להתחבר</p>
         </div>
-        <form id="loginForm" class="space-y-4">
-            <!-- Email Field -->
-            <div>
-                <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
-                    <i class="fas fa-envelope mr-4"></i>אימייל: 
-                </label>
-                <input type="email" id="email" name="email" required
-                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
-                       placeholder="הזן כתובת אימייל"
-                       autocomplete="email">
+    </header>
+
+    <!-- Main container -->
+    <div class="container mx-auto p-6 max-w-4xl">
+        <div class="login-container">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-blue-900 mb-2">ברוך הבא למערכת האבחון</h2>
+                <p class="text-blue-700">הזן פרטים כדי להתחיל את האבחון</p>
             </div>
 
-            <!-- Password Field -->
-            <div>
-                <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
-                    <i class="fas fa-lock mr-4"></i>סיסמה:
-                </label>
-                <input type="password" id="password" name="password" required
-                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
-                       placeholder="הזן סיסמה" 
-                       autocomplete="current-password">
+            <form id="loginForm" class="space-y-6">
+                <div class="form-group">
+                    <label for="email" class="form-label">
+                        <i class="fas fa-envelope"></i>
+                        אימייל
+                    </label>
+                    <input type="email" id="email" name="email" required
+                           class="form-input"
+                           placeholder="הזן כתובת אימייל"
+                           autocomplete="email">
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="form-label">
+                        <i class="fas fa-lock"></i>
+                        סיסמה
+                    </label>
+                    <input type="password" id="password" name="password" required
+                           class="form-input"
+                           placeholder="הזן סיסמה" 
+                           autocomplete="current-password"
+                           maxlength="50">
+                </div>
+
+                <button type="submit" class="submit-button">
+                    <i class="fas fa-sign-in-alt"></i>
+                    התחל אבחון
+                </button>
+            </form>
+
+            <div id="loginError" class="error-message">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                <span>פרטים שגויים</span>
             </div>
 
-            <button type="submit"
-                    class="w-full py-3 px-6 btn-primary text-white font-semibold rounded-lg focus:outline-none focus:ring-4 focus:ring-indigo-500/50 transition-all duration-300">
-                <i class="fas fa-sign-in-alt mr-2"></i>כניסה
-            </button>
+            <!-- Disclaimer -->
+            <div class="disclaimer">
+                <h2 class="text-blue-900 text-2xl">הסכמה מודעת לאבחון קוד המקור</h3>
+                <p>האבחון נועד לעורר תודעה, לאפשר גילוי עצמי, ולהאיר כיוונים פנימיים. הוא לא מחליף ייעוץ או טיפול מקצועי – רגשי, רפואי או אחר – ואינו מתיימר לאבחן או לרפא.</p>
+                <p>האבחון מזמין אותך להתבונן, להקשיב לעצמך, ולבחור איך לפעול. האחריות על הדרך, הבחירות וההשלכות – היא שלך בלבד.</p>
+                <p>אם עולה קושי רגשי עמוק, מצוקה מתמשכת או צורך בתמיכה – חשוב לפנות לאיש מקצוע מתאים.</p>
+                <p>אנחנו כאן להזכיר – שהכוח כבר בתוכך.</p>
+            </div>
+
             <!-- Footer -->
-  <div  style="margin: 30px auto; background: transparent;">
-    <div class="text-center space-y-6">     
-            <div class="flex flex-wrap justify-center items-center space-x-8 space-x-reverse text-sm text-gray-600">
-            <a href="https://www.pdn.co.il" target="_blank"
-               class="hover:text-indigo-600 transition-colors flex items-center">
-                אתר רשמי
-            </a>
-            <span class="flex items-center">
-              <div class="hover:text-indigo-600 transition-colors flex items-center" onclick="openWhatsApp()" >
-                יצירת קשר
-              </div>          
-            </span>
-        </div>
-
-        <!-- Copyright -->
-        <div>
-            <p class="text-xs text-gray-500">
-                © 2024 PDN Center כל הזכויות שמורות
-            </p>
+            <div class="footer-links">
+                <a href="https://www.pdn.co.il" target="_blank" class="footer-link">
+                    <i class="fas fa-globe text-blue-900"> אתר רשמי</i>
+                </a>
+                <span class="footer-link" onclick="openWhatsApp()">
+                    <i class="fab fa-whatsapp text-blue-900"> יצירת קשר</i>
+                </span>
+            </div>
         </div>
     </div>
-</div>
-        </form>
-        <div id="loginError" class="text-red-600 mt-4 hidden text-center">
-            <i class="fas fa-exclamation-triangle mr-2"></i>
-            <span>פרטים שגויים</span>
-        </div>
-    </div>
-</div>
 
-<script>
-    const form = document.getElementById('loginForm');
-    const loginError = document.getElementById('loginError');
+    <script>
+        let isDarkMode = false;
 
-    // Function to show error message
-    function showError() {
-      loginError.classList.remove('hidden');
-    }
+        // Function to open WhatsApp
+        function openWhatsApp() {
+            const phoneNumber = '972509198868'; // Remove the + and format for WhatsApp
+            const message = encodeURIComponent('שלום, אני מעוניין/ת במידע נוסף על שירותי PDN');
+            const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
+            window.open(whatsappUrl, '_blank');
+        }
 
-    // Function to hide error message
-    function hideError() {
-      loginError.classList.add('hidden');
-    }
+        // Function to show error message
+        function showError() {
+            const loginError = document.getElementById('loginError');
+            loginError.style.display = 'block';
+        }
 
-    function openWhatsApp() {
-      const phoneNumber = '972509198868'; // Remove the + and format for WhatsApp
-      const message = encodeURIComponent('שלום, אני מעוניין/ת במידע נוסף על שירותי PDN');
-      const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
-      window.open(whatsappUrl, '_blank');
-    }
+        // Function to hide error message
+        function hideError() {
+            const loginError = document.getElementById('loginError');
+            loginError.style.display = 'none';
+        }
 
-    // Hide error when user starts typing
-    document.getElementById('email').addEventListener('input', hideError);
-    document.getElementById('password').addEventListener('input', hideError);
+        // Theme toggle with proper state management
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+            
+            const themeIcon = document.querySelector('.theme-toggle i');
+            themeIcon.className = isDarkMode ? 'fas fa-sun' : 'fas fa-moon';
+            
+            // Save preference
+            localStorage.setItem('darkMode', isDarkMode);
+        }
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      hideError();
-
-      const loginData = {
-        email: document.getElementById('email').value,
-        password: document.getElementById('password').value
-      };
-
-      try {
-        const response = await fetch('/pdn-diagnose/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(loginData)
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load theme preference
+            const savedTheme = localStorage.getItem('darkMode');
+            if (savedTheme === 'true') {
+                isDarkMode = true;
+                document.documentElement.setAttribute('data-theme', 'dark');
+                const themeIcon = document.querySelector('.theme-toggle i');
+                themeIcon.className = 'fas fa-sun';
+            }
+            
+            // Focus on email input when page loads
+            document.getElementById('email').focus();
         });
 
-        const data = await response.json();
+        // Hide error when user starts typing
+        document.getElementById('email').addEventListener('input', hideError);
+        document.getElementById('password').addEventListener('input', hideError);
 
-        if (response.ok) {
-          window.location.href = '/pdn-diagnose/user_info';
-        } else {
-          showError();
-        }
-      } catch (error) {
-        showError();
-        console.error('Error:', error);
-      }
-    });
+        // Form submission
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideError();
 
-</script>
+            const submitButton = document.querySelector('.submit-button');
+            submitButton.classList.add('loading');
+            submitButton.disabled = true;
+
+            const loginData = {
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value
+            };
+
+            try {
+                const response = await fetch('/pdn-diagnose/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(loginData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    window.location.href = '/pdn-diagnose/user_info';
+                } else {
+                    showError();
+                }
+            } catch (error) {
+                showError();
+                console.error('Error:', error);
+            } finally {
+                submitButton.classList.remove('loading');
+                submitButton.disabled = false;
+            }
+        });
+
+        // Handle Enter key press
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+            }
+        });
+    </script>
 </body>
 </html>

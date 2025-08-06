@@ -8,7 +8,7 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List
 
 # Add the app directory to the path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'app'))
@@ -60,6 +60,7 @@ class PDNCalculatorTester:
             Dictionary containing test results
         """
         print(f"\n🔍 Testing file: {file_path}")
+        import pdb; pdb.set_trace()
         
         # Load answers
         answers = self.load_answers_from_file(file_path)
@@ -173,9 +174,9 @@ class PDNCalculatorTester:
         print(f"🧪 Testing PDN Calculator with all answer files in: {self.answers_path}")
         print("=" * 60)
         
-        if not self.answers_path.exists():
-            print(f"❌ Directory not found: {self.answers_path}")
-            return []
+        # if not self.answers_path.exists():
+            # print(f"❌ Directory not found: {self.answers_path}")
+            # return []
         
         results = []
         answer_files = []
@@ -506,6 +507,7 @@ class PDNCalculatorTester:
 def main():
     """Main function to run the PDN Calculator tests"""
     import argparse
+    import traceback
     
     parser = argparse.ArgumentParser(description='Test PDN Calculator Algorithm')
     parser.add_argument('--answers-path', type=str, default='saved_results',
@@ -514,22 +516,52 @@ def main():
                        help='Test specific answer file')
     parser.add_argument('--scenarios-only', action='store_true',
                        help='Run only scenario tests')
+    parser.add_argument('--debug', action='store_true',
+                       help='Enable debug mode with detailed error traces')
+    parser.add_argument('--verbose', action='store_true',
+                       help='Enable verbose output')
     
     args = parser.parse_args()
     
-    tester = PDNCalculatorTester(args.answers_path)
-    
-    if args.file:
-        # Test specific file
-        result = tester.test_single_answer_file(args.file)
-        print(tester.generate_test_report([result]))
-    elif args.scenarios_only:
-        # Test only scenarios
-        results = tester.test_specific_scenarios()
-        print(tester.generate_test_report(results))
-    else:
-        # Run comprehensive test
-        tester.run_comprehensive_test()
+    try:
+        print("🧪 PDN Calculator Tester")
+        print("=" * 50)
+        
+        if args.verbose:
+            print(f"Answers path: {args.answers_path}")
+            print(f"Debug mode: {args.debug}")
+            print(f"Scenarios only: {args.scenarios_only}")
+            print(f"Specific file: {args.file}")
+            print()
+        
+        tester = PDNCalculatorTester(args.answers_path)
+        
+        if args.file:
+            # Test specific file
+            print(f"🔍 Testing specific file: {args.file}")
+            result = tester.test_single_answer_file(args.file)
+            print(tester.generate_test_report([result]))
+        elif args.scenarios_only:
+            # Test only scenarios
+            print("🎯 Testing predefined scenarios only...")
+            results = tester.test_specific_scenarios()
+            print(tester.generate_test_report(results))
+        else:
+            # Run comprehensive test
+            print("🚀 Running comprehensive test suite...")
+            tester.run_comprehensive_test()
+            
+        print("\n✅ Testing completed successfully!")
+        
+    except KeyboardInterrupt:
+        print("\n⚠️  Testing interrupted by user")
+    except Exception as e:
+        print(f"\n❌ Error in main: {e}")
+        if args.debug:
+            print("\nFull traceback:")
+            traceback.print_exc()
+        else:
+            print("Use --debug flag for detailed error information")
 
 
 if __name__ == "__main__":

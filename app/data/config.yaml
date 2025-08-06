@@ -1,3 +1,7 @@
+project:
+  name: "PDN Chat"
+  version: "1.0.0"
+
 chatbots:
   chatbot_PDN:
     name: "PDN"
@@ -11,4 +15,9 @@ chatbots:
       
       כשאתה מוכן, לחץ על הכפתור "אני מוכן להתחיל".
     contact_email: "tomergur@gmail.com"
-    version: "1.0.0" 
+    version: "1.0.0"
+rag:
+  chroma_db_persist_dir: "./pdn_chat_rag/chroma_db"
+  chunk_size: 800
+  chunk_overlap: 150
+  search_k: 6 
