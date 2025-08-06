@@ -5,128 +5,298 @@
     <title>PDN Chat</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Varela+Round&display=swap"
-          rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <!-- Include audio handler script -->
     <script src="/static/js/audio-handler.js"></script>
     <style>
-      body { background: radial-gradient(ellipse at center, #e0e7ff 0%, #c7d2fe 50%, #a5b4fc 100%); font-family: 'Rubik', sans-serif; min-height: 100vh; }
-      .glass-effect { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); border-radius: 1.5rem; box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
-      @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-      .fade-in { animation: fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) both; }
-      .modal-backdrop {
-        position: fixed; inset: 0; background: rgba(55, 48, 163, 0.3); display: none;
-        align-items: center; justify-content: center; z-index: 50;
-        animation: modalBackdropIn .4s both;
-      }
-      @keyframes modalBackdropIn { from { opacity: 0; } to { opacity: 1; } }
-      .modal-animate {
-        animation: modalScaleIn .45s cubic-bezier(0.4,0,0.2,1) both;
-      }
-      @keyframes modalScaleIn { from { opacity: 0; transform: scale(0.88) translateY(32px);} to { opacity: 1; transform: scale(1) translateY(0);} }
-      .glow {
-        box-shadow: 0 0 30px 0 #a5b4fc88, 0 2px 32px 0 #818cf880;
-      }
-      .modal-icon {
-        font-size: 2.5rem;
-        color: #7c3aed;
-        filter: drop-shadow(0 2px 4px #818cf880);
-        margin-bottom: 12px;
-        animation: iconPop .6s cubic-bezier(0.68,-0.55,0.27,1.55);
-      }
-      @keyframes iconPop { 0% { transform: scale(0); } 70% { transform: scale(1.22); } 100% { transform: scale(1); } }
-      .modal-close-btn {
-        transition: background .22s, transform .15s;
-      }
-      .modal-close-btn:hover {
-        background: linear-gradient(to left, #7c3aed 80%, #6366f1 100%);
-        transform: scale(1.05) translateY(-2px);
-        box-shadow: 0 2px 8px #a5b4fc44;
-      }
-      @media (max-width: 600px) {
-        .glass-effect, .modal-card { padding: 1.2rem !important; }
-      }
-      /* Voice record UI */
-      #voiceRecordArea .recording {
-        color: #7c3aed;
-        font-weight: bold;
-        animation: pulse 1.1s infinite alternate;
-      }
-      @keyframes pulse { from { opacity: 1;} to { opacity: 0.5;} }
-      .audio-bar {
-        width: 8px; height: 22px; background: #7c3aed; margin: 0 2px; border-radius: 5px; display: inline-block; vertical-align: bottom;
-        animation: bounce 1s infinite alternate;
-      }
-      .audio-bar:nth-child(2) { animation-delay: .15s; }
-      .audio-bar:nth-child(3) { animation-delay: .3s; }
-      .audio-bar:nth-child(4) { animation-delay: .45s; }
-      .audio-bar:nth-child(5) { animation-delay: .6s; }
-      @keyframes bounce {
-        from { height: 8px; background: #c4b5fd; }
-        to   { height: 22px; background: #7c3aed; }
-      }
-      .ranking-number.selected {
-        color: #7c3aed; /* Tailwind's purple-600 */
-        font-weight: bold;
-      }
-      .ranking-number {
-        color: #7c3aed;   /* Tailwind's purple-600 */
-        font-weight: bold;
-      }
+        :root {
+            --primary-color: #0b2e6b;
+            --secondary-color: #0b2e6b;
+            --accent-color: #0b2e6b;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --gradient-start: #0b2e6b;
+            --gradient-end: #0b2e6b;
+        }
 
-      /* Voice recording validation styles */
-      .text-orange-600 {
-        color: #ea580c;
-      }
-      .text-green-600 {
-        color: #16a34a;
-      }
-      .text-red-600 {
-        color: #dc2626;
-      }
-      .opacity-50 {
-        opacity: 0.5;
-      }
-      .cursor-not-allowed {
-        cursor: not-allowed;
-      }
-      .recording-validation {
-        transition: all 0.3s ease;
-      }
-      .recording-validation.valid {
-        border-color: #16a34a;
-        box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
-      }
-      .recording-validation.invalid {
-        border-color: #dc2626;
-        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
-      }
-      .recording-validation.recording {
-        border-color: #ea580c;
-        box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1);
-      }
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            direction: rtl;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
 
+        .glass-effect { 
+            background: rgba(255, 255, 255, 0.95); 
+            backdrop-filter: blur(20px); 
+            border-radius: 24px; 
+            box-shadow: 0 20px 40px var(--shadow-color);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
 
+        @keyframes fadeInUp { 
+            from { opacity: 0; transform: translateY(16px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+        
+        .fade-in { 
+            animation: fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) both; 
+        }
+
+        .modal-backdrop {
+            position: fixed; 
+            inset: 0; 
+            background: rgba(11, 46, 107, 0.3); 
+            display: none;
+            align-items: center; 
+            justify-content: center; 
+            z-index: 50;
+            animation: modalBackdropIn .4s both;
+        }
+
+        @keyframes modalBackdropIn { 
+            from { opacity: 0; } 
+            to { opacity: 1; } 
+        }
+
+        .modal-animate {
+            animation: modalScaleIn .45s cubic-bezier(0.4,0,0.2,1) both;
+        }
+
+        @keyframes modalScaleIn { 
+            from { opacity: 0; transform: scale(0.88) translateY(32px);} 
+            to { opacity: 1; transform: scale(1) translateY(0);} 
+        }
+
+        .glow {
+            box-shadow: 0 0 30px 0 rgba(11, 46, 107, 0.3), 0 2px 32px 0 rgba(11, 46, 107, 0.2);
+        }
+
+        .modal-icon {
+            font-size: 2.5rem;
+            color: #0b2e6b;
+            filter: drop-shadow(0 2px 4px rgba(11, 46, 107, 0.3));
+            margin-bottom: 12px;
+            animation: iconPop .6s cubic-bezier(0.68,-0.55,0.27,1.55);
+        }
+
+        @keyframes iconPop { 
+            0% { transform: scale(0); } 
+            70% { transform: scale(1.22); } 
+            100% { transform: scale(1); } 
+        }
+
+        .modal-close-btn {
+            transition: background .22s, transform .15s;
+        }
+
+        .modal-close-btn:hover {
+            background: linear-gradient(to left, #0b2e6b 80%, #0a2a5f 100%);
+            transform: scale(1.05) translateY(-2px);
+            box-shadow: 0 2px 8px rgba(11, 46, 107, 0.3);
+        }
+
+        @media (max-width: 600px) {
+            .glass-effect, .modal-card { padding: 1.2rem !important; }
+        }
+
+        /* Voice record UI */
+        #voiceRecordArea .recording {
+            color: #0b2e6b;
+            font-weight: bold;
+            animation: pulse 1.1s infinite alternate;
+        }
+
+        @keyframes pulse { 
+            from { opacity: 1;} 
+            to { opacity: 0.5;} 
+        }
+
+        .audio-bar {
+            width: 8px; 
+            height: 22px; 
+            background: #0b2e6b; 
+            margin: 0 2px; 
+            border-radius: 5px; 
+            display: inline-block; 
+            vertical-align: bottom;
+            animation: bounce 1s infinite alternate;
+        }
+
+        .audio-bar:nth-child(2) { animation-delay: .15s; }
+        .audio-bar:nth-child(3) { animation-delay: .3s; }
+        .audio-bar:nth-child(4) { animation-delay: .45s; }
+        .audio-bar:nth-child(5) { animation-delay: .6s; }
+
+        @keyframes bounce {
+            from { height: 8px; background: #c4b5fd; }
+            to   { height: 22px; background: #0b2e6b; }
+        }
+
+        .ranking-number.selected {
+            color: #0b2e6b;
+            font-weight: bold;
+        }
+
+        .ranking-number {
+            color: #0b2e6b;
+            font-weight: bold;
+        }
+
+        /* Voice recording validation styles */
+        .text-orange-600 {
+            color: #ea580c;
+        }
+
+        .text-green-600 {
+            color: #16a34a;
+        }
+
+        .text-red-600 {
+            color: #dc2626;
+        }
+
+        .opacity-50 {
+            opacity: 0.5;
+        }
+
+        .cursor-not-allowed {
+            cursor: not-allowed;
+        }
+
+        .recording-validation {
+            transition: all 0.3s ease;
+        }
+
+        .recording-validation.valid {
+            border-color: #16a34a;
+            box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+        }
+
+        .recording-validation.invalid {
+            border-color: #dc2626;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+        }
+
+        .recording-validation.recording {
+            border-color: #ea580c;
+            box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1);
+        }
+
+        /* Button styles matching chat.html */
+        .btn-primary {
+            background: #0b2e6b;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(11, 46, 107, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: #0a2a5f;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(11, 46, 107, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Enhanced chat bubbles with improved readability */
+        .chat-bubble {
+            border-radius: 20px;
+            padding: 16px 20px;
+            margin-bottom: 16px;
+            font-size: 16px;
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            animation: slideIn 0.5s ease;
+            max-width: 80%;
+            position: relative;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px var(--shadow-color);
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .chat-bubble.user {
+            background: #0b2e6b;
+            color: #ffffff;
+            align-self: flex-end;
+            border-bottom-right-radius: 8px;
+            border: 1px solid rgba(11, 46, 107, 0.3);
+        }
+
+        .chat-bubble.bot {
+            background: #dcdfe9;
+            color: #181818;
+            align-self: flex-start;
+            border-bottom-left-radius: 8px; 
+        }
+
+        /* Animations */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .glass-effect {
+                margin: 10px;
+                padding: 16px;
+                border-radius: 16px;
+            }
+        }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
 
 <!-- Modal for stage instructions -->
 <div id="instructionModal" class="fixed inset-0 backdrop-blur-sm hidden items-center justify-center z-50"
-     style="background: radial-gradient(ellipse at center, #e0e7ff 0%, #c7d2fe 50%, #a5b4fc 100%);"
+     style="background: linear-gradient(135deg, #0b2e6b 0%, #0a2a5f 100%);"
 >
-    <div class="relative bg-gradient-to-r from-purple-100 to-indigo-100 rounded-2xl p-8 max-w-md w-full glass-effect glow animate-fade-in-up shadow-2xl text-center">
+    <div class="relative bg-gradient-to-r from-blue-100 to-blue-100 rounded-2xl p-8 max-w-md w-full glass-effect glow animate-fade-in-up shadow-2xl text-center">
 
         <!-- Animated bulb icon -->
         <div class="text-4xl mb-4 animate-bounce">💡</div>
         <!-- Title (if used) -->
-        <h3 id="modalTitle" class="text-lg font-extrabold mb-2" style="font-family:'Varela Round',cursive"></h3>
+        <h3 id="modalTitle" class="text-lg font-extrabold mb-2" style="font-family:'Inter',sans-serif"></h3>
         <!-- Instruction text -->
         <p id="modalText" class="text-lg text-right text-gray-800 whitespace-pre-line mb-6 leading-relaxed"></p>
         <!-- Action button -->
         <button id="modalClose"
-                class="mx-auto block py-3 px-8 text-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-purple-400/30 transform transition duration-300 hover:scale-105 animate-pulse">
+                class="mx-auto block py-3 px-8 text-lg bg-gradient-to-r from-blue-900 to-blue-900 text-white rounded-lg font-semibold shadow-lg hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-blue-900/30 transform transition duration-300 hover:scale-105 animate-pulse">
             יופי, אפשר להתקדם!
         </button>
     </div>
@@ -155,48 +325,44 @@
   .animate-pulse {
     animation: pulse 2s infinite;
   }
-
-
 </style>
-
 
 <main id="chatArea" class="glass-effect p-8 rounded-2xl shadow-2xl w-full max-w-2xl border border-white/20 space-y-6">
     <!-- Hidden fields for user data -->
     <input type="hidden" id="userName" value="{{ user_name or '' }}">
     <input type="hidden" id="userId" value="{{ user_id or '' }}">
-    <h1 class="text-4xl font-bold text-center text-gray-800 bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-        {% if user_name %}ברוך הבא, {{ user_name }}{% else %}אבחון קוד המקור{% endif %}
-    </h1>
+    <h1 class="text-4xl font-bold text-center text-blue-900 bg-gradient-to-r from-blue-900 to-blue-900 bg-clip-text text-transparent">
+        המסע לגילוי הצופן המקור שלך    </h1>
     <div id="messages" class="space-y-4 fade-in">
 
         <!-- Voice Recording Section -->
         <div id="voiceRecordArea"
-             class="p-6 rounded-xl border border-indigo-100 bg-gradient-to-r from-purple-100 to-indigo-100 text-gray-800 shadow-sm fade-in text-right recording-validation"
+             class="p-6 rounded-xl border border-blue-100 bg-gradient-to-r from-blue-100 to-blue-100 text-gray-800 shadow-sm fade-in text-right recording-validation"
              dir="rtl">
-            <p class="text-lg mb-4">שלום וברוך הבא,</p>
+            <p class="text-lg mb-4">שלום  {{ user_name }},</p>
             <p class="text-lg mb-4">בוא נגלה יחד את קוד המקור הייחודי שלך, המצפן הפנימי שלך לצמיחה והתפתחות.</p>
             <p class="text-lg mb-4">ענה על השאלה הבאה כדי לעזור לנו לזהות את קוד המקור שלך:</p>
-            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
-                <p class="text-sm text-yellow-800 font-medium">
+            <div class="bg-blue-900 border border-blue-200 rounded-lg p-3 mb-4">
+                <p class="text-sm text-white font-medium">
                     <i class="fas fa-info-circle mr-2"></i>
                     <strong>חשוב:</strong> ההקלטה חייבת להיות בין דקה אחת לדקה וחצי (01:00-01:30)
                 </p>
             </div>
-            <div class="bg-white p-4 rounded border-r-4 border-blue-400">
+            <div class="bg-white p-4 rounded border-r-4 border-blue-900">
                 <span>1.</span> ספר לי על חוויה חיובית או מרגשת שחווית בשנה האחרונה. משהו שנגע בך או שימח אותך במיוחד.
             </div>
             </br>
             <div>
                 <button id="startRecordBtn"
-                        class="text-lg py-3 px-7 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl shadow-lg font-semibold">
+                        class="text-lg py-3 px-7 bg-gradient-to-r from-blue-900  to-blue-900 text-white rounded-xl shadow-lg font-semibold">
                     התחל להקליט
                 </button>
                 <button id="stopRecordBtn"
-                        class="hidden text-lg py-3 px-7 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-xl shadow-lg font-semibold ml-2">
+                        class="hidden text-lg py-3 px-7 bg-gradient-to-r from-indigo-900 to-blue-900 text-white rounded-xl shadow-lg font-semibold ml-2">
                     סיים הקלטה
                 </button>
             </div>
-            <div id="recordStatus" class="text-lg text-purple-700"></div>
+            <div id="recordStatus" class="text-lg text-blue-900"></div>
             <div id="visualizer" class="flex justify-center items-end space-x-1 mb-1"
                  style="height:24px;direction:ltr"></div>
             <audio id="audioPlayback" controls class="hidden mx-auto" style="max-width:260px"></audio>
@@ -209,32 +375,32 @@
 
     <!-- Second Voice Record Area -->
     <div id="voiceRecordArea2"
-         class="p-6 rounded-xl border border-indigo-100 bg-gradient-to-r from-purple-100 to-indigo-100 text-gray-800 shadow-sm fade-in text-right hidden recording-validation"
+         class="p-6 rounded-xl border border-blue-100 bg-gradient-to-r from-blue-100 to-blue-100 text-gray-800 shadow-sm fade-in text-right hidden recording-validation"
          dir="rtl">
         <p class="text-lg mb-4">תודה על התשובה הראשונה!</p>
         <p class="text-lg mb-4">עכשיו בוא נעמיק קצת יותר. אנא ענה על השאלה הבאה:</p>
-        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
-            <p class="text-sm text-yellow-800 font-medium">
+        <div class="bg-blue-900 border border-blue-200 rounded-lg p-3 mb-4">
+            <p class="text-sm text-white font-medium">
                 <i class="fas fa-info-circle mr-2"></i>
                 <strong>חשוב:</strong> ההקלטה חייבת להיות בין דקה אחת לדקה וחצי (01:00-01:30)
             </p>
         </div>
-        <div class="bg-white p-4 rounded border-r-4 border-blue-400">
+        <div class="bg-white p-4 rounded border-r-4 border-blue-900">
             <span>2.</span> ספר לי על אתגר משמעותי שהתמודדת איתו לאחרונה – משהו שהיה לך לא פשוט, ואיך הצלחת לעבור
             אותו.
         </div>
         </br>
         <div>
             <button id="startRecordBtn2"
-                    class="text-lg py-3 px-7 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl shadow-lg font-semibold">
+                    class="text-lg py-3 px-7 bg-gradient-to-r from-blue-900 to-blue-900 text-white rounded-xl shadow-lg font-semibold">
                 התחל להקליט
             </button>
             <button id="stopRecordBtn2"
-                    class="hidden text-lg py-3 px-7 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-xl shadow-lg font-semibold ml-2">
+                    class="hidden text-lg py-3 px-7 bg-gradient-to-r from-blue-900 to-blue-900 text-white rounded-xl shadow-lg font-semibold ml-2">
                 סיים הקלטה
             </button>
         </div>
-        <div id="recordStatus2" class="text-lg text-purple-700"></div>
+        <div id="recordStatus2" class="text-lg text-blue-900"></div>
         <div id="visualizer2" class="flex justify-center items-end space-x-1 mb-1"
              style="height:24px;direction:ltr"></div>
         <audio id="audioPlayback2" controls class="hidden mx-auto" style="max-width:260px"></audio>
@@ -245,19 +411,19 @@
     </div>
     <div id="questionArea" class="hidden space-y-6">
         <h2 id="questionText"
-            class="text-lg font-semibold text-gray-700 mb-4 bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent"></h2>
+            class="text-lg font-semibold text-gray-700 mb-4 bg-gradient-to-r from-blue-900 to-blue-900 bg-clip-text text-transparent"></h2>
         <div id="options" class="space-y-3"></div>
     </div>
 
     <!-- Footer Link -->
     <div class="text-center pt-4 space-y-4">
         <button id="backButton" onclick="goBack()"
-                class="text-sm w-1/2 py-2 px-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-xl hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-purple-500/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hidden">
+                class="text-sm w-1/2 py-2 px-3 bg-gradient-to-r from-blue-900 to-blue-900 text-white font-medium rounded-xl hover:from-blue-900 hover:to-blue-900 focus:outline-none focus:ring-4 focus:ring-blue-900/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hidden">
             חזור לשאלה הקודמת
         </button>
         <!-- Footer Link -->
         <div class="text-center pt-4">
-            <p class="text-sm sm:text-base font-medium bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-500 bg-clip-text text-transparent animate-pulse">
+            <p class="text-sm sm:text-base font-medium bg-gradient-to-r from-blue-900 via-blue-900 to-blue-900 bg-clip-text text-transparent animate-pulse">
                 ✨ <a href="https://www.pdn.co.il" target="_blank" class="hover:underline">Personal Development
                 Navigator</a>
                 ✨
@@ -683,7 +849,7 @@ function actuallyRenderQuestion(data) {
     const buttons = data.options.map(opt => {
         const btn = document.createElement('button');
         btn.innerText = opt.text;
-        btn.className = 'text-lg fade-in w-full py-4 px-6 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-xl hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-purple-500/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg';
+        btn.className = 'text-lg fade-in w-full py-4 px-6 bg-gradient-to-r from-blue-900 to-blue-900 text-white font-medium rounded-xl hover:from-blue-900 hover:to-blue-900 focus:outline-none focus:ring-4 focus:ring-blue-900/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg';
         btn.onclick = () => submitAnswer(data.question_number, opt.code, opt.text);
         return btn;
     });
@@ -728,8 +894,8 @@ function renderScaleQuestion(data, questionNumber) {
 
       function updateSelection() {
         buttons.forEach((btn, idx) => {
-          btn.classList.toggle('from-purple-600', idx === currentStep);
-          btn.classList.toggle('to-indigo-600', idx === currentStep);
+          btn.classList.toggle('from-blue-900', idx === currentStep);
+          btn.classList.toggle('to-blue-900', idx === currentStep);
           btn.classList.toggle('bg-gradient-to-r', idx === currentStep);
           btn.classList.toggle('text-white', idx === currentStep);
           btn.classList.toggle('bg-gray-200', idx !== currentStep);
@@ -756,13 +922,13 @@ function renderScaleQuestion(data, questionNumber) {
       container.append(stepsRow);
 
       const valueDisplay = document.createElement('div');
-      valueDisplay.className = 'text-center text-xl font-bold text-purple-600';
+      valueDisplay.className = 'text-center text-xl font-bold text-blue-900';
       container.append(valueDisplay);
 
       const submitBtn = document.createElement('button');
       submitBtn.type = 'button';
       submitBtn.innerText = 'שלח תשובה';
-      submitBtn.className = 'text-lg w-full py-3 px-6 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl opacity-50 cursor-not-allowed';
+      submitBtn.className = 'text-lg w-full py-3 px-6 bg-gradient-to-r from-blue-900 to-blue-900 text-white rounded-xl opacity-50 cursor-not-allowed';
       submitBtn.disabled = true;
       submitBtn.onclick = async () => {
         if (currentStep === null) return;
@@ -802,11 +968,11 @@ function renderScaleQuestion(data, questionNumber) {
     instructionContainer.className = 'text-center mb-6';
     
     const mainInstruction = document.createElement('div');
-    mainInstruction.className = 'text-purple-800 bg-gradient-to-r from-purple-50 to-indigo-50 px-6 py-4 rounded-2xl text-lg font-bold shadow-sm border border-purple-100 mb-3';
+    mainInstruction.className = 'text-white bg-gradient-to-r from-blue-900 to-blue-900 px-6 py-4 rounded-2xl text-lg font-bold shadow-sm border border-blue-900 mb-3';
     mainInstruction.innerHTML = 'לחץ לפי סדר החשיבות';
     
     const subInstruction = document.createElement('div');
-    subInstruction.className = 'text-purple-600 bg-purple-25 px-4 py-2 rounded-xl text-sm font-medium italic';
+    subInstruction.className = 'text-blue-900 bg-blue-100 px-4 py-2 rounded-xl text-sm font-medium italic';
     subInstruction.innerHTML = 'לא בטוח? תמיד אפשר ללחוץ שוב ולשנות';
     
     instructionContainer.appendChild(mainInstruction);
@@ -857,8 +1023,8 @@ function renderScaleQuestion(data, questionNumber) {
             const idx = selectedOrder.indexOf(code);
             if (idx >= 0) {
                 numberDiv.textContent = idx + 1;
-                numberDiv.className = 'ranking-number w-10 h-10 rounded-full bg-purple-400 text-white flex items-center justify-center font-bold selected';
-                li.className = 'ranking-item bg-white rounded-xl p-4 flex items-center gap-4 border-2 border-purple-300 cursor-pointer shadow-md transition-all duration-200';
+                numberDiv.className = 'ranking-number w-10 h-10 rounded-full bg-blue-100 text-white flex items-center justify-center font-bold selected';
+                li.className = 'ranking-item bg-white rounded-xl p-4 flex items-center gap-4 border-2 border-blue-300 cursor-pointer shadow-md transition-all duration-200';
             } else {
                 numberDiv.textContent = '?';
                 numberDiv.className = 'ranking-number w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-500';
@@ -874,7 +1040,7 @@ function renderScaleQuestion(data, questionNumber) {
 
     const submitBtn = document.createElement('button');
     submitBtn.type = 'button';
-    submitBtn.className = 'flex-1 py-4 px-6 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-indigo-700 transform hover:scale-105 transition-all duration-200 shadow-lg';
+    submitBtn.className = 'flex-1 py-4 px-6 bg-gradient-to-r from-blue-900 to-blue-900 text-white font-semibold rounded-xl hover:from-blue-900 hover:to-blue-900 transform hover:scale-105 transition-all duration-200 shadow-lg';
     submitBtn.textContent = 'שלח דירוג';
 
     const errorDiv = document.createElement('div');
@@ -900,7 +1066,7 @@ function renderScaleQuestion(data, questionNumber) {
 
     const resetBtn = document.createElement('button');
     resetBtn.type = 'button';
-    resetBtn.className = 'flex-1 py-4 px-6 bg-gradient-to-r from-violet-100 to-purple-100 text-purple-800 font-semibold rounded-xl hover:from-violet-200 hover:to-purple-200 transform hover:scale-105 transition-all duration-200 border border-purple-200';
+    resetBtn.className = 'flex-1 py-4 px-6 bg-gradient-to-r from-blue-900  to-blue-900  text-white font-semibold rounded-xl hover:from-blue-900 hover:to-blue-900 transform hover:scale-105 transition-all duration-200 border border-blue-900';
     resetBtn.textContent = 'איפוס';
 
     resetBtn.onclick = () => {
