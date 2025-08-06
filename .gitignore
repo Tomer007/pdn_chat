@@ -10853,3 +10853,11 @@ tests/test_pdn_calculator.py
 tests/test_pdn_calculator.py
 conversation_history/57fb4581-d0db-4c7e-a841-459dcdac11e3.json
 tests/test_pdn_calculator.py
+chroma_db/chroma.sqlite3
+chroma_db/8e0c7080-1a3a-48db-bfaa-9c7d420243c3/data_level0.bin
+chroma_db/8e0c7080-1a3a-48db-bfaa-9c7d420243c3/header.bin
+chroma_db/8e0c7080-1a3a-48db-bfaa-9c7d420243c3/length.bin
+chroma_db/8e0c7080-1a3a-48db-bfaa-9c7d420243c3/link_lists.bin
+tests/test_pdn_calculator.py
+pdn_rag.log
+app/pdn_chat_ai/pdn_chat_rag.py
