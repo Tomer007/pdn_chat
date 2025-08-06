@@ -10862,3 +10862,4 @@ tests/test_pdn_calculator.py
 pdn_rag.log
 app/pdn_chat_ai/pdn_chat_rag.py
 app/pdn_chat_ai/pdn_chat_rag.py
+app/pdn_chat_ai/pdn_chat_rag_local.py
