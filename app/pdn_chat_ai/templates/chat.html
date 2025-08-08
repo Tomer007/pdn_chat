@@ -1773,6 +1773,9 @@
             // Clear any stored chat data
             localStorage.removeItem('binat_chat_history');
             
+            // Clear server-side chat history
+            clearServerChatHistory();
+            
             // Show goodbye message before redirecting
             const chatContainer = document.getElementById("chatContainer");
             const goodbyeBubble = document.createElement("div");
@@ -1794,6 +1797,32 @@
             setTimeout(() => {
                 window.location.href = '/pdn-chat-ai/';
             }, 2000);
+        }
+
+        // Function to clear server-side chat history
+        async function clearServerChatHistory() {
+            try {
+                const user_id = '{{ user_id }}' || 'anonymous';
+                
+                const response = await fetch('/pdn-chat-ai/clear_history', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: user_id
+                    })
+                });
+                
+                if (response.ok) {
+                    console.log('Chat history cleared successfully');
+                } else {
+                    console.warn('Failed to clear chat history on server');
+                }
+            } catch (error) {
+                console.error('Error clearing chat history:', error);
+                // Don't show error to user, just log it
+            }
         }
 
         // Handle escape key to close modal
