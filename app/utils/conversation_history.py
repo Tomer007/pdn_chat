@@ -113,8 +113,8 @@ class ConversationHistory:
         try:
             file_path = self._get_user_file_path(user_id)
             
-            if os.path.exists(file_path):
-                os.remove(file_path)
+            #if os.path.exists(file_path):
+            #    os.remove(file_path)
             
             return True
             
