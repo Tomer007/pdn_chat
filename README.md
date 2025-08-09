@@ -49,6 +49,7 @@ app/
     js/
     images/
     ...
+  templates/partials/       # Shared Jinja partials (footer)
 ```
 
 ## Tech Stack
@@ -56,8 +57,10 @@ app/
 - Flask
 - JavaScript (frontend logic)
 - Tailwind CSS (via CDN for development)
-- Alpine.js (for interactive components)
 - HTML2PDF.js (for PDF generation)
+ 
+## Shared Partials
+- Footer: `{% include 'partials/footer.html' %}` is used in diagnose, admin, and chat templates for a consistent, card-styled footer within `container mx-auto p-6 max-w-4xl`.
 
 ## URL Structure & Endpoints
 
@@ -186,12 +189,13 @@ app/
 - **PDN Report Loading:** Ensure the correct endpoint `/pdn-diagnose/get_report_data` is being called
 
 ## Recent Updates (Latest)
+- **Unified Footer:** Added shared footer partials and included across pages (`templates/partials/footer.html`)
+- **Report UI Refresh:** Modern blue theme aligned with chat; personalized header with user name
+- **Questionnaire UX:** Added progress bar; re-record buttons for voice prompts; validation for duration
+- **Header Consistency:** Standardized gradient header styling across chat, diagnose, report
+- **Centralized Static Files:** Moved assets to `app/static/`
 - **Refactored Admin Interface:** Separated login and dashboard into distinct pages
-- **Centralized Static Files:** Moved all static assets to `app/static/`
-- **Fixed API Endpoints:** Corrected all endpoint paths to use proper prefixes
-- **Enhanced User Experience:** Improved questionnaire flow and error handling
-- **Removed Unused Code:** Cleaned up unused `app/api/` directory
-- **Fixed PDN Report:** Corrected endpoint for loading report data
+- **Fixed PDN Report:** Ensured data loads from `/pdn-diagnose/get_report_data`
 
 ## Known Issues
 - **Tailwind CSS CDN Warnings:** In development, Tailwind is loaded via CDN which may show warnings
