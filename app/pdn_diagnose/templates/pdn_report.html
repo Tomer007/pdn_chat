@@ -1,562 +1,211 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-    <meta charset="UTF-8"/>
-    <title>תודה - PDN קוד המקור</title>
+  <meta charset="UTF-8" />
+  <title>תודה – PDN קוד המקור</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary-color: #1c0f97;
-            --secondary-color: #1c0f97;
-            --accent-color: #1c0f97;
-            --text-primary: #1f2937;
-            --text-secondary: #6b7280;
-            --shadow-color: rgba(0, 0, 0, 0.1);
-            --gradient-start: #0b2e6b;
-            --gradient-end: #0b2e6b;
-        }
-
-        /* Dark mode variables */
-        [data-theme="dark"] {
-            --primary-color: #3570d7;
-            --secondary-color: #3570d7;
-            --accent-color: #3570d7;
-            --text-primary: #f9fafb;
-            --text-secondary: #d1d5db;
-            --bg-primary: #1f2937;
-            --bg-secondary: #111827;
-            --border-color: #374151;
-            --shadow-color: rgba(0, 0, 0, 0.3);
-            --gradient-start: #3570d7;
-            --gradient-end: #3570d7;
-        }
-
-        body { 
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+    :root{
+      /* Chat theme variables */
+      --primary-color:#1c0f97;
+      --secondary-color:#1c0f97;
+      --accent-color:#1c0f97;
+      --text-primary:#1f2937;
+      --text-secondary:#6b7280;
+      --shadow-color:rgba(0,0,0,0.1);
+      --gradient-start:#0b2e6b;
+      --gradient-end:#0b2e6b;
+      /* Report specific */
+      --blue:#1c0f97;
+      --blue-600:#1c0f97;
+      --blue-50:#EEF2FF;
+      --ink:#0B1020;
+      --muted:#495057;
+      --paper:#FFFFFF;
+      --shadow:0 20px 40px rgba(0,0,0,.10);
+      --radius:24px;
+    }
+    @media (prefers-color-scheme: dark){
+      :root{
+        --paper:#0f1520;
+        --blue-50:#0b0f16;
+        --ink:#E6E9EF;
+        --muted:#A8B0BB;
+        --shadow:0 20px 40px rgba(0,0,0,.35);
+      }
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:var(--text-primary);
             background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
-            min-height: 100vh;
-            margin: 0;
-            padding: 0;
-            direction: rtl;
-            color: var(--text-primary);
-            transition: all 0.3s ease;
-        }
+      min-height:100vh;
+      line-height:1.7;
+    }
 
-        /* Header styling */
-        .header-gradient {
+    /* Header (match chat) */
+    .header-gradient{
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 50%, var(--accent-color) 100%);
             position: relative;
             overflow: hidden;
-            padding: 2rem 0;
         }
-
-        .header-gradient::after {
+    .header-gradient::after{
             content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 20px;
-            background: #1c0f97;
-        }
+      position: absolute; bottom: 0; left: 0; right: 0; height: 20px;
+      background: linear-gradient(to bottom, transparent, rgba(224,231,255,0.8));
+    }
+    .header-content{display:flex; align-items:center; justify-content:space-between; max-width:1200px; margin:0 auto; padding:16px 18px}
+    .header-left{display:flex; align-items:center; gap:20px}
+    .logo-link{display:block; transition:transform .2s ease}
+    .logo-link:hover{transform:scale(1.05)}
+    .header-logo{width:44px; height:44px; border-radius:50%; object-fit:cover; box-shadow:0 6px 20px rgba(0,0,0,0.3); border:3px solid rgba(255,255,255,0.3)}
+    .header-text{color:#fff; text-align:right}
+    .header-text h1{margin:0; font-size:22px; font-weight:800}
+    .header-text p{margin:0; opacity:.9}
 
-        .header-content {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 2rem;
-        }
+    /* Responsive tweaks */
+    @media (max-width: 768px) {
+      .header-logo{width:36px; height:36px; border-width:2px}
+      .header-text h1{font-size:18px}
+    }
 
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 2rem;
-        }
-
-        .logo-link {
-            cursor: pointer;
-            transition: transform 0.2s ease;
-            display: block;
-        }
-
-        .logo-link:hover {
-            transform: scale(1.05);
-        }
-
-        .header-logo {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            object-fit: cover;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-            border: 4px solid rgba(255,255,255,0.3);
-        }
-
-        .header-text {
-            text-align: center;
-        }
-
-        .header-text h1 {
-            font-size: 2rem;
-            font-weight: 700;
-            margin: 0 0 0.5rem 0;
-            color: white;
-            letter-spacing: 0.5px;
-        }
-
-        .header-text p {
-            font-size: 1.125rem;
-            margin: 0;
-            color: rgba(255, 255, 255, 0.9);
-            font-weight: 400;
-            letter-spacing: 0.25px;
-        }
-
-        /* Enhanced container */
-        .report-container {
-            background: rgba(255, 255, 255, 0.95);
+    /* Container */
+    /* Glass container (match chat) */
+    .wrap{max-width:900px; margin:24px auto 48px; padding:18px}
+    .glass{
+      background: rgba(255,255,255,0.95);
             backdrop-filter: blur(20px);
-            border-radius: 24px;
-            padding: 3rem;
-            max-width: 800px;
-            width: 100%;
+      border-radius: var(--radius);
             box-shadow: 0 20px 40px var(--shadow-color);
-            display: flex;
-            flex-direction: column;
-            animation: fadeIn 1s ease-in-out;
-            transition: all 0.4s ease;
-            min-height: 600px;
-            overflow-y: auto;
-            position: relative;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            scroll-behavior: smooth;
-            margin: 2rem auto;
-        }
+      border: 1px solid rgba(255,255,255,0.2);
+    }
 
-        [data-theme="dark"] .report-container {
-            background: rgba(31, 41, 55, 0.95);
-            border: 1px solid rgba(55, 65, 81, 0.3);
-        }
+    /* Hero */
+    .hero{color:#0b2e6b; border-radius:var(--radius); padding:24px; text-align:center}
+    .hero-head{display:flex; gap:12px; align-items:center; justify-content:center; text-align:center}
+    .hero h2{margin:0; font-size:28px; font-weight:800; letter-spacing:.3px; color:#0b2e6b}
+    .sub{opacity:.92; margin-top:8px; color:var(--text-secondary)}
 
-        /* Enhanced message box */
-        .message-box {
-            background: linear-gradient(135deg, rgba(11, 46, 107, 0.05) 0%, rgba(11, 46, 107, 0.02) 100%);
-            border: 1px solid rgba(11, 46, 107, 0.1);
-            position: relative;
-            overflow: hidden;
-            border-radius: 20px;
-            padding: 2.5rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 12px rgba(11, 46, 107, 0.05);
-        }
+    /* Card */
+    .card{background:var(--paper); border-radius:var(--radius); box-shadow:0 20px 40px var(--shadow-color); padding:24px; margin-top:20px; border:1px solid rgba(255,255,255,0.2)}
+    .heading{margin:0 0 8px; color:var(--blue); font-size:22px}
+    .divider{height:3px; width:72px; background:linear-gradient(90deg, var(--gold), #ffd36b); border-radius:6px; margin:6px 0 16px}
 
-        .message-box::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-            animation: shimmer 3s infinite;
-        }
+    /* Success circle */
+    .success{width:90px; height:90px; border-radius:50%; background:linear-gradient(135deg, #0b2e6b, #0a2a5f); display:grid; place-items:center; margin:0 auto 12px; box-shadow:0 8px 24px rgba(11,46,107,0.35)}
+    .success svg{width:48px; height:48px; color:#fff}
+    .success svg{position:relative; z-index:1}
 
-        @keyframes shimmer {
-            0% { left: -100%; }
-            100% { left: 100%; }
-        }
+    /* Text */
+    .lead{font-size:18px; color:#102030; margin:0 auto; max-width:60ch}
+    .muted{color:var(--muted)}
 
-        /* Signature enhancement */
-        .signature-box {
-            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-            border: 2px solid transparent;
-            background-clip: padding-box;
-            position: relative;
-            border-radius: 20px;
-            padding: 2.5rem;
-            box-shadow: 0 8px 24px rgba(11, 46, 107, 0.1);
-            text-align: center;
-        }
+    /* CTA buttons */
+    .btn{appearance:none; border:none; cursor:pointer; font-weight:800; padding:12px 18px; border-radius:16px; min-width:160px; transition:all .2s ease}
+    .btn-primary{background:#0b2e6b; color:#fff; box-shadow:0 4px 12px rgba(11,46,107,0.3)}
+    .btn-primary:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(11,46,107,0.4)}
+    .btn-outline{background:var(--paper); color:#0b2e6b; border:1px solid rgba(11,46,107,0.3)}
+    .btn-outline:hover{border-color:rgba(11,46,107,0.5)}
 
-        .signature-box::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, #1c0f97, #1c0f97);
-            border-radius: inherit;
-            margin: -2px;
-            z-index: -1;
-        }
+    .cta{display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:10px}
 
-        /* Success icon */
-        .success-icon {
-            width: 100px;
-            height: 100px;
-            background: linear-gradient(135deg, #0b2e6b 0%, #1c0f97 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 2rem;
-            font-size: 3rem;
-            color: white;
-            box-shadow: 0 12px 32px rgba(11, 46, 107, 0.3);
-            animation: pulse 2s ease-in-out infinite;
-        }
+    /* Footer */
+    footer{margin-top:24px; text-align:center; color:var(--muted); font-size:13px}
 
-        /* Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.8; transform: scale(1.05); }
-        }
-
-        /* Enhanced buttons */
-        .close-btn, .website-btn {
-            background: #1c0f97;
-            color: white;
-            border: none;
-            padding: 1.25rem 2.5rem;
-            border-radius: 16px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            font-size: 1.125rem;
-            min-height: 56px;
-            box-shadow: 0 4px 12px rgba(28, 15, 151, 0.3);
-        }
-
-        .close-btn:hover, .website-btn:hover {
-            background: #0f0a5f;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(28, 15, 151, 0.4);
-        }
-
-        .close-btn:active, .website-btn:active {
-            transform: translateY(0);
-            box-shadow: 0 4px 12px rgba(28, 15, 151, 0.3);
-        }
-
-        .close-btn:focus, .website-btn:focus {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(28, 15, 151, 0.3);
-        }
-
-        /* Typography improvements */
-        .main-title {
-            font-size: 2.75rem;
-            font-weight: 700;
-            color: #1c0f97;
-            margin-bottom: 1.5rem;
-            line-height: 1.2;
-            text-align: center;
-        }
-
-        .message-text {
-            font-size: 1.25rem;
-            line-height: 1.8;
-            color: #374151;
-            margin-bottom: 2rem;
-            text-align: justify;
-        }
-
-        .signature-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #1c0f97;
-            margin-bottom: 1rem;
-        }
-
-        .signature-text {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #1c0f97;
-        }
-
-        /* Decorative elements */
-        .decorative-elements {
-            display: flex;
-            justify-content: center;
-            gap: 1.5rem;
-            margin: 3rem 0;
-        }
-
-        .decorative-element {
-            font-size: 2rem;
-            animation: pulse 2s ease-in-out infinite;
-            opacity: 0.8;
-        }
-
-        .decorative-element:nth-child(2) { animation-delay: 0.5s; }
-        .decorative-element:nth-child(3) { animation-delay: 1s; }
-        .decorative-element:nth-child(4) { animation-delay: 1.5s; }
-
-        /* Button container */
-        .button-container {
-            display: flex;
-            justify-content: center;
-            gap: 1.5rem;
-            margin-top: 2rem;
-        }
-
-        /* Mobile responsiveness */
-        @media (max-width: 768px) {
-            .header-content {
-                flex-direction: column;
-                gap: 1.5rem;
-                text-align: center;
-                padding: 0 1rem;
-            }
-
-            .header-left {
-                flex-direction: column;
-                gap: 1.5rem;
-            }
-
-            .header-text {
-                text-align: center;
-            }
-
-            .header-text h1 {
-                font-size: 1.75rem;
-            }
-
-            .report-container {
-                margin: 1rem;
-                padding: 2rem;
-                border-radius: 16px;
-            }
-
-            .message-box {
-                padding: 2rem;
-                font-size: 1.125rem;
-            }
-
-            .main-title {
-                font-size: 2.25rem;
-            }
-
-            .message-text {
-                font-size: 1.125rem;
-            }
-
-            .close-btn, .website-btn {
-                padding: 1rem 2rem;
-                font-size: 1rem;
-                min-height: 48px;
-            }
-
-            .button-container {
-                flex-direction: column;
-                gap: 1rem;
-            }
-
-            .success-icon {
-                width: 80px;
-                height: 80px;
-                font-size: 2.5rem;
-            }
-
-            .decorative-elements {
-                gap: 1rem;
-            }
-
-            .decorative-element {
-                font-size: 1.5rem;
-            }
-        }
-
-        /* Accessibility improvements */
-        .close-btn:focus, .website-btn:focus {
-            outline: 2px solid var(--primary-color);
-            outline-offset: 2px;
-        }
-
-        /* High contrast mode support */
-        @media (prefers-contrast: high) {
-            .message-box {
-                border: 2px solid #000;
-            }
-            
-            .close-btn, .website-btn {
-                border: 2px solid #000;
-            }
-        }
-
-        /* Reduced motion support */
-        @media (prefers-reduced-motion: reduce) {
-            .message-box, .close-btn, .website-btn, .success-icon, .decorative-element {
-                animation: none;
-                transition: none;
-            }
+    /* Motion preferences */
+    @media (prefers-reduced-motion: reduce){
+      *{animation:none !important; transition:none !important}
         }
     </style>
 </head>
 <body>
-    <!-- Header with logo -->
-    <header class="header-gradient">
+  <!-- Header (match chat) -->
+  <header >
         <div class="header-content">
+        <!-- Logo and title section -->
             <div class="header-left">
                 <a href="https://www.pdn.co.il" target="_blank" class="logo-link">
                     <img src="/static/images/pdn_logo.png" alt="PDN Logo" class="header-logo" />
                 </a>
                 <div class="header-text">
-                    <h1>PDN Center</h1>
-                    <p>הצופן האישי שלך</p>
-                </div>
+                <h1 class="text-2xl font-bold mb-2 text-white">PDN Center</h1>
+                <p class="text-2xl opacity-90 text-white ">קוד המקור – הצופן האישי שלך</p>
+            </div>
             </div>
         </div>
     </header>
-
-    <main class="report-container space-y-8 fade-in">
-        <!-- Success icon and title -->
-        <div class="text-center space-y-6">
-            <div class="success-icon">
-                <i class="fas fa-check"></i>
-            </div>
-            <h1 class="main-title">
-             תודה שסיימת את האבחון בהצלחה
-            </h1>
+  <main class="wrap">
+    <!-- Hero -->
+    <section class="hero glass">
+      <div class="hero-head">
+        <div>
+          <h2 id="heroTitle">תודה שסיימת את האבחון בהצלחה</h2>
         </div>
-
-        <!-- Main thank you message -->
-        <div class="space-y-6">
-            <div class="message-box">
-                <p class="message-text">
-                    בימים הקרובים תעובד תשובתך לעומק, ובמהלך השבוע הקרוב תישלח אליך מפת דרכים אישית המבוססת על קוד המקור הייחודי שלך.
-                </p>
-                <p class="message-text">
-                    עם קבלת הצופן המלא, יישלח אליך גם קישור אישי (עם סיסמה) לקורס הדיגיטלי: "המנוע הראשי שלך" לניווט בהצלחה בהתאם לתוצאות.
-                </p>
-                <p class="message-text">
-                    צעד ראשון בהיכרות עמוקה עם הקוד שלך, מנגנוני ההפעלה, והדרך הייחודית שלך לנווט מתוך בהירות, דיוק והגשמה.
-                </p>
-                <p class="message-text" style="margin-bottom: 0;">
-                    אנחנו שמחים ליציאה לדרך המשותפת – בתהליך משנה חיים של ניווט עצמי מתוך קוד המקור שלך, ומאחלים לך מסע מלא תובנות, השראה והגשמה.
-                </p>
             </div>
-        </div>
+    </section>
 
-        <!-- Decorative elements -->
-        <div class="decorative-elements">
-            <div class="decorative-element text-blue-500 text-2xl">✨</div>
-            <div class="decorative-element text-yellow-500">🌟</div>
-            <div class="decorative-element text-green-500">💫</div>
-            <div class="decorative-element text-purple-500">✨</div>
-        </div>
-
-        <!-- Signature section -->
-        <div class="text-center space-y-6 pt-4">
-            <div class="signature-box">
-                <p class="signature-title">בהצלחה!</p>
-                <p class="signature-text">
-                    צוות PDN – קוד המקור, הצופן האישי שלך
-                </p>
+    <!-- Success + Message -->
+    <section class="card" aria-labelledby="msg-title">
+      <div class="success" aria-hidden="true">
+        <!-- inline SVG check -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20 6L9 17l-5-5"/>
+        </svg>
             </div>
-            
-            <!-- Action buttons -->
-            <div class="button-container">
-                <button onclick="closeReport()" 
-                        class="close-btn">
-                    <i class="fas fa-times"></i>
-                    סגור
-                </button>
-                <button onclick="window.open('https://www.pdn.co.il', '_blank')" 
-                        class="website-btn">
-                    <i class="fas fa-globe"></i>
-                    אתר רשמי
-                </button>
-            </div>
-        </div>
+      <h3 id="msg-title" class="heading">מה הלאה?</h3>
+      <div class="divider"></div>
+      <p class="lead">
+        בימים הקרובים נעבד את תשובתך לעומק, ובמהלך השבוע הקרוב תישלח אליך מפת דרכים אישית המבוססת על קוד המקור הייחודי שלך.
+      </p>
+      <p class="lead">
+        עם קבלת הצופן המלא יישלח גם קישור אישי (עם סיסמה) לקורס הדיגיטלי “המנוע הראשי שלך” – לניווט בהצלחה בהתאם לתוצאות.
+      </p>
+      <p class="lead">
+        זהו צעד ראשון להיכרות עמוקה עם הקוד שלך, מנגנוני ההפעלה, והדרך הייחודית שלך לנווט מתוך בהירות, דיוק והגשמה.
+      </p>
 
-        <!-- Footer -->
-        <div class="text-center pt-8 space-y-4">
-            <div class="border-t border-gray-200 pt-6">
-                <p class="text-sm sm:text-base font-medium text-blue-900">
-                    ✨ <a href="https://www.pdn.co.il" target="_blank" class="hover:underline">Personal Development Navigator</a> ✨
-                </p>
-                <div class="mt-4">
-                    <p class="text-xs text-blue-900">
-                        © 2024 PDN Center כל הזכויות שמורות
-                    </p>
-                    <p class="text-xs text-blue-900 mt-2">
-                        מערכת ניהול נתוני אבחון פדן - גרסה 1.0
-                    </p>
+      <div class="cta">
+        <button class="btn btn-primary" onclick="goHome()">חזרה למסך הראשי</button>
+        <button class="btn btn-outline" onclick="openSite()">אתר רשמי</button>
                 </div>
-            </div>
-        </div>
+    </section>
+
+    {% include 'partials/footer.html' %}
     </main>
 
     <script>
-        // Add some interactive elements
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add click effect to the success icon
-            const successIcon = document.querySelector('.success-icon');
-            successIcon.addEventListener('click', function() {
-                this.style.transform = 'scale(1.3)';
-                setTimeout(() => {
-                    this.style.transform = 'scale(1)';
-                }, 200);
-            });
-
-            // Add hover effects to decorative elements
-            const decorativeElements = document.querySelectorAll('.decorative-element');
-            decorativeElements.forEach(element => {
-                element.addEventListener('mouseenter', function() {
-                    this.style.transform = 'scale(1.5) rotate(180deg)';
-                });
-                element.addEventListener('mouseleave', function() {
-                    this.style.transform = 'scale(1) rotate(0deg)';
-                });
-            });
-        });
-
-        // Update the closeReport function
-        function closeReport() {
-            // Add a fade-out effect
-            const main = document.querySelector('main');
-            main.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
-            main.style.opacity = '0';
-            main.style.transform = 'translateY(-20px)';
-            
-            // After animation, redirect to diagnose_login page
-            setTimeout(() => {
-                window.location.href = '/pdn-diagnose/';
-            }, 500);
+    // Personalize title with user name
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const resp = await fetch('/pdn-diagnose/get_report_data');
+        if (resp.ok) {
+          const data = await resp.json();
+          const first = (data.metadata && data.metadata.first_name) || '';
+          const last = (data.metadata && data.metadata.last_name) || '';
+          const fullName = `${first} ${last}`.trim();
+          const titleEl = document.getElementById('heroTitle');
+          if (titleEl) {
+            titleEl.textContent = fullName ? `${fullName} – תודה שסיימת את האבחון בהצלחה` : 'תודה שסיימת את האבחון בהצלחה';
+          }
         }
+      } catch (e) {
+        console.error('Failed to load report data', e);
+      }
+    });
 
-        // Add keyboard support for closing
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                closeReport();
-            }
-        });
+    function goHome(){
+      const main = document.querySelector('main');
+      main.style.transition = 'opacity .35s ease, transform .35s ease';
+      main.style.opacity = '0';
+      main.style.transform = 'translateY(-12px)';
+      setTimeout(()=>{ window.location.href = '/pdn-diagnose/'; }, 350);
+    }
+    function openSite(){
+      window.open('https://www.pdn.co.il', '_blank', 'noopener');
+    }
     </script>
 </body>
 </html> 

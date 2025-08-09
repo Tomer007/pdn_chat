@@ -410,8 +410,8 @@
                     <img src="/static/images/pdn_logo.png" alt="PDN Logo" class="header-logo" />
                 </a>
                 <div class="header-text">
-                    <h1 class="text-2xl font-bold mb-2 text-white">בינת קוד המקור</h1>
-                    <p class="text-2xl opacity-90 text-white">המאמן האישי שמכיר אותך מבפנים</p>
+                    <h1 class="text-2xl font-bold mb-2 text-white">PDN Center</h1>
+                    <p class="text-2xl opacity-90 text-white">בינת קוד המקור</p>
                 </div>
             </div>
         </div>
@@ -468,18 +468,12 @@
                 <p>אם עולה קושי רגשי עמוק, מצוקה מתמשכת או צורך בתמיכה – חשוב לפנות לאיש מקצוע מתאים.</p>
                 <p>אנחנו כאן להזכיר – שהכוח כבר בתוכך.</p>
             </div>
-
-            <!-- Footer -->
-            <div class="footer-links">
-                <a href="https://www.pdn.co.il" target="_blank" class="footer-link">
-                    <i class="fas fa-globe text-blue-900"> אתר רשמי</i>
-                </a>
-                <span class="footer-link" onclick="openWhatsApp()">
-                    <i class="fab fa-whatsapp text-blue-900"> יצירת קשר</i>
-                </span>
-            </div>
+             <!-- Footer -->
+             {% include 'partials/footer.html' %}
         </div>
     </div>
+
+
 
     <script>
         let isDarkMode = false;
