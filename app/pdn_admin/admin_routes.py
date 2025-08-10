@@ -314,44 +314,38 @@ def get_user_voice(email):
 
     try:
         # Find user in data
-        csv_metadata_handler = UserMetadataHandler()
         pdn_file_path = PDNFilePath()
-        user_dir = pdn_file_path.get_user_dir(email)
-        
-        # Look for both question recordings
-        question1_filename = f"{email}_question1.wav"
-        question2_filename = f"{email}_question2.wav"
-        
-        question1_path = user_dir / question1_filename
-        question2_path = user_dir / question2_filename
+        question1_filename = pdn_file_path.find_user_file(email, "question1.wav")
+        question2_filename = pdn_file_path.find_user_file(email, "question2.wav")
         
         voice_recordings = {}
         
-        if question1_path.exists():
+        if question1_filename is not None and question1_filename.exists():
             voice_recordings['question1'] = {
-                'filename': question1_filename,
-                'path': str(question1_path),
+                'filename': str(question1_filename),
+                'path': str(question1_filename),
                 'exists': True
             }
         
-        if question2_path.exists():
+        if question2_filename is not None and question2_filename.exists():
             voice_recordings['question2'] = {
-                'filename': question2_filename,
-                'path': str(question2_path),
+                'filename': str(question2_filename),
+                'path': str(question2_filename),
                 'exists': True
             }
-        
+
         # If no new format recordings found, try old format for backward compatibility
         if not voice_recordings:
-            user_audio_path = csv_metadata_handler.get_user_audio_path(email, "wav")
-            if user_audio_path:
-                audio_file_path = Path(user_audio_path)
-                if audio_file_path.exists():
-                    voice_recordings['legacy'] = {
-                        'filename': audio_file_path.name,
-                        'path': user_audio_path,
-                        'exists': True
-                    }
+            user_audio_path = pdn_file_path.find_user_file(email, ".wav")
+            if user_audio_path is not None and user_audio_path.exists():
+                voice_recordings['legacy'] = {
+                'filename': str(user_audio_path),
+                'path': str(user_audio_path),
+                'exists': True
+            }
+
+        
+       
 
         if not voice_recordings:
             return jsonify({"error": "User voice recording not found"}), 404
