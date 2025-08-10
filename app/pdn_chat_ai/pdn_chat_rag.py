@@ -61,10 +61,6 @@ class PDNRAG:
         :param persist_dir: Directory for Chroma vector database persistence.
         :param persist: Whether to persist and reuse Chroma DB.
         """
-        # Use config default if persist_dir not provided
-        if persist_dir is None:
-            persist_dir = settings.CHROMA_DB_PERSIST_DIR
-            
         embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
         
         # Load persisted DB if exists
@@ -103,7 +99,7 @@ class PDNRAG:
         ])
 
         # Setup the LLM with system prompt
-        self.llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+        self.llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.5)
         self.qa_chain = LLMChain(llm=self.llm, prompt=self.prompt)
 
         logger.info("RAG setup complete.")
