@@ -333,6 +333,17 @@
     <input type="hidden" id="userId" value="{{ user_id or '' }}">
     <h1 class="text-4xl font-bold text-center text-blue-900 bg-gradient-to-r from-blue-900 to-blue-900 bg-clip-text text-transparent">
         המסע לגילוי הצופן המקור שלך    </h1>
+    
+    <!-- Progress Bar -->
+    <div id="progressContainer" class="mb-6">
+        <div class="flex justify-between items-center mb-2">
+            <span id="progressLabel" class="text-sm font-medium text-blue-900"></span>
+            <span id="progressPercent" class="text-sm font-semibold text-blue-900"></span>
+        </div>
+        <div class="w-full bg-blue-100 rounded-full h-3 overflow-hidden">
+            <div id="progressBar" class="bg-blue-900 h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+    </div>
     <div id="messages" class="space-y-4 fade-in">
 
         <!-- Voice Recording Section -->
@@ -360,6 +371,10 @@
                 <button id="stopRecordBtn"
                         class="hidden text-lg py-3 px-7 bg-gradient-to-r from-indigo-900 to-blue-900 text-white rounded-xl shadow-lg font-semibold ml-2">
                     סיים הקלטה
+                </button>
+                <button id="reRecordBtn"
+                        class="hidden text-lg py-3 px-7 bg-white text-blue-900 rounded-xl shadow border border-blue-900 font-semibold ml-2">
+                    הקלט שוב
                 </button>
             </div>
             <div id="recordStatus" class="text-lg text-blue-900"></div>
@@ -399,6 +414,10 @@
                     class="hidden text-lg py-3 px-7 bg-gradient-to-r from-blue-900 to-blue-900 text-white rounded-xl shadow-lg font-semibold ml-2">
                 סיים הקלטה
             </button>
+            <button id="reRecordBtn2"
+                    class="hidden text-lg py-3 px-7 bg-white text-blue-900 rounded-xl shadow border border-blue-900 font-semibold ml-2">
+                הקלט שוב
+            </button>
         </div>
         <div id="recordStatus2" class="text-lg text-blue-900"></div>
         <div id="visualizer2" class="flex justify-center items-end space-x-1 mb-1"
@@ -415,28 +434,13 @@
         <div id="options" class="space-y-3"></div>
     </div>
 
-    <!-- Footer Link -->
-    <div class="text-center pt-4 space-y-4">
+        <!-- Footer Link -->
+        <div class="text-center pt-4 space-y-4">
         <button id="backButton" onclick="goBack()"
                 class="text-sm w-1/2 py-2 px-3 bg-gradient-to-r from-blue-900 to-blue-900 text-white font-medium rounded-xl hover:from-blue-900 hover:to-blue-900 focus:outline-none focus:ring-4 focus:ring-blue-900/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hidden">
             חזור לשאלה הקודמת
         </button>
-        <!-- Footer Link -->
-        <div class="text-center pt-4">
-            <p class="text-sm sm:text-base font-medium bg-gradient-to-r from-blue-900 via-blue-900 to-blue-900 bg-clip-text text-transparent animate-pulse">
-                ✨ <a href="https://www.pdn.co.il" target="_blank" class="hover:underline">Personal Development
-                Navigator</a>
-                ✨
-            </p>
-            <div class="border-t border-gray-200 pt-6">
-                <p class="text-xs text-gray-500">
-                    © 2024 PDN Center כל הזכויות שמורות
-                </p>
-                <p class="text-xs text-gray-400 mt-2">
-                    מערכת ניהול נתוני אבחון פדן - גרסה 1.0
-                </p>
-            </div>
-        </div>
+        {% include 'partials/footer.html' %}
     </div>
 
 </main>
@@ -447,6 +451,25 @@ let currentStage = '';
 let nextData = null;
 let questionHistory = []; // Array to store question history
 let currentUsername = '{{ email }}' || 'anonymous'; // Get username from template
+
+// Progress logic
+const totalQuestions = 65; // Based on phases A-F (1-65)
+const totalSteps = 2 + totalQuestions; // 2 voice steps + questions
+let currentStepNumber = 1;
+
+function updateProgress(stepNumber, labelText) {
+    currentStepNumber = stepNumber;
+    const percent = Math.min(100, Math.max(0, Math.round((stepNumber / totalSteps) * 100)));
+    const bar = document.getElementById('progressBar');
+    const percentEl = document.getElementById('progressPercent');
+    const labelEl = document.getElementById('progressLabel');
+    if (bar) bar.style.width = percent + '%';
+    if (percentEl) percentEl.textContent = percent + '%';
+    if (labelEl) labelEl.textContent = labelText || `התקדמות: ${stepNumber} מתוך ${totalSteps}`;
+}
+
+// Initialize progress at first voice step
+updateProgress(1, 'הקלטה 1/2');
 
 // Modal logic
 const modal = document.getElementById('instructionModal');
@@ -467,6 +490,7 @@ let recordingValid = false; // Track if recording meets duration requirements
 
 const startBtn = document.getElementById('startRecordBtn');
 const stopBtn = document.getElementById('stopRecordBtn');
+const reRecordBtn = document.getElementById('reRecordBtn');
 const recordStatus = document.getElementById('recordStatus');
 const audioPlayback = document.getElementById('audioPlayback');
 const visualizer = document.getElementById('visualizer');
@@ -606,6 +630,8 @@ stopBtn.onclick = function() {
         document.getElementById('voiceRecordArea2').classList.remove('hidden');
         // Reset the second voice UI
         resetVoiceUI2();
+        // Update progress for second voice step
+        updateProgress(2, 'הקלטה 2/2');
     } else {
         // Reset for retry
         resetVoiceUI();
@@ -615,6 +641,7 @@ stopBtn.onclick = function() {
 function resetVoiceUI() {
     startBtn.classList.remove('hidden');
     stopBtn.classList.add('hidden');
+    reRecordBtn.classList.add('hidden');
     stopBtn.innerText = 'סיים הקלטה';
     stopBtn.disabled = false;
     stopBtn.classList.remove('opacity-50', 'cursor-not-allowed');
@@ -633,6 +660,11 @@ function resetVoiceUI() {
     if (recordTimer) clearInterval(recordTimer);
 }
 
+// Re-record for first voice area
+reRecordBtn.onclick = function() {
+    resetVoiceUI();
+};
+
 // Second Voice Record Area Logic
 let mediaRecorder2;
 let audioChunks2 = [];
@@ -642,6 +674,7 @@ let recordingValid2 = false; // Track if recording meets duration requirements
 
 const startBtn2 = document.getElementById('startRecordBtn2');
 const stopBtn2 = document.getElementById('stopRecordBtn2');
+const reRecordBtn2 = document.getElementById('reRecordBtn2');
 const recordStatus2 = document.getElementById('recordStatus2');
 const audioPlayback2 = document.getElementById('audioPlayback2');
 const visualizer2 = document.getElementById('visualizer2');
@@ -773,6 +806,8 @@ stopBtn2.onclick = function() {
     } else if (recordingValid2) {
         document.getElementById('voiceRecordArea2').classList.add('hidden');
         document.getElementById('questionArea').classList.remove('hidden');
+        // Update progress entering questions
+        updateProgress(2 + currentQuestion, `שאלה ${currentQuestion} מתוך ${totalQuestions}`);
         loadQuestion(currentQuestion);
     } else {
         // Reset for retry
@@ -783,6 +818,7 @@ stopBtn2.onclick = function() {
 function resetVoiceUI2() {
     startBtn2.classList.remove('hidden');
     stopBtn2.classList.add('hidden');
+    reRecordBtn2.classList.add('hidden');
     stopBtn2.innerText = 'סיים הקלטה';
     stopBtn2.disabled = false;
     stopBtn2.classList.remove('opacity-50', 'cursor-not-allowed');
@@ -801,11 +837,18 @@ function resetVoiceUI2() {
     if (recordTimer2) clearInterval(recordTimer2);
 }
 
+// Re-record for second voice area
+reRecordBtn2.onclick = function() {
+    resetVoiceUI2();
+};
+
 // Question/Modal logic
 async function loadQuestion(questionNumber) {
     const response = await fetch(`/pdn-diagnose/questionnaire/${questionNumber}`);
     const data = await response.json();
     if (data.message === "No more questions.") return completeQuestionnaire();
+    // Update progress for the current question, even if an instructions modal appears
+    updateProgress(2 + questionNumber, `שאלה ${questionNumber} מתוך ${totalQuestions}`);
     if (data.stage !== currentStage) {
         currentStage = data.stage;
         if (data.instructions) {

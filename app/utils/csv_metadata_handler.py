@@ -78,12 +78,7 @@ class UserMetadataHandler:
         self._data_cache = None
         self._cache_timestamp = None
 
-    def _get_file_modification_time(self) -> float:
-        """Get the last modification time of the CSV file."""
-        try:
-            return os.path.getmtime(self.csv_filename) if os.path.exists(self.csv_filename) else 0
-        except OSError:
-            return 0
+
 
     def ensure_csv_exists(self) -> None:
         """Create CSV file with headers if it doesn't exist."""
@@ -272,24 +267,7 @@ class UserMetadataHandler:
         """
         return self._read_csv_data()
 
-    def read_metadata_generator(self) -> Generator[Dict[str, str], None, None]:
-        """
-        Read metadata as a generator for memory efficiency with large datasets.
-        
-        Yields:
-            Dictionary containing user metadata
-        """
-        try:
-            if not os.path.exists(self.csv_filename):
-                return
 
-            with open(self.csv_filename, 'r', encoding='utf-8') as csvfile:
-                reader = csv.DictReader(csvfile)
-                for row in reader:
-                    yield dict(row)
-
-        except Exception as e:
-            logger.error(f"Error reading metadata from CSV: {e}")
 
     def get_user_by_email(self, email: str) -> Optional[Dict[str, str]]:
         """
@@ -352,51 +330,6 @@ class UserMetadataHandler:
             logger.error(f"Error finding user metadata: {e}")
             return None
 
-    def get_user_audio_path(self, email: str, file_type: str) -> Optional[str]:
-        """
-        Get user audio path.
-        
-        Args:
-            email: User's email address
-            file_type: Type of file to find
-            
-        Returns:
-            File path or None if not found
-        """
-        try:
-            pdn_file_path = PDNFilePath()
-            user_dir = pdn_file_path.get_user_dir(email)
-            
-            # Look for the new naming format: email_question1.wav, email_question2.wav
-            question1_filename = f"{email}_question1.wav"
-            question2_filename = f"{email}_question2.wav"
-            
-            question1_path = user_dir / question1_filename
-            question2_path = user_dir / question2_filename
-            
-            # Return the first available question file, or question1 if both exist
-            if question1_path.exists():
-                return str(question1_path)
-            elif question2_path.exists():
-                return str(question2_path)
-            
-            # Fallback to old method for backward compatibility
-            if file_type == "wav":
-                file_path = pdn_file_path.find_user_file(email, file_type)
-                if file_path is not None and os.path.exists(file_path):
-                    return str(file_path)
-            else:
-                filename = f"{email}_{file_type}"
-                file_path = pdn_file_path.get_user_file_path(email, filename)
-                if os.path.exists(file_path):
-                    return str(file_path)
-
-            return None
-
-        except Exception as e:
-            logger.error(f"Error finding user audio path: {e}")
-            return None
-
     def _update_user_field(self, email: str, field_name: str, value: str) -> bool:
         """
         Generic method to update a specific field for a user.
@@ -450,54 +383,7 @@ class UserMetadataHandler:
             logger.error(f"Error updating {field_name}: {e}")
             return False
 
-    def update_user_metadata(self, email: str, updated_data: Dict[str, Any]) -> bool:
-        """
-        Update existing user metadata with multiple fields.
-        
-        Args:
-            email: User's email address
-            updated_data: Dictionary containing updated metadata
-            
-        Returns:
-            True if successful, False otherwise
-        """
-        try:
-            if not self._validate_email(email):
-                return False
 
-            if not os.path.exists(self.csv_filename):
-                return False
-
-            # Read current data
-            data = self._read_csv_data()
-            email = email.strip()
-
-            # Find and update user
-            updated = False
-            for row in data:
-                if row.get("Email", "").strip() == email:
-                    # Update with new data while preserving existing data
-                    for key, value in updated_data.items():
-                        if key in self.headers:
-                            row[key] = str(value)
-                    updated = True
-                    break
-
-            if not updated:
-                logger.warning(f"User {email} not found in CSV")
-                return False
-
-            # Write back data
-            if self._write_csv_data(data):
-                logger.info(f"Successfully updated metadata for {email}")
-                return True
-            else:
-                logger.error(f"Failed to write updated metadata for {email}")
-                return False
-
-        except Exception as e:
-            logger.error(f"Error updating user metadata: {e}")
-            return False
 
     def update_pdn_code(self, email: str, pdn_code: str) -> bool:
         """
@@ -593,33 +479,7 @@ class UserMetadataHandler:
             logger.error(f"Error updating Diagnose Code: {e}")
             return False
 
-    def get_statistics(self) -> Dict[str, Any]:
-        """
-        Get statistics about the CSV data.
-        
-        Returns:
-            Dictionary containing statistics
-        """
-        try:
-            data = self._read_csv_data()
 
-            stats = {
-                "total_users": len(data),
-                "users_with_pdn_code": len([row for row in data if row.get("PDN Code", "").strip()]),
-                "users_with_voice_code": len([row for row in data if row.get("PDN Voice Code", "").strip()]),
-                "users_with_diagnose_code": len([row for row in data if row.get("Diagnose PDN Code", "").strip()]),
-                "users_with_comments": len([row for row in data if row.get("Diagnose Comments", "").strip()]),
-                "date_range": {
-                    "earliest": min([row.get("Date", "") for row in data if row.get("Date")], default=""),
-                    "latest": max([row.get("Date", "") for row in data if row.get("Date")], default="")
-                }
-            }
-
-            return stats
-
-        except Exception as e:
-            logger.error(f"Error getting statistics: {e}")
-            return {}
 
     def format_date_readable(self, date_str: str) -> str:
         """
@@ -647,37 +507,6 @@ class UserMetadataHandler:
             logger.error(f"Error formatting date {date_str}: {e}")
             return date_str
 
-    def update_all_dates_to_readable(self) -> bool:
-        """
-        Update all dates in the CSV file to readable format (DD/MM/YYYY).
-        
-        Returns:
-            True if successful, False otherwise
-        """
-        try:
-            data = self._read_csv_data()
-            updated = False
-            
-            for row in data:
-                if row.get("Date", "").strip():
-                    old_date = row["Date"]
-                    new_date = self.format_date_readable(old_date)
-                    if new_date != old_date:
-                        row["Date"] = new_date
-                        updated = True
-            
-            if updated:
-                if self._write_csv_data(data):
-                    logger.info("Successfully updated all dates to readable format")
-                    return True
-                else:
-                    logger.error("Failed to write updated dates to CSV")
-                    return False
-            
-            return True  # No updates needed
-            
-        except Exception as e:
-            logger.error(f"Error updating dates to readable format: {e}")
-            return False
+
 
 
