@@ -10860,3 +10860,11 @@ chroma_db/8e0c7080-1a3a-48db-bfaa-9c7d420243c3/length.bin
 chroma_db/8e0c7080-1a3a-48db-bfaa-9c7d420243c3/link_lists.bin
 tests/test_pdn_calculator.py
 pdn_rag.log
+conversation_history/5ba577ed-1f39-4e5b-8328-a92ae7e338f5.json
+conversation_history/a5a24591-e220-4f6b-8a97-57d3bdd081b5.json
+conversation_history/acb3d1a2-8bb9-4b29-96a5-898435009fd6.json
+conversation_history/cac229a1-7140-4c40-ad28-5da7c756fd55.json
+conversation_history/dfad6bb1-d495-4f63-b63e-aa0f90e03b25.json
+conversation_history/e8f5763e-0636-427d-9b90-e0547cef0846.json
+conversation_history/eb1eb5d6-5f68-4bb5-be4b-9b62e9535ca5.json
+tests/test_app.py
