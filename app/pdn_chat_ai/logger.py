@@ -1,7 +1,5 @@
 import logging
 
-from config import LOGS_DIR
-
 
 def setup_logger(name='pdn_chat_ai'):
     """Setup logger for pdn_chat_ai module"""
@@ -12,16 +10,11 @@ def setup_logger(name='pdn_chat_ai'):
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
 
-    # Create file handler
-    file_handler = logging.FileHandler(LOGS_DIR / 'app.log')
-    file_handler.setFormatter(formatter)
-
-    # Create console handler
+    # Create console handler only
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(formatter)
 
-    # Add handlers to logger
-    logger.addHandler(file_handler)
+    # Add handler to logger
     logger.addHandler(console_handler)
 
     # Set log level

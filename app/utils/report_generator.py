@@ -1,5 +1,8 @@
 import json
+import logging
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 def load_pdn_report(pdn_code: str) -> dict:
@@ -30,5 +33,5 @@ def load_pdn_report(pdn_code: str) -> dict:
         return report
 
     except Exception as e:
-        print(f"Error loading report for PDN code {pdn_code}: {str(e)}")
+        logger.error(f"Error loading report for PDN code {pdn_code}: {str(e)}")
         return {}

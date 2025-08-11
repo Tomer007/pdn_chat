@@ -10,28 +10,17 @@
     <style>
         :root {
             --primary-color: #1c0f97;
-            --secondary-color: #1c0f97;
-            --accent-color: #1c0f97;
             --text-primary: #1f2937;
             --text-secondary: #6b7280;
             --shadow-color: rgba(0, 0, 0, 0.1);
-            --gradient-start: #0b2e6b;
-            --gradient-end: #0b2e6b;
         }
 
         /* Dark mode variables */
         [data-theme="dark"] {
             --primary-color: #3570d7;
-            --secondary-color: #3570d7;
-            --accent-color: #3570d7;
             --text-primary: #f9fafb;
             --text-secondary: #d1d5db;
-            --bg-primary: #1f2937;
-            --bg-secondary: #111827;
-            --border-color: #374151;
             --shadow-color: rgba(0, 0, 0, 0.3);
-            --gradient-start: #0b2e6b;
-            --gradient-end: #0b2e6b;
         }
 
         body { 
@@ -52,15 +41,7 @@
             overflow: hidden;
         }
 
-        .header-gradient::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 20px;
-            background: linear-gradient(to bottom, transparent, rgba(224, 231, 255, 0.8));
-        }
+
 
         .header-content {
             display: flex;

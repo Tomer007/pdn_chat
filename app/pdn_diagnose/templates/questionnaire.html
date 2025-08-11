@@ -13,8 +13,6 @@
     <style>
         :root {
             --primary-color: #0b2e6b;
-            --secondary-color: #0b2e6b;
-            --accent-color: #0b2e6b;
             --text-primary: #1f2937;
             --text-secondary: #6b7280;
             --shadow-color: rgba(0, 0, 0, 0.1);
@@ -46,65 +44,10 @@
             to { opacity: 1; transform: translateY(0); } 
         }
         
-        .fade-in { 
-            animation: fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) both; 
-        }
 
-        .modal-backdrop {
-            position: fixed; 
-            inset: 0; 
-            background: rgba(11, 46, 107, 0.3); 
-            display: none;
-            align-items: center; 
-            justify-content: center; 
-            z-index: 50;
-            animation: modalBackdropIn .4s both;
-        }
-
-        @keyframes modalBackdropIn { 
-            from { opacity: 0; } 
-            to { opacity: 1; } 
-        }
-
-        .modal-animate {
-            animation: modalScaleIn .45s cubic-bezier(0.4,0,0.2,1) both;
-        }
-
-        @keyframes modalScaleIn { 
-            from { opacity: 0; transform: scale(0.88) translateY(32px);} 
-            to { opacity: 1; transform: scale(1) translateY(0);} 
-        }
-
-        .glow {
-            box-shadow: 0 0 30px 0 rgba(11, 46, 107, 0.3), 0 2px 32px 0 rgba(11, 46, 107, 0.2);
-        }
-
-        .modal-icon {
-            font-size: 2.5rem;
-            color: #0b2e6b;
-            filter: drop-shadow(0 2px 4px rgba(11, 46, 107, 0.3));
-            margin-bottom: 12px;
-            animation: iconPop .6s cubic-bezier(0.68,-0.55,0.27,1.55);
-        }
-
-        @keyframes iconPop { 
-            0% { transform: scale(0); } 
-            70% { transform: scale(1.22); } 
-            100% { transform: scale(1); } 
-        }
-
-        .modal-close-btn {
-            transition: background .22s, transform .15s;
-        }
-
-        .modal-close-btn:hover {
-            background: linear-gradient(to left, #0b2e6b 80%, #0a2a5f 100%);
-            transform: scale(1.05) translateY(-2px);
-            box-shadow: 0 2px 8px rgba(11, 46, 107, 0.3);
-        }
 
         @media (max-width: 600px) {
-            .glass-effect, .modal-card { padding: 1.2rem !important; }
+            .glass-effect { padding: 1.2rem !important; }
         }
 
         /* Voice record UI */
@@ -190,85 +133,9 @@
             box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1);
         }
 
-        /* Button styles matching chat.html */
-        .btn-primary {
-            background: #0b2e6b;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 16px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 600;
-            box-shadow: 0 4px 12px rgba(11, 46, 107, 0.3);
-        }
 
-        .btn-primary:hover {
-            background: #0a2a5f;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(11, 46, 107, 0.4);
-        }
 
-        .btn-primary:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
 
-        /* Enhanced chat bubbles with improved readability */
-        .chat-bubble {
-            border-radius: 20px;
-            padding: 16px 20px;
-            margin-bottom: 16px;
-            font-size: 16px;
-            line-height: 1.6;
-            display: flex;
-            flex-direction: column;
-            animation: slideIn 0.5s ease;
-            max-width: 80%;
-            position: relative;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px var(--shadow-color);
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-        }
-
-        .chat-bubble.user {
-            background: #0b2e6b;
-            color: #ffffff;
-            align-self: flex-end;
-            border-bottom-right-radius: 8px;
-            border: 1px solid rgba(11, 46, 107, 0.3);
-        }
-
-        .chat-bubble.bot {
-            background: #dcdfe9;
-            color: #181818;
-            align-self: flex-start;
-            border-bottom-left-radius: 8px; 
-        }
-
-        /* Animations */
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
 
         /* Mobile responsiveness */
         @media (max-width: 768px) {
@@ -989,16 +856,7 @@ function renderScaleQuestion(data, questionNumber) {
       updateSelection();
     }
 
-    const sampleData = {
-      options: [
-        { text: 'לא מסכים כלל', code: 'low' },
-        { text: 'מסכים מאוד', code: 'high' }
-      ]
-    };
 
-    document.addEventListener('DOMContentLoaded', () => {
-      renderScaleQuestion(sampleData, 1);
-    });
 
 
 

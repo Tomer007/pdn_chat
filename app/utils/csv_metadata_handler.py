@@ -4,7 +4,7 @@ import logging
 import os
 import uuid
 from datetime import datetime
-from typing import Dict, Any, List, Optional, Generator
+from typing import Dict, Any, List, Optional
 
 from .pdn_file_path import PDNFilePath
 
@@ -49,21 +49,7 @@ class UserMetadataHandler:
         unique_part = str(uuid.uuid4()).replace('-', '')[:6].upper()
         return f"UID{unique_part}"
 
-    def _get_next_user_id(self) -> str:
-        """
-        Get the next available user ID by checking existing IDs.
-        
-        Returns:
-            A unique user ID that doesn't exist in the current data
-        """
-        existing_data = self._read_csv_data()
-        existing_ids = {row.get("User ID", "") for row in existing_data if row.get("User ID")}
-        
-        # Generate IDs until we find one that doesn't exist
-        while True:
-            new_id = self._generate_unique_id()
-            if new_id not in existing_ids:
-                return new_id
+
 
     def _is_cache_valid(self) -> bool:
         """Check if the current cache is still valid."""
@@ -89,65 +75,12 @@ class UserMetadataHandler:
                     writer = csv.writer(csvfile)
                     writer.writerow(self.headers)
                 logger.info(f"Created new CSV file: {self.csv_filename}")
-            else:
-                # Check if the file needs migration (missing User ID column)
-                self._migrate_csv_if_needed()
+
         except Exception as e:
             logger.error(f"Error creating CSV file: {e}")
             raise
 
-    def _migrate_csv_if_needed(self) -> None:
-        """Migrate existing CSV file to include User ID column if needed."""
-        try:
-            with open(self.csv_filename, 'r', encoding='utf-8') as csvfile:
-                reader = csv.reader(csvfile)
-                first_row = next(reader, None)
-                
-                if not first_row or "User ID" not in first_row:
-                    logger.info("Migrating CSV file to include User ID column")
-                    self._perform_csv_migration()
-        except Exception as e:
-            logger.error(f"Error checking CSV migration: {e}")
 
-    def _perform_csv_migration(self) -> None:
-        """Perform the actual CSV migration to add User ID column."""
-        try:
-            # Read existing data
-            existing_data = []
-            with open(self.csv_filename, 'r', encoding='utf-8') as csvfile:
-                reader = csv.DictReader(csvfile)
-                existing_data = list(reader)
-            
-            # Create backup
-            backup_filename = f"{self.csv_filename}.backup.{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-            with open(backup_filename, 'w', newline='', encoding='utf-8') as backupfile:
-                writer = csv.DictWriter(backupfile, fieldnames=existing_data[0].keys() if existing_data else [])
-                writer.writeheader()
-                writer.writerows(existing_data)
-            
-            logger.info(f"Created backup: {backup_filename}")
-            
-            # Add User ID to existing records
-            migrated_data = []
-            for row in existing_data:
-                if not row.get("User ID"):
-                    row["User ID"] = self._get_next_user_id()
-                migrated_data.append(row)
-            
-            # Write migrated data
-            with open(self.csv_filename, 'w', newline='', encoding='utf-8') as csvfile:
-                writer = csv.DictWriter(csvfile, fieldnames=self.headers)
-                writer.writeheader()
-                writer.writerows(migrated_data)
-            
-            # Invalidate cache
-            self._invalidate_cache()
-            
-            logger.info(f"Successfully migrated {len(migrated_data)} records with User IDs")
-            
-        except Exception as e:
-            logger.error(f"Error during CSV migration: {e}")
-            raise
 
     def _validate_email(self, email: str) -> bool:
         """Validate email format and presence."""
@@ -233,7 +166,7 @@ class UserMetadataHandler:
 
             # Prepare new row
             new_row = {
-                "User ID": self._get_next_user_id(),
+                "User ID": self._generate_unique_id(),
                 "Email": email,
                 "Date": datetime.now().strftime("%d/%m/%Y"),
                 "PDN Code": "",
@@ -258,14 +191,7 @@ class UserMetadataHandler:
             logger.error(f"Error appending metadata to CSV: {e}")
             return False
 
-    def read_all_metadata(self) -> List[Dict[str, str]]:
-        """
-        Read all metadata from CSV file with caching.
-        
-        Returns:
-            List of dictionaries containing user metadata
-        """
-        return self._read_csv_data()
+
 
 
 
@@ -481,31 +407,7 @@ class UserMetadataHandler:
 
 
 
-    def format_date_readable(self, date_str: str) -> str:
-        """
-        Convert date from YYYY-MM-DD format to DD/MM/YYYY format for better readability.
-        
-        Args:
-            date_str: Date string in YYYY-MM-DD format
-            
-        Returns:
-            Date string in DD/MM/YYYY format
-        """
-        try:
-            if not date_str or date_str.strip() == "":
-                return ""
-            
-            # Check if it's already in DD/MM/YYYY format
-            if "/" in date_str:
-                return date_str
-            
-            # Parse YYYY-MM-DD format and convert to DD/MM/YYYY
-            parsed_date = datetime.strptime(date_str.strip(), "%Y-%m-%d")
-            return parsed_date.strftime("%d/%m/%Y")
-            
-        except Exception as e:
-            logger.error(f"Error formatting date {date_str}: {e}")
-            return date_str
+
 
 
 

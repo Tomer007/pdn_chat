@@ -28,9 +28,7 @@ def send_pdn_code_email(user_answers: Dict[str, Any], pdn_code: str) -> bool:
             logger.error("No email address found in user answers")
             return False
 
-        # Get user name from answers
-        first_name = user_answers.get('metadata', {}).get('first_name', '')
-        last_name = user_answers.get('metadata', {}).get('last_name', '')
+
 
         # Create message
         msg = MIMEMultipart()
@@ -480,7 +478,7 @@ def send_pdn_code_email(user_answers: Dict[str, Any], pdn_code: str) -> bool:
                 </div>
                 
                 <div class="footer">
-                    <div class="footer-signature"קוד המקור</div>
+                    <div class="footer-signature">קוד המקור</div>
                     <div class="footer-text">PDN Team – Your Personal Source Code</div>
                     <div class="footer-tagline">הצופן האישי שלך</div>
                 </div>
