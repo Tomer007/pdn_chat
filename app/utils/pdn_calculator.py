@@ -16,31 +16,25 @@ def calculate_pdn_code(answers: dict) -> dict:
         'pdn_code': 'NA',
         'trait': 'Undetermined',
         'energy': 'Undetermined',
-        'scores': {'A': 0, 'T': 0, 'P': 0, 'E': 0, 'D': 0, 'S': 0, 'F': 0},
-        'explanation': ''
+        'scores': {'A': 0, 'T': 0, 'P': 0, 'E': 0, 'D': 0, 'S': 0, 'F': 0}
     }
 
     # Stage A: Primary Trait Calculation
-    trait_counts = {'A': 0, 'T': 0, 'P': 0, 'E': 0}
-    # answer = data.questions
     for i in range(1, 27):
         if str(i) in answers:
             answer = answers[str(i)]['selected_option_code']
             if answer == 'AP':
-                trait_counts['A'] += 0
-                trait_counts['P'] += 0
+                result['scores']['A'] += 1
+                result['scores']['P'] += 1
             elif answer == 'ET':
-                trait_counts['E'] += 0
-                trait_counts['T'] += 0
+                result['scores']['E'] += 1
+                result['scores']['T'] += 1
             elif answer == 'AE':
-                trait_counts['A'] += 1
-                trait_counts['E'] += 1
+                result['scores']['A'] += 1
+                result['scores']['E'] += 1
             elif answer == 'TP':
-                trait_counts['T'] += 1
-                trait_counts['P'] += 1
-
-    for trait, score in trait_counts.items():
-        result['scores'][trait] += score
+                result['scores']['T'] += 1
+                result['scores']['P'] += 1
     dominant_trait = max(result['scores'], key=result['scores'].get)
     result['trait'] = dominant_trait
 
@@ -84,14 +78,13 @@ def calculate_pdn_code(answers: dict) -> dict:
             score_adjustment = abs(difference)
 
             if difference > 0:
-                result['scores'][trait1] += score_adjustment
-                result['scores'][trait2] -= score_adjustment
+                result['scores'][trait1] += 1
+                #result['scores'][trait2] -= 1
             elif difference < 0:
-                result['scores'][trait1] -= score_adjustment
-                result['scores'][trait2] += score_adjustment
+                #result['scores'][trait1] -= 1
+                result['scores'][trait2] += 1
 
-    # for trait, score in trait_counts.items():
-    #     result['scores'][trait] += score
+
     dominant_trait = max(result['scores'], key=result['scores'].get)
     result['trait'] = dominant_trait
 
@@ -116,18 +109,18 @@ def calculate_pdn_code(answers: dict) -> dict:
 
                 if difference > 0:
                     # Add points to both traits in the winning combination
-                    result['scores'][combo1[0]] += score_adjustment
-                    result['scores'][combo1[1]] += score_adjustment
+                    result['scores'][combo1[0]] += 1
+                    result['scores'][combo1[1]] += 1 
                     # Subtract points from both traits in the losing combination
-                    result['scores'][combo2[0]] -= score_adjustment / 2
-                    result['scores'][combo2[1]] -= score_adjustment / 2
+                    #result['scores'][combo2[0]] -= 1
+                    #result['scores'][combo2[1]] -= 1
                 elif difference < 0:
                     # Add points to both traits in the winning combination
-                    result['scores'][combo2[0]] += score_adjustment
-                    result['scores'][combo2[1]] += score_adjustment
+                    result['scores'][combo2[0]] += 1
+                    result['scores'][combo2[1]] += 1
                     # Subtract points from both traits in the losing combination
-                    result['scores'][combo1[0]] -= score_adjustment / 2
-                    result['scores'][combo1[1]] -= score_adjustment / 2
+                    #result['scores'][combo1[0]] -= 1
+                    #result['scores'][combo1[1]] -= 1
 
     # Recalculate dominant trait after all adjustments
     dominant_trait = max(result['scores'], key=result['scores'].get)
@@ -139,7 +132,7 @@ def calculate_pdn_code(answers: dict) -> dict:
     logger.info("Stage D: Trait Calculation for E %s", result['scores']['E'])
     logger.info("Stage D dominant trait %s", dominant_trait)
 
-    # StageE: Strengthen Dominant Trait
+    # Stage E: Strengthen Dominant Trait
     for i in range(57, 60):
         if str(i) in answers:
             ranking = answers[str(i)]['ranking']

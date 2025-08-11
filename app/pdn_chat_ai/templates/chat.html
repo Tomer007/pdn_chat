@@ -239,59 +239,7 @@
             border: 1px solid rgba(251, 191, 36, 0.3);
         }
 
-        /* Recording indicator */
-        .recording-indicator {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            padding: 16px;
-            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-            border-radius: 16px;
-            color: #dc2626;
-            font-size: 14px;
-            animation: pulse 2s infinite;
-            max-width: 400px;
-            margin-bottom: 16px;
-            border: 2px solid rgba(220, 38, 38, 0.2);
-        }
 
-        [data-theme="dark"] .recording-indicator {
-            background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 100%);
-            color: #fca5a5;
-            border: 2px solid rgba(252, 165, 165, 0.2);
-        }
-
-        .recording-indicator .recording-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 600;
-        }
-
-        .recording-indicator .recording-time {
-            background: rgba(220, 38, 38, 0.1);
-            padding: 4px 8px;
-            border-radius: 8px;
-            font-family: monospace;
-            font-weight: bold;
-        }
-
-        .recording-indicator .transcription-text {
-            margin-top: 8px;
-            font-size: 14px;
-            line-height: 1.4;
-            color: #6b7280;
-            max-height: 100px;
-            overflow-y: auto;
-            padding: 8px;
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 8px;
-        }
-
-        [data-theme="dark"] .recording-indicator .transcription-text {
-            background: rgba(0, 0, 0, 0.3);
-            color: #d1d5db;
-        }
 
         .typing-dots {
             display: flex;
@@ -593,27 +541,7 @@
             to { transform: rotate(360deg); }
         }
 
-        /* File upload area */
-        .file-upload-area {
-            display: none;
-            padding: 16px;
-            background: rgba(255, 255, 255, 0.9);
-            border: 2px dashed rgba(99, 102, 241, 0.3);
-            border-radius: 12px;
-            margin: 8px 0;
-            text-align: center;
-            color: var(--text-secondary);
-        }
 
-        [data-theme="dark"] .file-upload-area {
-            background: rgba(31, 41, 55, 0.9);
-            border: 2px dashed rgba(129, 140, 248, 0.3);
-        }
-
-        .file-upload-area.dragover {
-            border-color: var(--primary-color);
-            background: rgba(99, 102, 241, 0.1);
-        }
 
         /* Animations */
         @keyframes slideIn {
@@ -753,18 +681,7 @@
             }
         }
 
-        /* Screen reader only text */
-        .sr-only {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            white-space: nowrap;
-            border: 0;
-        }
+
 
         /* Custom confirmation modal 1 */
         .confirmation-modal {
@@ -808,34 +725,9 @@
             transform: scale(1) translateY(0);
         }
 
-        .confirmation-content::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: #0b2e6b;
-        }
 
-        .confirmation-icon {
-            width: 64px;
-            height: 64px;
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 28px;
-            color: #d97706;
-            box-shadow: 0 8px 20px rgba(217, 119, 6, 0.2);
-        }
 
-        [data-theme="dark"] .confirmation-icon {
-            background: linear-gradient(135deg, #451a03 0%, #78350f 100%);
-            color: #fbbf24;
-        }
+
 
         .confirmation-title {
             font-size: 1.5rem;
@@ -944,38 +836,7 @@
             }
         }
 
-        /* Recording microphone button */
-        .action-button.recording {
-            background: linear-gradient(135deg, #0b2e6b 0%, #0a2a5f 100%);
-            border-color: #0b2e6b;
-            animation: pulse 1.5s ease-in-out infinite;
-            box-shadow: 0 0 20px rgba(11, 46, 107, 0.5);
-        }
 
-        .action-button.recording:hover {
-            background: linear-gradient(135deg, #0a2a5f 0%, #092a5a 100%);
-            transform: scale(1.05);
-        }
-
-        .action-button.recording i {
-            color: white;
-        }
-
-        /* Recording indicator animation */
-        @keyframes recordingPulse {
-            0%, 100% {
-                box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
-                transform: scale(1);
-            }
-            50% {
-                box-shadow: 0 0 30px rgba(239, 68, 68, 0.8);
-                transform: scale(1.05);
-            }
-        }
-
-        .action-button.recording {
-            animation: recordingPulse 1.5s ease-in-out infinite;
-        }
 
         /* Transcription feedback */
         .transcription-feedback {
@@ -1401,33 +1262,7 @@
             });
         }
 
-        // Enhanced scroll to bottom with delay
-        function scrollToBottomDelayed(delay = 100, force = false) {
-            setTimeout(() => {
-                scrollToBottom(force);
-            }, delay);
-        }
 
-        // Smooth scroll to bottom
-        function smoothScrollToBottom(force = false) {
-            const chatContainer = document.getElementById('chatContainer');
-            if (!chatContainer) return;
-            
-            // Don't auto-scroll if user manually scrolled up (unless forced)
-            if (userScrolledUp && !force) {
-                return;
-            }
-            
-            const lastMessage = chatContainer.lastElementChild;
-            if (lastMessage) {
-                lastMessage.scrollIntoView({ 
-                    behavior: 'smooth', 
-                    block: 'end',
-                    inline: 'nearest'
-                });
-                userScrolledUp = false; // Reset flag after auto-scrolling
-            }
-        }
 
         function handleKeyPress(event) {
             if (event.key === 'Enter' && !event.shiftKey) {
@@ -1639,7 +1474,7 @@
             `;
 
             chatContainer.appendChild(userBubble);
-            scrollToBottomDelayed(50, true); // Force scroll for new user message
+            scrollToBottom(true); // Force scroll for new user message
 
             // Show typing indicator
             const typing = document.createElement("div");
@@ -1653,7 +1488,7 @@
                 </div>
             `;
             chatContainer.appendChild(typing);
-            scrollToBottomDelayed(50, true); // Force scroll for typing indicator
+            scrollToBottom(true); // Force scroll for typing indicator
 
             try {
                 const res = await fetch("/pdn-chat-ai/chat", {
@@ -1686,11 +1521,11 @@
                 `;
 
                 chatContainer.appendChild(botBubble);
-                scrollToBottomDelayed(100, true); // Force scroll for bot message
+                scrollToBottom(true); // Force scroll for bot message
 
                 // Add quick reply buttons for bot messages
                 addQuickReplies(botBubble);
-                scrollToBottomDelayed(200, true); // Force scroll after quick replies
+                scrollToBottom(true); // Force scroll after quick replies
 
             } catch (error) {
                 console.error('Error sending message:', error);
@@ -1877,8 +1712,7 @@
                 // Focus on input
                 document.getElementById("userInput").focus();
                 
-                // Load chat history
-                loadChatHistory();
+
                 
             } catch (error) {
                 console.error('Initialization error:', error);
@@ -1886,36 +1720,7 @@
             }
         });
 
-        // Load chat history with error handling
-        async function loadChatHistory() {
-            try {
-                const response = await fetch('/pdn-chat-ai/history');
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const history = await response.json();
-                
-                if (history.messages && history.messages.length > 0) {
-                    const chatContainer = document.getElementById("chatContainer");
-                    
-                    history.messages.forEach(msg => {
-                        const bubble = document.createElement("div");
-                        bubble.className = `chat-bubble ${msg.type} animated`;
-                        bubble.innerHTML = `
-                            <div class="message-content">${safeMarkdownParse(msg.content)}</div>
-                            <div class="message-time">${msg.timestamp}</div>
-                        `;
-                        chatContainer.appendChild(bubble);
-                    });
-                    scrollToBottom();
-                }
-            } catch (error) {
-                console.error('Error loading chat history:', error);
-                // Don't show error for history loading failure
-            }
-        }
+
 
         // Configure marked for security
         if (typeof marked !== 'undefined') {
@@ -1929,26 +1734,7 @@
         }
     </script>
 
-    <!-- Custom Confirmation Modal -->
-    <div class="confirmation-modal" id="confirmationModal">
-        <div class="confirmation-content">
-            <div class="confirmation-icon">
-                <i class="fas fa-question"></i>
-            </div>
-            <h3 class="confirmation-title">סיים שיחה</h3>
-            
-            <div class="confirmation-buttons">
-                <button class="confirmation-btn cancel" onclick="hideConfirmationModal()">
-                    <i class="fas fa-times"></i>
-                    ביטול
-                </button>
-                <button class="confirmation-btn confirm" onclick="confirmLogout()">
-                    <i class="fas fa-check"></i>
-                    אישור
-                </button>
-            </div>
-        </div>
-    </div>
+
 {% include 'partials/footer.html' %}
 </body>
 </html> 

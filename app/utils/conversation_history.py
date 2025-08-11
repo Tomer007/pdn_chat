@@ -1,6 +1,6 @@
 import json
 import os
-from datetime import datetime
+import logging
 from typing import List, Dict
 from .constants import ConversationConstants
 
@@ -31,7 +31,6 @@ class ConversationHistory:
             
             # Add new message-response pair
             message_entry = {
-                "timestamp": datetime.now().isoformat(),
                 "message": message,
                 "response": response,
                 "user_name": user_name
@@ -47,7 +46,7 @@ class ConversationHistory:
             self._save_history(user_id, history)
             
         except Exception as e:
-            print(f"Error adding message to history: {e}")
+            logging.error(f"Error adding message to history: {e}")
     
     def get_history(self, user_id: str) -> List[Dict]:
         """
@@ -71,7 +70,7 @@ class ConversationHistory:
             return history if isinstance(history, list) else []
             
         except Exception as e:
-            print(f"Error loading conversation history: {e}")
+            logging.error(f"Error loading conversation history: {e}")
             return []
     
     def get_conversation_context(self, user_id: str) -> str:
@@ -93,7 +92,6 @@ class ConversationHistory:
         for entry in history:
             user_msg = entry.get('message', '')
             ai_response = entry.get('response', '')
-            timestamp = entry.get('timestamp', '')
             
             context_parts.append(f"User: {user_msg}")
             context_parts.append(f"Assistant: {ai_response}")
@@ -119,7 +117,7 @@ class ConversationHistory:
             return True
             
         except Exception as e:
-            print(f"Error clearing conversation history: {e}")
+            logging.error(f"Error clearing conversation history: {e}")
             return False
     
     def _save_history(self, user_id: str, history: List[Dict]) -> None:
@@ -131,7 +129,7 @@ class ConversationHistory:
                 json.dump(history, f, ensure_ascii=False, indent=2)
                 
         except Exception as e:
-            print(f"Error saving conversation history: {e}")
+            logging.error(f"Error saving conversation history: {e}")
 
 # Global instance
 conversation_history = ConversationHistory() 
