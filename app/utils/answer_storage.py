@@ -14,8 +14,7 @@ def save_answer(email: str, question_number: int, answer_data: dict, question_te
     """Save a single answer to the user's temp file."""
 
     # Create filename
-    file_extension = ".json"
-    filename = f"{email}_answers{file_extension}"
+    filename = f"{email}_answers.json"
 
     file_path = pdn_file_path.get_user_file_path(email, filename)
 
@@ -46,51 +45,29 @@ def load_answers(email: str) -> Optional[Dict[str, Any]]:
     Load user answers from a JSON file
     """
     try:
-        # Try to load the complete answers file first (with underscore suffix)
-        file_extension = ".json"
-        complete_filename = f"{email}_answers_{file_extension}"
-        complete_file_path = pdn_file_path.get_user_file_path(email, complete_filename)
-
-        # If complete file exists, load it
-        if os.path.exists(complete_file_path) and not os.path.isdir(complete_file_path):
-            with open(complete_file_path, "r", encoding="utf-8") as f:
-                answers = json.load(f)
-                print(f"Successfully loaded complete answers for {email}")
-                return answers
-
-        # Fallback to regular answers file
-        filename = f"{email}_answers{file_extension}"
+        filename = f"{email}_answers.json"
         file_path = pdn_file_path.get_user_file_path(email, filename)
 
         # Check if the path exists and is a file (not a directory)
         if not os.path.exists(file_path):
-            print(f"Answers file not found for {email}")
             return None
 
         if os.path.isdir(file_path):
-            print(f"Path exists but is a directory, not a file: {file_path}")
             # Try to remove the directory if it exists
             try:
                 os.rmdir(file_path)
-                print(f"Removed directory: {file_path}")
-            except OSError as e:
-                print(f"Could not remove directory {file_path}: {e}")
+            except OSError:
+                pass
             return None
 
         # Load the JSON file
         with open(file_path, "r", encoding="utf-8") as f:
             answers = json.load(f)
-            print(f"Successfully loaded answers for {email}")
             return answers
 
-    except FileNotFoundError:
-        print(f"Answers file not found for {email}")
+    except (FileNotFoundError, json.JSONDecodeError):
         return None
-    except json.JSONDecodeError as e:
-        print(f"Error decoding JSON for {email}: {e}")
-        return None
-    except Exception as e:
-        print(f"Error loading answers for {email}: {e}")
+    except Exception:
         return None
 
 
@@ -106,8 +83,7 @@ def save_user_metadata(metadata: Dict[str, Any], email: str = None) -> None:
         raise ValueError("Email is required to save user metadata")
 
     # Create filename
-    file_extension = ".json"
-    filename = f"{email}_answers{file_extension}"
+    filename = f"{email}_answers.json"
 
     file_path = pdn_file_path.get_user_file_path(email, filename)
 

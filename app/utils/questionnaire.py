@@ -1,8 +1,7 @@
 import json
+import logging
 
-
-# Temporary dictionary to store user answers in memory
-user_answers = {}
+logger = logging.getLogger(__name__)
 
 
 def get_question(question_number: int, questions: dict):
@@ -13,15 +12,15 @@ def get_question(question_number: int, questions: dict):
 
     # Check Part A questions (1-26)
     if 1 <= question_number <= 26:
-        print("Part A")
+        logger.debug("Part A")
         phase = "PartA"
     # Check Part B questions (27-37)
     elif 27 <= question_number <= 37:
-        print("Part B")
+        logger.debug("Part B")
         phase = "PartB"
     # Check Part C questions (38-42)
     elif 38 <= question_number <= 42:
-        print("Part C")
+        logger.debug("Part C")
         phase = "PartC"
     # Check Part D questions (43-56)
     elif 43 <= question_number <= 56:

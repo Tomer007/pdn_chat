@@ -183,17 +183,6 @@ def admin_logout():
     return jsonify({"success": True, "message": "Logout successful"})
 
 
-@pdn_admin_bp.route('/metadata')
-def get_metadata():
-    """Get metadata CSV data"""
-    logger.debug("GET /pdn-admin/metadata called")
-    logger.info("Request: %s %s", request.method, request.url)
-    logger.info("Response: %s", 200)
-
-    # For now, allow access without session token for the dashboard
-    # In production, you should implement proper session management
-    return jsonify({"data": get_user_metadata()})
-
 
 @pdn_admin_bp.route('/metadata/csv')
 def get_metadata_csv():
@@ -440,7 +429,7 @@ def send_user_email(email):
             return jsonify({"error": "Could not calculate PDN code"}), 400
 
         # Send email
-        email_sent = "send_pdn_code_email(user_answers, pdn_code)"
+        email_sent = send_pdn_code_email(user_answers, pdn_code)
 
         if email_sent:
             return jsonify({

@@ -11,8 +11,6 @@
     <style>
         :root {
             --primary-color: #0b2e6b;
-            --secondary-color: #0b2e6b;
-            --accent-color: #0b2e6b;
             --text-primary: #1f2937;
             --text-secondary: #6b7280;
             --shadow-color: rgba(0, 0, 0, 0.1);
@@ -81,27 +79,6 @@
 
         .fade-in {
             animation: fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) both;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
         }
 
         /* Mobile responsiveness */

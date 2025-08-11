@@ -11,8 +11,6 @@
     <style>
         :root {
             --primary-color: #0b2e6b;
-            --secondary-color: #0b2e6b;
-            --accent-color: #0b2e6b;
             --text-primary: #1f2937;
             --text-secondary: #6b7280;
             --shadow-color: rgba(0, 0, 0, 0.1);
@@ -61,14 +59,7 @@
         .table-container::-webkit-scrollbar-thumb:hover {
             background: #0a2a5f;
         }
-        .btn-primary {
-            background: linear-gradient(135deg, #0b2e6b 0%, #0a2a5f 100%);
-            transition: all 0.3s ease;
-        }
-        .btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(11, 46, 107, 0.4);
-        }
+
         .btn-success {
             background: linear-gradient(135deg, #0b2e6b 0%, #0a2a5f 100%);
         }
@@ -177,46 +168,7 @@
         .action-btn.email:hover {
             background: linear-gradient(135deg, #0a2a5f 0%, #092a5a 100%);
         }
-        .tooltip {
-            position: relative;
-            display: inline-block;
-        }
-        .tooltip::before {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: 125%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.9);
-            color: white;
-            padding: 6px 10px;
-            border-radius: 6px;
-            font-size: 12px;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-            z-index: 9999;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-        .tooltip::after {
-            content: '';
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            margin-left: -5px;
-            border-width: 5px;
-            border-style: solid;
-            border-color: rgba(0, 0, 0, 0.9) transparent transparent transparent;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-            z-index: 9999;
-        }
-        .tooltip:hover::before,
-        .tooltip:hover::after {
-            opacity: 1;
-        }
+
         .search-input {
             background: rgba(255, 255, 255, 0.9);
             border: 1px solid #d1d5db;
@@ -1984,11 +1936,6 @@ function downloadTableAsCsv(data) {
     link.click();
     document.body.removeChild(link);
 }
-
 </script>
 </body>
-<div class="card p-8 rounded-2xl">
-    <!-- Footer -->
-    {% include 'partials/footer.html' %}
-</div>
 </html> 

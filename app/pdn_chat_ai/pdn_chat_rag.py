@@ -1,11 +1,10 @@
-from langchain_community.document_loaders import TextLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_community.vectorstores import Chroma
-from langchain.chains import  LLMChain
+
 from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
 from pathlib import Path
-from langchain.document_loaders import PyPDFLoader, UnstructuredWordDocumentLoader
+from langchain_community.document_loaders import PyPDFLoader, UnstructuredWordDocumentLoader
 import os
 import logging
 from ..utils.conversation_history import conversation_history
@@ -100,7 +99,7 @@ class PDNRAG:
 
         # Setup the LLM with system prompt
         self.llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.5)
-        self.qa_chain = LLMChain(llm=self.llm, prompt=self.prompt)
+        self.qa_chain = self.prompt | self.llm
 
         logger.info("RAG setup complete.")
 
@@ -141,7 +140,7 @@ class PDNRAG:
         logger.info(f"Querying: {user_query}{user_info}")  
         try:
             # Retrieve relevant documents
-            docs = self.retriever.get_relevant_documents(user_query)
+            docs = self.retriever.invoke(user_query)
             
             # Combine context from documents
             context = "\n\n".join([doc.page_content for doc in docs])
@@ -162,7 +161,7 @@ class PDNRAG:
             # Generate response using the LLM chain
             input_data = {"context": context, "question": enhanced_question}
             llm_response = self.qa_chain.invoke(input_data)
-            response_text = llm_response["text"]
+            response_text = llm_response.content
             logger.debug(f"LLM response: {llm_response}")
             
             # Store conversation history if user_id is provided

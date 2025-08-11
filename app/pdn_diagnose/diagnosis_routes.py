@@ -1,17 +1,15 @@
-import json
-import logging
-import os
-from collections import defaultdict
+
+
 
 from flask import Blueprint, request, render_template, jsonify, session, current_app
-from werkzeug.exceptions import HTTPException
+
 
 from ..utils.answer_storage import load_answers, save_user_metadata, save_answer
 from ..utils.pdn_calculator import calculate_pdn_code
 from ..utils.questionnaire import get_question
 from ..utils.report_generator import load_pdn_report
 from .logger import setup_logger
-from ..utils.email_sender import send_pdn_code_email
+
 
 # Setup logger
 logger = setup_logger()
@@ -21,30 +19,22 @@ pdn_diagnose_bp = Blueprint('pdn_diagnose', __name__,
                            template_folder='templates',
                            static_folder='static')
 
-# Temporary dictionary to store user answers in memory
-user_answers = defaultdict(dict)
-api_usage = defaultdict(int)
+
 
 @pdn_diagnose_bp.route('/')
 def home():
     """Home page endpoint - login page"""
     logger.debug("GET /pdn-diagnose/ called")
-    api_usage["home"] += 1
-    logger.debug(f"API Usage: {dict(api_usage)}")
     logger.info("Request: %s %s", request.method, request.url)
     logger.info("Response: %s", 200)
-    logger.info("User answers: %s", user_answers)
     return render_template("diagnose_login.html")
 
 @pdn_diagnose_bp.route('/user_info')
 def user_info_page():
     """User information page endpoint"""
     logger.debug("GET /pdn-diagnose/user_info called")
-    api_usage["user_info"] += 1
-    logger.debug(f"API Usage: {dict(api_usage)}")
     logger.info("Request: %s %s", request.method, request.url)
     logger.info("Response: %s", 200)
-    logger.info("User answers: %s", user_answers)
     
     email = session.get("email", "anonymous")
     
@@ -62,8 +52,6 @@ def user_info_page():
 def save_user_info_api():
     """Save user information endpoint"""
     logger.debug("POST /pdn-diagnose/user_info called")
-    api_usage["save_user_info"] += 1
-    logger.debug(f"API Usage: {dict(api_usage)}")
     logger.info("Request: %s %s", request.method, request.url)
     logger.info("Response: %s", 200)
     
@@ -81,8 +69,6 @@ def save_user_info_api():
 def login_user():
     """User login endpoint"""
     logger.debug("POST /pdn-diagnose/login called")
-    api_usage["login"] += 1
-    logger.debug(f"API Usage: {dict(api_usage)}")
     logger.info("Request: %s %s", request.method, request.url)
     logger.info("Response: %s", 200)
     
@@ -101,8 +87,6 @@ def login_user():
 def get_question_route(question_number):
     """Get specific question by number"""
     logger.debug(f"GET /pdn-diagnose/questionnaire/{question_number} called")
-    api_usage[f"get_question_{question_number}"] += 1
-    logger.debug(f"API Usage: {dict(api_usage)}")
     logger.info("Request: %s %s", request.method, request.url)
     logger.info("Response: %s", 200)
 
@@ -114,8 +98,6 @@ def get_question_route(question_number):
 def submit_answer_route():
     """Submit answer for a question"""
     logger.debug("POST /pdn-diagnose/answer called")
-    api_usage["submit_answer"] += 1
-    logger.debug(f"API Usage: {dict(api_usage)}")
     logger.info("Request: %s %s", request.method, request.url)
     logger.info("Response: %s", 200)
     
@@ -171,9 +153,6 @@ def submit_answer_route():
             logger.error(f"Error saving answer: {save_error}")
             return jsonify({"error": f"Failed to save answer: {str(save_error)}"}), 500
         
-        # Store in memory for current session
-        user_answers[email][question_number] = answer_data
-        
         return jsonify({"message": "Answer saved successfully"})
     except Exception as e:
         logger.error(f"Error submitting answer: {e}")
@@ -183,8 +162,6 @@ def submit_answer_route():
 def complete_questionnaire():
     """Complete questionnaire and calculate PDN code"""
     logger.debug("POST /pdn-diagnose/complete_questionnaire called")
-    api_usage["complete_questionnaire"] += 1
-    logger.debug(f"API Usage: {dict(api_usage)}")
     logger.info("Request: %s %s", request.method, request.url)
     logger.info("Response: %s", 200)
     
@@ -227,8 +204,6 @@ def complete_questionnaire():
 def pdn_report():
     """PDN report page"""
     logger.debug("GET /pdn-diagnose/pdn_report called")
-    api_usage["pdn_report"] += 1
-    logger.debug(f"API Usage: {dict(api_usage)}")
     logger.info("Request: %s %s", request.method, request.url)
     logger.info("Response: %s", 200)
     
@@ -287,26 +262,12 @@ def get_report_data():
         logger.error(f"Error getting report data: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
 
-@pdn_diagnose_bp.route('/get_user_name')
-def get_user_name():
-    """Get user name from session"""
-    logger.debug("GET /pdn-diagnose/get_user_name called")
-    api_usage["get_user_name"] += 1
-    logger.debug(f"API Usage: {dict(api_usage)}")
-    logger.info("Request: %s %s", request.method, request.url)
-    logger.info("Response: %s", 200)
-    
-    # TODO: Get user name from session or database
-    user_data = session.get('user_data', {})
-    user_name = user_data.get('first_name', 'User')
-    return jsonify({"user_name": user_name})
+
 
 @pdn_diagnose_bp.route('/chat')
 def chat():
     """Chat page for diagnose questionnaire"""
     logger.debug("GET /pdn-diagnose/chat called")
-    api_usage["chat"] += 1
-    logger.debug(f"API Usage: {dict(api_usage)}")
     logger.info("Request: %s %s", request.method, request.url)
     logger.info("Response: %s", 200)
     
@@ -321,46 +282,4 @@ def chat():
                          user_id=user_id,
                          email=email)
 
-@pdn_diagnose_bp.route('/send_email', methods=['POST'])
-def send_pdn_email():
-    """Send PDN report email to user"""
-    logger.debug("POST /pdn-diagnose/send_email called")
-    api_usage["send_email"] += 1
-    logger.debug(f"API Usage: {dict(api_usage)}")
-    logger.info("Request: %s %s", request.method, request.url)
-    logger.info("Response: %s", 200)
-    
-    try:
-        email = session.get('email', 'anonymous')
-        user_answers_data = load_answers(email)
-        
-        if not user_answers_data:
-            return jsonify({"error": "No answers found"}), 400
-        
-        # Calculate PDN code
-        pdn_code = calculate_pdn_code(user_answers_data)
-        
-        if not pdn_code:
-            return jsonify({"error": "Could not calculate PDN code"}), 400
-        
-        # Load report data
-        report_data = load_pdn_report(pdn_code)
-        
-        if not report_data:
-            return jsonify({"error": "Could not load PDN report"}), 400
-        
-        # Send email
-        email_sent = send_pdn_code_email(user_answers_data, "pdn_code")
-        
-        if email_sent:
-            return jsonify({
-                "success": True,
-                "message": f"Email sent successfully to {email}",
-                "pdn_code": pdn_code
-            })
-        else:
-            return jsonify({"error": "Failed to send email"}), 500
-            
-    except Exception as e:
-        logger.error(f"Error sending email: {e}")
-        return jsonify({"error": f"Error sending email: {str(e)}"}), 500 
+ 
