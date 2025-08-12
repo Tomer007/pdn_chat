@@ -13,12 +13,12 @@ USERS_DATA = {
     'tomergur@gmail.com': {
         'password': 'pdn',
         'pdn_code': 'E5',
-        'name': 'Tomer Gur'
+        'name': 'תומר'
     },
     'pdncode@gmail.com': {
         'password': 'pdn',
         'pdn_code': 'A7',
-        'name': 'PDN Code'
+        'name': 'פנינה'
     }
 }
 
