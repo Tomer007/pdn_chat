@@ -447,50 +447,9 @@
             text-align: right;
         }
 
-        /* Improved logout button */
-        .logout-button {
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 16px;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            backdrop-filter: blur(10px);
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 14px;
-            min-height: 48px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
 
-        .logout-button:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-            border-color: rgba(255, 255, 255, 0.5);
-        }
 
-        .logout-button:active {
-            transform: translateY(0);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .logout-button:focus {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3), 0 8px 20px rgba(0, 0, 0, 0.2);
-        }
-
-        .logout-button i {
-            font-size: 18px;
-        }
-
-        .logout-text {
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
+        
 
         /* Error message styling */
         .error-message {
@@ -635,6 +594,8 @@
             .header-text {
                 text-align: center;
             }
+
+
 
             .logout-button {
                 padding: 10px 16px;
@@ -946,6 +907,8 @@
                     <p class="text-2xl opacity-90 text-white ">שיחה עם הנווט הפנימי</p>
                 </div>
             </div>
+            
+
         </div>
     </header>
 
@@ -996,9 +959,12 @@
         // Global variables
         const USER_NAME = "{{ user_name }}";
         const USER_ID = "{{ user_id }}";
+        const PDN_CODE = "{{ pdn_code }}";
         let isDarkMode = false;
         let messageQueue = [];
         let isProcessing = false;
+        
+
         
         // Voice recording variables
         let speechRecognition = null;
@@ -1500,7 +1466,8 @@
                     body: JSON.stringify({
                         message: sanitizeInput(message),
                         user_name: USER_NAME,
-                        user_id: USER_ID
+                        user_id: USER_ID,
+                        pdn_code: PDN_CODE
                     })
                 });
 
@@ -1593,19 +1560,39 @@
             }, 100);
         }
 
+
+
         function hideConfirmationModal() {
             const modal = document.getElementById('confirmationModal');
             modal.classList.remove('show');
             document.body.style.overflow = '';
         }
 
-        function confirmLogout() {
+        async function confirmLogout() {
             hideConfirmationModal();
             
-            // Clear session storage
-            sessionStorage.removeItem('username');
+            try {
+                // Call logout endpoint to clear server session
+                const response = await fetch('/pdn-chat-ai/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                if (response.ok) {
+                    console.log('Logout successful');
+                } else {
+                    console.warn('Failed to logout on server');
+                }
+            } catch (error) {
+                console.error('Error during logout:', error);
+            }
             
-            // Clear any stored chat data
+            // Clear local storage
+            localStorage.removeItem('binat_username');
+            localStorage.removeItem('binat_user_id');
+            localStorage.removeItem('binat_pdn_code');
             localStorage.removeItem('binat_chat_history');
             
             // Clear server-side chat history
@@ -1693,11 +1680,20 @@
                     chatContainer.addEventListener('scroll', checkUserScroll);
                 }
 
+                // Ensure we have the PDN code
+                let finalPdnCode = PDN_CODE;
+                if (!finalPdnCode || finalPdnCode === 'לא ידוע') {
+                    const storedPdnCode = localStorage.getItem('binat_pdn_code');
+                    if (storedPdnCode) {
+                        finalPdnCode = storedPdnCode;
+                    }
+                }
+
                 // Add welcome message
                 const initialBot = document.createElement("div");
                 initialBot.className = "chat-bubble bot animated";
                 
-                const rawMessage = `🌿 שלום ${USER_NAME},\nבינת מקוד המקור ממתינה לך כאן, בקצב שלך.\n\nאם יש שאלה שלא עוזבת, דפוס שחוזר, או תחושה לא פתורה –\nבוא נסתכל עליה יחד.\nבלי למהר. בלי לשפוט. רק להבין מה פועל בך עכשיו.`;
+                const rawMessage = `🌿 שלום ${USER_NAME}, קוד המקור שלך הוא ${finalPdnCode}\nבינת מקוד המקור ממתינה לך כאן, בקצב שלך.\n\nאם יש שאלה שלא עוזבת, דפוס שחוזר, או תחושה לא פתורה –\nבוא נסתכל עליה יחד.\nבלי למהר. בלי לשפוט. רק להבין מה פועל בך עכשיו.`;
                 const formattedMessage = rawMessage.replace(/\n/g, '<br>');
 
                 initialBot.innerHTML = `
@@ -1711,8 +1707,6 @@
 
                 // Focus on input
                 document.getElementById("userInput").focus();
-                
-
                 
             } catch (error) {
                 console.error('Initialization error:', error);
