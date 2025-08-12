@@ -457,7 +457,7 @@
 
             <div id="loginError" class="error-message">
                 <i class="fas fa-exclamation-triangle mr-2"></i>
-                <span>אנא הזן שם משתמש תקין (לפחות 2 תווים)</span>
+                <span>אנא הזן אימייל וסיסמה תקינים</span>
             </div>
 
             <!-- Disclaimer -->
@@ -488,8 +488,10 @@
         }
 
         // Function to show error message
-        function showError() {
+        function showError(message) {
             const loginError = document.getElementById('loginError');
+            const errorSpan = loginError.querySelector('span');
+            errorSpan.textContent = message;
             loginError.style.display = 'block';
         }
 
@@ -499,18 +501,22 @@
             loginError.style.display = 'none';
         }
 
-        // Function to validate username
-        function validateUsername() {
-            const usernameInput = document.getElementById('username');
+        // Function to validate form
+        function validateForm() {
+            const emailInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
             const submitButton = document.querySelector('.submit-button');
-            const username = usernameInput.value.trim();
+            const email = emailInput.value.trim();
+            const password = passwordInput.value.trim();
             
-            if (username.length < 2) {
-                showError();
+            // Basic email validation (must contain @ and have at least 5 characters)
+            const emailValid = email.length >= 5 && email.includes('@');
+            const passwordValid = password.length >= 1;
+            
+            if (!emailValid || !passwordValid) {
                 submitButton.disabled = true;
                 return false;
             } else {
-                hideError();
                 submitButton.disabled = false;
                 return true;
             }
@@ -531,7 +537,13 @@
         // Hide error when user starts typing
         document.getElementById('username').addEventListener('input', function() {
             hideError();
-            validateUsername();
+            validateForm();
+        });
+
+        // Hide error when password is entered
+        document.getElementById('password').addEventListener('input', function() {
+            hideError();
+            validateForm();
         });
 
         // Focus on username input when page loads
@@ -548,11 +560,21 @@
                 themeIcon.className = 'fas fa-sun';
             }
             
-            // Check if we have a stored username
+            // Check if user is already logged in
             const storedUsername = localStorage.getItem('binat_username');
+            const storedUserId = localStorage.getItem('binat_user_id');
+            const storedPdnCode = localStorage.getItem('binat_pdn_code');
+            
+            if (storedUsername && storedUserId && storedPdnCode) {
+                // User is already logged in, redirect to chat
+                window.location.href = `/pdn-chat-ai/chat-ai?user_name=${encodeURIComponent(storedUsername)}&user_id=${encodeURIComponent(storedUserId)}&pdn_code=${encodeURIComponent(storedPdnCode)}`;
+                return;
+            }
+            
+            // Check if we have a stored username for auto-fill
             if (storedUsername) {
                 usernameInput.value = storedUsername;
-                validateUsername();
+                validateForm();
             }
         });
 
@@ -560,25 +582,54 @@
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            if (validateUsername()) {
-                const usernameInput = document.getElementById('username');
-                const submitButton = document.querySelector('.submit-button');
-                const username = usernameInput.value.trim();
-                const userId = generateUUID();
+            const emailInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+            const submitButton = document.querySelector('.submit-button');
+            const email = emailInput.value.trim();
+            const password = passwordInput.value.trim();
+            
+            if (!email || !password) {
+                showError('אנא הזן אימייל וסיסמה');
+                return;
+            }
+            
+            // Show loading state
+            submitButton.classList.add('loading');
+            submitButton.disabled = true;
+            
+            try {
+                // Make API call to login endpoint
+                const response = await fetch('/pdn-chat-ai/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password
+                    })
+                });
                 
-                // Show loading state
-                submitButton.classList.add('loading');
-                submitButton.disabled = true;
+                const data = await response.json();
                 
-                // Store username in localStorage
-                localStorage.setItem('binat_username', username);
-                localStorage.setItem('binat_user_id', userId);
-                
-                // Simulate a small delay for better UX
-                setTimeout(() => {
-                    // Redirect to chat-ai with username URL-encoded
-                    window.location.href = `/pdn-chat-ai/chat-ai?user_name=${encodeURIComponent(username)}&user_id=${encodeURIComponent(userId)}`;
-                }, 800);
+                if (data.success) {
+                    // Store user data in localStorage
+                    localStorage.setItem('binat_username', data.user_name);
+                    localStorage.setItem('binat_user_id', data.user_id);
+                    localStorage.setItem('binat_pdn_code', data.pdn_code);
+                    
+                    // Redirect to chat-ai with user data including PDN code
+                    window.location.href = `/pdn-chat-ai/chat-ai?user_name=${encodeURIComponent(data.user_name)}&user_id=${encodeURIComponent(data.user_id)}&pdn_code=${encodeURIComponent(data.pdn_code)}`;
+                } else {
+                    showError(data.error || 'שגיאה בהתחברות');
+                    submitButton.classList.remove('loading');
+                    submitButton.disabled = false;
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showError('שגיאה בחיבור לשרת');
+                submitButton.classList.remove('loading');
+                submitButton.disabled = false;
             }
         });
 
