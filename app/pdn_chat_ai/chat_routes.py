@@ -19,7 +19,13 @@ USERS_DATA = {
         'password': 'pdn',
         'pdn_code': 'A7',
         'name': 'פנינה'
+    },
+    'orna@84zebras.co.il': {
+        'password': 'pdn',
+        'pdn_code': 'P10',
+        'name': 'אורנה'
     }
+
 }
 
 # Replace with this lazy initialization approach:
