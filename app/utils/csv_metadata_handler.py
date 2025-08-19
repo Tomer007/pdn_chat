@@ -30,7 +30,8 @@ class UserMetadataHandler:
             "PDN Voice Code",
             "Diagnose PDN Code",
             "Diagnose Comments",
-            "PDN Update Comments"
+            "PDN Update Comments",
+            "Referral Source"
         ]
 
         # Cache for frequently accessed data
@@ -173,7 +174,8 @@ class UserMetadataHandler:
                 "PDN Voice Code": "",
                 "Diagnose PDN Code": "",
                 "Diagnose Comments": "",
-                "PDN Update Comments": ""
+                "PDN Update Comments": "",
+                "Referral Source": user_data.get('referral_source', '')
             }
 
             # Add new row
