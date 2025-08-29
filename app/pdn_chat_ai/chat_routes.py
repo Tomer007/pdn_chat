@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 from flask import Blueprint, request, render_template, jsonify, session, current_app
-
+from .binat_agents.a7_agent import A7Agent
 from .logger import setup_logger
 from ..utils.conversation_history import conversation_history
 
@@ -24,6 +24,11 @@ USERS_DATA = {
         'password': 'pdn',
         'pdn_code': 'P10',
         'name': 'אורנה'
+    },
+    'info.dede.studio@gmail.com': {
+        'password': 'pdn',
+        'pdn_code': 'A7',
+        'name': 'דניאל'
     }
 
 }
@@ -119,6 +124,8 @@ def logout():
     logger.info("Request: %s %s", request.method, request.url)
     
     try:
+
+        A7Agent().clear_user_history(session.get('user_name'))
         # Clear session data
         session.clear()
         logger.info("User logged out successfully")
@@ -145,11 +152,6 @@ def chat_interface():
     user_id = session.get('user_id') or request.args.get('user_id', '')
     pdn_code = session.get('pdn_code') or request.args.get('pdn_code', '')
     
-    # Debug logging
-    logger.debug(f"Session data: user_name={session.get('user_name')}, user_id={session.get('user_id')}, pdn_code={session.get('pdn_code')}")
-    logger.debug(f"Query params: user_name={request.args.get('user_name')}, user_id={request.args.get('user_id')}, pdn_code={request.args.get('pdn_code')}")
-    logger.debug(f"Final values: user_name={user_name}, user_id={user_id}, pdn_code={pdn_code}")
-
     config = current_app.config.get('PDN_CONFIG', {})
     welcome_message = config.get("chatbots", {}).get("chatbot_PDN", {}).get("welcome_message", "ברוך הבא לבינת קוד המקור ")
 
@@ -161,52 +163,6 @@ def chat_interface():
         pdn_code=pdn_code,
         include_menu=True
     )
-
-
-@pdn_chat_ai_bp.route('/history')
-def get_chat_history():
-    """Get chat history for user"""
-    logger.debug("GET /pdn-chat-ai/history called")
-    logger.info("Request: %s %s", request.method, request.url)
-    logger.info("Response: %s", 200)
-
-    try:
-        # Get user_id from query parameters or session
-        user_id = request.args.get('user_id') or session.get('user_id', 'anonymous')
-        
-        # Get conversation history
-        history = conversation_history.get_history(user_id)
-        
-        return jsonify({"history": history})
-
-    except Exception as e:
-        logger.error(f"Error getting chat history: {e}")
-        return jsonify({"error": "Could not load chat history"}), 500
-
-
-@pdn_chat_ai_bp.route('/clear_history', methods=['POST'])
-def clear_chat_history():
-    """Clear chat history for user"""
-    logger.debug("POST /pdn-chat-ai/clear_history called")
-    logger.info("Request: %s %s", request.method, request.url)
-    logger.info("Response: %s", 200)
-
-    try:
-        data = request.get_json() or {}
-        user_id = data.get('user_id') or session.get('user_id', 'anonymous')
-
-        # Clear conversation history
-        success = conversation_history.clear_history(user_id)
-        
-        if success:
-            return jsonify({"message": "Chat history cleared successfully"})
-        else:
-            return jsonify({"error": "Could not clear chat history"}), 500
-
-    except Exception as e:
-        logger.error(f"Error clearing chat history: {e}")
-        return jsonify({"error": "Could not clear chat history"}), 500
-
 
 @pdn_chat_ai_bp.route('/chat', methods=['POST'])
 def chat_message():
@@ -221,36 +177,42 @@ def chat_message():
             
         message = data.get('message', '').strip()
         user_name = data.get('user_name', 'Anonymous')
-        user_id = data.get('user_id', '')
+        # user_id = data.get('user_id', '')
         pdn_code = data.get('pdn_code', '')
         
-        if not message:
-            return jsonify({"error": "Message cannot be empty"}), 400
-        
-        # Check if RAG system is available
-        rag = get_rag_system()
-        if rag is None:
-            logger.error("RAG system not initialized")
+        if pdn_code == "A7":
             return jsonify({
-                "error": "AI system not available. Please try again later.",
-                "response": "מערכת הבינה המלאכותית אינה זמינה כרגע. אנא נסה שוב מאוחר יותר."
-            }), 503
-        
-        # Generate AI response using RAG
-        try:
-            response = rag.retrieve(message, user_name, user_id, pdn_code)
-            logger.info("AI response generated successfully")
-            
-            return jsonify({
-                "response": response,
+                "response": A7Agent().get_response(message, user_name, pdn_code),
                 "timestamp": datetime.now().isoformat()
             })
-        except Exception as e:
-            logger.error(f"Error generating AI response: {e}")
-            return jsonify({
-                "error": "Failed to generate response",
-                "response": "מצטער, לא הצלחתי לעבד את השאלה שלך. אנא נסה שוב."
-            }), 500
+        else:
+            raise ValueError(f"Unknown PDN code: {pdn_code}")
+        
+
+        # # Check if RAG system is available
+        # rag = get_rag_system()
+        # if rag is None:
+        #     logger.error("RAG system not initialized")
+        #     return jsonify({
+        #         "error": "AI system not available. Please try again later.",
+        #         "response": "מערכת הבינה המלאכותית אינה זמינה כרגע. אנא נסה שוב מאוחר יותר."
+        #     }), 503
+        
+        # # Generate AI response using RAG
+        # try:
+        #     response = rag.retrieve(message, user_name, user_id, pdn_code)
+        #     logger.info("AI response generated successfully")
+            
+        #     return jsonify({
+        #         "response": response,
+        #         "timestamp": datetime.now().isoformat()
+        #     })
+        # except Exception as e:
+        #     logger.error(f"Error generating AI response: {e}")
+        #     return jsonify({
+        #         "error": "Failed to generate response",
+        #         "response": "מצטער, לא הצלחתי לעבד את השאלה שלך. אנא נסה שוב."
+        #     }), 500
 
     except Exception as e:
         logger.error(f"Error in chat: {e}")
