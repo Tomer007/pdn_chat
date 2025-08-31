@@ -795,6 +795,14 @@ async function loadMetadata() {
         if (response.ok) {
             const data = await response.json();
             currentData = data.data;
+            
+            // Sort data by date from newest to oldest (תאריך)
+            currentData.sort((a, b) => {
+                const dateA = new Date(a.date);
+                const dateB = new Date(b.date);
+                return dateB - dateA; // Newest first (descending order)
+            });
+            
             renderTable(currentData);
         } else if (response.status === 401) {
             // Session expired or invalid, redirect to login
