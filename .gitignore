@@ -1,7 +1,6 @@
 saved_results/
 logs
 secrets/
-secrets/
 .env
 .vscode/
 .idea/
@@ -10,7 +9,8 @@ flask_session/
 vscode/
 conversation_history/
 venv/
-venv/
 tests/
 chroma_db/
 pdn_rag.log
+a7_agent.log
+tests/
