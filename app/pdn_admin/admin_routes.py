@@ -577,3 +577,86 @@ def serve_audio(file_path):
     except Exception as e:
         logger.error(f"Error serving audio file: {e}")
         abort(500, description="Error serving audio file")
+
+
+@pdn_admin_bp.route('/download-json')
+def download_user_json():
+    """Download user's JSON answers file."""
+    logger.debug("GET /pdn-admin/download-json called")
+    logger.info("Request: %s %s", request.method, request.url)
+    
+    # Extract session token from query parameters
+    session_token = request.args.get('session_token')
+    if not session_token:
+        logger.warning("No session token provided")
+        abort(401, description="No session token provided")
+    
+    # Verify session
+    verify_session(session_token)
+    
+    # Extract admin password from query parameters
+    admin_password = request.args.get('admin_password')
+    if not admin_password:
+        logger.warning("No admin password provided")
+        abort(401, description="Admin password required")
+    
+    # Verify admin password (same as email sending functionality)
+    if admin_password != 'admin':
+        logger.warning("Invalid admin password provided")
+        response = jsonify({"error": "Invalid admin password"}), 401
+        response.headers['X-Error-Type'] = 'invalid_password'
+        return response
+    
+    # Get file path from query parameters
+    file_path = request.args.get('file_path')
+    if not file_path:
+        logger.warning("No file path provided")
+        abort(400, description="No file path provided")
+    
+    # Use the environment variable for saved_results directory
+    saved_results_dir = os.getenv('SAVED_RESULTS_DIR', 'saved_results')
+    
+    # Construct the full file path
+    if file_path.startswith('saved_results/'):
+        # Remove the 'saved_results/' prefix
+        relative_path = file_path.replace('saved_results/', '')
+        json_path = Path(saved_results_dir) / relative_path
+    else:
+        # Use the file_path as is
+        json_path = Path(saved_results_dir) / file_path
+    
+    logger.debug(f"Looking for JSON file at: {json_path.absolute()}")
+    
+    # Security check: ensure the path is within the allowed directory
+    try:
+        json_path = json_path.resolve()
+        saved_results_path = Path(saved_results_dir).resolve()
+        if not str(json_path).startswith(str(saved_results_path)):
+            logger.warning("Path traversal attempt detected")
+            abort(403, description="Access denied")
+    except Exception as e:
+        logger.error(f"Path resolution error: {e}")
+        abort(400, description="Invalid file path")
+    
+    # Check if file exists
+    if not json_path.exists():
+        logger.warning(f"JSON file not found: {json_path}")
+        abort(404, description="JSON file not found")
+    
+    # Check if it's a JSON file
+    if not json_path.suffix.lower() == '.json':
+        logger.warning(f"File is not a JSON file: {json_path}")
+        abort(400, description="File is not a JSON file")
+    
+    logger.debug(f"JSON file found, serving: {json_path}")
+    
+    try:
+        return send_file(
+            json_path,
+            mimetype='application/json',
+            as_attachment=True,
+            download_name=json_path.name
+        )
+    except Exception as e:
+        logger.error(f"Error serving JSON file: {e}")
+        abort(500, description="Error serving JSON file")

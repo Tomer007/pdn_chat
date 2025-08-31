@@ -495,6 +495,8 @@
     </div>
 </div>
 
+
+
 <!-- Enhanced Action Modal -->
 <div x-data="{ showActionModal: false, modalText: '', loadingBtn: '' }"
      x-show="showActionModal"
@@ -533,6 +535,20 @@ function getDiagnosisUserEmail() {
     // Fallback: try to find a visible email in the content
     const match = document.getElementById('questionnaireContent').innerText.match(/[\w.-]+@[\w.-]+/);
     return match ? match[0] : 'user';
+}
+
+// Main download function that handles multiple formats
+function downloadReport(format = 'pdf') {
+    switch(format) {
+        case 'pdf':
+            downloadDiagnosisAsPDF();
+            break;
+        case 'json':
+            downloadUserJSON();
+            break;
+        default:
+            alert('פורמט לא נתמך');
+    }
 }
 
 // Main PDF export function
@@ -640,6 +656,85 @@ function downloadDiagnosisAsPDF() {
     
     // Use html2pdf
     html2pdf().set(opt).from(reportContainer).save();
+}
+
+// Function to prompt for admin password (same logic as email sending)
+function promptAdminPassword() {
+    // Prompt for admin password using the same logic as email sending
+    const password = prompt('הזן סיסמת מנהל להורדת JSON:');
+    if (!password) {
+        return;
+    }
+    
+    if (password !== 'admin') {
+        showNotification('סיסמה שגויה', 'error');
+        return;
+    }
+    
+    // Download JSON with admin password
+    downloadUserJSON(password);
+}
+
+// JSON export function - downloads existing user JSON file
+async function downloadUserJSON(adminPassword) {
+    try {
+        // Get user email from the current modal
+        const userEmail = getDiagnosisUserEmail();
+        if (!userEmail) {
+            alert('לא ניתן לזהות את המשתמש');
+            return;
+        }
+        
+        // Convert email to folder name format (remove @ and . and convert to lowercase)
+        const folderName = userEmail.replace('@', '').replace('.', '').toLowerCase();
+        
+        // Construct the path to the user's JSON file
+        const jsonFilePath = `saved_results/${folderName}/${userEmail}_answers.json`;
+        
+        console.log('Attempting to download JSON from:', jsonFilePath);
+        
+        // Fetch the JSON file from the server with admin password
+        const response = await fetch(`/pdn-admin/download-json?file_path=${encodeURIComponent(jsonFilePath)}&session_token=${sessionToken}&admin_password=${encodeURIComponent(adminPassword)}`);
+        
+        if (response.ok) {
+            // Get the file content
+            const jsonContent = await response.json();
+            
+            // Create and download the file
+            const jsonString = JSON.stringify(jsonContent, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${userEmail}_answers.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            URL.revokeObjectURL(url);
+            
+            console.log('JSON file downloaded successfully');
+            
+        } else if (response.status === 401) {
+            if (response.headers.get('X-Error-Type') === 'invalid_password') {
+                alert('סיסמת מנהל שגויה. אנא נסה שוב.');
+            } else {
+                // Session expired, redirect to login
+                console.log('Session expired, redirecting to login');
+                localStorage.removeItem('adminSessionToken');
+                window.location.href = '/pdn-admin/';
+            }
+        } else if (response.status === 404) {
+            alert('קובץ ה-JSON לא נמצא. יתכן שהמשתמש לא השלים את השאלון.');
+        } else {
+            throw new Error(`Failed to download JSON: ${response.status}`);
+        }
+        
+    } catch (error) {
+        console.error('Error downloading JSON:', error);
+        alert('שגיאה בהורדת קובץ ה-JSON. אנא נסה שוב.');
+    }
 }
 
 // Helper function to get user metadata from the current data
@@ -1088,12 +1183,40 @@ function displayQuestionsWithText(questions, metadata, questionsData) {
                 <h3 class="text-2xl font-bold text-gray-800">
                     פרטי משתמש
                 </h3>
-                <button id="downloadPdfBtn"
-                    class="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-900 to-blue-900 text-white font-bold rounded-xl shadow-lg hover:from-blue-900 hover:to-blue-900 transition-all duration-300 text-base transform hover:scale-105"
-                    onclick="downloadDiagnosisAsPDF()">
-                    <i class="fas fa-file-arrow-down mr-2 text-lg"></i>
-                    הורד דוח
-                </button>
+                <div class="relative" x-data="{ open: false }">
+                    <button id="downloadPdfBtn"
+                        @click="open = !open"
+                        class="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-900 to-blue-900 text-white font-bold rounded-xl shadow-lg hover:from-blue-900 hover:to-blue-900 transition-all duration-300 text-base transform hover:scale-105">
+                        <i class="fas fa-file-arrow-down mr-2 text-lg"></i>
+                        הורד דוח
+                        <i class="fas fa-chevron-down mr-2 transition-transform" :class="{ 'rotate-180': open }"></i>
+                    </button>
+                    
+                    <div x-show="open" 
+                         @click.away="open = false"
+                         x-transition:enter="transition ease-out duration-100"
+                         x-transition:enter-start="transform opacity-0 scale-95"
+                         x-transition:enter-end="transform opacity-100 scale-100"
+                         x-transition:leave="transition ease-in duration-75"
+                         x-transition:leave-start="transform opacity-100 scale-100"
+                         x-transition:leave-end="transform opacity-0 scale-95"
+                         class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-blue-200 z-50">
+                        
+                        <div class="py-1">
+                            <button @click="open = false; downloadReport('pdf')" 
+                                    class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center">
+                                <i class="fas fa-file-pdf ml-2 text-red-500"></i>
+                                הורד PDF
+                            </button>
+                            
+                            <button @click="open = false; promptAdminPassword()" 
+                                    class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center">
+                                <i class="fas fa-file-code ml-2 text-green-500"></i>
+                                הורד JSON
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
