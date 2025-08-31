@@ -3,7 +3,6 @@ from datetime import datetime
 from flask import Blueprint, request, render_template, jsonify, session, current_app
 from .binat_agents.a7_agent import A7Agent
 from .logger import setup_logger
-from ..utils.conversation_history import conversation_history
 
 # Setup logger
 logger = setup_logger()
