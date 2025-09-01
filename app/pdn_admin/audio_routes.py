@@ -1,9 +1,7 @@
 import logging
-from datetime import datetime
 import os
 
 from flask import Blueprint, request, jsonify, send_file, Response
-from werkzeug.utils import secure_filename
 from werkzeug.exceptions import RequestedRangeNotSatisfiable
 
 from ..utils.pdn_file_path import PDNFilePath
@@ -96,44 +94,7 @@ def serve_audio(filename):
         return jsonify({"error": f"Internal server error: {str(e)}"}), 500
 
 
-@audio_bp.route('/api/save-audio', methods=['POST'])
-def save_audio():
-    """
-    Save user audio file to the backend server
-    """
-    try:
-        # Validate input
-        username = request.form.get('username')
-        audio = request.files.get('audio')
 
-        if not username or not username.strip():
-            return jsonify({"error": "Username is required"}), 400
-        if not audio:
-            return jsonify({"error": "Audio file is required"}), 400
-
-        pdn_file_path = PDNFilePath()
-        user_dir = pdn_file_path.get_user_dir(username)
-        user_dir.mkdir(parents=True, exist_ok=True)
-
-        # Use the filename sent from frontend (e.g., username_question1.wav)
-        filename = secure_filename(audio.filename) if audio.filename else f"{username}_audio.wav"
-        file_path = user_dir / filename
-
-        # Save the file
-        audio.save(file_path)
-        logger.info(f"Audio saved successfully: {file_path}")
-
-        return jsonify({
-            "success": True,
-            "message": "Audio saved successfully",
-            "file_path": str(file_path),
-            "filename": filename,
-            "username": username,
-            "timestamp": datetime.now().strftime("%Y%m%d_%H%M%S")
-        })
-    except Exception as e:
-        logger.error(f"Error saving audio: {str(e)}")
-        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
 
 
 
