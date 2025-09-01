@@ -394,7 +394,9 @@
                 <tr>
                     <th class="px-4 py-4 text-right font-semibold text-gray-700" title="מזהה מערכת">מזהה מערכת</th>
                     <th class="px-4 py-4 text-right font-semibold text-gray-700" title="אימייל">אימייל</th>
-                    <th class="px-4 py-4 text-right font-semibold text-gray-700" title="תאריך איבחון">תאריך</th>
+                    <th class="px-4 py-4 text-right font-semibold text-gray-700 cursor-pointer hover:bg-gray-50" title="תאריך איבחון" onclick="resortByDate()">
+                        תאריך <span class="text-blue-600 text-sm">↓</span>
+                    </th>
                     <th class="px-4 py-4 text-right font-semibold text-gray-700" title="קוד המערכת">קוד מערכת</th>                    
                     <th class="px-4 py-4 text-right font-semibold text-gray-700" title="ניתוח קול">ניתוח קול</th>
                     <th class="px-4 py-4 text-right font-semibold text-gray-700" title="קוד מאבחן">קוד מאבחן</th>
@@ -891,12 +893,56 @@ async function loadMetadata() {
             const data = await response.json();
             currentData = data.data;
             
+            // Helper function to parse dates in different formats
+            const parseDate = (dateStr) => {
+                if (!dateStr || dateStr === 'N/A' || dateStr === '') {
+                    return new Date(0); // Return epoch date for invalid dates
+                }
+                
+                // Try to parse different date formats
+                let date = new Date(dateStr);
+                
+                // If invalid date, try parsing Hebrew date format (DD/MM/YYYY)
+                if (isNaN(date.getTime())) {
+                    const parts = dateStr.split('/');
+                    if (parts.length === 3) {
+                        // Assume DD/MM/YYYY format
+                        date = new Date(parts[2], parts[1] - 1, parts[0]);
+                    }
+                }
+                
+                // If still invalid, return epoch date
+                if (isNaN(date.getTime())) {
+                    console.warn(`Could not parse date: ${dateStr}`);
+                    return new Date(0);
+                }
+                
+                return date;
+            };
+            
             // Sort data by date from newest to oldest (תאריך)
             currentData.sort((a, b) => {
-                const dateA = new Date(a.date);
-                const dateB = new Date(b.date);
-                return dateB - dateA; // Newest first (descending order)
+                const dateA = parseDate(a.date);
+                const dateB = parseDate(b.date);
+                
+                // Sort by date (newest first)
+                return dateB - dateA;
             });
+            
+            // Debug: Log the sorted dates and any parsing issues
+            const dateDebug = currentData.map(u => ({ 
+                email: u.email, 
+                date: u.date, 
+                parsed: parseDate(u.date),
+                isValid: !isNaN(parseDate(u.date).getTime())
+            }));
+            console.log('Initial date sorting:', dateDebug);
+            
+            // Log any dates that couldn't be parsed
+            const invalidDates = dateDebug.filter(d => !d.isValid);
+            if (invalidDates.length > 0) {
+                console.warn('Dates that could not be parsed:', invalidDates);
+            }
             
             renderTable(currentData);
         } else if (response.status === 401) {
@@ -1875,6 +1921,68 @@ document.addEventListener('keydown', function(event) {
         }
     }
 });
+
+// Function to re-sort data by date
+function resortByDate() {
+    if (!currentData || currentData.length === 0) {
+        console.log('No data to sort');
+        return;
+    }
+    
+    // Helper function to parse dates in different formats
+    const parseDate = (dateStr) => {
+        if (!dateStr || dateStr === 'N/A' || dateStr === '') {
+            return new Date(0); // Return epoch date for invalid dates
+        }
+        
+        // Try to parse different date formats
+        let date = new Date(dateStr);
+        
+        // If invalid date, try parsing Hebrew date format (DD/MM/YYYY)
+        if (isNaN(date.getTime())) {
+            const parts = dateStr.split('/');
+            if (parts.length === 3) {
+                // Assume DD/MM/YYYY format
+                date = new Date(parts[2], parts[1] - 1, parts[0]);
+            }
+        }
+        
+        // If still invalid, return epoch date
+        if (isNaN(date.getTime())) {
+            console.warn(`Could not parse date: ${dateStr}`);
+            return new Date(0);
+        }
+        
+        return date;
+    };
+    
+    // Toggle sort direction (newest first by default, then oldest first)
+    const dateHeader = document.querySelector('th[onclick="resortByDate()"]');
+    const currentDirection = dateHeader.querySelector('span').textContent;
+    
+    if (currentDirection === '↓') {
+        // Sort by date from oldest to newest
+        currentData.sort((a, b) => {
+            const dateA = parseDate(a.date);
+            const dateB = parseDate(b.date);
+            return dateA - dateB; // Oldest first
+        });
+        dateHeader.querySelector('span').textContent = '↑';
+    } else {
+        // Sort by date from newest to oldest
+        currentData.sort((a, b) => {
+            const dateA = parseDate(a.date);
+            const dateB = parseDate(b.date);
+            return dateB - dateA; // Newest first
+        });
+        dateHeader.querySelector('span').textContent = '↓';
+    }
+    
+    // Re-render the table with sorted data
+    renderTable(currentData);
+    
+    console.log('Data re-sorted by date:', currentData.map(u => ({ email: u.email, date: u.date, parsed: parseDate(u.date) })));
+}
 
 function showNotification(message, type = 'info') {
     // Create notification element
