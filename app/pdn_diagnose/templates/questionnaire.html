@@ -223,7 +223,7 @@
             <div class="bg-blue-900 border border-blue-200 rounded-lg p-3 mb-4">
                 <p class="text-sm text-white font-medium">
                     <i class="fas fa-info-circle mr-2"></i>
-                    <strong>חשוב:</strong> ההקלטה חייבת להיות בין דקה אחת לדקה וחצי (01:00-01:30)
+                    <strong>חשוב:</strong> ההקלטה חייבת להיות בין 60 שניות ל 90  שניות 
                 </p>
             </div>
             <div class="bg-white p-4 rounded border-r-4 border-blue-900">
@@ -264,7 +264,7 @@
         <div class="bg-blue-900 border border-blue-200 rounded-lg p-3 mb-4">
             <p class="text-sm text-white font-medium">
                 <i class="fas fa-info-circle mr-2"></i>
-                <strong>חשוב:</strong> ההקלטה חייבת להיות בין דקה אחת לדקה וחצי (01:00-01:30)
+                <strong>חשוב:</strong> ההקלטה חייבת להיות בין 60 שניות ל 90  שניות 
             </p>
         </div>
         <div class="bg-white p-4 rounded border-r-4 border-blue-900">
@@ -319,8 +319,14 @@ let nextData = null;
 let questionHistory = []; // Array to store question history
 let currentUsername = '{{ email }}' || 'anonymous'; // Get username from template
 
+// Add voice recording configuration variables
+const VOICE_MIN_DURATION = {{ voice_min_duration }};
+const VOICE_MAX_DURATION = {{ voice_max_duration }};
+
+// Update all hardcoded duration checks and UI text
+
 // Progress logic
-const totalQuestions = 65; // Based on phases A-F (1-65)
+const totalQuestions = 67; // Based on phases A-F (1-67)
 const totalSteps = 2 + totalQuestions; // 2 voice steps + questions
 let currentStepNumber = 1;
 
@@ -366,7 +372,7 @@ const uploadStatus = document.getElementById('uploadStatus');
 startBtn.onclick = async function() {
     audioChunks = [];
     recordingValid = false;
-    recordStatus.innerHTML = '<span class="recording">מקליט... (00:00 / 01:00-01:30)</span>';
+    recordStatus.innerHTML = '<span class="recording">מקליט... (00:00 / ' + formatTime(VOICE_MIN_DURATION) + '-' + formatTime(VOICE_MAX_DURATION) + ')</span>';
     startBtn.classList.add('hidden');
     stopBtn.classList.remove('hidden');
     stopBtn.innerText = 'סיים הקלטה';
@@ -398,7 +404,7 @@ startBtn.onclick = async function() {
             visualizer.innerHTML = '';
             
             // Check if recording duration is valid
-            if (recordElapsed >= 60 && recordElapsed <= 90) {
+            if (recordElapsed >= VOICE_MIN_DURATION && recordElapsed <= VOICE_MAX_DURATION) {
                 recordingValid = true;
                 recordStatus.innerHTML = '<span class="text-green-600 font-bold">✓ הקלטה תקינה (' + formatTime(recordElapsed) + ')</span>';
                 stopBtn.innerText = 'המשך לשאלה הבאה';
@@ -423,10 +429,10 @@ startBtn.onclick = async function() {
                 }
             } else {
                 recordingValid = false;
-                if (recordElapsed < 60) {
-                    recordStatus.innerHTML = '<span class="text-red-600 font-bold">✗ הקלטה קצרה מדי (' + formatTime(recordElapsed) + '). נדרש לפחות דקה אחת.</span>';
+                if (recordElapsed < VOICE_MIN_DURATION) {
+                    recordStatus.innerHTML = '<span class="text-red-600 font-bold">✗ הקלטה קצרה מדי (' + formatTime(recordElapsed) + '). נדרש לפחות ' + VOICE_MIN_DURATION + ' שניות.</span>';
                 } else {
-                    recordStatus.innerHTML = '<span class="text-red-600 font-bold">✗ הקלטה ארוכה מדי (' + formatTime(recordElapsed) + '). נדרש לכל היותר דקה וחצי.</span>';
+                    recordStatus.innerHTML = '<span class="text-red-600 font-bold">✗ הקלטה ארוכה מדי (' + formatTime(recordElapsed) + '). נדרש לכל היותר ' + VOICE_MAX_DURATION + ' שניות.</span>';
                 }
                 stopBtn.innerText = 'נסה שוב';
                 stopBtn.disabled = false;
@@ -444,14 +450,14 @@ startBtn.onclick = async function() {
         recordTimer = setInterval(() => {
             recordElapsed++;
             let sec = recordElapsed % 60, min = Math.floor(recordElapsed / 60);
-            let statusText = `מקליט... (${("0"+min).slice(-2)}:${("0"+sec).slice(-2)} / 01:00-01:30)`;
+            let statusText = `מקליט... (${("0"+min).slice(-2)}:${("0"+sec).slice(-2)} / ${formatTime(VOICE_MIN_DURATION)}-${formatTime(VOICE_MAX_DURATION)})`;
             
             // Change color based on duration
-            if (recordElapsed >= 60 && recordElapsed <= 90) {
+            if (recordElapsed >= VOICE_MIN_DURATION && recordElapsed <= VOICE_MAX_DURATION) {
                 statusText = `<span class="text-green-600">${statusText} ✓</span>`;
                 stopBtn.disabled = false;
                 stopBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-            } else if (recordElapsed > 90) {
+            } else if (recordElapsed > VOICE_MAX_DURATION) {
                 statusText = `<span class="text-red-600">${statusText} ✗</span>`;
                 stopBtn.disabled = false;
                 stopBtn.classList.remove('opacity-50', 'cursor-not-allowed');
@@ -464,7 +470,7 @@ startBtn.onclick = async function() {
             recordStatus.innerHTML = statusText;
             
             // Auto-stop at 2 minutes to prevent excessive recording
-            if(recordElapsed >= 120) {
+            if(recordElapsed >= VOICE_MAX_DURATION + 30) { // Add a buffer to ensure it stops before max duration
                 finishRecording();
             }
         }, 1000);
@@ -550,7 +556,7 @@ const uploadStatus2 = document.getElementById('uploadStatus2');
 startBtn2.onclick = async function() {
     audioChunks2 = [];
     recordingValid2 = false;
-    recordStatus2.innerHTML = '<span class="recording">מקליט... (00:00 / 01:00-01:30)</span>';
+    recordStatus2.innerHTML = '<span class="recording">מקליט... (00:00 / ' + formatTime(VOICE_MIN_DURATION) + '-' + formatTime(VOICE_MAX_DURATION) + ')</span>';
     startBtn2.classList.add('hidden');
     stopBtn2.classList.remove('hidden');
     stopBtn2.innerText = 'סיים הקלטה';
@@ -582,7 +588,7 @@ startBtn2.onclick = async function() {
             visualizer2.innerHTML = '';
             
             // Check if recording duration is valid
-            if (recordElapsed2 >= 60 && recordElapsed2 <= 90) {
+            if (recordElapsed2 >= VOICE_MIN_DURATION && recordElapsed2 <= VOICE_MAX_DURATION) {
                 recordingValid2 = true;
                 recordStatus2.innerHTML = '<span class="text-green-600 font-bold">✓ הקלטה תקינה (' + formatTime(recordElapsed2) + ')</span>';
                 stopBtn2.innerText = 'המשך לאיבחון';
@@ -607,10 +613,10 @@ startBtn2.onclick = async function() {
                 }
             } else {
                 recordingValid2 = false;
-                if (recordElapsed2 < 60) {
-                    recordStatus2.innerHTML = '<span class="text-red-600 font-bold">✗ הקלטה קצרה מדי (' + formatTime(recordElapsed2) + '). נדרש לפחות דקה אחת.</span>';
+                if (recordElapsed2 < VOICE_MIN_DURATION) {
+                    recordStatus2.innerHTML = '<span class="text-red-600 font-bold">✗ הקלטה קצרה מדי (' + formatTime(recordElapsed2) + '). נדרש לפחות ' + VOICE_MIN_DURATION + ' שניות.</span>';
                 } else {
-                    recordStatus2.innerHTML = '<span class="text-red-600 font-bold">✗ הקלטה ארוכה מדי (' + formatTime(recordElapsed2) + '). נדרש לכל היותר דקה וחצי.</span>';
+                    recordStatus2.innerHTML = '<span class="text-red-600 font-bold">✗ הקלטה ארוכה מדי (' + formatTime(recordElapsed2) + '). נדרש לכל היותר ' + VOICE_MAX_DURATION + ' שניות.</span>';
                 }
                 stopBtn2.innerText = 'נסה שוב';
                 stopBtn2.disabled = false;
@@ -628,14 +634,14 @@ startBtn2.onclick = async function() {
         recordTimer2 = setInterval(() => {
             recordElapsed2++;
             let sec = recordElapsed2 % 60, min = Math.floor(recordElapsed2 / 60);
-            let statusText = `מקליט... (${("0"+min).slice(-2)}:${("0"+sec).slice(-2)} / 01:00-01:30)`;
+            let statusText = `מקליט... (${("0"+min).slice(-2)}:${("0"+sec).slice(-2)} / ${formatTime(VOICE_MIN_DURATION)}-${formatTime(VOICE_MAX_DURATION)})`;
             
             // Change color based on duration
-            if (recordElapsed2 >= 60 && recordElapsed2 <= 90) {
+            if (recordElapsed2 >= VOICE_MIN_DURATION && recordElapsed2 <= VOICE_MAX_DURATION) {
                 statusText = `<span class="text-green-600">${statusText} ✓</span>`;
                 stopBtn2.disabled = false;
                 stopBtn2.classList.remove('opacity-50', 'cursor-not-allowed');
-            } else if (recordElapsed2 > 90) {
+            } else if (recordElapsed2 > VOICE_MAX_DURATION) {
                 statusText = `<span class="text-red-600">${statusText} ✗</span>`;
                 stopBtn2.disabled = false;
                 stopBtn2.classList.remove('opacity-50', 'cursor-not-allowed');
@@ -648,7 +654,7 @@ startBtn2.onclick = async function() {
             recordStatus2.innerHTML = statusText;
             
             // Auto-stop at 2 minutes to prevent excessive recording
-            if(recordElapsed2 >= 120) {
+            if(recordElapsed2 >= VOICE_MAX_DURATION + 30) { // Add a buffer to ensure it stops before max duration
                 finishRecording2();
             }
         }, 1000);
