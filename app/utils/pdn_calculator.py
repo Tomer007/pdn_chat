@@ -133,7 +133,7 @@ def calculate_pdn_code(answers: dict) -> dict:
     logger.info("Stage D dominant trait %s", dominant_trait)
 
     # Stage E: Strengthen Dominant Trait
-    for i in range(57, 60):
+    for i in range(57, 61):
         if str(i) in answers:
             ranking = answers[str(i)]['ranking']
             for trait, rank in ranking.items():

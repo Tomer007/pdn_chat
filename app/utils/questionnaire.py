@@ -25,11 +25,11 @@ def get_question(question_number: int, questions: dict):
     # Check Part D questions (43-56)
     elif 43 <= question_number <= 56:
         phase = "PartD"
-    # Check Part E questions (57-59)    
-    elif 57 <= question_number <= 59:
+    # Check Part E questions (57-61)    
+    elif 57 <= question_number <= 61:
         phase = "PartE"
-        # Check Part F questions (60-65)
-    elif 60 <= question_number <= 65:
+    # Check Part F questions (62-67)
+    elif 62 <= question_number <= 67:
         phase = "PartF"
     else:
         return {"message": "No more questions."}

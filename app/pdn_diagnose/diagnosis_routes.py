@@ -103,7 +103,6 @@ def submit_answer_route():
     
     try:
         data = request.get_json()
-        logger.info(f"Received answer data: {data}")
         
         question_number = data.get('question_number')
         selected_option_code = data.get('selected_option_code')
@@ -130,7 +129,6 @@ def submit_answer_route():
         question_text = None
         try:
             questions = current_app.config.get('QUESTIONS_FILE', {})
-            logger.info(f" answer Questions: {questions}")
             question_data = get_question(question_number, questions)
             if 'question' in question_data:
                 question_text = question_data['question']
@@ -276,10 +274,16 @@ def chat():
     user_name = user_data.get('first_name', 'User')
     user_id = email  # Using email as user ID
     
+    # Voice recording config
+    voice_min_duration = current_app.config.get('VOICE_RECORDING_MIN_DURATION', 60)
+    voice_max_duration = current_app.config.get('VOICE_RECORDING_MAX_DURATION', 90)
+
     return render_template("questionnaire.html", 
                          include_menu=True,
                          user_name=user_name,
                          user_id=user_id,
-                         email=email)
+                         email=email,
+                         voice_min_duration=voice_min_duration,
+                         voice_max_duration=voice_max_duration)
 
  
