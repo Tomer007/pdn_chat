@@ -40,27 +40,49 @@
         }
 
         @keyframes fadeInUp { 
-            from { opacity: 0; transform: translateY(16px); } 
+            from { opacity: 0; transform: translateY(24px); } 
             to { opacity: 1; transform: translateY(0); } 
         }
         
-
+        .animate-fade-in-up {
+            animation: fadeInUp 0.5s cubic-bezier(0.4,0,0.2,1) both;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .animate-bounce {
+            animation: bounce 1.2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .animate-pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes audioBarBounce {
+            from { height: 8px; background: #c4b5fd; }
+            to   { height: 22px; background: #0b2e6b; }
+        }
 
         @media (max-width: 600px) {
             .glass-effect { padding: 1.2rem !important; }
         }
 
         /* Voice record UI */
-        #voiceRecordArea .recording {
+        .recording {
             color: #0b2e6b;
             font-weight: bold;
             animation: pulse 1.1s infinite alternate;
         }
 
-        @keyframes pulse { 
-            from { opacity: 1;} 
-            to { opacity: 0.5;} 
-        }
 
         .audio-bar {
             width: 8px; 
@@ -70,7 +92,7 @@
             border-radius: 5px; 
             display: inline-block; 
             vertical-align: bottom;
-            animation: bounce 1s infinite alternate;
+            animation: audioBarBounce 1s infinite alternate;
         }
 
         .audio-bar:nth-child(2) { animation-delay: .15s; }
@@ -78,10 +100,6 @@
         .audio-bar:nth-child(4) { animation-delay: .45s; }
         .audio-bar:nth-child(5) { animation-delay: .6s; }
 
-        @keyframes bounce {
-            from { height: 8px; background: #c4b5fd; }
-            to   { height: 22px; background: #0b2e6b; }
-        }
 
         .ranking-number.selected {
             color: #0b2e6b;
@@ -169,30 +187,6 @@
     </div>
 </div>
 
-<style>
-  @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(24px);}
-    to { opacity: 1; transform: translateY(0);}
-  }
-  .animate-fade-in-up {
-    animation: fadeInUp 0.5s cubic-bezier(0.4,0,0.2,1) both;
-  }
-  @keyframes bounce {
-    0%, 100% { transform: translateY(0);}
-    50% { transform: translateY(-10px);}
-  }
-  .animate-bounce {
-    animation: bounce 1.2s infinite;
-  }
-  @keyframes pulse {
-    0% { transform: scale(1);}
-    50% { transform: scale(1.05);}
-    100% { transform: scale(1);}
-  }
-  .animate-pulse {
-    animation: pulse 2s infinite;
-  }
-</style>
 
 <main id="chatArea" class="glass-effect p-8 rounded-2xl shadow-2xl w-full max-w-2xl border border-white/20 space-y-6">
     <!-- Hidden fields for user data -->
@@ -223,7 +217,7 @@
             <div class="bg-blue-900 border border-blue-200 rounded-lg p-3 mb-4">
                 <p class="text-sm text-white font-medium">
                     <i class="fas fa-info-circle mr-2"></i>
-                    <strong>חשוב:</strong> ההקלטה חייבת להיות בין 60 שניות ל 90  שניות 
+                    <strong>חשוב:</strong> ההקלטה תיעצר אוטומטית לאחר דקה וחצי
                 </p>
             </div>
             <div class="bg-white p-4 rounded border-r-4 border-blue-900">
@@ -264,12 +258,12 @@
         <div class="bg-blue-900 border border-blue-200 rounded-lg p-3 mb-4">
             <p class="text-sm text-white font-medium">
                 <i class="fas fa-info-circle mr-2"></i>
-                <strong>חשוב:</strong> ההקלטה חייבת להיות בין 60 שניות ל 90  שניות 
+                <strong>חשוב:</strong> ההקלטה תיעצר אוטומטית לאחר דקה וחצי
             </p>
         </div>
         <div class="bg-white p-4 rounded border-r-4 border-blue-900">
             <span>2.</span> ספר לי על אתגר משמעותי שהתמודדת איתו לאחרונה – משהו שהיה לך לא פשוט, ואיך הצלחת לעבור
-            אותו.
+            אותו?
         </div>
         </br>
         <div>
@@ -319,12 +313,6 @@ let nextData = null;
 let questionHistory = []; // Array to store question history
 let currentUsername = '{{ email }}' || 'anonymous'; // Get username from template
 
-// Add voice recording configuration variables
-const VOICE_MIN_DURATION = {{ voice_min_duration }};
-const VOICE_MAX_DURATION = {{ voice_max_duration }};
-
-// Update all hardcoded duration checks and UI text
-
 // Progress logic
 const totalQuestions = 67; // Based on phases A-F (1-67)
 const totalSteps = 2 + totalQuestions; // 2 voice steps + questions
@@ -354,366 +342,178 @@ document.getElementById('modalClose').onclick = () => {
     if (nextData) { actuallyRenderQuestion(nextData); nextData = null; }
 };
 
-// Voice record logic
-let mediaRecorder;
-let audioChunks = [];
-let recordTimer = null;
-let recordElapsed = 0;
-let recordingValid = false; // Track if recording meets duration requirements
-
-const startBtn = document.getElementById('startRecordBtn');
-const stopBtn = document.getElementById('stopRecordBtn');
-const reRecordBtn = document.getElementById('reRecordBtn');
-const recordStatus = document.getElementById('recordStatus');
-const audioPlayback = document.getElementById('audioPlayback');
-const visualizer = document.getElementById('visualizer');
-const uploadStatus = document.getElementById('uploadStatus');
-
-startBtn.onclick = async function() {
-    audioChunks = [];
-    recordingValid = false;
-    recordStatus.innerHTML = '<span class="recording">מקליט... (00:00 / ' + formatTime(VOICE_MIN_DURATION) + '-' + formatTime(VOICE_MAX_DURATION) + ')</span>';
-    startBtn.classList.add('hidden');
-    stopBtn.classList.remove('hidden');
-    stopBtn.innerText = 'סיים הקלטה';
-    stopBtn.disabled = true;
-    stopBtn.classList.add('opacity-50', 'cursor-not-allowed');
-    audioPlayback.classList.add('hidden');
-    visualizer.innerHTML = '';
-    
-    // Add visual feedback for recording state
-    const voiceArea = document.getElementById('voiceRecordArea');
-    voiceArea.classList.remove('valid', 'invalid');
-    voiceArea.classList.add('recording');
-    
-    // Add fake bars for animation
-    for(let i=0;i<5;i++){
-        const bar = document.createElement('div');
-        bar.className = 'audio-bar';
-        visualizer.appendChild(bar);
+// Consolidated Voice Recording System
+class VoiceRecorder {
+    constructor(areaId, questionId) {
+        this.areaId = areaId;
+        this.questionId = questionId;
+        this.mediaRecorder = null;
+        this.audioChunks = [];
+        this.recordTimer = null;
+        this.recordElapsed = 0;
+        this.recordingValid = false;
+        
+        // Get DOM elements
+        this.startBtn = document.getElementById(`startRecordBtn${areaId === '2' ? '2' : ''}`);
+        this.stopBtn = document.getElementById(`stopRecordBtn${areaId === '2' ? '2' : ''}`);
+        this.reRecordBtn = document.getElementById(`reRecordBtn${areaId === '2' ? '2' : ''}`);
+        this.recordStatus = document.getElementById(`recordStatus${areaId === '2' ? '2' : ''}`);
+        this.audioPlayback = document.getElementById(`audioPlayback${areaId === '2' ? '2' : ''}`);
+        this.visualizer = document.getElementById(`visualizer${areaId === '2' ? '2' : ''}`);
+        this.uploadStatus = document.getElementById(`uploadStatus${areaId === '2' ? '2' : ''}`);
+        this.voiceArea = document.getElementById(`voiceRecordArea${areaId === '2' ? '2' : ''}`);
+        
+        this.bindEvents();
     }
-    recordElapsed = 0;
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder = new MediaRecorder(stream);
-        mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-        mediaRecorder.onstop = async e => {
-            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-            audioPlayback.src = URL.createObjectURL(audioBlob);
-            audioPlayback.classList.remove('hidden');
-            visualizer.innerHTML = '';
+    
+    bindEvents() {
+        this.startBtn.onclick = () => this.startRecording();
+        this.stopBtn.onclick = () => this.stopRecording();
+        this.reRecordBtn.onclick = () => this.resetUI();
+    }
+    
+    async startRecording() {
+        this.audioChunks = [];
+        this.recordingValid = false;
+        this.recordStatus.innerHTML = '<span class="recording">מקליט... (00:00 / 01:30)</span>';
+        this.startBtn.classList.add('hidden');
+        this.stopBtn.classList.remove('hidden');
+        this.stopBtn.innerText = 'סיים הקלטה';
+        this.stopBtn.disabled = true;
+        this.stopBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        this.audioPlayback.classList.add('hidden');
+        this.visualizer.innerHTML = '';
+        
+        // Add visual feedback for recording state
+        this.voiceArea.classList.remove('valid', 'invalid');
+        this.voiceArea.classList.add('recording');
+        
+        // Add fake bars for animation
+        for(let i = 0; i < 5; i++){
+            const bar = document.createElement('div');
+            bar.className = 'audio-bar';
+            this.visualizer.appendChild(bar);
+        }
+        
+        this.recordElapsed = 0;
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            this.mediaRecorder = new MediaRecorder(stream);
+            this.mediaRecorder.ondataavailable = e => this.audioChunks.push(e.data);
+            this.mediaRecorder.onstop = () => this.handleRecordingStop();
+            this.mediaRecorder.start();
             
-            // Check if recording duration is valid
-            if (recordElapsed >= VOICE_MIN_DURATION && recordElapsed <= VOICE_MAX_DURATION) {
-                recordingValid = true;
-                recordStatus.innerHTML = '<span class="text-green-600 font-bold">✓ הקלטה תקינה (' + formatTime(recordElapsed) + ')</span>';
-                stopBtn.innerText = 'המשך לשאלה הבאה';
-                stopBtn.disabled = false;
-                stopBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            // Timer for duration
+            this.recordTimer = setInterval(() => {
+                this.recordElapsed++;
+                let sec = this.recordElapsed % 60, min = Math.floor(this.recordElapsed / 60);
+                let statusText = `מקליט... (${("0"+min).slice(-2)}:${("0"+sec).slice(-2)} / 01:30)`;
                 
-                // Add visual feedback for valid state
-                const voiceArea = document.getElementById('voiceRecordArea');
-                voiceArea.classList.remove('recording', 'invalid');
-                voiceArea.classList.add('valid');
+                this.recordStatus.innerHTML = `<span class="text-orange-600">${statusText}</span>`;
                 
-                // Upload audio to backend
-                try {
-                    const result = await saveUserAudio(currentUsername, audioBlob, 'question1');
-                    uploadStatus.classList.remove('hidden');
-                    uploadStatus.innerHTML = '<div class="text-green-600 font-semibold">הקלטה נשמרה בהצלחה!</div>';
-                    console.log('Audio uploaded successfully:', result);
-                } catch (error) {
-                    console.error('Failed to upload audio:', error);
-                    uploadStatus.classList.remove('hidden');
-                    uploadStatus.innerHTML = '<div class="text-red-600 font-semibold">שגיאה בשמירת ההקלטה</div>';
+                // Auto-stop at 90 seconds (1 minute 30 seconds)
+                if(this.recordElapsed >= 90) {
+                    this.finishRecording();
                 }
+            }, 1000);
+        } catch (err) {
+            this.recordStatus.innerHTML = '<span class="text-red-600 font-semibold">שגיאה בגישה למיקרופון</span>';
+            this.stopBtn.classList.add('hidden');
+            this.startBtn.classList.remove('hidden');
+            this.visualizer.innerHTML = '';
+        }
+    }
+    
+    async handleRecordingStop() {
+        const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
+        this.audioPlayback.src = URL.createObjectURL(audioBlob);
+        this.audioPlayback.classList.remove('hidden');
+        this.visualizer.innerHTML = '';
+        
+        // Always accept the recording regardless of duration
+        this.recordingValid = true;
+        this.recordStatus.innerHTML = `<span class="text-green-600 font-bold">✓ הקלטה הושלמה (${this.formatTime(this.recordElapsed)})</span>`;
+        this.stopBtn.innerText = this.areaId === '2' ? 'המשך לאיבחון' : 'המשך לשאלה הבאה';
+        this.stopBtn.disabled = false;
+        this.stopBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        
+        // Add visual feedback for valid state
+        this.voiceArea.classList.remove('recording', 'invalid');
+        this.voiceArea.classList.add('valid');
+        
+        // Upload audio to backend
+        try {
+            const result = await saveUserAudio(currentUsername, audioBlob, this.questionId);
+            this.uploadStatus.classList.remove('hidden');
+            this.uploadStatus.innerHTML = '<div class="text-green-600 font-semibold">הקלטה נשמרה בהצלחה!</div>';
+            console.log(`Audio uploaded successfully for ${this.questionId}:`, result);
+        } catch (error) {
+            console.error(`Failed to upload audio for ${this.questionId}:`, error);
+            this.uploadStatus.classList.remove('hidden');
+            this.uploadStatus.innerHTML = '<div class="text-red-600 font-semibold">שגיאה בשמירת ההקלטה</div>';
+        }
+    }
+    
+    stopRecording() {
+        if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
+            this.finishRecording();
+        } else if (this.recordingValid) {
+            if (this.areaId === '2') {
+                document.getElementById('voiceRecordArea2').classList.add('hidden');
+                document.getElementById('questionArea').classList.remove('hidden');
+                updateProgress(2 + currentQuestion, `שאלה ${currentQuestion} מתוך ${totalQuestions}`);
+                loadQuestion(currentQuestion);
             } else {
-                recordingValid = false;
-                if (recordElapsed < VOICE_MIN_DURATION) {
-                    recordStatus.innerHTML = '<span class="text-red-600 font-bold">✗ הקלטה קצרה מדי (' + formatTime(recordElapsed) + '). נדרש לפחות ' + VOICE_MIN_DURATION + ' שניות.</span>';
-                } else {
-                    recordStatus.innerHTML = '<span class="text-red-600 font-bold">✗ הקלטה ארוכה מדי (' + formatTime(recordElapsed) + '). נדרש לכל היותר ' + VOICE_MAX_DURATION + ' שניות.</span>';
-                }
-                stopBtn.innerText = 'נסה שוב';
-                stopBtn.disabled = false;
-                stopBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                uploadStatus.classList.add('hidden');
-                
-                // Add visual feedback for invalid state
-                const voiceArea = document.getElementById('voiceRecordArea');
-                voiceArea.classList.remove('recording', 'valid');
-                voiceArea.classList.add('invalid');
+                document.getElementById('voiceRecordArea').classList.add('hidden');
+                document.getElementById('voiceRecordArea2').classList.remove('hidden');
+                voiceRecorder2.resetUI();
+                updateProgress(2, 'הקלטה 2/2');
             }
-        };
-        mediaRecorder.start();
-        // Timer for duration
-        recordTimer = setInterval(() => {
-            recordElapsed++;
-            let sec = recordElapsed % 60, min = Math.floor(recordElapsed / 60);
-            let statusText = `מקליט... (${("0"+min).slice(-2)}:${("0"+sec).slice(-2)} / ${formatTime(VOICE_MIN_DURATION)}-${formatTime(VOICE_MAX_DURATION)})`;
-            
-            // Change color based on duration
-            if (recordElapsed >= VOICE_MIN_DURATION && recordElapsed <= VOICE_MAX_DURATION) {
-                statusText = `<span class="text-green-600">${statusText} ✓</span>`;
-                stopBtn.disabled = false;
-                stopBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-            } else if (recordElapsed > VOICE_MAX_DURATION) {
-                statusText = `<span class="text-red-600">${statusText} ✗</span>`;
-                stopBtn.disabled = false;
-                stopBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-            } else {
-                statusText = `<span class="text-orange-600">${statusText}</span>`;
-                stopBtn.disabled = true;
-                stopBtn.classList.add('opacity-50', 'cursor-not-allowed');
-            }
-            
-            recordStatus.innerHTML = statusText;
-            
-            // Auto-stop at 2 minutes to prevent excessive recording
-            if(recordElapsed >= VOICE_MAX_DURATION + 30) { // Add a buffer to ensure it stops before max duration
-                finishRecording();
-            }
-        }, 1000);
-    } catch (err) {
-        recordStatus.innerHTML = '<span class="text-red-600 font-semibold">שגיאה בגישה למיקרופון</span>';
-        stopBtn.classList.add('hidden');
-        startBtn.classList.remove('hidden');
-        visualizer.innerHTML = '';
+        } else {
+            this.resetUI();
+        }
     }
-};
-
-function formatTime(seconds) {
-    const min = Math.floor(seconds / 60);
-    const sec = seconds % 60;
-    return `${("0"+min).slice(-2)}:${("0"+sec).slice(-2)}`;
-}
-
-function finishRecording() {
-    if (mediaRecorder && mediaRecorder.state === 'recording') {
-        mediaRecorder.stop();
-        clearInterval(recordTimer);
+    
+    finishRecording() {
+        if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
+            this.mediaRecorder.stop();
+            clearInterval(this.recordTimer);
+        }
+    }
+    
+    formatTime(seconds) {
+        const min = Math.floor(seconds / 60);
+        const sec = seconds % 60;
+        return `${("0"+min).slice(-2)}:${("0"+sec).slice(-2)}`;
+    }
+    
+    resetUI() {
+        this.startBtn.classList.remove('hidden');
+        this.stopBtn.classList.add('hidden');
+        this.reRecordBtn.classList.add('hidden');
+        this.stopBtn.innerText = 'סיים הקלטה';
+        this.stopBtn.disabled = false;
+        this.stopBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        this.recordStatus.innerHTML = '';
+        this.audioPlayback.classList.add('hidden');
+        this.audioPlayback.src = '';
+        this.visualizer.innerHTML = '';
+        this.uploadStatus.classList.add('hidden');
+        this.recordingValid = false;
+        
+        // Clear visual feedback
+        this.voiceArea.classList.remove('recording', 'valid', 'invalid');
+        
+        if (this.mediaRecorder && this.mediaRecorder.state === 'recording') this.mediaRecorder.stop();
+        if (this.recordTimer) clearInterval(this.recordTimer);
     }
 }
 
-stopBtn.onclick = function() {
-    if (mediaRecorder && mediaRecorder.state === 'recording') {
-        finishRecording();
-    } else if (recordingValid) {
-        document.getElementById('voiceRecordArea').classList.add('hidden');
-        document.getElementById('voiceRecordArea2').classList.remove('hidden');
-        // Reset the second voice UI
-        resetVoiceUI2();
-        // Update progress for second voice step
-        updateProgress(2, 'הקלטה 2/2');
-    } else {
-        // Reset for retry
-        resetVoiceUI();
-    }
-};
+// Initialize voice recorders
+const voiceRecorder1 = new VoiceRecorder('', 'question1');
+const voiceRecorder2 = new VoiceRecorder('2', 'question2');
 
-function resetVoiceUI() {
-    startBtn.classList.remove('hidden');
-    stopBtn.classList.add('hidden');
-    reRecordBtn.classList.add('hidden');
-    stopBtn.innerText = 'סיים הקלטה';
-    stopBtn.disabled = false;
-    stopBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-    recordStatus.innerHTML = '';
-    audioPlayback.classList.add('hidden');
-    audioPlayback.src = '';
-    visualizer.innerHTML = '';
-    uploadStatus.classList.add('hidden');
-    recordingValid = false;
-    
-    // Clear visual feedback
-    const voiceArea = document.getElementById('voiceRecordArea');
-    voiceArea.classList.remove('recording', 'valid', 'invalid');
-    
-    if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
-    if (recordTimer) clearInterval(recordTimer);
-}
 
-// Re-record for first voice area
-reRecordBtn.onclick = function() {
-    resetVoiceUI();
-};
-
-// Second Voice Record Area Logic
-let mediaRecorder2;
-let audioChunks2 = [];
-let recordTimer2 = null;
-let recordElapsed2 = 0;
-let recordingValid2 = false; // Track if recording meets duration requirements
-
-const startBtn2 = document.getElementById('startRecordBtn2');
-const stopBtn2 = document.getElementById('stopRecordBtn2');
-const reRecordBtn2 = document.getElementById('reRecordBtn2');
-const recordStatus2 = document.getElementById('recordStatus2');
-const audioPlayback2 = document.getElementById('audioPlayback2');
-const visualizer2 = document.getElementById('visualizer2');
-const uploadStatus2 = document.getElementById('uploadStatus2');
-
-startBtn2.onclick = async function() {
-    audioChunks2 = [];
-    recordingValid2 = false;
-    recordStatus2.innerHTML = '<span class="recording">מקליט... (00:00 / ' + formatTime(VOICE_MIN_DURATION) + '-' + formatTime(VOICE_MAX_DURATION) + ')</span>';
-    startBtn2.classList.add('hidden');
-    stopBtn2.classList.remove('hidden');
-    stopBtn2.innerText = 'סיים הקלטה';
-    stopBtn2.disabled = true;
-    stopBtn2.classList.add('opacity-50', 'cursor-not-allowed');
-    audioPlayback2.classList.add('hidden');
-    visualizer2.innerHTML = '';
-    
-    // Add visual feedback for recording state
-    const voiceArea2 = document.getElementById('voiceRecordArea2');
-    voiceArea2.classList.remove('valid', 'invalid');
-    voiceArea2.classList.add('recording');
-    
-    // Add fake bars for animation
-    for(let i=0;i<5;i++){
-        const bar = document.createElement('div');
-        bar.className = 'audio-bar';
-        visualizer2.appendChild(bar);
-    }
-    recordElapsed2 = 0;
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder2 = new MediaRecorder(stream);
-        mediaRecorder2.ondataavailable = e => audioChunks2.push(e.data);
-        mediaRecorder2.onstop = async e => {
-            const audioBlob = new Blob(audioChunks2, { type: 'audio/webm' });
-            audioPlayback2.src = URL.createObjectURL(audioBlob);
-            audioPlayback2.classList.remove('hidden');
-            visualizer2.innerHTML = '';
-            
-            // Check if recording duration is valid
-            if (recordElapsed2 >= VOICE_MIN_DURATION && recordElapsed2 <= VOICE_MAX_DURATION) {
-                recordingValid2 = true;
-                recordStatus2.innerHTML = '<span class="text-green-600 font-bold">✓ הקלטה תקינה (' + formatTime(recordElapsed2) + ')</span>';
-                stopBtn2.innerText = 'המשך לאיבחון';
-                stopBtn2.disabled = false;
-                stopBtn2.classList.remove('opacity-50', 'cursor-not-allowed');
-                
-                // Add visual feedback for valid state
-                const voiceArea2 = document.getElementById('voiceRecordArea2');
-                voiceArea2.classList.remove('recording', 'invalid');
-                voiceArea2.classList.add('valid');
-                
-                // Upload audio to backend with different filename
-                try {
-                    const result = await saveUserAudio(currentUsername, audioBlob, 'question2');
-                    uploadStatus2.classList.remove('hidden');
-                    uploadStatus2.innerHTML = '<div class="text-green-600 font-semibold">הקלטה נשמרה בהצלחה!</div>';
-                    console.log('Second audio uploaded successfully:', result);
-                } catch (error) {
-                    console.error('Failed to upload second audio:', error);
-                    uploadStatus2.classList.remove('hidden');
-                    uploadStatus2.innerHTML = '<div class="text-red-600 font-semibold">שגיאה בשמירת ההקלטה</div>';
-                }
-            } else {
-                recordingValid2 = false;
-                if (recordElapsed2 < VOICE_MIN_DURATION) {
-                    recordStatus2.innerHTML = '<span class="text-red-600 font-bold">✗ הקלטה קצרה מדי (' + formatTime(recordElapsed2) + '). נדרש לפחות ' + VOICE_MIN_DURATION + ' שניות.</span>';
-                } else {
-                    recordStatus2.innerHTML = '<span class="text-red-600 font-bold">✗ הקלטה ארוכה מדי (' + formatTime(recordElapsed2) + '). נדרש לכל היותר ' + VOICE_MAX_DURATION + ' שניות.</span>';
-                }
-                stopBtn2.innerText = 'נסה שוב';
-                stopBtn2.disabled = false;
-                stopBtn2.classList.remove('opacity-50', 'cursor-not-allowed');
-                uploadStatus2.classList.add('hidden');
-                
-                // Add visual feedback for invalid state
-                const voiceArea2 = document.getElementById('voiceRecordArea2');
-                voiceArea2.classList.remove('recording', 'valid');
-                voiceArea2.classList.add('invalid');
-            }
-        };
-        mediaRecorder2.start();
-        // Timer for duration
-        recordTimer2 = setInterval(() => {
-            recordElapsed2++;
-            let sec = recordElapsed2 % 60, min = Math.floor(recordElapsed2 / 60);
-            let statusText = `מקליט... (${("0"+min).slice(-2)}:${("0"+sec).slice(-2)} / ${formatTime(VOICE_MIN_DURATION)}-${formatTime(VOICE_MAX_DURATION)})`;
-            
-            // Change color based on duration
-            if (recordElapsed2 >= VOICE_MIN_DURATION && recordElapsed2 <= VOICE_MAX_DURATION) {
-                statusText = `<span class="text-green-600">${statusText} ✓</span>`;
-                stopBtn2.disabled = false;
-                stopBtn2.classList.remove('opacity-50', 'cursor-not-allowed');
-            } else if (recordElapsed2 > VOICE_MAX_DURATION) {
-                statusText = `<span class="text-red-600">${statusText} ✗</span>`;
-                stopBtn2.disabled = false;
-                stopBtn2.classList.remove('opacity-50', 'cursor-not-allowed');
-            } else {
-                statusText = `<span class="text-orange-600">${statusText}</span>`;
-                stopBtn2.disabled = true;
-                stopBtn2.classList.add('opacity-50', 'cursor-not-allowed');
-            }
-            
-            recordStatus2.innerHTML = statusText;
-            
-            // Auto-stop at 2 minutes to prevent excessive recording
-            if(recordElapsed2 >= VOICE_MAX_DURATION + 30) { // Add a buffer to ensure it stops before max duration
-                finishRecording2();
-            }
-        }, 1000);
-    } catch (err) {
-        recordStatus2.innerHTML = '<span class="text-red-600 font-semibold">שגיאה בגישה למיקרופון</span>';
-        stopBtn2.classList.add('hidden');
-        startBtn2.classList.remove('hidden');
-        visualizer2.innerHTML = '';
-    }
-};
-
-function finishRecording2() {
-    if (mediaRecorder2 && mediaRecorder2.state === 'recording') {
-        mediaRecorder2.stop();
-        clearInterval(recordTimer2);
-    }
-}
-
-stopBtn2.onclick = function() {
-    if (mediaRecorder2 && mediaRecorder2.state === 'recording') {
-        finishRecording2();
-    } else if (recordingValid2) {
-        document.getElementById('voiceRecordArea2').classList.add('hidden');
-        document.getElementById('questionArea').classList.remove('hidden');
-        // Update progress entering questions
-        updateProgress(2 + currentQuestion, `שאלה ${currentQuestion} מתוך ${totalQuestions}`);
-        loadQuestion(currentQuestion);
-    } else {
-        // Reset for retry
-        resetVoiceUI2();
-    }
-};
-
-function resetVoiceUI2() {
-    startBtn2.classList.remove('hidden');
-    stopBtn2.classList.add('hidden');
-    reRecordBtn2.classList.add('hidden');
-    stopBtn2.innerText = 'סיים הקלטה';
-    stopBtn2.disabled = false;
-    stopBtn2.classList.remove('opacity-50', 'cursor-not-allowed');
-    recordStatus2.innerHTML = '';
-    audioPlayback2.classList.add('hidden');
-    audioPlayback2.src = '';
-    visualizer2.innerHTML = '';
-    uploadStatus2.classList.add('hidden');
-    recordingValid2 = false;
-    
-    // Clear visual feedback
-    const voiceArea2 = document.getElementById('voiceRecordArea2');
-    voiceArea2.classList.remove('recording', 'valid', 'invalid');
-    
-    if (mediaRecorder2 && mediaRecorder2.state === 'recording') mediaRecorder2.stop();
-    if (recordTimer2) clearInterval(recordTimer2);
-}
-
-// Re-record for second voice area
-reRecordBtn2.onclick = function() {
-    resetVoiceUI2();
-};
 
 // Question/Modal logic
 async function loadQuestion(questionNumber) {
