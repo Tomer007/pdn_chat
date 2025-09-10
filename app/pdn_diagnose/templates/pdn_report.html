@@ -1,197 +1,459 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <title>תודה – PDN קוד המקור</title>
+    <meta charset="UTF-8"/>
+    <title>תודה – PDN קוד המקור</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-    :root{
-      /* Chat theme variables */
-      --primary-color:#1c0f97;
-      --text-primary:#1f2937;
-      --text-secondary:#6b7280;
-      --shadow-color:rgba(0,0,0,0.1);
-      --gradient-start:#0b2e6b;
-      --gradient-end:#0b2e6b;
-      /* Report specific */
-      --blue:#1c0f97;
-      --muted:#495057;
-      --paper:#FFFFFF;
-      --radius:24px;
-    }
-    @media (prefers-color-scheme: dark){
-      :root{
-        --paper:#0f1520;
-        --muted:#A8B0BB;
-      }
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      color:var(--text-primary);
-            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
-      min-height:100vh;
-      line-height:1.7;
-    }
+        :root {
+            --primary-color: #0b2e6b;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --gradient-start: #0b2e6b;
+            --gradient-end: #0b2e6b;
+        }
 
-    /* Header (match chat) */
-    .header-gradient{
-            background: var(--primary-color);
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            direction: rtl;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .glass-effect { 
+            background: rgba(255, 255, 255, 0.95); 
+            backdrop-filter: blur(20px); 
+            border-radius: 24px; 
+            box-shadow: 0 20px 40px var(--shadow-color);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        @keyframes fadeInUp { 
+            from { opacity: 0; transform: translateY(24px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+        
+        .animate-fade-in-up {
+            animation: fadeInUp 0.5s cubic-bezier(0.4,0,0.2,1) both;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .animate-bounce {
+            animation: bounce 1.2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .animate-pulse {
+            animation: pulse 2s infinite;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .glass-effect {
+                margin: 10px;
+                padding: 16px;
+                border-radius: 16px;
+            }
+        }
+
+        /* Success circle with enhanced styling */
+        .success-circle {
+            width: 90px; 
+            height: 90px; 
+            border-radius: 50%; 
+            background: linear-gradient(135deg, #0b2e6b, #0a2a5f); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            margin: 0 auto 24px; 
+            box-shadow: 0 8px 24px rgba(11,46,107,0.35);
             position: relative;
             overflow: hidden;
         }
+        
+        .success-circle::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: rotate(45deg);
+            animation: shimmer 2s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
 
-    .header-content{display:flex; align-items:center; justify-content:space-between; max-width:1200px; margin:0 auto; padding:16px 18px}
-    .header-left{display:flex; align-items:center; gap:20px}
-    .logo-link{display:block; transition:transform .2s ease}
-    .logo-link:hover{transform:scale(1.05)}
-    .header-logo{width:44px; height:44px; border-radius:50%; object-fit:cover; box-shadow:0 6px 20px rgba(0,0,0,0.3); border:3px solid rgba(255,255,255,0.3)}
-    .header-text{color:#fff; text-align:right}
-    .header-text h1{margin:0; font-size:22px; font-weight:800}
-    .header-text p{margin:0; opacity:.9}
+        .success-circle svg {
+            width: 48px; 
+            height: 48px; 
+            color: #fff;
+            position: relative;
+            z-index: 1;
+        }
 
-    /* Responsive tweaks */
-    @media (max-width: 768px) {
-      .header-logo{width:36px; height:36px; border-width:2px}
-      .header-text h1{font-size:18px}
-    }
+        /* Enhanced button styling */
+        .btn-enhanced {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            font-size: 16px;
+        }
 
-    /* Container */
-    /* Glass container (match chat) */
-    .wrap{max-width:900px; margin:24px auto 48px; padding:18px}
-    .glass{
-      background: rgba(255,255,255,0.95);
-            backdrop-filter: blur(20px);
-      border-radius: var(--radius);
-            box-shadow: 0 20px 40px var(--shadow-color);
-      border: 1px solid rgba(255,255,255,0.2);
-    }
+        .btn-primary-enhanced {
+            background: linear-gradient(135deg, #0b2e6b, #0a2a5f);
+            color: white;
+            box-shadow: 0 4px 12px rgba(11,46,107,0.3);
+        }
 
-    /* Hero */
-    .hero{color:#0b2e6b; border-radius:var(--radius); padding:24px; text-align:center}
-    .hero-head{display:flex; gap:12px; align-items:center; justify-content:center; text-align:center}
-    .hero h2{margin:0; font-size:28px; font-weight:800; letter-spacing:.3px; color:#0b2e6b}
+        .btn-primary-enhanced:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(11,46,107,0.4);
+        }
 
-    /* Card */
-    .card{background:var(--paper); border-radius:var(--radius); box-shadow:0 20px 40px var(--shadow-color); padding:24px; margin-top:20px; border:1px solid rgba(255,255,255,0.2)}
-    .heading{margin:0 0 8px; color:var(--blue); font-size:22px}
-    .divider{height:3px; width:72px; background:linear-gradient(90deg, #ffd36b, #ffd36b); border-radius:6px; margin:6px 0 16px}
+        .btn-outline-enhanced {
+            background: rgba(255, 255, 255, 0.9);
+            color: #0b2e6b;
+            border: 2px solid rgba(11,46,107,0.3);
+        }
 
-    /* Success circle */
-    .success{width:90px; height:90px; border-radius:50%; background:linear-gradient(135deg, #0b2e6b, #0a2a5f); display:grid; place-items:center; margin:0 auto 12px; box-shadow:0 8px 24px rgba(11,46,107,0.35)}
-    .success svg{width:48px; height:48px; color:#fff}
-    .success svg{position:relative; z-index:1}
+        .btn-outline-enhanced:hover {
+            border-color: rgba(11,46,107,0.6);
+            background: rgba(255, 255, 255, 1);
+            transform: translateY(-1px);
+        }
 
-    /* Text */
-    .lead{font-size:18px; color:#102030; margin:0 auto; max-width:60ch}
-    .muted{color:var(--muted)}
+        /* Text styling */
+        .lead-text {
+            font-size: 18px;
+            line-height: 1.7;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+        }
 
-    /* CTA buttons */
-    .btn{appearance:none; border:none; cursor:pointer; font-weight:800; padding:12px 18px; border-radius:16px; min-width:160px; transition:all .2s ease}
-    .btn-primary{background:#0b2e6b; color:#fff; box-shadow:0 4px 12px rgba(11,46,107,0.3)}
-    .btn-primary:hover{transform:translateY(-2px); box-shadow:0 6px 20px rgba(11,46,107,0.4)}
-    .btn-outline{background:var(--paper); color:#0b2e6b; border:1px solid rgba(11,46,107,0.3)}
-    .btn-outline:hover{border-color:rgba(11,46,107,0.5)}
+        .heading-enhanced {
+            color: #0b2e6b;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
 
-    .cta{display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:10px}
+        /* Divider styling */
+        .divider-enhanced {
+            height: 4px;
+            width: 80px;
+            background: linear-gradient(90deg, #0b2e6b, #0a2a5f);
+            border-radius: 2px;
+            margin: 16px auto 24px;
+        }
 
-    /* Footer */
-    footer{margin-top:24px; text-align:center; color:var(--muted); font-size:13px}
+        /* PDN Logo styling with effects */
+        .pdn-logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+            position: relative;
+        }
 
-    /* Motion preferences */
-    @media (prefers-reduced-motion: reduce){
-      *{animation:none !important; transition:none !important}
+        .pdn-logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid rgba(11, 46, 107, 0.2);
+            box-shadow: 0 8px 32px rgba(11, 46, 107, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 2;
+        }
+
+        .pdn-logo:hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 12px 40px rgba(11, 46, 107, 0.5);
+            border-color: rgba(11, 46, 107, 0.4);
+        }
+
+        /* Animated ring around logo */
+        .logo-ring {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border: 3px solid transparent;
+            border-top: 3px solid #0b2e6b;
+            border-right: 3px solid #0b2e6b;
+            border-radius: 50%;
+            animation: logoSpin 3s linear infinite;
+            opacity: 0.7;
+        }
+
+        .logo-ring:nth-child(2) {
+            width: 120px;
+            height: 120px;
+            border-top: 2px solid rgba(11, 46, 107, 0.5);
+            border-right: 2px solid rgba(11, 46, 107, 0.5);
+            animation: logoSpin 4s linear infinite reverse;
+        }
+
+        @keyframes logoSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Logo glow effect */
+        .logo-glow {
+            position: absolute;
+            width: 90px;
+            height: 90px;
+            background: radial-gradient(circle, rgba(11, 46, 107, 0.3) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: logoGlow 2s ease-in-out infinite alternate;
+            z-index: 1;
+        }
+
+        @keyframes logoGlow {
+            0% { transform: scale(1); opacity: 0.5; }
+            100% { transform: scale(1.2); opacity: 0.8; }
+        }
+
+        /* Floating particles around logo */
+        .logo-particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #0b2e6b;
+            border-radius: 50%;
+            opacity: 0.6;
+        }
+
+        .logo-particle:nth-child(3) {
+            top: 20%;
+            left: 10%;
+            animation: float1 3s ease-in-out infinite;
+        }
+
+        .logo-particle:nth-child(4) {
+            top: 30%;
+            right: 15%;
+            animation: float2 2.5s ease-in-out infinite;
+        }
+
+        .logo-particle:nth-child(5) {
+            bottom: 25%;
+            left: 20%;
+            animation: float3 3.5s ease-in-out infinite;
+        }
+
+        .logo-particle:nth-child(6) {
+            bottom: 20%;
+            right: 10%;
+            animation: float1 2.8s ease-in-out infinite;
+        }
+
+        @keyframes float1 {
+            0%, 100% { transform: translateY(0px) translateX(0px); opacity: 0.6; }
+            50% { transform: translateY(-10px) translateX(5px); opacity: 1; }
+        }
+
+        @keyframes float2 {
+            0%, 100% { transform: translateY(0px) translateX(0px); opacity: 0.6; }
+            50% { transform: translateY(-8px) translateX(-3px); opacity: 1; }
+        }
+
+        @keyframes float3 {
+            0%, 100% { transform: translateY(0px) translateX(0px); opacity: 0.6; }
+            50% { transform: translateY(-12px) translateX(-2px); opacity: 1; }
         }
     </style>
-</head>
-<body>
-  <!-- Header (match chat) -->
-  <header class="header-gradient">
-        <div class="header-content">
-        <!-- Logo and title section -->
-            <div class="header-left">
-                <a href="https://www.pdn.co.il" target="_blank" class="logo-link">
-                    <img src="/static/images/pdn_logo.png" alt="PDN Logo" class="header-logo" />
-                </a>
-                <div class="header-text">
-                <h1 class="text-2xl font-bold mb-2 text-white">PDN Center</h1>
-                <p class="text-2xl opacity-90 text-white ">קוד המקור – הצופן האישי שלך</p>
-            </div>
-            </div>
-        </div>
-    </header>
-  <main class="wrap">
-    <!-- Hero -->
-    <section class="hero glass">
-      <div class="hero-head">
-        <div>
-          <h2 id="heroTitle">תודה שסיימת את האבחון בהצלחה</h2>
-        </div>
-            </div>
-    </section>
+  </head>
+<body class="flex items-center justify-center min-h-screen p-4">
 
-    <!-- Success + Message -->
-    <section class="card" aria-labelledby="msg-title">
-      <div class="success" aria-hidden="true">
-        <!-- inline SVG check -->
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M20 6L9 17l-5-5"/>
-        </svg>
-            </div>
-      <h3 id="msg-title" class="heading">מה הלאה?</h3>
-      <div class="divider"></div>
-      <p class="lead">
-        בימים הקרובים נעבד את תשובתך לעומק, ובמהלך השבוע הקרוב תישלח אליך מפת דרכים אישית המבוססת על קוד המקור הייחודי שלך.
-      </p>
-      <p class="lead">
-        עם קבלת הצופן המלא במידה ורכשת ישלח גם קישור אישי (עם סיסמה) לקורס הדיגיטלי “המנוע הראשי שלך” – לניווט בהצלחה בהתאם לתוצאות.
-      </p>
-      <p class="lead">
-        זהו צעד ראשון להיכרות עמוקה עם הקוד שלך, מנגנוני ההפעלה, והדרך הייחודית שלך לנווט מתוך בהירות, דיוק והגשמה.
-      </p>
-      <div class="cta">
-        <button class="btn btn-outline" onclick="openSite()">אתר רשמי</button>
-      </div>
-    </section>
+<main class="glass-effect p-8 rounded-2xl shadow-2xl w-full max-w-2xl border border-white/20 space-y-6 animate-fade-in-up">
+    
+    <!-- PDN Logo Section -->
+    <div class="pdn-logo-container">
+        <div class="logo-glow"></div>
+        <div class="logo-ring"></div>
+        <div class="logo-ring"></div>
+        <div class="logo-particle"></div>
+        <div class="logo-particle"></div>
+        <div class="logo-particle"></div>
+        <div class="logo-particle"></div>
+        <img src="/static/images/pdn_logo.png" alt="PDN Logo" class="pdn-logo" />
+    </div>
+    
+    <!-- Header Section -->
+    <div class="text-center mb-8">
+        <h1 class="text-xl font-bold text-center text-blue-900 bg-gradient-to-r from-blue-900 to-blue-900 bg-clip-text text-transparent mb-4">
+            <span id="heroTitle"> סיימת את האבחון בהצלחה</span>
+        </h1>
+    </div>
 
-    <section class="card" aria-labelledby="msg-title" style="text-align: center;">
-      {% include 'partials/footer.html' %}
-    </section>
-    </main>
+    <!-- Success Section -->
+    <div class="text-center mb-8">
+        <h2 class="text-xl font-bold text-center text-blue-900 bg-gradient-to-r from-blue-900 to-blue-900 bg-clip-text text-transparent mb-4">מה הלאה?</h2>
+        <div class="divider-enhanced"></div>
+    </div>
+
+    <!-- Content Section -->
+    <div class="space-y-6 text-right">
+        <p class="lead-text">
+            בימים הקרובים נעבד את תשובתך לעומק, ובמהלך השבוע הקרוב תישלח אליך מפת דרכים אישית המבוססת על קוד המקור הייחודי שלך.
+        </p>
+        <p class="lead-text">
+            עם קבלת הצופן המלא במידה ורכשת קורס PDN ישלח  קישור אישי (עם סיסמה) לקורס הדיגיטלי "המנוע הראשי שלך" – לניווט בהצלחה .
+        </p>
+        <p class="lead-text">
+            זהו צעד ראשון להיכרות עמוקה עם הקוד שלך, מנגנוני ההפעלה, והדרך הייחודית שלך לנווט מתוך בהירות, דיוק והגשמה.
+        </p>
+    </div>
+
+    <!-- Action Button -->
+    <div class="text-center pt-6">
+        <button class="btn-enhanced btn-primary-enhanced" onclick="openSite()">
+            <i class="fas fa-external-link-alt"></i>
+            PDN Site
+        </button>
+    </div>
+
+    <!-- Footer Section -->
+    <div class="text-center pt-6 border-t border-blue-100/30 mt-8">
+        {% include 'partials/footer.html' %}
+    </div>
+
+</main>
 
     <script>
-    // Personalize title with user name
+    // Personalize title with user name and initialize logo effects
     document.addEventListener('DOMContentLoaded', async () => {
-      try {
-        const resp = await fetch('/pdn-diagnose/get_report_data');
-        if (resp.ok) {
-          const data = await resp.json();
-          const first = (data.metadata && data.metadata.first_name) || '';
-          const last = (data.metadata && data.metadata.last_name) || '';
-          const fullName = `${first} ${last}`.trim();
-          const titleEl = document.getElementById('heroTitle');
-          if (titleEl) {
-            titleEl.textContent = fullName ? `${fullName} – תודה שסיימת את האבחון בהצלחה` : 'תודה שסיימת את האבחון בהצלחה';
-          }
+        try {
+            const resp = await fetch('/pdn-diagnose/get_report_data');
+            if (resp.ok) {
+                const data = await resp.json();
+                const first = (data.metadata && data.metadata.first_name) || '';
+                const last = (data.metadata && data.metadata.last_name) || '';
+                const fullName = `${first} ${last}`.trim();
+                const titleEl = document.getElementById('heroTitle');
+                if (titleEl) {
+                    titleEl.textContent = fullName ? `${fullName} – סיימת את האבחון בהצלחה` : 'סיימת את האבחון בהצלחה';
+                }
+            }
+        } catch (e) {
+            console.error('Failed to load report data', e);
         }
-      } catch (e) {
-        console.error('Failed to load report data', e);
-      }
+
+        // Initialize PDN logo effects
+        initLogoEffects();
     });
 
-    function goHome(){
-      const main = document.querySelector('main');
-      main.style.transition = 'opacity .35s ease, transform .35s ease';
-      main.style.opacity = '0';
-      main.style.transform = 'translateY(-12px)';
-      setTimeout(()=>{ window.location.href = '/pdn-diagnose/'; }, 350);
+    function initLogoEffects() {
+        const logo = document.querySelector('.pdn-logo');
+        const logoContainer = document.querySelector('.pdn-logo-container');
+        
+        if (logo && logoContainer) {
+            // Add click effect to logo
+            logo.addEventListener('click', function() {
+                // Create ripple effect
+                const ripple = document.createElement('div');
+                ripple.style.cssText = `
+                    position: absolute;
+                    width: 10px;
+                    height: 10px;
+                    background: rgba(11, 46, 107, 0.6);
+                    border-radius: 50%;
+                    transform: scale(0);
+                    animation: ripple 0.6s linear;
+                    pointer-events: none;
+                    z-index: 3;
+                    left: 50%;
+                    top: 50%;
+                    margin-left: -5px;
+                    margin-top: -5px;
+                `;
+                
+                logoContainer.appendChild(ripple);
+                
+                // Remove ripple after animation
+                setTimeout(() => {
+                    if (ripple.parentNode) {
+                        ripple.parentNode.removeChild(ripple);
+                    }
+                }, 600);
+                
+                // Add temporary glow boost
+                logo.style.boxShadow = '0 0 40px rgba(11, 46, 107, 0.8)';
+                setTimeout(() => {
+                    logo.style.boxShadow = '';
+                }, 300);
+            });
+
+            // Add mouseover effect
+            logo.addEventListener('mouseenter', function() {
+                const particles = document.querySelectorAll('.logo-particle');
+                particles.forEach(particle => {
+                    particle.style.animationDuration = '1s';
+                    particle.style.opacity = '1';
+                });
+            });
+
+            logo.addEventListener('mouseleave', function() {
+                const particles = document.querySelectorAll('.logo-particle');
+                particles.forEach((particle, index) => {
+                    const durations = ['3s', '2.5s', '3.5s', '2.8s'];
+                    particle.style.animationDuration = durations[index] || '3s';
+                    particle.style.opacity = '0.6';
+                });
+            });
+        }
     }
-    function openSite(){
-      window.open('https://www.pdn.co.il', '_blank', 'noopener');
+
+    function openSite() {
+        const button = event.target;
+        button.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            button.style.transform = '';
+            window.open('https://www.pdn.co.il', '_blank', 'noopener');
+        }, 150);
     }
+
+    // Add CSS for ripple animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+    `;
+    document.head.appendChild(style);
     </script>
 </body>
 </html> 
