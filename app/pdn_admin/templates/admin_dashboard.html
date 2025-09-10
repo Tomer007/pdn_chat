@@ -1922,7 +1922,7 @@ document.addEventListener('keydown', function(event) {
     }
 });
 
-// Function to re-sort data by date
+// Function to re-sort data by date// Function to re-sort data by date
 function resortByDate() {
     if (!currentData || currentData.length === 0) {
         console.log('No data to sort');
@@ -1932,28 +1932,22 @@ function resortByDate() {
     // Helper function to parse dates in different formats
     const parseDate = (dateStr) => {
         if (!dateStr || dateStr === 'N/A' || dateStr === '') {
-            return new Date(0); // Return epoch date for invalid dates
-        }
-        
-        // Try to parse different date formats
-        let date = new Date(dateStr);
-        
-        // If invalid date, try parsing Hebrew date format (DD/MM/YYYY)
-        if (isNaN(date.getTime())) {
-            const parts = dateStr.split('/');
-            if (parts.length === 3) {
-                // Assume DD/MM/YYYY format
-                date = new Date(parts[2], parts[1] - 1, parts[0]);
-            }
-        }
-        
-        // If still invalid, return epoch date
-        if (isNaN(date.getTime())) {
-            console.warn(`Could not parse date: ${dateStr}`);
             return new Date(0);
         }
         
-        return date;
+        const parts = dateStr.split('/');
+        if (parts.length === 3) {
+            const day = parseInt(parts[0], 10);
+            const month = parseInt(parts[1], 10) - 1; // Month is 0-based
+            const year = parseInt(parts[2], 10);
+            const date = new Date(year, month, day);
+            if (!isNaN(date.getTime())) {
+                return date;
+            }
+        }
+        
+        console.warn(`Could not parse date: ${dateStr}`);
+        return new Date(0);
     };
     
     // Toggle sort direction (newest first by default, then oldest first)
@@ -1983,7 +1977,6 @@ function resortByDate() {
     
     console.log('Data re-sorted by date:', currentData.map(u => ({ email: u.email, date: u.date, parsed: parseDate(u.date) })));
 }
-
 function showNotification(message, type = 'info') {
     // Create notification element
     const notification = document.createElement('div');
