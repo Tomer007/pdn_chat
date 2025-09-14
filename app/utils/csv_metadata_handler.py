@@ -50,8 +50,6 @@ class UserMetadataHandler:
         unique_part = str(uuid.uuid4()).replace('-', '')[:6].upper()
         return f"UID{unique_part}"
 
-
-
     def _is_cache_valid(self) -> bool:
         """Check if the current cache is still valid."""
         if self._data_cache is None or self._cache_timestamp is None:
@@ -64,8 +62,6 @@ class UserMetadataHandler:
         """Invalidate the current cache."""
         self._data_cache = None
         self._cache_timestamp = None
-
-
 
     def ensure_csv_exists(self) -> None:
         """Create CSV file with headers if it doesn't exist."""
@@ -80,8 +76,6 @@ class UserMetadataHandler:
         except Exception as e:
             logger.error(f"Error creating CSV file: {e}")
             raise
-
-
 
     def _validate_email(self, email: str) -> bool:
         """Validate email format and presence."""
@@ -193,10 +187,6 @@ class UserMetadataHandler:
             logger.error(f"Error appending metadata to CSV: {e}")
             return False
 
-
-
-
-
     def get_user_by_email(self, email: str) -> Optional[Dict[str, str]]:
         """
         Get specific user metadata by email with caching.
@@ -237,13 +227,13 @@ class UserMetadataHandler:
         """
         try:
             pdn_file_path = PDNFilePath()
-            
+
             # Construct filename based on file type
             if file_type == "answers":
                 filename = f"{email}_answers.json"
             else:
                 filename = f"{email}_{file_type}.json"
-            
+
             file_path = pdn_file_path.get_user_file_path(email, filename)
 
             if not os.path.exists(file_path):
@@ -311,8 +301,6 @@ class UserMetadataHandler:
             logger.error(f"Error updating {field_name}: {e}")
             return False
 
-
-
     def update_pdn_code(self, email: str, pdn_code: str) -> bool:
         """
         Update PDN Code for a specific user.
@@ -341,19 +329,19 @@ class UserMetadataHandler:
         try:
             # Update PDN code
             pdn_updated = self.update_pdn_code(email, pdn_code)
-            
+
             if pdn_updated:
                 # Create comment with timestamp and user info
                 current_time = datetime.now().strftime("%d/%m/%Y %H:%M")
                 comment = f"Updated on {current_time} by {updated_by}"
-                
+
                 # Update the comment field
                 comment_updated = self._update_user_field(email, "PDN Update Comments", comment)
-                
+
                 return comment_updated
             else:
                 return False
-                
+
         except Exception as e:
             logger.error(f"Error updating PDN code with comment: {e}")
             return False
@@ -406,11 +394,3 @@ class UserMetadataHandler:
         except Exception as e:
             logger.error(f"Error updating Diagnose Code: {e}")
             return False
-
-
-
-
-
-
-
-

@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime
 from flask import Blueprint, request, render_template, jsonify, session, current_app
+
 from .binat_agents.a7_agent import A7Agent
 from .logger import setup_logger
 
@@ -35,6 +36,7 @@ USERS_DATA = {
 # Replace with this lazy initialization approach:
 _rag_system = None
 
+
 def get_rag_system():
     """Get or initialize the RAG system lazily"""
     global _rag_system
@@ -47,6 +49,7 @@ def get_rag_system():
             logger.error(f"Failed to initialize RAG system: {e}")
             _rag_system = None
     return _rag_system
+
 
 # Create blueprint
 pdn_chat_ai_bp = Blueprint('pdn_chat_ai', __name__,
@@ -70,33 +73,33 @@ def login():
     """Handle user login with email and password verification"""
     logger.debug("POST /pdn-chat-ai/login called")
     logger.info("Request: %s %s", request.method, request.url)
-    
+
     try:
         data = request.get_json()
         if not data:
             return jsonify({"error": "No data provided"}), 400
-            
+
         email = data.get('email', '').strip()
         password = data.get('password', '').strip()
-        
+
         if not email or not password:
             return jsonify({"error": "Email and password are required"}), 400
-        
+
         # Check if user exists and password is correct
         if email in USERS_DATA and USERS_DATA[email]['password'] == password:
             user_data = USERS_DATA[email]
-            
+
             # Generate a unique user ID for this session
             user_id = str(uuid.uuid4())
-            
+
             # Store user data in session
             session['user_id'] = user_id
             session['user_email'] = email
             session['user_name'] = user_data['name']
             session['pdn_code'] = user_data['pdn_code']
-            
+
             logger.info("User %s logged in successfully", email)
-            
+
             return jsonify({
                 "success": True,
                 "message": "Login successful",
@@ -121,19 +124,19 @@ def logout():
     """Handle user logout"""
     logger.debug("POST /pdn-chat-ai/logout called")
     logger.info("Request: %s %s", request.method, request.url)
-    
+
     try:
 
         A7Agent().clear_user_history(session.get('user_name'))
         # Clear session data
         session.clear()
         logger.info("User logged out successfully")
-        
+
         return jsonify({
             "success": True,
             "message": "Logout successful"
         })
-        
+
     except Exception as e:
         logger.error(f"Error in logout: {e}")
         return jsonify({"error": "Logout error occurred"}), 500
@@ -150,9 +153,10 @@ def chat_interface():
     user_name = session.get('user_name') or request.args.get('user_name', 'Anonymous')
     user_id = session.get('user_id') or request.args.get('user_id', '')
     pdn_code = session.get('pdn_code') or request.args.get('pdn_code', '')
-    
+
     config = current_app.config.get('PDN_CONFIG', {})
-    welcome_message = config.get("chatbots", {}).get("chatbot_PDN", {}).get("welcome_message", "ברוך הבא לבינת קוד המקור ")
+    welcome_message = config.get("chatbots", {}).get("chatbot_PDN", {}).get("welcome_message",
+                                                                            "ברוך הבא לבינת קוד המקור ")
 
     return render_template(
         "chat.html",
@@ -163,22 +167,23 @@ def chat_interface():
         include_menu=True
     )
 
+
 @pdn_chat_ai_bp.route('/chat', methods=['POST'])
 def chat_message():
     """Handle chat messages with improved AI responses"""
     logger.debug("POST /pdn-chat-ai/chat called")
     logger.info("Request: %s %s", request.method, request.url)
-    
+
     try:
         data = request.get_json()
         if not data:
             return jsonify({"error": "No data provided"}), 400
-            
+
         message = data.get('message', '').strip()
         user_name = data.get('user_name', 'Anonymous')
         # user_id = data.get('user_id', '')
         pdn_code = data.get('pdn_code', '')
-        
+
         if pdn_code == "A7":
             return jsonify({
                 "response": A7Agent().get_response(message, user_name, pdn_code),
@@ -186,7 +191,6 @@ def chat_message():
             })
         else:
             raise ValueError(f"Unknown PDN code: {pdn_code}")
-        
 
         # # Check if RAG system is available
         # rag = get_rag_system()
@@ -196,12 +200,12 @@ def chat_message():
         #         "error": "AI system not available. Please try again later.",
         #         "response": "מערכת הבינה המלאכותית אינה זמינה כרגע. אנא נסה שוב מאוחר יותר."
         #     }), 503
-        
+
         # # Generate AI response using RAG
         # try:
         #     response = rag.retrieve(message, user_name, user_id, pdn_code)
         #     logger.info("AI response generated successfully")
-            
+
         #     return jsonify({
         #         "response": response,
         #         "timestamp": datetime.now().isoformat()
@@ -216,4 +220,3 @@ def chat_message():
     except Exception as e:
         logger.error(f"Error in chat: {e}")
         return jsonify({"error": "Chat error occurred"}), 500
-

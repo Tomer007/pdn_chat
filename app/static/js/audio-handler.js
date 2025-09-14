@@ -14,7 +14,7 @@ async function saveUserAudio(username, audioBlob, question = 'audio') {
         } else {
             filename = `${username}_audio_${getTimestamp()}.wav`;
         }
-        
+
         // Create FormData to send the audio file
         const formData = new FormData();
         formData.append('audio', audioBlob, filename);
@@ -51,7 +51,7 @@ function getTimestamp() {
     const day = String(now.getDate()).padStart(2, '0');
     const hours = String(now.getHours()).padStart(2, '0');
     const minutes = String(now.getMinutes()).padStart(2, '0');
-    
+
     return `${year}-${month}-${day}_${hours}${minutes}`;
 }
 
@@ -63,21 +63,21 @@ function getTimestamp() {
 async function handleVoiceRecording(username, mediaRecorder) {
     return new Promise((resolve, reject) => {
         const audioChunks = [];
-        
+
         mediaRecorder.ondataavailable = (event) => {
             audioChunks.push(event.data);
         };
-        
+
         mediaRecorder.onstop = async () => {
             try {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                const audioBlob = new Blob(audioChunks, {type: 'audio/wav'});
                 const result = await saveUserAudio(username, audioBlob, 'audio');
                 resolve(result);
             } catch (error) {
                 reject(error);
             }
         };
-        
+
         mediaRecorder.onerror = (error) => {
             reject(error);
         };
@@ -86,5 +86,5 @@ async function handleVoiceRecording(username, mediaRecorder) {
 
 // Export functions for use in other modules
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { saveUserAudio, handleVoiceRecording, getTimestamp };
+    module.exports = {saveUserAudio, handleVoiceRecording, getTimestamp};
 } 

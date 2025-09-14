@@ -1,9 +1,9 @@
 import logging
 import os
 import smtplib
+from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from email.mime.application import MIMEApplication
 from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
@@ -27,8 +27,6 @@ def send_pdn_code_email(user_answers: Dict[str, Any], pdn_code: str) -> bool:
         if not user_email:
             logger.error("No email address found in user answers")
             return False
-
-
 
         # Create message
         msg = MIMEMultipart()
@@ -498,11 +496,11 @@ def send_pdn_code_email(user_answers: Dict[str, Any], pdn_code: str) -> bool:
             f"{pdn_code.replace('P', 'P-')}.pdf",  # P-10.pdf (alternative)
             f"{pdn_code.lower()}.pdf"  # p10.pdf
         ]
-        
+
         pdf_attached = False
         for pdf_filename in pdf_filenames:
             pdf_path = os.path.join("app", "static", "reports", pdf_filename)
-            
+
             if os.path.exists(pdf_path):
                 try:
                     with open(pdf_path, "rb") as file:
@@ -515,9 +513,10 @@ def send_pdn_code_email(user_answers: Dict[str, Any], pdn_code: str) -> bool:
                 except Exception as e:
                     logger.error(f"Error reading PDF file {pdf_path}: {e}")
                     continue
-        
+
         if not pdf_attached:
-            logger.warning(f"PDF not found for code: {pdn_code}. Tried paths: {[os.path.join('app', 'static', 'reports', f) for f in pdf_filenames]}")
+            logger.warning(
+                f"PDF not found for code: {pdn_code}. Tried paths: {[os.path.join('app', 'static', 'reports', f) for f in pdf_filenames]}")
 
         # Send email
         with smtplib.SMTP('smtp.gmail.com', 587) as server:

@@ -23,8 +23,8 @@
             --shadow-color: rgba(0, 0, 0, 0.3);
         }
 
-        body { 
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background: linear-gradient(135deg, #0b2e6b 0%, #0b2e6b 100%);
             min-height: 100vh;
             margin: 0;
@@ -40,7 +40,6 @@
             position: relative;
             overflow: hidden;
         }
-
 
 
         .header-content {
@@ -72,8 +71,8 @@
             height: 70px;
             border-radius: 50%;
             object-fit: cover;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-            border: 4px solid rgba(255,255,255,0.3);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            border: 4px solid rgba(255, 255, 255, 0.3);
         }
 
         .header-text {
@@ -200,8 +199,12 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         /* Error message styling */
@@ -278,8 +281,14 @@
 
         /* Animations */
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* Mobile responsiveness */
@@ -328,7 +337,7 @@
             .login-container {
                 border: 2px solid #000;
             }
-            
+
             .form-input {
                 border: 2px solid #000;
             }
@@ -344,178 +353,178 @@
     </style>
 </head>
 <body>
-    <!-- Theme toggle -->
-    <button class="theme-toggle" onclick="toggleTheme()" title="החלף ערכת נושא" aria-label="החלף ערכת נושא">
-        <i class="fas fa-moon"></i>
-    </button>
+<!-- Theme toggle -->
+<button class="theme-toggle" onclick="toggleTheme()" title="החלף ערכת נושא" aria-label="החלף ערכת נושא">
+    <i class="fas fa-moon"></i>
+</button>
 
-    <!-- Header with improved layout -->
-    <header class="header-gradient">
-        <div class="header-content">
-            <!-- Logo and title section -->
-            <div class="header-left">
-                <a href="https://www.pdn.co.il" target="_blank" class="logo-link">
-                    <img src="/static/images/pdn_logo.png" alt="PDN Logo" class="header-logo" />
-                </a>
-                <div class="header-text">
-                    <h1 class="text-2xl font-bold mb-2 text-white">PDN Center</h1>
-                    <p class="text-2xl opacity-90 text-white">מערכת שליטה וניהול</p>
-                </div>
+<!-- Header with improved layout -->
+<header class="header-gradient">
+    <div class="header-content">
+        <!-- Logo and title section -->
+        <div class="header-left">
+            <a href="https://www.pdn.co.il" target="_blank" class="logo-link">
+                <img src="/static/images/pdn_logo.png" alt="PDN Logo" class="header-logo"/>
+            </a>
+            <div class="header-text">
+                <h1 class="text-2xl font-bold mb-2 text-white">PDN Center</h1>
+                <p class="text-2xl opacity-90 text-white">מערכת שליטה וניהול</p>
             </div>
-        </div>
-    </header>
-
-    <!-- Main container -->
-    <div class="container mx-auto p-6 max-w-4xl">
-        <div class="login-container">
-            <div class="text-center mb-8">
-                <h2 class="text-3xl font-bold text-blue-900 mb-2">ברוך הבא למערכת הניהול</h2>
-                <p class="text-blue-700">הזן סיסמה כדי להתחבר</p>
-            </div>
-
-            <form id="loginForm" class="space-y-6">
-                <div class="form-group">
-                    <label for="email" class="form-label">
-                        <i class="fas fa-envelope"></i>
-                        אימייל
-                    </label>
-                    <input type="email" id="email" name="email" required
-                           class="form-input"
-                           placeholder="הזן כתובת אימייל"
-                           autocomplete="email">
-                </div>
-
-                <div class="form-group">
-                    <label for="password" class="form-label">
-                        <i class="fas fa-lock"></i>
-                        סיסמה
-                    </label>
-                    <input type="password" id="password" name="password" required
-                           class="form-input"
-                           placeholder="הזן סיסמה" 
-                           autocomplete="current-password"
-                           maxlength="50">
-                </div>
-
-                <button type="submit" class="submit-button">
-                    <i class="fas fa-sign-in-alt"></i>
-                    כניסה למערכת
-                </button>
-            </form>
-
-            <div id="loginError" class="error-message">
-                <i class="fas fa-exclamation-triangle mr-2"></i>
-                <span>סיסמה שגויה</span>
-            </div>
-
-            <!-- Footer -->
-            {% include 'partials/footer.html' %}
         </div>
     </div>
+</header>
 
-    <script>
-        let isDarkMode = false;
-        let sessionToken = null;
+<!-- Main container -->
+<div class="container mx-auto p-6 max-w-4xl">
+    <div class="login-container">
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold text-blue-900 mb-2">ברוך הבא למערכת הניהול</h2>
+            <p class="text-blue-700">הזן סיסמה כדי להתחבר</p>
+        </div>
 
-        // Theme toggle with proper state management
-        function toggleTheme() {
-            isDarkMode = !isDarkMode;
-            document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
-            
+        <form id="loginForm" class="space-y-6">
+            <div class="form-group">
+                <label for="email" class="form-label">
+                    <i class="fas fa-envelope"></i>
+                    אימייל
+                </label>
+                <input type="email" id="email" name="email" required
+                       class="form-input"
+                       placeholder="הזן כתובת אימייל"
+                       autocomplete="email">
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">
+                    <i class="fas fa-lock"></i>
+                    סיסמה
+                </label>
+                <input type="password" id="password" name="password" required
+                       class="form-input"
+                       placeholder="הזן סיסמה"
+                       autocomplete="current-password"
+                       maxlength="50">
+            </div>
+
+            <button type="submit" class="submit-button">
+                <i class="fas fa-sign-in-alt"></i>
+                כניסה למערכת
+            </button>
+        </form>
+
+        <div id="loginError" class="error-message">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            <span>סיסמה שגויה</span>
+        </div>
+
+        <!-- Footer -->
+        {% include 'partials/footer.html' %}
+    </div>
+</div>
+
+<script>
+    let isDarkMode = false;
+    let sessionToken = null;
+
+    // Theme toggle with proper state management
+    function toggleTheme() {
+        isDarkMode = !isDarkMode;
+        document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+
+        const themeIcon = document.querySelector('.theme-toggle i');
+        themeIcon.className = isDarkMode ? 'fas fa-sun' : 'fas fa-moon';
+
+        // Save preference
+        localStorage.setItem('darkMode', isDarkMode);
+    }
+
+    // Function to show error message
+    function showError(message) {
+        const loginError = document.getElementById('loginError');
+        loginError.querySelector('span').textContent = message;
+        loginError.style.display = 'block';
+    }
+
+    // Function to hide error message
+    function hideError() {
+        const loginError = document.getElementById('loginError');
+        loginError.style.display = 'none';
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function () {
+        setupEventListeners();
+
+        // Load theme preference
+        const savedTheme = localStorage.getItem('darkMode');
+        if (savedTheme === 'true') {
+            isDarkMode = true;
+            document.documentElement.setAttribute('data-theme', 'dark');
             const themeIcon = document.querySelector('.theme-toggle i');
-            themeIcon.className = isDarkMode ? 'fas fa-sun' : 'fas fa-moon';
-            
-            // Save preference
-            localStorage.setItem('darkMode', isDarkMode);
+            themeIcon.className = 'fas fa-sun';
         }
+    });
 
-        // Function to show error message
-        function showError(message) {
-            const loginError = document.getElementById('loginError');
-            loginError.querySelector('span').textContent = message;
-            loginError.style.display = 'block';
-        }
+    function setupEventListeners() {
+        // Login form
+        document.getElementById('loginForm').addEventListener('submit', handleLogin);
 
-        // Function to hide error message
-        function hideError() {
-            const loginError = document.getElementById('loginError');
-            loginError.style.display = 'none';
-        }
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            setupEventListeners();
-            
-            // Load theme preference
-            const savedTheme = localStorage.getItem('darkMode');
-            if (savedTheme === 'true') {
-                isDarkMode = true;
-                document.documentElement.setAttribute('data-theme', 'dark');
-                const themeIcon = document.querySelector('.theme-toggle i');
-                themeIcon.className = 'fas fa-sun';
-            }
+        // Hide error when user starts typing
+        document.getElementById('password').addEventListener('input', function () {
+            hideError();
         });
+    }
 
-        function setupEventListeners() {
-            // Login form
-            document.getElementById('loginForm').addEventListener('submit', handleLogin);
-            
-            // Hide error when user starts typing
-            document.getElementById('password').addEventListener('input', function() {
-                hideError();
+    async function handleLogin(e) {
+        e.preventDefault();
+        showLoading();
+
+        const password = document.getElementById('password').value;
+
+        try {
+            const response = await fetch('/pdn-admin/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({password: password})
             });
-        }
 
-        async function handleLogin(e) {
-            e.preventDefault();
-            showLoading();
-            
-            const password = document.getElementById('password').value;
-            
-            try {
-                const response = await fetch('/pdn-admin/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ password: password })
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    sessionToken = data.session_token;
-                    // Store session token in localStorage
-                    localStorage.setItem('adminSessionToken', sessionToken);
-                    // Redirect to dashboard
-                    window.location.href = '/pdn-admin/dashboard';
-                } else {
-                    throw new Error('Invalid credentials');
-                }
-            } catch (error) {
-                showError('סיסמה שגויה');
-            } finally {
-                hideLoading();
+            if (response.ok) {
+                const data = await response.json();
+                sessionToken = data.session_token;
+                // Store session token in localStorage
+                localStorage.setItem('adminSessionToken', sessionToken);
+                // Redirect to dashboard
+                window.location.href = '/pdn-admin/dashboard';
+            } else {
+                throw new Error('Invalid credentials');
             }
+        } catch (error) {
+            showError('סיסמה שגויה');
+        } finally {
+            hideLoading();
         }
+    }
 
-        function showLoading() {
-            const button = document.querySelector('.submit-button');
-            button.classList.add('loading');
-            button.disabled = true;
+    function showLoading() {
+        const button = document.querySelector('.submit-button');
+        button.classList.add('loading');
+        button.disabled = true;
+    }
+
+    function hideLoading() {
+        const button = document.querySelector('.submit-button');
+        button.classList.remove('loading');
+        button.disabled = false;
+    }
+
+    // Handle Enter key press
+    document.getElementById('password').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            document.getElementById('loginForm').dispatchEvent(new Event('submit'));
         }
-
-        function hideLoading() {
-            const button = document.querySelector('.submit-button');
-            button.classList.remove('loading');
-            button.disabled = false;
-        }
-
-        // Handle Enter key press
-        document.getElementById('password').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                document.getElementById('loginForm').dispatchEvent(new Event('submit'));
-            }
-        });
-    </script>
+    });
+</script>
 </body>
 </html> 

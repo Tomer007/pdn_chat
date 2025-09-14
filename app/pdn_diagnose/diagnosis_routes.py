@@ -1,24 +1,18 @@
-
-
-
 from flask import Blueprint, request, render_template, jsonify, session, current_app
 
-
+from .logger import setup_logger
 from ..utils.answer_storage import load_answers, save_user_metadata, save_answer
 from ..utils.pdn_calculator import calculate_pdn_code
 from ..utils.questionnaire import get_question
 from ..utils.report_generator import load_pdn_report
-from .logger import setup_logger
-
 
 # Setup logger
 logger = setup_logger()
 
 # Create blueprint
-pdn_diagnose_bp = Blueprint('pdn_diagnose', __name__, 
-                           template_folder='templates',
-                           static_folder='static')
-
+pdn_diagnose_bp = Blueprint('pdn_diagnose', __name__,
+                            template_folder='templates',
+                            static_folder='static')
 
 
 @pdn_diagnose_bp.route('/')
@@ -29,24 +23,26 @@ def home():
     logger.info("Response: %s", 200)
     return render_template("diagnose_login.html")
 
+
 @pdn_diagnose_bp.route('/user_info')
 def user_info_page():
     """User information page endpoint"""
     logger.debug("GET /pdn-diagnose/user_info called")
     logger.info("Request: %s %s", request.method, request.url)
     logger.info("Response: %s", 200)
-    
+
     email = session.get("email", "anonymous")
-    
+
     # Load questions.json to get the instructions
     questions = current_app.config.get('QUESTIONS_FILE', {})
 
     personal_instructions = questions.get("phases", {}).get("PersonalDetails", {}).get("instructions", "")
     logger.info(f" /user_info  personal_instructions: {personal_instructions}")
-    return render_template("user_form.html", 
-                         include_menu=True,
-                         email=email,
-                         personal_instructions=personal_instructions)
+    return render_template("user_form.html",
+                           include_menu=True,
+                           email=email,
+                           personal_instructions=personal_instructions)
+
 
 @pdn_diagnose_bp.route('/user_info', methods=['POST'])
 def save_user_info_api():
@@ -54,7 +50,7 @@ def save_user_info_api():
     logger.debug("POST /pdn-diagnose/user_info called")
     logger.info("Request: %s %s", request.method, request.url)
     logger.info("Response: %s", 200)
-    
+
     try:
         user_data = request.get_json()
         email = user_data.get('email', 'anonymous')
@@ -65,13 +61,14 @@ def save_user_info_api():
         logger.error(f"Error saving user info: {e}")
         return jsonify({"error": str(e)}), 400
 
+
 @pdn_diagnose_bp.route('/login', methods=['POST'])
 def login_user():
     """User login endpoint"""
     logger.debug("POST /pdn-diagnose/login called")
     logger.info("Request: %s %s", request.method, request.url)
     logger.info("Response: %s", 200)
-    
+
     try:
         login_data = request.get_json()
         if login_data.get('password') == current_app.config.get('ADMIN_PASSWORD', 'pdn'):
@@ -82,6 +79,7 @@ def login_user():
     except Exception as e:
         logger.error(f"Login error: {e}")
         return jsonify({"error": "Login failed"}), 400
+
 
 @pdn_diagnose_bp.route('/questionnaire/<int:question_number>')
 def get_question_route(question_number):
@@ -94,28 +92,30 @@ def get_question_route(question_number):
 
     return get_question(question_number, questions)
 
+
 @pdn_diagnose_bp.route('/answer', methods=['POST'])
 def submit_answer_route():
     """Submit answer for a question"""
     logger.debug("POST /pdn-diagnose/answer called")
     logger.info("Request: %s %s", request.method, request.url)
     logger.info("Response: %s", 200)
-    
+
     try:
         data = request.get_json()
-        
+
         question_number = data.get('question_number')
         selected_option_code = data.get('selected_option_code')
         ranking = data.get('ranking')
         email = session.get('email', 'anonymous')
-        
-        logger.debug(f"Processed data - question_number: {question_number}, selected_option_code: {selected_option_code}, ranking: {ranking}, email: {email}")
-        
+
+        logger.debug(
+            f"Processed data - question_number: {question_number}, selected_option_code: {selected_option_code}, ranking: {ranking}, email: {email}")
+
         # Validate required fields
         if question_number is None:
             logger.error("Missing question_number in request")
             return jsonify({"error": "Missing question_number"}), 400
-            
+
         # For ranking questions, ranking should be present
         # For regular questions, selected_option_code should be present
         if ranking is not None:
@@ -124,7 +124,7 @@ def submit_answer_route():
         elif selected_option_code is None:
             logger.error("Missing selected_option_code for regular question")
             return jsonify({"error": "Missing selected_option_code"}), 400
-        
+
         # Get question text from questions data
         question_text = None
         try:
@@ -135,14 +135,14 @@ def submit_answer_route():
                 question_options = question_data['options']
         except Exception as e:
             logger.error(f"Could not get question text for question {question_number}: {e}")
-        
+
         # Create answer data dictionary
         answer_data = {
             'selected_option_code': selected_option_code,
             'ranking': ranking,
             'question_options': question_options
         }
-        
+
         # Save answer with question text
         try:
             save_answer(email, question_number, answer_data, question_text)
@@ -150,11 +150,12 @@ def submit_answer_route():
         except Exception as save_error:
             logger.error(f"Error saving answer: {save_error}")
             return jsonify({"error": f"Failed to save answer: {str(save_error)}"}), 500
-        
+
         return jsonify({"message": "Answer saved successfully"})
     except Exception as e:
         logger.error(f"Error submitting answer: {e}")
         return jsonify({"error": str(e)}), 400
+
 
 @pdn_diagnose_bp.route('/complete_questionnaire', methods=['POST'])
 def complete_questionnaire():
@@ -162,18 +163,18 @@ def complete_questionnaire():
     logger.debug("POST /pdn-diagnose/complete_questionnaire called")
     logger.info("Request: %s %s", request.method, request.url)
     logger.info("Response: %s", 200)
-    
+
     try:
         email = session.get('email', 'anonymous')
         logger.info(f"Completing questionnaire for email: {email}")
-        
+
         user_answers_data = load_answers(email)
-        #logger.info(f"Loaded answers data: {user_answers_data}")
-        
+        # logger.info(f"Loaded answers data: {user_answers_data}")
+
         if not user_answers_data:
             logger.error(f"No answers found for email: {email}")
             return jsonify({"error": "No answers found"}), 400
-        
+
         # Calculate PDN code
         pdn_code = calculate_pdn_code(user_answers_data)
 
@@ -182,7 +183,7 @@ def complete_questionnaire():
         if not pdn_code:
             logger.error(f"Could not calculate PDN code for user {email}")
             return jsonify({"error": "Could not calculate PDN code - insufficient answers"}), 400
-        
+
         # Update CSV with the calculated PDN code
         try:
             from ..utils.csv_metadata_handler import UserMetadataHandler
@@ -192,11 +193,12 @@ def complete_questionnaire():
         except Exception as csv_error:
             logger.warning(f"Failed to update CSV with PDN code: {csv_error}")
             # Don't fail the entire request if CSV update fails
-        
+
         return jsonify({"pdn_code": pdn_code, "message": "Questionnaire completed successfully"})
     except Exception as e:
         logger.error(f"Error completing questionnaire: {e}")
         return jsonify({"error": str(e)}), 400
+
 
 @pdn_diagnose_bp.route('/pdn_report')
 def pdn_report():
@@ -204,11 +206,12 @@ def pdn_report():
     logger.debug("GET /pdn-diagnose/pdn_report called")
     logger.info("Request: %s %s", request.method, request.url)
     logger.info("Response: %s", 200)
-    
+
     email = session.get('email', 'anonymous')
-    return render_template("pdn_report.html", 
-                         include_menu=True,
-                         email=email)
+    return render_template("pdn_report.html",
+                           include_menu=True,
+                           email=email)
+
 
 @pdn_diagnose_bp.route('/get_report_data', methods=['GET'])
 def get_report_data():
@@ -217,31 +220,31 @@ def get_report_data():
         # Get the current user's email from session
         email = session.get('email', 'anonymous')
         logger.info(f"Getting report data for email: {email}")
-        
+
         # Load user answers
         user_answers_data = load_answers(email)
-        
+
         if not user_answers_data:
             logger.error(f"No answers found for email: {email}")
             return jsonify({'error': 'No answers found'}), 400
-        
+
         # Calculate PDN code
         pdn_code = calculate_pdn_code(user_answers_data)
-        
+
         if not pdn_code:
             logger.error(f"Could not calculate PDN code for user {email}")
             return jsonify({'error': 'Could not calculate PDN code'}), 400
-        
+
         # Load report data
         report_data = load_pdn_report(pdn_code)
-        
+
         if not report_data:
             logger.error(f"Could not load PDN report for code {pdn_code}")
             return jsonify({'error': 'Could not load PDN report'}), 400
-        
+
         # Get user metadata
         user_data = session.get('user_data', {})
-        
+
         # Prepare response data
         response_data = {
             'metadata': {
@@ -253,13 +256,12 @@ def get_report_data():
                 'pdn_code': pdn_code,
             }
         }
-        
+
         return jsonify(response_data)
-    
+
     except Exception as e:
         logger.error(f"Error getting report data: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
-
 
 
 @pdn_diagnose_bp.route('/chat')
@@ -268,22 +270,20 @@ def chat():
     logger.debug("GET /pdn-diagnose/chat called")
     logger.info("Request: %s %s", request.method, request.url)
     logger.info("Response: %s", 200)
-    
+
     email = session.get('email', 'anonymous')
     user_data = session.get('user_data', {})
     user_name = user_data.get('first_name', 'User')
     user_id = email  # Using email as user ID
-    
+
     # Voice recording config
     voice_min_duration = current_app.config.get('VOICE_RECORDING_MIN_DURATION', 60)
     voice_max_duration = current_app.config.get('VOICE_RECORDING_MAX_DURATION', 90)
 
-    return render_template("questionnaire.html", 
-                         include_menu=True,
-                         user_name=user_name,
-                         user_id=user_id,
-                         email=email,
-                         voice_min_duration=voice_min_duration,
-                         voice_max_duration=voice_max_duration)
-
- 
+    return render_template("questionnaire.html",
+                           include_menu=True,
+                           user_name=user_name,
+                           user_id=user_id,
+                           email=email,
+                           voice_min_duration=voice_min_duration,
+                           voice_max_duration=voice_max_duration)

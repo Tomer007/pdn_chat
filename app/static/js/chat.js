@@ -14,13 +14,13 @@ let currentConversationId = null;
 function initializeChat() {
     // Set up event listeners
     setupChatEventListeners();
-    
+
     // Load chat history
     loadChatHistory();
-    
+
     // Set up auto-scroll
     setupAutoScroll();
-    
+
     // Initialize typing indicator
     initializeTypingIndicator();
 }
@@ -34,14 +34,14 @@ function setupChatEventListeners() {
     if (sendButton) {
         sendButton.addEventListener('click', sendMessage);
     }
-    
+
     // Input field
     const inputField = document.getElementById('inputField');
     if (inputField) {
         inputField.addEventListener('keypress', handleKeyPress);
         inputField.addEventListener('input', handleInput);
     }
-    
+
     // Quick reply buttons
     const quickReplyButtons = document.querySelectorAll('.quick-reply-btn');
     quickReplyButtons.forEach(button => {
@@ -50,7 +50,7 @@ function setupChatEventListeners() {
             sendQuickReply(message);
         });
     });
-    
+
     // Theme toggle
     const themeToggle = document.querySelector('.theme-toggle');
     if (themeToggle) {
@@ -76,7 +76,7 @@ function handleKeyPress(event) {
 function handleInput(event) {
     const inputField = event.target;
     const sendButton = document.getElementById('sendButton');
-    
+
     if (sendButton) {
         if (inputField.value.trim()) {
             sendButton.disabled = false;
@@ -94,19 +94,19 @@ function handleInput(event) {
 async function sendMessage() {
     const inputField = document.getElementById('inputField');
     const message = inputField.value.trim();
-    
+
     if (!message || isTyping) return;
-    
+
     // Clear input
     inputField.value = '';
     updateSendButton();
-    
+
     // Add user message to chat
     addMessageToChat('user', message);
-    
+
     // Show typing indicator
     showTypingIndicator();
-    
+
     try {
         // Send message to server
         const response = await fetch('/pdn-chat-ai/api/chat', {
@@ -119,30 +119,30 @@ async function sendMessage() {
                 conversation_id: currentConversationId
             })
         });
-        
+
         if (response.ok) {
             const data = await response.json();
-            
+
             // Hide typing indicator
             hideTypingIndicator();
-            
+
             // Add bot response to chat
             if (data.response) {
                 addMessageToChat('bot', data.response);
             }
-            
+
             // Update conversation ID
             if (data.conversation_id) {
                 currentConversationId = data.conversation_id;
             }
-            
+
             // Save to history
             saveToChatHistory(message, data.response);
-            
+
         } else {
             throw new Error('Failed to send message');
         }
-        
+
     } catch (error) {
         console.error('Error sending message:', error);
         hideTypingIndicator();
@@ -169,12 +169,12 @@ function sendQuickReply(message) {
 function addMessageToChat(sender, message) {
     const messagesContainer = document.getElementById('messages');
     if (!messagesContainer) return;
-    
+
     const messageDiv = document.createElement('div');
     messageDiv.className = `chat-bubble ${sender} animated`;
-    
+
     const timestamp = getCurrentTime();
-    
+
     messageDiv.innerHTML = `
         <div class="flex items-start space-x-3 space-x-reverse">
             <div class="flex-shrink-0">
@@ -192,12 +192,12 @@ function addMessageToChat(sender, message) {
             </div>
         </div>
     `;
-    
+
     messagesContainer.appendChild(messageDiv);
-    
+
     // Scroll to bottom
     scrollToBottom();
-    
+
     // Add to history
     chatHistory.push({
         sender: sender,
@@ -214,11 +214,11 @@ function showTypingIndicator() {
     isTyping = true;
     const messagesContainer = document.getElementById('messages');
     if (!messagesContainer) return;
-    
+
     const typingDiv = document.createElement('div');
     typingDiv.id = 'typingIndicator';
     typingDiv.className = 'chat-bubble bot typing-indicator';
-    
+
     typingDiv.innerHTML = `
         <div class="flex items-center space-x-2 space-x-reverse">
             <div class="flex space-x-1 space-x-reverse">
@@ -229,7 +229,7 @@ function showTypingIndicator() {
             <span class="text-gray-500 text-sm">PDN AI כותב...</span>
         </div>
     `;
-    
+
     messagesContainer.appendChild(typingDiv);
     scrollToBottom();
 }
@@ -252,17 +252,17 @@ function hideTypingIndicator() {
 function showErrorMessage(message) {
     const messagesContainer = document.getElementById('messages');
     if (!messagesContainer) return;
-    
+
     const errorDiv = document.createElement('div');
     errorDiv.className = 'chat-bubble bot error-message';
-    
+
     errorDiv.innerHTML = `
         <div class="flex items-center space-x-2 space-x-reverse text-red-600">
             <i class="fas fa-exclamation-triangle"></i>
             <span>${message}</span>
         </div>
     `;
-    
+
     messagesContainer.appendChild(errorDiv);
     scrollToBottom();
 }
@@ -273,7 +273,7 @@ function showErrorMessage(message) {
 function updateSendButton() {
     const inputField = document.getElementById('inputField');
     const sendButton = document.getElementById('sendButton');
-    
+
     if (inputField && sendButton) {
         if (inputField.value.trim()) {
             sendButton.disabled = false;
@@ -324,7 +324,7 @@ function loadChatHistory() {
         const savedHistory = localStorage.getItem('pdnChatHistory');
         if (savedHistory) {
             chatHistory = JSON.parse(savedHistory);
-            
+
             // Render saved messages
             chatHistory.forEach(item => {
                 if (item.type === 'text') {
@@ -346,10 +346,10 @@ function saveToChatHistory(userMessage, botResponse) {
     try {
         // Save to localStorage
         localStorage.setItem('pdnChatHistory', JSON.stringify(chatHistory));
-        
+
         // Optionally save to server
         saveConversationToServer(userMessage, botResponse);
-        
+
     } catch (error) {
         console.error('Error saving chat history:', error);
     }
@@ -386,12 +386,12 @@ function clearChatHistory() {
     if (confirm('האם אתה בטוח שברצונך למחוק את היסטוריית הצ\'אט?')) {
         chatHistory = [];
         localStorage.removeItem('pdnChatHistory');
-        
+
         const messagesContainer = document.getElementById('messages');
         if (messagesContainer) {
             messagesContainer.innerHTML = '';
         }
-        
+
         // Show welcome message
         addMessageToChat('bot', 'שלום! אני PDN AI, איך אוכל לעזור לך היום?');
     }
@@ -403,13 +403,13 @@ function clearChatHistory() {
 function exportChatHistory() {
     try {
         const dataStr = JSON.stringify(chatHistory, null, 2);
-        const dataBlob = new Blob([dataStr], { type: 'application/json' });
-        
+        const dataBlob = new Blob([dataStr], {type: 'application/json'});
+
         const link = document.createElement('a');
         link.href = URL.createObjectURL(dataBlob);
         link.download = `pdn-chat-history-${new Date().toISOString().split('T')[0]}.json`;
         link.click();
-        
+
     } catch (error) {
         console.error('Error exporting chat history:', error);
         alert('שגיאה בייצוא היסטוריית הצ\'אט.');
@@ -422,11 +422,11 @@ function exportChatHistory() {
  */
 function searchChatHistory(query) {
     if (!query.trim()) return chatHistory;
-    
-    return chatHistory.filter(item => 
-        item.type === 'text' && 
+
+    return chatHistory.filter(item =>
+        item.type === 'text' &&
         (item.message.toLowerCase().includes(query.toLowerCase()) ||
-         item.sender.toLowerCase().includes(query.toLowerCase()))
+            item.sender.toLowerCase().includes(query.toLowerCase()))
     );
 }
 
@@ -438,18 +438,18 @@ function getChatStatistics() {
     const totalMessages = chatHistory.length;
     const userMessages = chatHistory.filter(item => item.sender === 'user').length;
     const botMessages = chatHistory.filter(item => item.sender === 'bot').length;
-    
+
     return {
         total: totalMessages,
         user: userMessages,
         bot: botMessages,
-        averageLength: totalMessages > 0 ? 
+        averageLength: totalMessages > 0 ?
             Math.round(chatHistory.reduce((sum, item) => sum + item.message.length, 0) / totalMessages) : 0
     };
 }
 
 // Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     initializeChat();
 });
 
