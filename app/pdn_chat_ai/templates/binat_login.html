@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data:; connect-src 'self';">
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data:; connect-src 'self';">
     <title>בינת קוד המקור - התחברות</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -36,8 +37,8 @@
             --gradient-end: #0b2e6b;
         }
 
-        body { 
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background: linear-gradient(135deg, #0b2e6b 0%, #0b2e6b 100%);
             min-height: 100vh;
             margin: 0;
@@ -93,8 +94,8 @@
             height: 70px;
             border-radius: 50%;
             object-fit: cover;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-            border: 4px solid rgba(255,255,255,0.3);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            border: 4px solid rgba(255, 255, 255, 0.3);
         }
 
         .header-text {
@@ -221,8 +222,12 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         /* Error message styling */
@@ -330,8 +335,14 @@
 
         /* Animations */
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* Mobile responsiveness */
@@ -380,7 +391,7 @@
             .login-container {
                 border: 2px solid #000;
             }
-            
+
             .form-input {
                 border: 2px solid #000;
             }
@@ -396,250 +407,251 @@
     </style>
 </head>
 <body>
-    <!-- Theme toggle -->
-    <button class="theme-toggle" onclick="toggleTheme()" title="החלף ערכת נושא" aria-label="החלף ערכת נושא">
-        <i class="fas fa-moon"></i>
-    </button>
+<!-- Theme toggle -->
+<button class="theme-toggle" onclick="toggleTheme()" title="החלף ערכת נושא" aria-label="החלף ערכת נושא">
+    <i class="fas fa-moon"></i>
+</button>
 
-    <!-- Header with improved layout -->
-    <header class="header-gradient">
-        <div class="header-content">
-            <!-- Logo and title section -->
-            <div class="header-left">
-                <a href="https://www.pdn.co.il" target="_blank" class="logo-link">
-                    <img src="/static/images/pdn_logo.png" alt="PDN Logo" class="header-logo" />
-                </a>
-                <div class="header-text">
-                    <h1 class="text-2xl font-bold mb-2 text-white">PDN Center</h1>
-                    <p class="text-2xl opacity-90 text-white">בינת קוד המקור</p>
-                </div>
+<!-- Header with improved layout -->
+<header class="header-gradient">
+    <div class="header-content">
+        <!-- Logo and title section -->
+        <div class="header-left">
+            <a href="https://www.pdn.co.il" target="_blank" class="logo-link">
+                <img src="/static/images/pdn_logo.png" alt="PDN Logo" class="header-logo"/>
+            </a>
+            <div class="header-text">
+                <h1 class="text-2xl font-bold mb-2 text-white">PDN Center</h1>
+                <p class="text-2xl opacity-90 text-white">בינת קוד המקור</p>
             </div>
-        </div>
-    </header>
-
-    <!-- Main container -->
-    <div class="container mx-auto p-6 max-w-4xl">
-        <div class="login-container">
-            <div class="text-center mb-8">
-                <h2 class="text-3xl font-bold text-blue-900 mb-2">ברוך הבא לבינת קוד המקור</h2>
-                <p class="text-blue-700">התחבר כדי להתחיל את המסע שלך</p>
-            </div>
-
-            <form id="loginForm" class="space-y-6">
-                <div class="form-group">
-                    <label for="username" class="form-label">
-                        <i class="fas fa-envelope"></i>
-                        אימייל
-                    </label>
-                    <input type="email" id="username" name="email" required
-                           class="form-input"
-                           placeholder="הזן כתובת אימייל"
-                           autocomplete="email">
-                </div>
-
-                <div class="form-group">
-                    <label for="password" class="form-label">
-                        <i class="fas fa-lock"></i>
-                        סיסמה
-                    </label>
-                    <input type="password" id="password" name="password" required
-                           class="form-input"
-                           placeholder="הזן סיסמה" 
-                           autocomplete="current-password"
-                           maxlength="50">
-                </div>
-
-                <button type="submit" class="submit-button">
-                    <i class="fas fa-sign-in-alt"></i>
-                    התחל שיחה עם בינת קוד המקור
-                </button>
-            </form>
-
-            <div id="loginError" class="error-message">
-                <i class="fas fa-exclamation-triangle mr-2"></i>
-                <span>אנא הזן אימייל וסיסמה תקינים</span>
-            </div>
-
-            <!-- Disclaimer -->
-            <div class="disclaimer">
-                <h2 class="text-blue-900 text-2xl">הסכמה מודעת למסע עם קוד המקור</h3>
-                <p>המסע עם קוד המקור נועד לעורר תודעה, לאפשר גילוי עצמי, ולהאיר כיוונים פנימיים. הוא לא מחליף ייעוץ או טיפול מקצועי – רגשי, רפואי או אחר – ואינו מתיימר לאבחן או לרפא.</p>
-                <p>האבחון והליווי דרך קוד המקור מזמינים אותך להתבונן, להקשיב לעצמך, ולבחור איך לפעול. האחריות על הדרך, הבחירות וההשלכות – היא שלך בלבד.</p>
-                <p>אם עולה קושי רגשי עמוק, מצוקה מתמשכת או צורך בתמיכה – חשוב לפנות לאיש מקצוע מתאים.</p>
-                <p>אנחנו כאן להזכיר – שהכוח כבר בתוכך.</p>
-            </div>
-             <!-- Footer -->
-             {% include 'partials/footer.html' %}
         </div>
     </div>
+</header>
+
+<!-- Main container -->
+<div class="container mx-auto p-6 max-w-4xl">
+    <div class="login-container">
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold text-blue-900 mb-2">ברוך הבא לבינת קוד המקור</h2>
+            <p class="text-blue-700">התחבר כדי להתחיל את המסע שלך</p>
+        </div>
+
+        <form id="loginForm" class="space-y-6">
+            <div class="form-group">
+                <label for="username" class="form-label">
+                    <i class="fas fa-envelope"></i>
+                    אימייל
+                </label>
+                <input type="email" id="username" name="email" required
+                       class="form-input"
+                       placeholder="הזן כתובת אימייל"
+                       autocomplete="email">
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">
+                    <i class="fas fa-lock"></i>
+                    סיסמה
+                </label>
+                <input type="password" id="password" name="password" required
+                       class="form-input"
+                       placeholder="הזן סיסמה"
+                       autocomplete="current-password"
+                       maxlength="50">
+            </div>
+
+            <button type="submit" class="submit-button">
+                <i class="fas fa-sign-in-alt"></i>
+                התחל שיחה עם בינת קוד המקור
+            </button>
+        </form>
+
+        <div id="loginError" class="error-message">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            <span>אנא הזן אימייל וסיסמה תקינים</span>
+        </div>
+
+        <!-- Disclaimer -->
+        <div class="disclaimer">
+            <h2 class="text-blue-900 text-2xl">הסכמה מודעת למסע עם קוד המקור</h3>
+                <p>המסע עם קוד המקור נועד לעורר תודעה, לאפשר גילוי עצמי, ולהאיר כיוונים פנימיים. הוא לא מחליף ייעוץ או
+                    טיפול מקצועי – רגשי, רפואי או אחר – ואינו מתיימר לאבחן או לרפא.</p>
+                <p>האבחון והליווי דרך קוד המקור מזמינים אותך להתבונן, להקשיב לעצמך, ולבחור איך לפעול. האחריות על הדרך,
+                    הבחירות וההשלכות – היא שלך בלבד.</p>
+                <p>אם עולה קושי רגשי עמוק, מצוקה מתמשכת או צורך בתמיכה – חשוב לפנות לאיש מקצוע מתאים.</p>
+                <p>אנחנו כאן להזכיר – שהכוח כבר בתוכך.</p>
+        </div>
+        <!-- Footer -->
+        {% include 'partials/footer.html' %}
+    </div>
+</div>
 
 
+<script>
+    let isDarkMode = false;
 
-    <script>
-        let isDarkMode = false;
-
-        // Function to generate UUID
-        function generateUUID() {
-            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                var r = Math.random() * 16 | 0,
-                    v = c == 'x' ? r : (r & 0x3 | 0x8);
-                return v.toString(16);
-            });
-        }
-
-        // Function to show error message
-        function showError(message) {
-            const loginError = document.getElementById('loginError');
-            const errorSpan = loginError.querySelector('span');
-            errorSpan.textContent = message;
-            loginError.style.display = 'block';
-        }
-
-        // Function to hide error message
-        function hideError() {
-            const loginError = document.getElementById('loginError');
-            loginError.style.display = 'none';
-        }
-
-        // Function to validate form
-        function validateForm() {
-            const emailInput = document.getElementById('username');
-            const passwordInput = document.getElementById('password');
-            const submitButton = document.querySelector('.submit-button');
-            const email = emailInput.value.trim();
-            const password = passwordInput.value.trim();
-            
-            // Basic email validation (must contain @ and have at least 5 characters)
-            const emailValid = email.length >= 5 && email.includes('@');
-            const passwordValid = password.length >= 1;
-            
-            if (!emailValid || !passwordValid) {
-                submitButton.disabled = true;
-                return false;
-            } else {
-                submitButton.disabled = false;
-                return true;
-            }
-        }
-
-        // Theme toggle with proper state management
-        function toggleTheme() {
-            isDarkMode = !isDarkMode;
-            document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
-            
-            const themeIcon = document.querySelector('.theme-toggle i');
-            themeIcon.className = isDarkMode ? 'fas fa-sun' : 'fas fa-moon';
-            
-            // Save preference
-            localStorage.setItem('darkMode', isDarkMode);
-        }
-
-        // Hide error when user starts typing
-        document.getElementById('username').addEventListener('input', function() {
-            hideError();
-            validateForm();
+    // Function to generate UUID
+    function generateUUID() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16 | 0,
+                v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
         });
+    }
 
-        // Hide error when password is entered
-        document.getElementById('password').addEventListener('input', function() {
-            hideError();
-            validateForm();
-        });
+    // Function to show error message
+    function showError(message) {
+        const loginError = document.getElementById('loginError');
+        const errorSpan = loginError.querySelector('span');
+        errorSpan.textContent = message;
+        loginError.style.display = 'block';
+    }
 
-        // Focus on username input when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            const usernameInput = document.getElementById('username');
-            usernameInput.focus();
-            
-            // Load theme preference
-            const savedTheme = localStorage.getItem('darkMode');
-            if (savedTheme === 'true') {
-                isDarkMode = true;
-                document.documentElement.setAttribute('data-theme', 'dark');
-                const themeIcon = document.querySelector('.theme-toggle i');
-                themeIcon.className = 'fas fa-sun';
-            }
-            
-            // Check if user is already logged in
-            const storedUsername = localStorage.getItem('binat_username');
-            const storedUserId = localStorage.getItem('binat_user_id');
-            const storedPdnCode = localStorage.getItem('binat_pdn_code');
-            
-            if (storedUsername && storedUserId && storedPdnCode) {
-                // User is already logged in, redirect to chat
-                window.location.href = `/pdn-chat-ai/chat-ai?user_name=${encodeURIComponent(storedUsername)}&user_id=${encodeURIComponent(storedUserId)}&pdn_code=${encodeURIComponent(storedPdnCode)}`;
-                return;
-            }
-            
-            // Check if we have a stored username for auto-fill
-            if (storedUsername) {
-                usernameInput.value = storedUsername;
-                validateForm();
-            }
-        });
+    // Function to hide error message
+    function hideError() {
+        const loginError = document.getElementById('loginError');
+        loginError.style.display = 'none';
+    }
 
-        // Form submission
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const emailInput = document.getElementById('username');
-            const passwordInput = document.getElementById('password');
-            const submitButton = document.querySelector('.submit-button');
-            const email = emailInput.value.trim();
-            const password = passwordInput.value.trim();
-            
-            if (!email || !password) {
-                showError('אנא הזן אימייל וסיסמה');
-                return;
-            }
-            
-            // Show loading state
-            submitButton.classList.add('loading');
+    // Function to validate form
+    function validateForm() {
+        const emailInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const submitButton = document.querySelector('.submit-button');
+        const email = emailInput.value.trim();
+        const password = passwordInput.value.trim();
+
+        // Basic email validation (must contain @ and have at least 5 characters)
+        const emailValid = email.length >= 5 && email.includes('@');
+        const passwordValid = password.length >= 1;
+
+        if (!emailValid || !passwordValid) {
             submitButton.disabled = true;
-            
-            try {
-                // Make API call to login endpoint
-                const response = await fetch('/pdn-chat-ai/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        email: email,
-                        password: password
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    // Store user data in localStorage
-                    localStorage.setItem('binat_username', data.user_name);
-                    localStorage.setItem('binat_user_id', data.user_id);
-                    localStorage.setItem('binat_pdn_code', data.pdn_code);
-                    
-                    // Redirect to chat-ai with user data including PDN code
-                    window.location.href = `/pdn-chat-ai/chat-ai?user_name=${encodeURIComponent(data.user_name)}&user_id=${encodeURIComponent(data.user_id)}&pdn_code=${encodeURIComponent(data.pdn_code)}`;
-                } else {
-                    showError(data.error || 'שגיאה בהתחברות');
-                    submitButton.classList.remove('loading');
-                    submitButton.disabled = false;
-                }
-            } catch (error) {
-                console.error('Login error:', error);
-                showError('שגיאה בחיבור לשרת');
+            return false;
+        } else {
+            submitButton.disabled = false;
+            return true;
+        }
+    }
+
+    // Theme toggle with proper state management
+    function toggleTheme() {
+        isDarkMode = !isDarkMode;
+        document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+
+        const themeIcon = document.querySelector('.theme-toggle i');
+        themeIcon.className = isDarkMode ? 'fas fa-sun' : 'fas fa-moon';
+
+        // Save preference
+        localStorage.setItem('darkMode', isDarkMode);
+    }
+
+    // Hide error when user starts typing
+    document.getElementById('username').addEventListener('input', function () {
+        hideError();
+        validateForm();
+    });
+
+    // Hide error when password is entered
+    document.getElementById('password').addEventListener('input', function () {
+        hideError();
+        validateForm();
+    });
+
+    // Focus on username input when page loads
+    document.addEventListener('DOMContentLoaded', function () {
+        const usernameInput = document.getElementById('username');
+        usernameInput.focus();
+
+        // Load theme preference
+        const savedTheme = localStorage.getItem('darkMode');
+        if (savedTheme === 'true') {
+            isDarkMode = true;
+            document.documentElement.setAttribute('data-theme', 'dark');
+            const themeIcon = document.querySelector('.theme-toggle i');
+            themeIcon.className = 'fas fa-sun';
+        }
+
+        // Check if user is already logged in
+        const storedUsername = localStorage.getItem('binat_username');
+        const storedUserId = localStorage.getItem('binat_user_id');
+        const storedPdnCode = localStorage.getItem('binat_pdn_code');
+
+        if (storedUsername && storedUserId && storedPdnCode) {
+            // User is already logged in, redirect to chat
+            window.location.href = `/pdn-chat-ai/chat-ai?user_name=${encodeURIComponent(storedUsername)}&user_id=${encodeURIComponent(storedUserId)}&pdn_code=${encodeURIComponent(storedPdnCode)}`;
+            return;
+        }
+
+        // Check if we have a stored username for auto-fill
+        if (storedUsername) {
+            usernameInput.value = storedUsername;
+            validateForm();
+        }
+    });
+
+    // Form submission
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const emailInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const submitButton = document.querySelector('.submit-button');
+        const email = emailInput.value.trim();
+        const password = passwordInput.value.trim();
+
+        if (!email || !password) {
+            showError('אנא הזן אימייל וסיסמה');
+            return;
+        }
+
+        // Show loading state
+        submitButton.classList.add('loading');
+        submitButton.disabled = true;
+
+        try {
+            // Make API call to login endpoint
+            const response = await fetch('/pdn-chat-ai/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: email,
+                    password: password
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Store user data in localStorage
+                localStorage.setItem('binat_username', data.user_name);
+                localStorage.setItem('binat_user_id', data.user_id);
+                localStorage.setItem('binat_pdn_code', data.pdn_code);
+
+                // Redirect to chat-ai with user data including PDN code
+                window.location.href = `/pdn-chat-ai/chat-ai?user_name=${encodeURIComponent(data.user_name)}&user_id=${encodeURIComponent(data.user_id)}&pdn_code=${encodeURIComponent(data.pdn_code)}`;
+            } else {
+                showError(data.error || 'שגיאה בהתחברות');
                 submitButton.classList.remove('loading');
                 submitButton.disabled = false;
             }
-        });
+        } catch (error) {
+            console.error('Login error:', error);
+            showError('שגיאה בחיבור לשרת');
+            submitButton.classList.remove('loading');
+            submitButton.disabled = false;
+        }
+    });
 
-        // Handle Enter key press
-        document.getElementById('username').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !document.querySelector('.submit-button').disabled) {
-                document.getElementById('loginForm').dispatchEvent(new Event('submit'));
-            }
-        });
-    </script>
+    // Handle Enter key press
+    document.getElementById('username').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter' && !document.querySelector('.submit-button').disabled) {
+            document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+        }
+    });
+</script>
 </body>
 </html>
  

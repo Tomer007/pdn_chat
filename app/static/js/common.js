@@ -12,12 +12,12 @@ let isDarkMode = false;
 function toggleTheme() {
     isDarkMode = !isDarkMode;
     document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
-    
+
     const themeIcon = document.querySelector('.theme-toggle i');
     if (themeIcon) {
         themeIcon.className = isDarkMode ? 'fas fa-sun' : 'fas fa-moon';
     }
-    
+
     // Save preference
     localStorage.setItem('darkMode', isDarkMode);
 }
@@ -97,18 +97,18 @@ function getCurrentTime() {
  */
 function formatTimestamp(date) {
     if (!date) return '';
-    
+
     const now = new Date();
     const diffMs = now - new Date(date);
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
-    
+
     if (diffMins < 1) return 'עכשיו';
     if (diffMins < 60) return `לפני ${diffMins} דקות`;
     if (diffHours < 24) return `לפני ${diffHours} שעות`;
     if (diffDays < 7) return `לפני ${diffDays} ימים`;
-    
+
     return new Date(date).toLocaleDateString('he-IL');
 }
 
@@ -138,7 +138,7 @@ function debounce(func, wait) {
  */
 function throttle(func, limit) {
     let inThrottle;
-    return function() {
+    return function () {
         const args = arguments;
         const context = this;
         if (!inThrottle) {
@@ -169,13 +169,13 @@ function showFormError(fieldId, message) {
     const field = document.getElementById(fieldId);
     if (field) {
         field.classList.add('error');
-        
+
         // Remove existing error message
         const existingError = field.parentNode.querySelector('.form-error');
         if (existingError) {
             existingError.remove();
         }
-        
+
         // Add new error message
         const errorDiv = document.createElement('div');
         errorDiv.className = 'form-error';
@@ -262,30 +262,30 @@ function setLocalStorageWithTTL(key, value, ttl) {
 function getLocalStorageWithTTL(key) {
     const itemStr = localStorage.getItem(key);
     if (!itemStr) return null;
-    
+
     const item = JSON.parse(itemStr);
     if (Date.now() > item.expiry) {
         localStorage.removeItem(key);
         return null;
     }
-    
+
     return item.value;
 }
 
 // Initialize common functionality when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Initialize theme
     initializeTheme();
-    
+
     // Setup modal click outside
     setupModalClickOutside();
-    
+
     // Setup theme toggle buttons
     const themeToggles = document.querySelectorAll('.theme-toggle');
     themeToggles.forEach(toggle => {
         toggle.addEventListener('click', toggleTheme);
     });
-    
+
     // Setup WhatsApp buttons
     const whatsappButtons = document.querySelectorAll('[data-whatsapp]');
     whatsappButtons.forEach(button => {

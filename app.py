@@ -60,10 +60,7 @@ def create_app():
         logger.info(f"Config file exists: {config_path.exists()}")
         logger.info(f"Questions file exists: {questions_path.exists()}")
         
-        # Log PDN_CONFIG
-        logger.info("PDN_CONFIG content:")
-        logger.info(json.dumps(app.config['PDN_CONFIG'], indent=2, default=str))
-        
+       
         # Log QUESTIONS_FILE structure (be careful with large files)
         questions_data = app.config['QUESTIONS_FILE']
         logger.info("QUESTIONS_FILE structure:")

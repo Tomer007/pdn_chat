@@ -76,16 +76,15 @@ class PDNFilePath:
         # Create safe username from email
         safe_username = "".join(c for c in user_email if c.isalnum() or c in (' ', '-', '_')).rstrip()
         safe_username = safe_username.replace(' ', '_')
-        
+
         # Create user directory path without creating it
         user_dir = self.base_dir / safe_username
-        
+
         # Only search if directory exists
         if not user_dir.exists():
             return None
-        
+
         list_of_files = list(user_dir.glob(f"*{file_type}"))
         if len(list_of_files) == 0:
             return None
-        return list_of_files[0] 
-        
+        return list_of_files[0]

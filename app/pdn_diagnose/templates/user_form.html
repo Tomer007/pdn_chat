@@ -18,8 +18,8 @@
             --gradient-end: #0b2e6b;
         }
 
-        body { 
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
             min-height: 100vh;
             margin: 0;
@@ -73,12 +73,18 @@
 
         /* Animations */
         @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(16px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .fade-in {
-            animation: fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) both;
+            animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
         }
 
         /* Mobile responsiveness */
@@ -139,9 +145,9 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2 text-right">
-                        <i class="fas fa-language mr-2"> שפת אם </i> 
+                        <i class="fas fa-language mr-2"> שפת אם </i>
                     </label>
-                    <select id="mother_language" name="mother_language" 
+                    <select id="mother_language" name="mother_language"
                             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 form-input">
                         <option value="">בחר שפת אם</option>
                         <option value="עברית">עברית</option>
@@ -152,9 +158,9 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2 text-right">
-                        <i class="fas fa-venus-mars mr-2"> מגדר </i> 
+                        <i class="fas fa-venus-mars mr-2"> מגדר </i>
                     </label>
-                    <select id="gender" name="gender" 
+                    <select id="gender" name="gender"
                             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 form-input">
                         <option value="">בחר מגדר</option>
                         <option value="זכר">זכר</option>
@@ -165,9 +171,9 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2 text-right">
-                        <i class="fas fa-graduation-cap mr-2"> השכלה </i> 
+                        <i class="fas fa-graduation-cap mr-2"> השכלה </i>
                     </label>
-                    <select id="education" name="education" 
+                    <select id="education" name="education"
                             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 form-input">
                         <option value="">בחר רמת השכלה</option>
                         <option value="תיכון">תיכון</option>
@@ -180,9 +186,9 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2 text-right">
-                        <i class="fas fa-briefcase mr-2"> תפקיד בעבודה </i> 
+                        <i class="fas fa-briefcase mr-2"> תפקיד בעבודה </i>
                     </label>
-                    <select id="job_title" name="job_title" onchange="handleJobChange()" 
+                    <select id="job_title" name="job_title" onchange="handleJobChange()"
                             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 form-input">
                         <option value="">בחר תפקיד</option>
                         <option value="מנהל">מנהל</option>
@@ -202,22 +208,22 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2 text-right">
-                        <i class="fas fa-calendar mr-2"> שנת לידה </i> 
+                        <i class="fas fa-calendar mr-2"> שנת לידה </i>
                     </label>
-                    <input type="number" id="birth_year" name="birth_year" min="1900" max="2024" 
+                    <input type="number" id="birth_year" name="birth_year" min="1900" max="2024"
                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 form-input"
                            placeholder="הכנס שנת לידה"/>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2 text-right">
-                        <i class="fas fa-user mr-2"> שם מפנה</i> 
+                        <i class="fas fa-user mr-2"> שם מפנה</i>
                     </label>
-                    <input type="text" id="referral_source" name="referral_source" 
+                    <input type="text" id="referral_source" name="referral_source"
                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 form-input"
                            placeholder="הכנס שם מפנה"/>
                 </div>
             </div>
-            
+
             <!-- Required fields notice -->
             <div class="text-center p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <p class="text-sm text-blue-800">
@@ -225,146 +231,148 @@
                     כל השדות המסומנים ב-<span class="text-red-500 font-bold">*</span> הם שדות חובה
                 </p>
             </div>
-            
+
             <button
                     type="submit"
                     class="w-full py-3 px-6 btn-primary text-white font-semibold rounded-lg focus:outline-none focus:ring-4 focus:ring-blue-500/50 transition-all duration-300"
             >
-                <i>  המשך לאיבחון </i>
+                <i> המשך לאיבחון </i>
             </button>
         </form>
     </div>
 
-        <!-- Consent Section -->
-        <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg text-right">
-            <h3 class="text-sm font-semibold text-blue-800 mb-3 flex items-center">
-                <i class="fas fa-shield-alt mr-2"> הסכמה לשימוש במערכת </i>
-            </h3>
-            
-            <div class="space-y-2 text-xs text-blue-700">
-                <p class="flex items-start">
-                    <i class="fas fa-exclamation-triangle mr-2 mt-1"> האבחון אינו תחליף לטיפול רפואי או מקצועי. השימוש אישי ובאחריות המשתמש בלבד. </i>
-                   
-                </p>
-                
-                <p class="flex items-start">
-                    <i class="fas fa-database mr-2 mt-1"> הנתונים שייאספו ישמשו לאבחון אישי, ולעיתים למחקר ולשיפור תוך שמירה על אנונימיות. </i>
-                   
-                </p>
-                
-                <p class="flex items-start">
-                    <i class="fas fa-check-circle mr-2 mt-1"> השימוש במערכת בכל שלב מהווה הסכמה לכך. </i>
-                   
-                </p>
-                <p >
-                    <i class="fas fa-copyright mr-2 mt-1"> כל הזכויות שמורות למרכז PDN</i>
-                   
-                </p>
-            </div>
+    <!-- Consent Section -->
+    <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg text-right">
+        <h3 class="text-sm font-semibold text-blue-800 mb-3 flex items-center">
+            <i class="fas fa-shield-alt mr-2"> הסכמה לשימוש במערכת </i>
+        </h3>
+
+        <div class="space-y-2 text-xs text-blue-700">
+            <p class="flex items-start">
+                <i class="fas fa-exclamation-triangle mr-2 mt-1"> האבחון אינו תחליף לטיפול רפואי או מקצועי. השימוש אישי
+                    ובאחריות המשתמש בלבד. </i>
+
+            </p>
+
+            <p class="flex items-start">
+                <i class="fas fa-database mr-2 mt-1"> הנתונים שייאספו ישמשו לאבחון אישי, ולעיתים למחקר ולשיפור תוך שמירה
+                    על אנונימיות. </i>
+
+            </p>
+
+            <p class="flex items-start">
+                <i class="fas fa-check-circle mr-2 mt-1"> השימוש במערכת בכל שלב מהווה הסכמה לכך. </i>
+
+            </p>
+            <p>
+                <i class="fas fa-copyright mr-2 mt-1"> כל הזכויות שמורות למרכז PDN</i>
+
+            </p>
         </div>
-        
-        {% include 'partials/footer.html' %}
     </div>
+
+    {% include 'partials/footer.html' %}
+</div>
 </div>
 
 <script>
     function handleJobChange() {
-      const jobSelect = document.getElementById('job_title');
-      const customInput = document.getElementById('custom_job_title');
-      if (jobSelect.value === 'אחר') {
-        customInput.classList.remove('hidden');
-        customInput.required = true;
-      } else {
-        customInput.classList.add('hidden');
-        customInput.required = false;
-        customInput.value = '';
-      }
+        const jobSelect = document.getElementById('job_title');
+        const customInput = document.getElementById('custom_job_title');
+        if (jobSelect.value === 'אחר') {
+            customInput.classList.remove('hidden');
+            customInput.required = true;
+        } else {
+            customInput.classList.add('hidden');
+            customInput.required = false;
+            customInput.value = '';
+        }
     }
 
     document.getElementById('userForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      // Validate all required fields
-      const requiredFields = [
-        'name', 'last_name', 'phone'];
-      
-      let isValid = true;
-      let missingFields = [];
-      
-      requiredFields.forEach(fieldId => {
-        const field = document.getElementById(fieldId);
-        if (!field.value.trim()) {
-          isValid = false;
-          missingFields.push(fieldId);
-          field.classList.add('border-red-500');
-        } else {
-          field.classList.remove('border-red-500');
-        }
-      });
-      
-      // Check custom job title if "אחר" is selected
-      const jobSelect = document.getElementById('job_title');
-      if (jobSelect.value === 'אחר') {
-        const customJob = document.getElementById('custom_job_title');
-        if (!customJob.value.trim()) {
-          isValid = false;
-          customJob.classList.add('border-red-500');
-          missingFields.push('custom_job_title');
-        } else {
-          customJob.classList.remove('border-red-500');
-        }
-      }
-      
-      if (!isValid) {
-        alert('אנא מלא את כל השדות המסומנים ב-*');
-        return;
-      }
-      
-      const formData = {
-        first_name: document.getElementById('name').value.trim(),
-        last_name: document.getElementById('last_name').value.trim(),
-        email: document.getElementById('email').value,
-        phone: document.getElementById('phone').value.trim(),
-        birth_year: document.getElementById('birth_year').value,
-        mother_language: document.getElementById('mother_language').value,
-        gender: document.getElementById('gender').value,
-        education: document.getElementById('education').value,
-        job_title: jobSelect.value === 'אחר' 
-          ? document.getElementById('custom_job_title').value.trim()
-          : jobSelect.value,
-        referral_source: document.getElementById('referral_source').value.trim()
-      };
+        e.preventDefault();
 
-      try {
-        const response = await fetch('/pdn-diagnose/user_info', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(formData)
+        // Validate all required fields
+        const requiredFields = [
+            'name', 'last_name', 'phone'];
+
+        let isValid = true;
+        let missingFields = [];
+
+        requiredFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (!field.value.trim()) {
+                isValid = false;
+                missingFields.push(fieldId);
+                field.classList.add('border-red-500');
+            } else {
+                field.classList.remove('border-red-500');
+            }
         });
 
-        if (response.ok) {
-            window.location.href = '/pdn-diagnose/chat';
-        } else {
-          const errorData = await response.json();
-          alert('שגיאה בשמירת הפרטים: ' + (errorData.detail || 'אנא נסה שוב'));
+        // Check custom job title if "אחר" is selected
+        const jobSelect = document.getElementById('job_title');
+        if (jobSelect.value === 'אחר') {
+            const customJob = document.getElementById('custom_job_title');
+            if (!customJob.value.trim()) {
+                isValid = false;
+                customJob.classList.add('border-red-500');
+                missingFields.push('custom_job_title');
+            } else {
+                customJob.classList.remove('border-red-500');
+            }
         }
-      } catch (error) {
-        console.error('Error:', error);
-        alert('שגיאה בשמירת הפרטים, אנא נסה שוב.');
-      }
+
+        if (!isValid) {
+            alert('אנא מלא את כל השדות המסומנים ב-*');
+            return;
+        }
+
+        const formData = {
+            first_name: document.getElementById('name').value.trim(),
+            last_name: document.getElementById('last_name').value.trim(),
+            email: document.getElementById('email').value,
+            phone: document.getElementById('phone').value.trim(),
+            birth_year: document.getElementById('birth_year').value,
+            mother_language: document.getElementById('mother_language').value,
+            gender: document.getElementById('gender').value,
+            education: document.getElementById('education').value,
+            job_title: jobSelect.value === 'אחר'
+                ? document.getElementById('custom_job_title').value.trim()
+                : jobSelect.value,
+            referral_source: document.getElementById('referral_source').value.trim()
+        };
+
+        try {
+            const response = await fetch('/pdn-diagnose/user_info', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (response.ok) {
+                window.location.href = '/pdn-diagnose/chat';
+            } else {
+                const errorData = await response.json();
+                alert('שגיאה בשמירת הפרטים: ' + (errorData.detail || 'אנא נסה שוב'));
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('שגיאה בשמירת הפרטים, אנא נסה שוב.');
+        }
     });
 
     // Add visual feedback for required fields
     document.querySelectorAll('input[required], select[required]').forEach(field => {
-      field.addEventListener('blur', function() {
-        if (!this.value.trim()) {
-          this.classList.add('border-red-500');
-        } else {
-          this.classList.remove('border-red-500');
-        }
-      });
+        field.addEventListener('blur', function () {
+            if (!this.value.trim()) {
+                this.classList.add('border-red-500');
+            } else {
+                this.classList.remove('border-red-500');
+            }
+        });
     });
 
 </script>

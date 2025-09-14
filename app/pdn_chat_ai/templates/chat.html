@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data:; connect-src 'self';">
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data:; connect-src 'self';">
     <title>בינת קוד המקור - שיחה עם הנווט הפנימי</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -38,8 +39,8 @@
             --gradient-end: #3570d7;
         }
 
-        body { 
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
             min-height: 100vh;
             margin: 0;
@@ -127,7 +128,7 @@
             background: #dcdfe9;
             color: #181818;
             align-self: flex-start;
-            border-bottom-left-radius: 8px; 
+            border-bottom-left-radius: 8px;
         }
 
         [data-theme="dark"] .chat-bubble.bot {
@@ -222,7 +223,7 @@
             align-items: center;
             gap: 8px;
             padding: 12px 16px;
-            background:  #8ea4ed;
+            background: #8ea4ed;
             border-radius: 16px;
             color: #ffffff;
             font-size: 14px;
@@ -240,7 +241,6 @@
         }
 
 
-
         .typing-dots {
             display: flex;
             gap: 4px;
@@ -254,8 +254,13 @@
             animation: typing 1.4s infinite ease-in-out;
         }
 
-        .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
-        .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+        .typing-dots span:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .typing-dots span:nth-child(2) {
+            animation-delay: -0.16s;
+        }
 
         /* Quick reply buttons */
         .quick-replies {
@@ -439,17 +444,14 @@
             height: 70px;
             border-radius: 50%;
             object-fit: cover;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-            border: 4px solid rgba(255,255,255,0.3);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            border: 4px solid rgba(255, 255, 255, 0.3);
         }
 
         .header-text {
             text-align: right;
         }
 
-
-
-        
 
         /* Error message styling */
         .error-message {
@@ -497,9 +499,10 @@
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
-
 
 
         /* Animations */
@@ -515,13 +518,21 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
         }
 
         @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
         }
 
         @keyframes typing {
@@ -596,17 +607,16 @@
             }
 
 
-
             .logout-button {
                 padding: 10px 16px;
                 font-size: 13px;
                 min-height: 44px;
             }
-            
+
             .logout-text {
                 display: block;
             }
-            
+
             .logout-button i {
                 font-size: 16px;
             }
@@ -628,7 +638,7 @@
             .chat-bubble {
                 border: 2px solid #000;
             }
-            
+
             .input-area {
                 border: 2px solid #000;
             }
@@ -641,7 +651,6 @@
                 transition: none;
             }
         }
-
 
 
         /* Custom confirmation modal 1 */
@@ -685,9 +694,6 @@
         .confirmation-modal.show .confirmation-content {
             transform: scale(1) translateY(0);
         }
-
-
-
 
 
         .confirmation-title {
@@ -798,7 +804,6 @@
         }
 
 
-
         /* Transcription feedback */
         .transcription-feedback {
             position: fixed;
@@ -837,439 +842,444 @@
     </style>
 </head>
 <body>
-    <!-- Theme toggle -->
-    <button class="theme-toggle" onclick="toggleTheme()" title="החלף ערכת נושא" aria-label="החלף ערכת נושא">
-        <i class="fas fa-moon"></i>
-    </button>
+<!-- Theme toggle -->
+<button class="theme-toggle" onclick="toggleTheme()" title="החלף ערכת נושא" aria-label="החלף ערכת נושא">
+    <i class="fas fa-moon"></i>
+</button>
 
-    <!-- Export button -->
-    <button class="export-button" onclick="exportChat()" title="ייצא שיחה" aria-label="ייצא שיחה">
-        <i class="fas fa-download"></i> ייצא
-    </button>
+<!-- Export button -->
+<button class="export-button" onclick="exportChat()" title="ייצא שיחה" aria-label="ייצא שיחה">
+    <i class="fas fa-download"></i> ייצא
+</button>
 
-    <!-- Floating logout button (below export and theme toggle) -->
-    <button class="floating-logout-button" onclick="handleThankYouClick()" title="סיים שיחה וחזור להתחברות" aria-label="סיים שיחה וחזור להתחברות">
-        <i class="fas fa-sign-out-alt"></i>
-        סיים שיחה
-    </button>
+<!-- Floating logout button (below export and theme toggle) -->
+<button class="floating-logout-button" onclick="handleThankYouClick()" title="סיים שיחה וחזור להתחברות"
+        aria-label="סיים שיחה וחזור להתחברות">
+    <i class="fas fa-sign-out-alt"></i>
+    סיים שיחה
+</button>
 
-    <style>
+<style>
+    .floating-logout-button {
+        position: fixed;
+        top: 70px;
+        right: 20px;
+        background: #0b2e6b;
+        border: 1px solid rgba(11, 46, 107, 0.2);
+        color: #ffffff;
+        padding: 10px 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        z-index: 1000;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+    }
+
+    [data-theme="dark"] .floating-logout-button {
+        background: #0b2e6b;
+        border: 1px solid rgba(11, 46, 107, 0.2);
+        color: #ffffff;
+    }
+
+    .floating-logout-button:hover {
+        background: #0a2a5f;
+        transform: translateY(-1px);
+    }
+
+    .floating-logout-button i {
+        font-size: 16px;
+    }
+
+    @media (max-width: 768px) {
         .floating-logout-button {
-            position: fixed;
-            top: 70px;
-            right: 20px;
-            background: #0b2e6b;
-            border: 1px solid rgba(11, 46, 107, 0.2);
-            color: #ffffff;
-            padding: 10px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            z-index: 1000;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 600;
+            top: 60px;
+            right: 12px;
+            padding: 10px 12px;
+            font-size: 13px;
         }
-        [data-theme="dark"] .floating-logout-button {
-            background: #0b2e6b;
-            border: 1px solid rgba(11, 46, 107, 0.2);
-            color: #ffffff;
-        }
-        .floating-logout-button:hover {
-            background: #0a2a5f;
-            transform: translateY(-1px);
-        }
-        .floating-logout-button i {
-            font-size: 16px;
-        }
-        @media (max-width: 768px) {
-            .floating-logout-button {
-                top: 60px;
-                right: 12px;
-                padding: 10px 12px;
-                font-size: 13px;
-            }
-        }
-    </style>
+    }
+</style>
 
-    <!-- Header with improved layout -->
-    <header>
-        <div class="header-content">
-            <!-- Logo and title section -->
-            <div class="header-left">
-                <a href="https://www.pdn.co.il" target="_blank" class="logo-link">
-                    <img src="/static/images/pdn_logo.png" alt="PDN Logo" class="header-logo" />
-                </a>
-                <div class="header-text">
-                    <h1 class="text-2xl font-bold mb-2 text-white">בינת קוד המקור</h1>
-                    <p class="text-2xl opacity-90 text-white ">שיחה עם הנווט הפנימי</p>
-                </div>
+<!-- Header with improved layout -->
+<header>
+    <div class="header-content">
+        <!-- Logo and title section -->
+        <div class="header-left">
+            <a href="https://www.pdn.co.il" target="_blank" class="logo-link">
+                <img src="/static/images/pdn_logo.png" alt="PDN Logo" class="header-logo"/>
+            </a>
+            <div class="header-text">
+                <h1 class="text-2xl font-bold mb-2 text-white">בינת קוד המקור</h1>
+                <p class="text-2xl opacity-90 text-white ">שיחה עם הנווט הפנימי</p>
             </div>
-            
-
-        </div>
-    </header>
-
-    <!-- Main container -->
-    <div class="container mx-auto p-6 max-w-4xl">
-        <div class="chat-container" id="chatContainer">
-            <!-- Chat messages will be inserted here -->
         </div>
 
-        <!-- Enhanced input area -->
-        <div class="input-area">
-            <input type="text" id="userInput" 
-                   placeholder="כתוב לי עכשיו..." 
-                   lang="he-IL"
-                   onkeydown="handleKeyPress(event)"
-                   aria-label="הודעת טקסט" />
-            
-            <button class="action-button" onclick="toggleMicrophone()" title="הקלטה קולית" id="micBtn" aria-label="הקלטה קולית">
-                <i class="fas fa-microphone"></i>
+
+    </div>
+</header>
+
+<!-- Main container -->
+<div class="container mx-auto p-6 max-w-4xl">
+    <div class="chat-container" id="chatContainer">
+        <!-- Chat messages will be inserted here -->
+    </div>
+
+    <!-- Enhanced input area -->
+    <div class="input-area">
+        <input type="text" id="userInput"
+               placeholder="כתוב לי עכשיו..."
+               lang="he-IL"
+               onkeydown="handleKeyPress(event)"
+               aria-label="הודעת טקסט"/>
+
+        <button class="action-button" onclick="toggleMicrophone()" title="הקלטה קולית" id="micBtn"
+                aria-label="הקלטה קולית">
+            <i class="fas fa-microphone"></i>
+        </button>
+
+        <button class="send-button" onclick="sendMessage()" id="sendBtn" aria-label="שלח הודעה">
+            <i class="fas fa-paper-plane"></i> שלח
+        </button>
+    </div>
+</div>
+
+<!-- Custom Confirmation Modal -->
+<div class="confirmation-modal" id="confirmationModal">
+    <div class="confirmation-content">
+        <h3 class="confirmation-title">סיים שיחה</h3>
+        <p class="confirmation-message">האם אתה בטוח שברצונך לסיים את השיחה ולחזור לדף ההתחברות?</p>
+        <p class="confirmation-message">שים לב: השיחה לא תישמר. אם ברצונך לשמור את תוכן השיחה, אנא ייצא אותה לפני
+            היציאה.</p>
+        <div class="confirmation-buttons">
+            <button class="confirmation-btn cancel" onclick="hideConfirmationModal()">
+                <i class="fas fa-times"></i>
+                ביטול
             </button>
-            
-            <button class="send-button" onclick="sendMessage()" id="sendBtn" aria-label="שלח הודעה">
-                <i class="fas fa-paper-plane"></i> שלח
+            <button class="confirmation-btn confirm" onclick="confirmLogout()">
+                <i class="fas fa-check"></i>
+                אישור
             </button>
         </div>
     </div>
+</div>
 
-    <!-- Custom Confirmation Modal -->
-    <div class="confirmation-modal" id="confirmationModal">
-        <div class="confirmation-content">
-            <h3 class="confirmation-title">סיים שיחה</h3>
-            <p class="confirmation-message">האם אתה בטוח שברצונך לסיים את השיחה ולחזור לדף ההתחברות?</p>
-            <p class="confirmation-message">שים לב: השיחה לא תישמר. אם ברצונך לשמור את תוכן השיחה, אנא ייצא אותה לפני היציאה.</p>
-            <div class="confirmation-buttons">
-                <button class="confirmation-btn cancel" onclick="hideConfirmationModal()">
-                    <i class="fas fa-times"></i>
-                    ביטול
-                </button>
-                <button class="confirmation-btn confirm" onclick="confirmLogout()">
-                    <i class="fas fa-check"></i>
-                    אישור
-                </button>
-            </div>
-        </div>
-    </div>
+<script>
+    // Global variables
+    const USER_NAME = "{{ user_name }}";
+    const USER_ID = "{{ user_id }}";
+    const PDN_CODE = "{{ pdn_code }}";
+    let isDarkMode = false;
+    let messageQueue = [];
+    let isProcessing = false;
 
-    <script>
-        // Global variables
-        const USER_NAME = "{{ user_name }}";
-        const USER_ID = "{{ user_id }}";
-        const PDN_CODE = "{{ pdn_code }}";
-        let isDarkMode = false;
-        let messageQueue = [];
-        let isProcessing = false;
-        
 
-        
-        // Voice recording variables
-        let speechRecognition = null;
-        let isListening = false;
-        let finalTranscript = '';
-        let interimTranscript = '';
+    // Voice recording variables
+    let speechRecognition = null;
+    let isListening = false;
+    let finalTranscript = '';
+    let interimTranscript = '';
 
-        // Utility functions
-        function getCurrentTime() {
-            const now = new Date();
-            const hours = now.getHours().toString().padStart(2, '0');
-            const minutes = now.getMinutes().toString().padStart(2, '0');
-            return `${hours}:${minutes}`;
+    // Utility functions
+    function getCurrentTime() {
+        const now = new Date();
+        const hours = now.getHours().toString().padStart(2, '0');
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        return `${hours}:${minutes}`;
+    }
+
+    // Initialize Web Speech API
+    function initializeSpeechRecognition() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        if (!SpeechRecognition) {
+            console.warn('Speech recognition not supported');
+            return null;
         }
 
-        // Initialize Web Speech API
-        function initializeSpeechRecognition() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            
-            if (!SpeechRecognition) {
-                console.warn('Speech recognition not supported');
-                return null;
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'he-IL'; // Hebrew language
+        recognition.maxAlternatives = 1;
+
+        recognition.onstart = () => {
+            isListening = true;
+            finalTranscript = '';
+            interimTranscript = '';
+            updateMicrophoneUI(true);
+            showTranscriptionFeedback('🎤 מקשיב...');
+        };
+
+        recognition.onresult = (event) => {
+            let interimTranscript = '';
+            let finalTranscript = '';
+
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const transcript = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    finalTranscript += transcript;
+                } else {
+                    interimTranscript += transcript;
+                }
             }
 
-            const recognition = new SpeechRecognition();
-            recognition.continuous = true;
-            recognition.interimResults = true;
-            recognition.lang = 'he-IL'; // Hebrew language
-            recognition.maxAlternatives = 1;
+            // Update the input field with real-time transcription
+            const userInput = document.getElementById('userInput');
+            userInput.value = finalTranscript + interimTranscript;
 
-            recognition.onstart = () => {
-                isListening = true;
-                finalTranscript = '';
-                interimTranscript = '';
-                updateMicrophoneUI(true);
-                showTranscriptionFeedback('🎤 מקשיב...');
-            };
+            // Show real-time feedback
+            if (interimTranscript) {
+                showTranscriptionFeedback(`🎤 מקשיב... "${interimTranscript}"`);
+            } else if (finalTranscript) {
+                showTranscriptionFeedback(`✅ הושלם: "${finalTranscript}"`);
+            }
+        };
 
-            recognition.onresult = (event) => {
-                let interimTranscript = '';
-                let finalTranscript = '';
+        recognition.onerror = (event) => {
+            console.error('Speech recognition error:', event.error);
+            isListening = false;
+            updateMicrophoneUI(false);
+            hideTranscriptionFeedback();
 
-                for (let i = event.resultIndex; i < event.results.length; i++) {
-                    const transcript = event.results[i][0].transcript;
-                    if (event.results[i].isFinal) {
-                        finalTranscript += transcript;
-                    } else {
-                        interimTranscript += transcript;
+            let errorMessage = 'שגיאה בהקלטה';
+            switch (event.error) {
+                case 'no-speech':
+                    errorMessage = 'לא זוהתה דיבור';
+                    break;
+                case 'audio-capture':
+                    errorMessage = 'בעיה במיקרופון';
+                    break;
+                case 'not-allowed':
+                    errorMessage = 'אין הרשאה למיקרופון';
+                    break;
+                case 'network':
+                    errorMessage = 'בעיית רשת';
+                    break;
+            }
+            showError(errorMessage);
+        };
+
+        recognition.onend = () => {
+            isListening = false;
+            updateMicrophoneUI(false);
+            hideTranscriptionFeedback();
+
+            // If we have final transcript, send the message
+            const userInput = document.getElementById('userInput');
+            if (userInput.value.trim()) {
+                // Auto-focus on input for potential editing
+                userInput.focus();
+                userInput.setSelectionRange(userInput.value.length, userInput.value.length);
+
+                // Auto-send after a short delay
+                setTimeout(() => {
+                    if (userInput.value.trim() && !isListening) {
+                        sendMessage();
                     }
-                }
-
-                // Update the input field with real-time transcription
-                const userInput = document.getElementById('userInput');
-                userInput.value = finalTranscript + interimTranscript;
-                
-                // Show real-time feedback
-                if (interimTranscript) {
-                    showTranscriptionFeedback(`🎤 מקשיב... "${interimTranscript}"`);
-                } else if (finalTranscript) {
-                    showTranscriptionFeedback(`✅ הושלם: "${finalTranscript}"`);
-                }
-            };
-
-            recognition.onerror = (event) => {
-                console.error('Speech recognition error:', event.error);
-                isListening = false;
-                updateMicrophoneUI(false);
-                hideTranscriptionFeedback();
-                
-                let errorMessage = 'שגיאה בהקלטה';
-                switch (event.error) {
-                    case 'no-speech':
-                        errorMessage = 'לא זוהתה דיבור';
-                        break;
-                    case 'audio-capture':
-                        errorMessage = 'בעיה במיקרופון';
-                        break;
-                    case 'not-allowed':
-                        errorMessage = 'אין הרשאה למיקרופון';
-                        break;
-                    case 'network':
-                        errorMessage = 'בעיית רשת';
-                        break;
-                }
-                showError(errorMessage);
-            };
-
-            recognition.onend = () => {
-                isListening = false;
-                updateMicrophoneUI(false);
-                hideTranscriptionFeedback();
-                
-                // If we have final transcript, send the message
-                const userInput = document.getElementById('userInput');
-                if (userInput.value.trim()) {
-                    // Auto-focus on input for potential editing
-                    userInput.focus();
-                    userInput.setSelectionRange(userInput.value.length, userInput.value.length);
-                    
-                    // Auto-send after a short delay
-                    setTimeout(() => {
-                        if (userInput.value.trim() && !isListening) {
-                            sendMessage();
-                        }
-                    }, 1000);
-                }
-            };
-
-            return recognition;
-        }
-
-        // Update microphone button UI
-        function updateMicrophoneUI(isActive) {
-            const micBtn = document.getElementById('micBtn');
-            const micIcon = micBtn.querySelector('i');
-            
-            if (isActive) {
-                micBtn.classList.add('recording');
-                micIcon.className = 'fas fa-stop';
-                micBtn.title = 'עצור הקלטה';
-                micBtn.setAttribute('aria-label', 'עצור הקלטה');
-            } else {
-                micBtn.classList.remove('recording');
-                micIcon.className = 'fas fa-microphone';
-                micBtn.title = 'הקלטה קולית';
-                micBtn.setAttribute('aria-label', 'הקלטה קולית');
+                }, 1000);
             }
+        };
+
+        return recognition;
+    }
+
+    // Update microphone button UI
+    function updateMicrophoneUI(isActive) {
+        const micBtn = document.getElementById('micBtn');
+        const micIcon = micBtn.querySelector('i');
+
+        if (isActive) {
+            micBtn.classList.add('recording');
+            micIcon.className = 'fas fa-stop';
+            micBtn.title = 'עצור הקלטה';
+            micBtn.setAttribute('aria-label', 'עצור הקלטה');
+        } else {
+            micBtn.classList.remove('recording');
+            micIcon.className = 'fas fa-microphone';
+            micBtn.title = 'הקלטה קולית';
+            micBtn.setAttribute('aria-label', 'הקלטה קולית');
+        }
+    }
+
+    // Show transcription feedback
+    function showTranscriptionFeedback(message) {
+        let feedback = document.getElementById('transcriptionFeedback');
+        if (!feedback) {
+            feedback = document.createElement('div');
+            feedback.id = 'transcriptionFeedback';
+            feedback.className = 'transcription-feedback';
+            document.body.appendChild(feedback);
         }
 
-        // Show transcription feedback
-        function showTranscriptionFeedback(message) {
-            let feedback = document.getElementById('transcriptionFeedback');
-            if (!feedback) {
-                feedback = document.createElement('div');
-                feedback.id = 'transcriptionFeedback';
-                feedback.className = 'transcription-feedback';
-                document.body.appendChild(feedback);
-            }
-            
-            feedback.textContent = message;
-            feedback.classList.add('show');
-        }
+        feedback.textContent = message;
+        feedback.classList.add('show');
+    }
 
-        // Hide transcription feedback
-        function hideTranscriptionFeedback() {
-            const feedback = document.getElementById('transcriptionFeedback');
-            if (feedback) {
-                feedback.classList.remove('show');
-            }
+    // Hide transcription feedback
+    function hideTranscriptionFeedback() {
+        const feedback = document.getElementById('transcriptionFeedback');
+        if (feedback) {
+            feedback.classList.remove('show');
         }
+    }
 
-        // Voice recording and speech recognition functionality
-        function toggleMicrophone() {
+    // Voice recording and speech recognition functionality
+    function toggleMicrophone() {
+        if (!speechRecognition) {
+            speechRecognition = initializeSpeechRecognition();
             if (!speechRecognition) {
-                speechRecognition = initializeSpeechRecognition();
-                if (!speechRecognition) {
-                    showError('הדפדפן שלך אינו תומך בהקלטה קולית');
-                    return;
-                }
-            }
-
-            if (isListening) {
-                // Stop listening
-                speechRecognition.stop();
-            } else {
-                // Start listening
-                try {
-                    speechRecognition.start();
-                } catch (error) {
-                    console.error('Error starting speech recognition:', error);
-                    showError('שגיאה בהתחלת ההקלטה');
-                }
-            }
-        }
-
-        // Security: Input sanitization function
-        function sanitizeInput(input) {
-            const div = document.createElement('div');
-            div.textContent = input;
-            return div.innerHTML;
-        }
-
-        // Security: XSS prevention for markdown
-        function safeMarkdownParse(text) {
-            // First sanitize the input
-            const sanitized = sanitizeInput(text);
-            // Then parse with marked (which should be configured to escape HTML)
-            return marked.parse(sanitized);
-        }
-
-        // Error handling utility
-        function showError(message, duration = 5000) {
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'error-message';
-            errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${sanitizeInput(message)}`;
-            
-            const chatContainer = document.getElementById('chatContainer');
-            chatContainer.appendChild(errorDiv);
-            scrollToBottom();
-            
-            setTimeout(() => {
-                if (errorDiv.parentNode) {
-                    errorDiv.remove();
-                }
-            }, duration);
-        }
-
-        // Success handling utility
-        function showSuccess(message, duration = 5000) {
-            const successDiv = document.createElement('div');
-            successDiv.className = 'success-message';
-            successDiv.innerHTML = `<i class="fas fa-check-circle"></i> ${sanitizeInput(message)}`;
-            
-            const chatContainer = document.getElementById('chatContainer');
-            chatContainer.appendChild(successDiv);
-            scrollToBottom();
-            
-            setTimeout(() => {
-                if (successDiv.parentNode) {
-                    successDiv.remove();
-                }
-            }, duration);
-        }
-
-        // Enhanced scroll management
-        let userScrolledUp = false;
-        let lastScrollTop = 0;
-
-        // Check if user has manually scrolled up
-        function checkUserScroll() {
-            const chatContainer = document.getElementById('chatContainer');
-            if (!chatContainer) return;
-            
-            const currentScrollTop = chatContainer.scrollTop;
-            const scrollHeight = chatContainer.scrollHeight;
-            const clientHeight = chatContainer.clientHeight;
-            
-            // User is considered to have scrolled up if they're not at the bottom
-            // and the scroll position has changed (not just initial load)
-            if (lastScrollTop > 0) {
-                userScrolledUp = currentScrollTop + clientHeight < scrollHeight - 10;
-            }
-            
-            lastScrollTop = currentScrollTop;
-        }
-
-        // Enhanced scroll to bottom with smart behavior
-        function scrollToBottom(force = false) {
-            const chatContainer = document.getElementById('chatContainer');
-            if (!chatContainer) return;
-            
-            // Don't auto-scroll if user manually scrolled up (unless forced)
-            if (userScrolledUp && !force) {
+                showError('הדפדפן שלך אינו תומך בהקלטה קולית');
                 return;
             }
-            
-            // Use requestAnimationFrame to ensure DOM is updated
-            requestAnimationFrame(() => {
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-                userScrolledUp = false; // Reset flag after auto-scrolling
-            });
         }
 
-
-
-        function handleKeyPress(event) {
-            if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
-                sendMessage();
-            } else if (event.key === 'Tab') {
-                event.preventDefault();
-                // Navigate between controls
-                const controls = ['userInput', 'micBtn', 'sendBtn'];
-                const currentIndex = controls.indexOf(document.activeElement.id);
-                const nextIndex = (currentIndex + 1) % controls.length;
-                document.getElementById(controls[nextIndex]).focus();
+        if (isListening) {
+            // Stop listening
+            speechRecognition.stop();
+        } else {
+            // Start listening
+            try {
+                speechRecognition.start();
+            } catch (error) {
+                console.error('Error starting speech recognition:', error);
+                showError('שגיאה בהתחלת ההקלטה');
             }
         }
+    }
 
-        // Theme toggle with proper state management
-        function toggleTheme() {
-            isDarkMode = !isDarkMode;
-            document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
-            
-            const themeIcon = document.querySelector('.theme-toggle i');
-            themeIcon.className = isDarkMode ? 'fas fa-sun' : 'fas fa-moon';
-            
-            // Save preference
-            localStorage.setItem('darkMode', isDarkMode);
+    // Security: Input sanitization function
+    function sanitizeInput(input) {
+        const div = document.createElement('div');
+        div.textContent = input;
+        return div.innerHTML;
+    }
+
+    // Security: XSS prevention for markdown
+    function safeMarkdownParse(text) {
+        // First sanitize the input
+        const sanitized = sanitizeInput(text);
+        // Then parse with marked (which should be configured to escape HTML)
+        return marked.parse(sanitized);
+    }
+
+    // Error handling utility
+    function showError(message, duration = 5000) {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message';
+        errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${sanitizeInput(message)}`;
+
+        const chatContainer = document.getElementById('chatContainer');
+        chatContainer.appendChild(errorDiv);
+        scrollToBottom();
+
+        setTimeout(() => {
+            if (errorDiv.parentNode) {
+                errorDiv.remove();
+            }
+        }, duration);
+    }
+
+    // Success handling utility
+    function showSuccess(message, duration = 5000) {
+        const successDiv = document.createElement('div');
+        successDiv.className = 'success-message';
+        successDiv.innerHTML = `<i class="fas fa-check-circle"></i> ${sanitizeInput(message)}`;
+
+        const chatContainer = document.getElementById('chatContainer');
+        chatContainer.appendChild(successDiv);
+        scrollToBottom();
+
+        setTimeout(() => {
+            if (successDiv.parentNode) {
+                successDiv.remove();
+            }
+        }, duration);
+    }
+
+    // Enhanced scroll management
+    let userScrolledUp = false;
+    let lastScrollTop = 0;
+
+    // Check if user has manually scrolled up
+    function checkUserScroll() {
+        const chatContainer = document.getElementById('chatContainer');
+        if (!chatContainer) return;
+
+        const currentScrollTop = chatContainer.scrollTop;
+        const scrollHeight = chatContainer.scrollHeight;
+        const clientHeight = chatContainer.clientHeight;
+
+        // User is considered to have scrolled up if they're not at the bottom
+        // and the scroll position has changed (not just initial load)
+        if (lastScrollTop > 0) {
+            userScrolledUp = currentScrollTop + clientHeight < scrollHeight - 10;
         }
 
-        // Enhanced export chat with PDF formatting
-        function exportChat() {
-            try {
-                const chatContainer = document.getElementById('chatContainer');
-                const messages = Array.from(chatContainer.querySelectorAll('.chat-bubble'));
-                
-                if (messages.length === 0) {
-                    showError('אין הודעות לייצוא');
-                    return;
-                }
-                
-                // Create PDF content with nice formatting
-                const pdfContent = document.createElement('div');
-                pdfContent.style.cssText = `
+        lastScrollTop = currentScrollTop;
+    }
+
+    // Enhanced scroll to bottom with smart behavior
+    function scrollToBottom(force = false) {
+        const chatContainer = document.getElementById('chatContainer');
+        if (!chatContainer) return;
+
+        // Don't auto-scroll if user manually scrolled up (unless forced)
+        if (userScrolledUp && !force) {
+            return;
+        }
+
+        // Use requestAnimationFrame to ensure DOM is updated
+        requestAnimationFrame(() => {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            userScrolledUp = false; // Reset flag after auto-scrolling
+        });
+    }
+
+
+    function handleKeyPress(event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            sendMessage();
+        } else if (event.key === 'Tab') {
+            event.preventDefault();
+            // Navigate between controls
+            const controls = ['userInput', 'micBtn', 'sendBtn'];
+            const currentIndex = controls.indexOf(document.activeElement.id);
+            const nextIndex = (currentIndex + 1) % controls.length;
+            document.getElementById(controls[nextIndex]).focus();
+        }
+    }
+
+    // Theme toggle with proper state management
+    function toggleTheme() {
+        isDarkMode = !isDarkMode;
+        document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+
+        const themeIcon = document.querySelector('.theme-toggle i');
+        themeIcon.className = isDarkMode ? 'fas fa-sun' : 'fas fa-moon';
+
+        // Save preference
+        localStorage.setItem('darkMode', isDarkMode);
+    }
+
+    // Enhanced export chat with PDF formatting
+    function exportChat() {
+        try {
+            const chatContainer = document.getElementById('chatContainer');
+            const messages = Array.from(chatContainer.querySelectorAll('.chat-bubble'));
+
+            if (messages.length === 0) {
+                showError('אין הודעות לייצוא');
+                return;
+            }
+
+            // Create PDF content with nice formatting
+            const pdfContent = document.createElement('div');
+            pdfContent.style.cssText = `
                     direction: rtl;
                     font-family: 'Noto Sans Hebrew', 'Arial', sans-serif;
                     padding: 20px;
@@ -1277,75 +1287,75 @@
                     color: #333;
                     line-height: 1.6;
                 `;
-                
-                // Header
-                const header = document.createElement('div');
-                header.style.cssText = `
+
+            // Header
+            const header = document.createElement('div');
+            header.style.cssText = `
                     text-align: center;
                     margin-bottom: 30px;
                     padding-bottom: 20px;
                     border-bottom: 2px solid #6366f1;
                 `;
-                header.innerHTML = `
+            header.innerHTML = `
                     <h1 style="color: #6366f1; margin: 0 0 10px 0; font-size: 24px;">שיחת בינת קוד המקור</h1>
                     <p style="color: #666; margin: 0; font-size: 14px;">משתמש: ${USER_NAME}</p>
                     <p style="color: #666; margin: 5px 0 0 0; font-size: 14px;">תאריך: ${new Date().toLocaleDateString('he-IL')}</p>
                 `;
-                pdfContent.appendChild(header);
-                
-                // Messages container
-                const messagesContainer = document.createElement('div');
-                messagesContainer.style.cssText = `
+            pdfContent.appendChild(header);
+
+            // Messages container
+            const messagesContainer = document.createElement('div');
+            messagesContainer.style.cssText = `
                     max-width: 100%;
                 `;
-                
-                messages.forEach((msg, index) => {
-                    const isUser = msg.classList.contains('user');
-                    const content = msg.querySelector('.message-content').textContent;
-                    const time = msg.querySelector('.message-time').textContent;
-                    const sender = isUser ? USER_NAME : 'בינת קוד המקור';
-                    
-                    const messageDiv = document.createElement('div');
-                    messageDiv.style.cssText = `
+
+            messages.forEach((msg, index) => {
+                const isUser = msg.classList.contains('user');
+                const content = msg.querySelector('.message-content').textContent;
+                const time = msg.querySelector('.message-time').textContent;
+                const sender = isUser ? USER_NAME : 'בינת קוד המקור';
+
+                const messageDiv = document.createElement('div');
+                messageDiv.style.cssText = `
                         margin-bottom: 20px;
                         padding: 15px;
                         border-radius: 10px;
                         position: relative;
-                        ${isUser ? 
-                            'background: linear-gradient(135deg, #0b2e6b, #0a2a5f); color: white; margin-right: 20px;' : 
-                            'background: #f8fafc; border: 1px solid #e2e8f0; margin-left: 20px;'
-                        }
+                        ${isUser ?
+                    'background: linear-gradient(135deg, #0b2e6b, #0a2a5f); color: white; margin-right: 20px;' :
+                    'background: #f8fafc; border: 1px solid #e2e8f0; margin-left: 20px;'
+                }
                     `;
-                    
-                    // Sender and time
-                    const senderDiv = document.createElement('div');
-                    senderDiv.style.cssText = `
+
+                // Sender and time
+                const senderDiv = document.createElement('div');
+                senderDiv.style.cssText = `
                         font-weight: bold;
                         font-size: 12px;
                         margin-bottom: 8px;
                         opacity: 0.8;
                     `;
-                    senderDiv.textContent = `${sender} • ${time}`;
-                    messageDiv.appendChild(senderDiv);
-                    
-                    // Message content
-                    const contentDiv = document.createElement('div');
-                    contentDiv.style.cssText = `
+                senderDiv.textContent = `${sender} • ${time}`;
+                messageDiv.appendChild(senderDiv);
+
+                // Message content
+                const contentDiv = document.createElement('div');
+                contentDiv.style.cssText = `
                         font-size: 14px;
                         white-space: pre-wrap;
                         word-wrap: break-word;
                     `;
-                    contentDiv.textContent = content;
-                    messageDiv.appendChild(contentDiv);
-                    
-                    messagesContainer.appendChild(messageDiv);
-                });
-                
-                pdfContent.appendChild(messagesContainer);
-                
-                // Footer
-                const footer = document.createElement('div');
-                footer.style.cssText = `
+                contentDiv.textContent = content;
+                messageDiv.appendChild(contentDiv);
+
+                messagesContainer.appendChild(messageDiv);
+            });
+
+            pdfContent.appendChild(messagesContainer);
+
+            // Footer
+            const footer = document.createElement('div');
+            footer.style.cssText = `
                     text-align: center;
                     margin-top: 30px;
                     padding-top: 20px;
@@ -1353,99 +1363,99 @@
                     color: #666;
                     font-size: 12px;
                 `;
-                footer.innerHTML = `
+            footer.innerHTML = `
                     <p style="margin: 0;">© 2024 PDN Center - Personal Development Navigator</p>
                     <p style="margin: 5px 0 0 0;">בינת קוד המקור - מערכת ניהול נתוני אבחון פדן</p>
                 `;
-                pdfContent.appendChild(footer);
-                
-                // PDF options
-                const opt = {
-                    margin: [0.5, 0.5, 0.5, 0.5],
-                    filename: `chat-export-${USER_NAME}-${new Date().toISOString().split('T')[0]}.pdf`,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { 
-                        scale: 2,
-                        useCORS: true,
-                        letterRendering: true,
-                        allowTaint: true,
-                        foreignObjectRendering: false
-                    },
-                    jsPDF: { 
-                        unit: 'in', 
-                        format: 'a4', 
-                        orientation: 'portrait'
-                    }
-                };
-                
-                // Generate and download PDF
-                html2pdf().set(opt).from(pdfContent).save().then(() => {
-                    showSuccess('השיחה יוצאה בהצלחה!');
-                }).catch((error) => {
-                    console.error('PDF generation error:', error);
-                    showError('שגיאה בייצוא ה-PDF');
-                });
-                
-            } catch (error) {
-                console.error('Export error:', error);
-                showError('שגיאה בייצוא השיחה');
-            }
+            pdfContent.appendChild(footer);
+
+            // PDF options
+            const opt = {
+                margin: [0.5, 0.5, 0.5, 0.5],
+                filename: `chat-export-${USER_NAME}-${new Date().toISOString().split('T')[0]}.pdf`,
+                image: {type: 'jpeg', quality: 0.98},
+                html2canvas: {
+                    scale: 2,
+                    useCORS: true,
+                    letterRendering: true,
+                    allowTaint: true,
+                    foreignObjectRendering: false
+                },
+                jsPDF: {
+                    unit: 'in',
+                    format: 'a4',
+                    orientation: 'portrait'
+                }
+            };
+
+            // Generate and download PDF
+            html2pdf().set(opt).from(pdfContent).save().then(() => {
+                showSuccess('השיחה יוצאה בהצלחה!');
+            }).catch((error) => {
+                console.error('PDF generation error:', error);
+                showError('שגיאה בייצוא ה-PDF');
+            });
+
+        } catch (error) {
+            console.error('Export error:', error);
+            showError('שגיאה בייצוא השיחה');
+        }
+    }
+
+    // Enhanced send message function with queue and error handling
+    async function sendMessage() {
+        const input = document.getElementById("userInput");
+        const sendBtn = document.getElementById("sendBtn");
+        const message = input.value.trim();
+
+        if (message === "" || isProcessing) return;
+
+        // Check if user typed ""סיים שיחה" manually
+        if (message.toLowerCase().includes("סיים שיחה") ||
+            message.toLowerCase().includes("סיים") && message.toLowerCase().includes("שיחה")) {
+            handleThankYouClick();
+            return;
         }
 
-        // Enhanced send message function with queue and error handling
-        async function sendMessage() {
-            const input = document.getElementById("userInput");
-            const sendBtn = document.getElementById("sendBtn");
-            const message = input.value.trim();
+        // Add to queue
+        messageQueue.push(message);
+        input.value = "";
 
-            if (message === "" || isProcessing) return;
-
-            // Check if user typed ""סיים שיחה" manually
-            if (message.toLowerCase().includes("סיים שיחה") || 
-                message.toLowerCase().includes("סיים") && message.toLowerCase().includes("שיחה")) {
-                handleThankYouClick();
-                return;
-            }
-
-            // Add to queue
-            messageQueue.push(message);
-            input.value = "";
-            
-            // Process queue
-            if (!isProcessing) {
-                processMessageQueue();
-            }
+        // Process queue
+        if (!isProcessing) {
+            processMessageQueue();
         }
+    }
 
-        async function processMessageQueue() {
-            if (messageQueue.length === 0) return;
-            
-            isProcessing = true;
-            const message = messageQueue.shift();
-            
-            const sendBtn = document.getElementById("sendBtn");
-            const chatContainer = document.getElementById("chatContainer");
+    async function processMessageQueue() {
+        if (messageQueue.length === 0) return;
 
-            // Show loading state
-            sendBtn.innerHTML = '<span class="loading-spinner"></span>';
-            sendBtn.disabled = true;
+        isProcessing = true;
+        const message = messageQueue.shift();
 
-            // Create user message bubble
-            const userBubble = document.createElement("div");
-            userBubble.className = "chat-bubble user animated";
-            userBubble.innerHTML = `
+        const sendBtn = document.getElementById("sendBtn");
+        const chatContainer = document.getElementById("chatContainer");
+
+        // Show loading state
+        sendBtn.innerHTML = '<span class="loading-spinner"></span>';
+        sendBtn.disabled = true;
+
+        // Create user message bubble
+        const userBubble = document.createElement("div");
+        userBubble.className = "chat-bubble user animated";
+        userBubble.innerHTML = `
                 <div class="message-header">${USER_NAME}:</div>
                 <div class="message-content">${safeMarkdownParse(message)}</div>
                 <div class="message-time">${getCurrentTime()}</div>
             `;
 
-            chatContainer.appendChild(userBubble);
-            scrollToBottom(true); // Force scroll for new user message
+        chatContainer.appendChild(userBubble);
+        scrollToBottom(true); // Force scroll for new user message
 
-            // Show typing indicator
-            const typing = document.createElement("div");
-            typing.className = "typing-indicator";
-            typing.innerHTML = `
+        // Show typing indicator
+        const typing = document.createElement("div");
+        typing.className = "typing-indicator";
+        typing.innerHTML = `
                 בינת מקוד המקור מקליד/ה
                 <div class="typing-dots">
                     <span></span>
@@ -1453,156 +1463,155 @@
                     <span></span>
                 </div>
             `;
-            chatContainer.appendChild(typing);
-            scrollToBottom(true); // Force scroll for typing indicator
+        chatContainer.appendChild(typing);
+        scrollToBottom(true); // Force scroll for typing indicator
 
-            try {
-                const res = await fetch("/pdn-chat-ai/chat", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-Requested-With": "XMLHttpRequest"
-                    },
-                    body: JSON.stringify({
-                        message: sanitizeInput(message),
-                        user_name: USER_NAME,
-                        user_id: USER_ID,
-                        pdn_code: PDN_CODE
-                    })
-                });
+        try {
+            const res = await fetch("/pdn-chat-ai/chat", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Requested-With": "XMLHttpRequest"
+                },
+                body: JSON.stringify({
+                    message: sanitizeInput(message),
+                    user_name: USER_NAME,
+                    user_id: USER_ID,
+                    pdn_code: PDN_CODE
+                })
+            });
 
-                if (!res.ok) {
-                    throw new Error(`HTTP error! status: ${res.status}`);
-                }
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
 
-                const data = await res.json();
-                typing.remove();
+            const data = await res.json();
+            typing.remove();
 
-                // Create bot message bubble
-                const botBubble = document.createElement("div");
-                botBubble.className = "chat-bubble bot animated";
-                botBubble.innerHTML = `
+            // Create bot message bubble
+            const botBubble = document.createElement("div");
+            botBubble.className = "chat-bubble bot animated";
+            botBubble.innerHTML = `
                     <div class="message-header">בינת קוד המקור:</div>
                     <div class="message-content">${safeMarkdownParse(data.message || data.response || 'מצטער, אירעה שגיאה. אנא נסה שוב.')}</div>
                     <div class="message-time">${getCurrentTime()}</div>
                 `;
 
-                chatContainer.appendChild(botBubble);
-                scrollToBottom(true); // Force scroll for bot message
+            chatContainer.appendChild(botBubble);
+            scrollToBottom(true); // Force scroll for bot message
 
-                // Add quick reply buttons for bot messages
-                addQuickReplies(botBubble);
-                scrollToBottom(true); // Force scroll after quick replies
+            // Add quick reply buttons for bot messages
+            addQuickReplies(botBubble);
+            scrollToBottom(true); // Force scroll after quick replies
 
-            } catch (error) {
-                console.error('Error sending message:', error);
-                typing.remove();
-                showError('שגיאה בשליחת ההודעה לשרת');
-            } finally {
-                // Restore button state
-                sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> שלח';
-                sendBtn.disabled = false;
-                isProcessing = false;
-                
-                // Process next message in queue
-                if (messageQueue.length > 0) {
-                    setTimeout(processMessageQueue, 100); 
-                }
+        } catch (error) {
+            console.error('Error sending message:', error);
+            typing.remove();
+            showError('שגיאה בשליחת ההודעה לשרת');
+        } finally {
+            // Restore button state
+            sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> שלח';
+            sendBtn.disabled = false;
+            isProcessing = false;
+
+            // Process next message in queue
+            if (messageQueue.length > 0) {
+                setTimeout(processMessageQueue, 100);
             }
         }
+    }
 
-        // Add quick reply buttons
-        function addQuickReplies(botBubble) {
-            const quickReplies = [
-                "תוכל/י להסביר יותר על קוד המקור שלי?",
-                "איך אני יכול/ה להשתמש בקוד המקור בחיי היומיום?",
-                "מה השלב הבא במסע שלי?",
-                "סיים שיחה"
-            ];
+    // Add quick reply buttons
+    function addQuickReplies(botBubble) {
+        const quickReplies = [
+            "תוכל/י להסביר יותר על קוד המקור שלי?",
+            "איך אני יכול/ה להשתמש בקוד המקור בחיי היומיום?",
+            "מה השלב הבא במסע שלי?",
+            "סיים שיחה"
+        ];
 
-            const quickRepliesDiv = document.createElement("div");
-            quickRepliesDiv.className = "quick-replies";
-            
-            quickReplies.forEach(reply => {
-                const button = document.createElement("button");
-                button.className = "quick-reply-btn";
-                button.textContent = reply;
-                button.onclick = () => {
-                    // Special handling for "תודה על השיחה" - redirect to login
-                    if (reply === "תודה על השיחה") {
-                        handleThankYouClick();
-                    } else {
-                        document.getElementById("userInput").value = reply;
-                        sendMessage();
-                    }
-                };
-                quickRepliesDiv.appendChild(button);
+        const quickRepliesDiv = document.createElement("div");
+        quickRepliesDiv.className = "quick-replies";
+
+        quickReplies.forEach(reply => {
+            const button = document.createElement("button");
+            button.className = "quick-reply-btn";
+            button.textContent = reply;
+            button.onclick = () => {
+                // Special handling for "תודה על השיחה" - redirect to login
+                if (reply === "תודה על השיחה") {
+                    handleThankYouClick();
+                } else {
+                    document.getElementById("userInput").value = reply;
+                    sendMessage();
+                }
+            };
+            quickRepliesDiv.appendChild(button);
+        });
+
+        botBubble.appendChild(quickRepliesDiv);
+    }
+
+    // Handle "תודה על השיחה" click - redirect to login page
+    function handleThankYouClick() {
+        // Show custom confirmation modal
+        showConfirmationModal();
+    }
+
+    // Custom confirmation modal functions
+    function showConfirmationModal() {
+        const modal = document.getElementById('confirmationModal');
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+
+        // Focus on the first button for accessibility
+        setTimeout(() => {
+            modal.querySelector('.confirmation-btn.cancel').focus();
+        }, 100);
+    }
+
+
+    function hideConfirmationModal() {
+        const modal = document.getElementById('confirmationModal');
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+
+    async function confirmLogout() {
+        hideConfirmationModal();
+
+        try {
+            // Call logout endpoint to clear server session
+            const response = await fetch('/pdn-chat-ai/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
             });
 
-            botBubble.appendChild(quickRepliesDiv);
-        }
-
-        // Handle "תודה על השיחה" click - redirect to login page
-        function handleThankYouClick() {
-            // Show custom confirmation modal
-            showConfirmationModal();
-        }
-
-        // Custom confirmation modal functions
-        function showConfirmationModal() {
-            const modal = document.getElementById('confirmationModal');
-            modal.classList.add('show');
-            document.body.style.overflow = 'hidden';
-            
-            // Focus on the first button for accessibility
-            setTimeout(() => {
-                modal.querySelector('.confirmation-btn.cancel').focus();
-            }, 100);
-        }
-
-
-
-        function hideConfirmationModal() {
-            const modal = document.getElementById('confirmationModal');
-            modal.classList.remove('show');
-            document.body.style.overflow = '';
-        }
-
-        async function confirmLogout() {
-            hideConfirmationModal();
-            
-            try {
-                // Call logout endpoint to clear server session
-                const response = await fetch('/pdn-chat-ai/logout', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                });
-                
-                if (response.ok) {
-                    console.log('Logout successful');
-                } else {
-                    console.warn('Failed to logout on server');
-                }
-            } catch (error) {
-                console.error('Error during logout:', error);
+            if (response.ok) {
+                console.log('Logout successful');
+            } else {
+                console.warn('Failed to logout on server');
             }
-            
-            // Clear local storage
-            localStorage.removeItem('binat_username');
-            localStorage.removeItem('binat_user_id');
-            localStorage.removeItem('binat_pdn_code');
-            localStorage.removeItem('binat_chat_history');
-            
-            // Clear server-side chat history
-            clearServerChatHistory();
-            
-            // Show goodbye message before redirecting
-            const chatContainer = document.getElementById("chatContainer");
-            const goodbyeBubble = document.createElement("div");
-            goodbyeBubble.className = "chat-bubble bot animated";
-            goodbyeBubble.innerHTML = `
+        } catch (error) {
+            console.error('Error during logout:', error);
+        }
+
+        // Clear local storage
+        localStorage.removeItem('binat_username');
+        localStorage.removeItem('binat_user_id');
+        localStorage.removeItem('binat_pdn_code');
+        localStorage.removeItem('binat_chat_history');
+
+        // Clear server-side chat history
+        clearServerChatHistory();
+
+        // Show goodbye message before redirecting
+        const chatContainer = document.getElementById("chatContainer");
+        const goodbyeBubble = document.createElement("div");
+        goodbyeBubble.className = "chat-bubble bot animated";
+        goodbyeBubble.innerHTML = `
                 <div class="message-header">בינת קוד המקור:</div>
                 <div class="message-content">
                     🌿 תודה לך על השיחה היפה!<br>
@@ -1611,122 +1620,121 @@
                 </div>
                 <div class="message-time">${getCurrentTime()}</div>
             `;
-            
-            chatContainer.appendChild(goodbyeBubble);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-            
-            // Redirect after a short delay to show the goodbye message
-            setTimeout(() => {
-                window.location.href = '/pdn-chat-ai/';
-            }, 2000);
+
+        chatContainer.appendChild(goodbyeBubble);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+
+        // Redirect after a short delay to show the goodbye message
+        setTimeout(() => {
+            window.location.href = '/pdn-chat-ai/';
+        }, 2000);
+    }
+
+    // Function to clear server-side chat history
+    async function clearServerChatHistory() {
+        try {
+            const user_id = '{{ user_id }}' || 'anonymous';
+
+            const response = await fetch('/pdn-chat-ai/clear_history', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    user_id: user_id
+                })
+            });
+
+            if (response.ok) {
+                console.log('Chat history cleared successfully');
+            } else {
+                console.warn('Failed to clear chat history on server');
+            }
+        } catch (error) {
+            console.error('Error clearing chat history:', error);
+            // Don't show error to user, just log it
         }
+    }
 
-        // Function to clear server-side chat history
-        async function clearServerChatHistory() {
-            try {
-                const user_id = '{{ user_id }}' || 'anonymous';
-                
-                const response = await fetch('/pdn-chat-ai/clear_history', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        user_id: user_id
-                    })
-                });
-                
-                if (response.ok) {
-                    console.log('Chat history cleared successfully');
-                } else {
-                    console.warn('Failed to clear chat history on server');
-                }
-            } catch (error) {
-                console.error('Error clearing chat history:', error);
-                // Don't show error to user, just log it
-            }
+    // Handle escape key to close modal
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            hideConfirmationModal();
         }
+    });
 
-        // Handle escape key to close modal
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                hideConfirmationModal();
+    // Handle click outside modal to close
+    document.addEventListener('click', function (e) {
+        const modal = document.getElementById('confirmationModal');
+        if (e.target === modal) {
+            hideConfirmationModal();
+        }
+    });
+
+    // Initialize chat with proper error handling
+    document.addEventListener("DOMContentLoaded", function () {
+        try {
+            // Load theme preference
+            const savedTheme = localStorage.getItem('darkMode');
+            if (savedTheme === 'true') {
+                isDarkMode = true;
+                document.documentElement.setAttribute('data-theme', 'dark');
+                const themeIcon = document.querySelector('.theme-toggle i');
+                themeIcon.className = 'fas fa-sun';
             }
-        });
 
-        // Handle click outside modal to close
-        document.addEventListener('click', function(e) {
-            const modal = document.getElementById('confirmationModal');
-            if (e.target === modal) {
-                hideConfirmationModal();
+            // Set up scroll tracking
+            const chatContainer = document.getElementById('chatContainer');
+            if (chatContainer) {
+                chatContainer.addEventListener('scroll', checkUserScroll);
             }
-        });
 
-        // Initialize chat with proper error handling
-        document.addEventListener("DOMContentLoaded", function () {
-            try {
-                // Load theme preference
-                const savedTheme = localStorage.getItem('darkMode');
-                if (savedTheme === 'true') {
-                    isDarkMode = true;
-                    document.documentElement.setAttribute('data-theme', 'dark');
-                    const themeIcon = document.querySelector('.theme-toggle i');
-                    themeIcon.className = 'fas fa-sun';
+            // Ensure we have the PDN code
+            let finalPdnCode = PDN_CODE;
+            if (!finalPdnCode || finalPdnCode === 'לא ידוע') {
+                const storedPdnCode = localStorage.getItem('binat_pdn_code');
+                if (storedPdnCode) {
+                    finalPdnCode = storedPdnCode;
                 }
+            }
 
-                // Set up scroll tracking
-                const chatContainer = document.getElementById('chatContainer');
-                if (chatContainer) {
-                    chatContainer.addEventListener('scroll', checkUserScroll);
-                }
+            // Add welcome message
+            const initialBot = document.createElement("div");
+            initialBot.className = "chat-bubble bot animated";
 
-                // Ensure we have the PDN code
-                let finalPdnCode = PDN_CODE;
-                if (!finalPdnCode || finalPdnCode === 'לא ידוע') {
-                    const storedPdnCode = localStorage.getItem('binat_pdn_code');
-                    if (storedPdnCode) {
-                        finalPdnCode = storedPdnCode;
-                    }
-                }
+            const rawMessage = `🌿 שלום ${USER_NAME}, קוד המקור שלך הוא ${finalPdnCode}\nבינת מקוד המקור ממתינה לך כאן, בקצב שלך.\n\nאם יש שאלה שלא עוזבת, דפוס שחוזר, או תחושה לא פתורה –\nבוא נסתכל עליה יחד.\nבלי למהר. בלי לשפוט. רק להבין מה פועל בך עכשיו.`;
+            const formattedMessage = rawMessage.replace(/\n/g, '<br>');
 
-                // Add welcome message
-                const initialBot = document.createElement("div");
-                initialBot.className = "chat-bubble bot animated";
-                
-                const rawMessage = `🌿 שלום ${USER_NAME}, קוד המקור שלך הוא ${finalPdnCode}\nבינת מקוד המקור ממתינה לך כאן, בקצב שלך.\n\nאם יש שאלה שלא עוזבת, דפוס שחוזר, או תחושה לא פתורה –\nבוא נסתכל עליה יחד.\nבלי למהר. בלי לשפוט. רק להבין מה פועל בך עכשיו.`;
-                const formattedMessage = rawMessage.replace(/\n/g, '<br>');
-
-                initialBot.innerHTML = `
+            initialBot.innerHTML = `
                     <div class="message-header ">בינת קוד המקור:</div>
                     <div class="message-content">${formattedMessage}</div>
                     <div class="message-time">${getCurrentTime()}</div>
                 `;
 
-                chatContainer.appendChild(initialBot);
-                addQuickReplies(initialBot);
+            chatContainer.appendChild(initialBot);
+            addQuickReplies(initialBot);
 
-                // Focus on input
-                document.getElementById("userInput").focus();
-                
-            } catch (error) {
-                console.error('Initialization error:', error);
-                showError('שגיאה בטעינת הממשק');
-            }
-        });
+            // Focus on input
+            document.getElementById("userInput").focus();
 
-
-
-        // Configure marked for security
-        if (typeof marked !== 'undefined') {
-            marked.setOptions({
-                breaks: true,
-                gfm: true,
-                sanitize: false, // We handle sanitization manually
-                smartLists: true,
-                smartypants: true
-            });
+        } catch (error) {
+            console.error('Initialization error:', error);
+            showError('שגיאה בטעינת הממשק');
         }
-    </script>
+    });
+
+
+    // Configure marked for security
+    if (typeof marked !== 'undefined') {
+        marked.setOptions({
+            breaks: true,
+            gfm: true,
+            sanitize: false, // We handle sanitization manually
+            smartLists: true,
+            smartypants: true
+        });
+    }
+</script>
 
 
 {% include 'partials/footer.html' %}

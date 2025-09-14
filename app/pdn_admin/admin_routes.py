@@ -1,11 +1,10 @@
 import csv
 import logging
-import secrets
-from pathlib import Path
 import os
+import secrets
 from datetime import datetime
-
 from flask import Blueprint, request, render_template, jsonify, current_app, send_file, abort
+from pathlib import Path
 
 from ..utils.answer_storage import load_answers
 from ..utils.csv_metadata_handler import UserMetadataHandler
@@ -33,7 +32,7 @@ def load_user_metadata():
         List of dictionaries containing user metadata
     """
     try:
-        csv_file_path = Path(os.getenv('SAVED_RESULTS_DIR', 'saved_results') ) / 'user_metadata.csv'
+        csv_file_path = Path(os.getenv('SAVED_RESULTS_DIR', 'saved_results')) / 'user_metadata.csv'
         logger.info(f"CSV file path: {csv_file_path}")
         if not csv_file_path.exists():
             logger.warning("user_metadata.csv file not found")
@@ -41,7 +40,7 @@ def load_user_metadata():
 
         metadata_list = []
         csv_metadata_handler = UserMetadataHandler()
-        
+
         with open(csv_file_path, 'r', encoding='utf-8') as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
@@ -50,7 +49,7 @@ def load_user_metadata():
                     continue
 
                 email = row.get("Email", "").strip()
-                
+
                 # Load additional metadata from JSON file
                 json_metadata = {}
                 try:
@@ -74,9 +73,13 @@ def load_user_metadata():
                     "first_name": (json_metadata.get("first_name") or row.get("First Name") or "").strip(),
                     "last_name": (json_metadata.get("last_name") or row.get("Last Name") or "").strip(),
                     "phone": (json_metadata.get("phone") or row.get("Phone") or "").strip(),
-                    "native_language": (json_metadata.get("native_language") or json_metadata.get("mother_language") or row.get("Native Language") or "").strip(),
+                    "native_language": (
+                                json_metadata.get("native_language") or json_metadata.get("mother_language") or row.get(
+                            "Native Language") or "").strip(),
                     "gender": (json_metadata.get("gender") or row.get("Gender") or "").strip(),
-                    "education_level": (json_metadata.get("education_level") or json_metadata.get("education") or row.get("Education Level") or "").strip(),
+                    "education_level": (
+                                json_metadata.get("education_level") or json_metadata.get("education") or row.get(
+                            "Education Level") or "").strip(),
                     "job_title": (json_metadata.get("job_title") or row.get("Job Title") or "").strip(),
                     "birth_year": (json_metadata.get("birth_year") or row.get("Birth Year") or "").strip(),
                     "link_to_user": f"/user/{email}",
@@ -108,6 +111,7 @@ def verify_session(session_token: str):
     if session_token not in admin_sessions:
         abort(401, description="Invalid session")
     return True
+
 
 def get_session_user_info(session_token: str):
     """Get user info from session token"""
@@ -183,7 +187,6 @@ def admin_logout():
     return jsonify({"success": True, "message": "Logout successful"})
 
 
-
 @pdn_admin_bp.route('/metadata/csv')
 def get_metadata_csv():
     """Get metadata as CSV download"""
@@ -235,6 +238,7 @@ def remove_none_keys(obj):
     else:
         return obj
 
+
 @pdn_admin_bp.route('/user/questionnaire/<email>')
 def get_user_questionnaire(email):
     """Get user questionnaire data"""
@@ -249,19 +253,19 @@ def get_user_questionnaire(email):
         # Find user in data
         csv_metadata_handler = UserMetadataHandler()
         logger.info(f"Loading questionnaire data for {email}")
-        
+
         questionnaire_data = csv_metadata_handler.get_user_files(email, "answers")
         logger.info(f"Questionnaire data loaded: {questionnaire_data is not None}")
-        
+
         if not questionnaire_data:
             logger.warning(f"No questionnaire data found for user: {email}")
             return jsonify({"error": "User questionnaire not found"}), 404
-        
+
         # Get user metadata from CSV (including User ID)
         logger.info(f"Loading CSV metadata for {email}")
         user_metadata = csv_metadata_handler.get_user_by_email(email)
         logger.info(f"CSV metadata loaded: {user_metadata is not None}")
-        
+
         if user_metadata:
             # Merge CSV metadata with existing JSON metadata
             if 'metadata' in questionnaire_data:
@@ -269,7 +273,8 @@ def get_user_questionnaire(email):
                 questionnaire_data['metadata'].update(user_metadata)
             else:
                 questionnaire_data['metadata'] = user_metadata
-            logger.info(f"Successfully loaded questionnaire data for {email} with User ID: {user_metadata.get('User ID', 'N/A')}")
+            logger.info(
+                f"Successfully loaded questionnaire data for {email} with User ID: {user_metadata.get('User ID', 'N/A')}")
         else:
             logger.warning(f"No CSV metadata found for user: {email}")
             # Create a minimal metadata structure
@@ -278,12 +283,12 @@ def get_user_questionnaire(email):
                     'email': email,
                     'User ID': 'N/A'
                 }
-        
+
         logger.info(f"Returning questionnaire data with {len(questionnaire_data)} keys")
         # Clean None keys before returning
         clean_data = remove_none_keys(questionnaire_data)
         return jsonify(clean_data)
-        
+
     except Exception as e:
         logger.error(f"Error loading questionnaire for {email}: {e}")
         import traceback
@@ -306,16 +311,16 @@ def get_user_voice(email):
         pdn_file_path = PDNFilePath()
         question1_filename = pdn_file_path.find_user_file(email, "question1.wav")
         question2_filename = pdn_file_path.find_user_file(email, "question2.wav")
-        
+
         voice_recordings = {}
-        
+
         if question1_filename is not None and question1_filename.exists():
             voice_recordings['question1'] = {
                 'filename': str(question1_filename),
                 'path': str(question1_filename),
                 'exists': True
             }
-        
+
         if question2_filename is not None and question2_filename.exists():
             voice_recordings['question2'] = {
                 'filename': str(question2_filename),
@@ -328,13 +333,10 @@ def get_user_voice(email):
             user_audio_path = pdn_file_path.find_user_file(email, ".wav")
             if user_audio_path is not None and user_audio_path.exists():
                 voice_recordings['legacy'] = {
-                'filename': str(user_audio_path),
-                'path': str(user_audio_path),
-                'exists': True
-            }
-
-        
-       
+                    'filename': str(user_audio_path),
+                    'path': str(user_audio_path),
+                    'exists': True
+                }
 
         if not voice_recordings:
             return jsonify({"error": "User voice recording not found"}), 404
@@ -419,7 +421,7 @@ def send_user_email(email):
         user_answers = load_answers(email)
         if not user_answers:
             return jsonify({"error": "User answers not found"}), 404
-        
+
         # Calculate PDN code
         pdn_code = calculate_pdn_code(user_answers)
 
@@ -460,7 +462,7 @@ def recalculate_user_pdn(email):
         user_answers = load_answers(email)
         if not user_answers:
             return jsonify({"error": "User answers not found"}), 404
-        
+
         # Calculate PDN code using the calculate_pdn_code function
         pdn_code = calculate_pdn_code(user_answers)
 
@@ -472,25 +474,26 @@ def recalculate_user_pdn(email):
         # Update CSV with the new PDN code and current date
         try:
             csv_handler = UserMetadataHandler()
-            
+
             # Get user info from session
             user_info = get_session_user_info(session_token)
             updated_by = user_info.get("username", "Admin") if user_info else "Admin"
-            
+
             # Update PDN code with comment
             pdn_updated = csv_handler.update_pdn_code_with_comment(email, pdn_code, updated_by)
-            
+
             # Update date to current date
             current_date = datetime.now().strftime("%d/%m/%Y")
             date_updated = csv_handler._update_user_field(email, "Date", current_date)
-            
+
             if pdn_updated and date_updated:
-                logger.info(f"Successfully updated CSV with PDN code {pdn_code} and date {current_date} for {email} by {updated_by}")
-                
+                logger.info(
+                    f"Successfully updated CSV with PDN code {pdn_code} and date {current_date} for {email} by {updated_by}")
+
                 # Get the updated comment from CSV
                 user_data = csv_handler.get_user_by_email(email)
                 pdn_update_comments = user_data.get("PDN Update Comments", "") if user_data else ""
-                
+
                 return jsonify({
                     "success": True,
                     "message": f"PDN code recalculated successfully for {email}",
@@ -502,7 +505,7 @@ def recalculate_user_pdn(email):
             else:
                 logger.error(f"Failed to update CSV for {email}")
                 return jsonify({"error": "Failed to update CSV with new PDN code"}), 500
-                
+
         except Exception as csv_error:
             logger.error(f"Failed to update CSV with PDN code: {csv_error}")
             return jsonify({"error": f"Failed to update CSV: {str(csv_error)}"}), 500
@@ -532,7 +535,7 @@ def serve_audio(file_path):
 
     # Use the environment variable for saved_results directory
     saved_results_dir = os.getenv('SAVED_RESULTS_DIR', 'saved_results')
-    
+
     # Handle the file path correctly
     # If the file_path already starts with the saved_results directory structure, use it as is
     if file_path.startswith('pdn/saved_results/'):
@@ -546,7 +549,7 @@ def serve_audio(file_path):
     else:
         # Use the file_path as is
         audio_path = Path(saved_results_dir) / file_path
-    
+
     logger.debug(f"Looking for file at: {audio_path.absolute()}")
 
     # Security check: ensure the path is within the allowed directory
@@ -584,38 +587,38 @@ def download_user_json():
     """Download user's JSON answers file."""
     logger.debug("GET /pdn-admin/download-json called")
     logger.info("Request: %s %s", request.method, request.url)
-    
+
     # Extract session token from query parameters
     session_token = request.args.get('session_token')
     if not session_token:
         logger.warning("No session token provided")
         abort(401, description="No session token provided")
-    
+
     # Verify session
     verify_session(session_token)
-    
+
     # Extract admin password from query parameters
     admin_password = request.args.get('admin_password')
     if not admin_password:
         logger.warning("No admin password provided")
         abort(401, description="Admin password required")
-    
+
     # Verify admin password (same as email sending functionality)
     if admin_password != 'admin':
         logger.warning("Invalid admin password provided")
         response = jsonify({"error": "Invalid admin password"}), 401
         response.headers['X-Error-Type'] = 'invalid_password'
         return response
-    
+
     # Get file path from query parameters
     file_path = request.args.get('file_path')
     if not file_path:
         logger.warning("No file path provided")
         abort(400, description="No file path provided")
-    
+
     # Use the environment variable for saved_results directory
     saved_results_dir = os.getenv('SAVED_RESULTS_DIR', 'saved_results')
-    
+
     # Construct the full file path
     if file_path.startswith('saved_results/'):
         # Remove the 'saved_results/' prefix
@@ -624,9 +627,9 @@ def download_user_json():
     else:
         # Use the file_path as is
         json_path = Path(saved_results_dir) / file_path
-    
+
     logger.debug(f"Looking for JSON file at: {json_path.absolute()}")
-    
+
     # Security check: ensure the path is within the allowed directory
     try:
         json_path = json_path.resolve()
@@ -637,19 +640,19 @@ def download_user_json():
     except Exception as e:
         logger.error(f"Path resolution error: {e}")
         abort(400, description="Invalid file path")
-    
+
     # Check if file exists
     if not json_path.exists():
         logger.warning(f"JSON file not found: {json_path}")
         abort(404, description="JSON file not found")
-    
+
     # Check if it's a JSON file
     if not json_path.suffix.lower() == '.json':
         logger.warning(f"File is not a JSON file: {json_path}")
         abort(400, description="File is not a JSON file")
-    
+
     logger.debug(f"JSON file found, serving: {json_path}")
-    
+
     try:
         return send_file(
             json_path,
