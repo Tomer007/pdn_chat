@@ -25,10 +25,10 @@ const MAX_RECORDING_DURATION = 90; // 1.5 minutes
 function initializeQuestionnaire() {
     // Set up event listeners
     setupEventListeners();
-    
+
     // Initialize progress
     updateProgress(0, 'מתחילים...');
-    
+
     // Show first stage
     showNextStage();
 }
@@ -42,7 +42,7 @@ function setupEventListeners() {
     if (backButton) {
         backButton.addEventListener('click', goBack);
     }
-    
+
     // Modal close button
     const modalClose = document.getElementById('modalClose');
     if (modalClose) {
@@ -50,23 +50,23 @@ function setupEventListeners() {
             hideModal('instructionModal');
         });
     }
-    
+
     // Voice recording buttons
     const recordBtn = document.getElementById('recordBtn');
     if (recordBtn) {
         recordBtn.addEventListener('click', startRecording);
     }
-    
+
     const stopBtn = document.getElementById('stopBtn');
     if (stopBtn) {
         stopBtn.addEventListener('click', stopRecording);
     }
-    
+
     const retryRecordBtn = document.getElementById('retryRecordBtn');
     if (retryRecordBtn) {
         retryRecordBtn.addEventListener('click', retryRecording);
     }
-    
+
     const retryRecordBtn2 = document.getElementById('retryRecordBtn2');
     if (retryRecordBtn2) {
         retryRecordBtn2.addEventListener('click', retryRecording2);
@@ -82,7 +82,7 @@ function updateProgress(step, label) {
     const progressBar = document.getElementById('progressBar');
     const progressLabel = document.getElementById('progressLabel');
     const progressPercent = document.getElementById('progressPercent');
-    
+
     if (progressBar && progressLabel && progressPercent) {
         const percentage = Math.round((step / TOTAL_STEPS) * 100);
         progressBar.style.width = percentage + '%';
@@ -113,7 +113,7 @@ function showNextStage() {
 function showVoiceRecordingStage(stageNumber) {
     currentStage = `voice${stageNumber}`;
     const messagesDiv = document.getElementById('messages');
-    
+
     if (messagesDiv) {
         messagesDiv.innerHTML = `
             <div class="text-center space-y-6">
@@ -160,11 +160,11 @@ function showVoiceRecordingStage(stageNumber) {
                 </div>
             </div>
         `;
-        
+
         // Re-setup event listeners for new elements
         setupVoiceRecordingListeners(stageNumber);
     }
-    
+
     updateProgress(currentQuestion + 1, `הקלטה ${stageNumber}/2`);
 }
 
@@ -176,15 +176,15 @@ function setupVoiceRecordingListeners(stageNumber) {
     const recordBtn = document.getElementById('recordBtn');
     const stopBtn = document.getElementById('stopBtn');
     const retryRecordBtn = document.getElementById('retryRecordBtn');
-    
+
     if (recordBtn) {
         recordBtn.addEventListener('click', startRecording);
     }
-    
+
     if (stopBtn) {
         stopBtn.addEventListener('click', stopRecording);
     }
-    
+
     if (retryRecordBtn) {
         retryRecordBtn.addEventListener('click', () => {
             if (stageNumber === 1) {
@@ -201,36 +201,36 @@ function setupVoiceRecordingListeners(stageNumber) {
  */
 async function startRecording() {
     try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const stream = await navigator.mediaDevices.getUserMedia({audio: true});
         mediaRecorder = new MediaRecorder(stream);
         audioChunks = [];
-        
+
         mediaRecorder.ondataavailable = (event) => {
             audioChunks.push(event.data);
         };
-        
+
         mediaRecorder.onstop = () => {
-            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+            const audioBlob = new Blob(audioChunks, {type: 'audio/wav'});
             handleRecordingComplete(audioBlob);
         };
-        
+
         mediaRecorder.start();
         isRecording = true;
         recordStartTime = Date.now();
-        
+
         // Update UI
         document.getElementById('recordBtn').classList.add('hidden');
         document.getElementById('stopBtn').classList.remove('hidden');
-        
+
         // Start timer
         startRecordingTimer();
-        
+
         // Update status
         const recordStatus = document.getElementById('recordStatus');
         if (recordStatus) {
             recordStatus.innerHTML = '<span class="recording">מקליט... (00:00 / 01:00-01:30)</span>';
         }
-        
+
     } catch (error) {
         console.error('Error starting recording:', error);
         alert('שגיאה בהתחלת ההקלטה. אנא ודא/י שיש לך הרשאה למיקרופון.');
@@ -244,17 +244,17 @@ function stopRecording() {
     if (mediaRecorder && isRecording) {
         mediaRecorder.stop();
         isRecording = false;
-        
+
         // Stop timer
         if (recordTimer) {
             clearInterval(recordTimer);
             recordTimer = null;
         }
-        
+
         // Update UI
         document.getElementById('recordBtn').classList.remove('hidden');
         document.getElementById('stopBtn').classList.add('hidden');
-        
+
         // Get all tracks and stop them
         if (mediaRecorder.stream) {
             mediaRecorder.stream.getTracks().forEach(track => track.stop());
@@ -270,17 +270,17 @@ function startRecordingTimer() {
         const elapsed = Math.floor((Date.now() - recordStartTime) / 1000);
         const min = Math.floor(elapsed / 60);
         const sec = elapsed % 60;
-        
+
         const recordStatus = document.getElementById('recordStatus');
         if (recordStatus) {
-            let statusText = `מקליט... (${("0"+min).slice(-2)}:${("0"+sec).slice(-2)} / 01:00-01:30)`;
-            
+            let statusText = `מקליט... (${("0" + min).slice(-2)}:${("0" + sec).slice(-2)} / 01:00-01:30)`;
+
             if (elapsed >= MIN_RECORDING_DURATION && elapsed <= MAX_RECORDING_DURATION) {
                 statusText += ' ✅';
             } else if (elapsed > MAX_RECORDING_DURATION) {
                 statusText += ' ⚠️';
             }
-            
+
             recordStatus.innerHTML = `<span class="recording">${statusText}</span>`;
         }
     }, 1000);
@@ -293,27 +293,27 @@ function startRecordingTimer() {
 function handleRecordingComplete(audioBlob) {
     const recordElapsed = Math.floor((Date.now() - recordStartTime) / 1000);
     const recordStatus = document.getElementById('recordStatus');
-    
+
     // Check if recording duration is valid
     if (recordElapsed >= MIN_RECORDING_DURATION && recordElapsed <= MAX_RECORDING_DURATION) {
         if (recordStatus) {
             recordStatus.innerHTML = '<span class="text-green-600 font-semibold">✅ הקלטה הושלמה בהצלחה!</span>';
         }
-        
+
         // Show recording controls
         const recordingControls = document.getElementById('recordingControls');
         if (recordingControls) {
             recordingControls.classList.remove('hidden');
         }
-        
+
         // Save audio
         saveRecording(audioBlob);
-        
+
     } else {
         if (recordStatus) {
             recordStatus.innerHTML = '<span class="text-red-600 font-semibold">⚠️ משך ההקלטה לא תקין. אנא הקלט/י בין דקה לדקה וחצי.</span>';
         }
-        
+
         // Show retry button
         const recordingControls = document.getElementById('recordingControls');
         if (recordingControls) {
@@ -330,10 +330,10 @@ async function saveRecording(audioBlob) {
     try {
         const username = document.getElementById('userName')?.value || 'user';
         const question = currentStage === 'voice1' ? 'question1' : 'question2';
-        
+
         const result = await saveUserAudio(username, audioBlob, question);
         console.log('Recording saved:', result);
-        
+
     } catch (error) {
         console.error('Error saving recording:', error);
         alert('שגיאה בשמירת ההקלטה. אנא נסה/י שוב.');
@@ -347,7 +347,7 @@ function retryRecording() {
     // Reset UI
     document.getElementById('recordStatus').innerHTML = 'לחץ/י על כפתור ההקלטה כדי להתחיל';
     document.getElementById('recordingControls').classList.add('hidden');
-    
+
     // Reset state
     isRecording = false;
     audioChunks = [];
@@ -388,7 +388,7 @@ function goBack() {
  */
 function showQuestionStage() {
     currentStage = 'question';
-    
+
     // Fetch question data from server
     fetchQuestionData(currentQuestion);
 }
@@ -409,14 +409,14 @@ async function fetchQuestionData(questionNumber) {
                 user_id: document.getElementById('userId')?.value || ''
             })
         });
-        
+
         if (response.ok) {
             const data = await response.json();
             showQuestion(data);
         } else {
             throw new Error('Failed to fetch question');
         }
-        
+
     } catch (error) {
         console.error('Error fetching question:', error);
         showError('שגיאה בטעינת השאלה. אנא רענן/י את הדף.');
@@ -429,7 +429,7 @@ async function fetchQuestionData(questionNumber) {
  */
 function showQuestion(data) {
     const messagesDiv = document.getElementById('messages');
-    
+
     if (messagesDiv) {
         messagesDiv.innerHTML = `
             <div class="text-center space-y-6">
@@ -455,10 +455,10 @@ function showQuestion(data) {
                 </div>
             </div>
         `;
-        
+
         // Render question options
         renderQuestionOptions(data);
-        
+
         // Update progress
         updateProgress(currentQuestion + 1, `שאלה ${data.question_number} מתוך ${TOTAL_QUESTIONS}`);
     }
@@ -470,17 +470,17 @@ function showQuestion(data) {
  */
 function renderQuestionOptions(data) {
     const optionsDiv = document.getElementById('options');
-    
+
     if (['PartC', 'PartD'].includes(data.stage)) {
         renderScaleQuestion(data, data.question_number);
         return;
     }
-    
+
     if (data.type === 'ranking') {
         renderRankingQuestion(data, data.question_number);
         return;
     }
-    
+
     // Create regular option buttons
     const buttons = data.options.map(opt => {
         const btn = document.createElement('button');
@@ -489,10 +489,10 @@ function renderQuestionOptions(data) {
         btn.onclick = () => submitAnswer(data.question_number, opt.code, opt.text);
         return btn;
     });
-    
+
     // Randomize button order
     buttons.sort(() => Math.random() - 0.5);
-    
+
     // Append buttons
     buttons.forEach(btn => optionsDiv.appendChild(btn));
 }
@@ -517,7 +517,7 @@ async function submitAnswer(questionNumber, answerCode, answerText) {
                 user_id: document.getElementById('userId')?.value || ''
             })
         });
-        
+
         if (response.ok) {
             // Store in history
             questionHistory.push({
@@ -525,15 +525,15 @@ async function submitAnswer(questionNumber, answerCode, answerText) {
                 answer: answerCode,
                 answer_text: answerText
             });
-            
+
             // Move to next question
             currentQuestion++;
             showNextStage();
-            
+
         } else {
             throw new Error('Failed to submit answer');
         }
-        
+
     } catch (error) {
         console.error('Error submitting answer:', error);
         showError('שגיאה בשליחת התשובה. אנא נסה/י שוב.');
@@ -545,7 +545,7 @@ async function submitAnswer(questionNumber, answerCode, answerText) {
  */
 function showCompletion() {
     const messagesDiv = document.getElementById('messages');
-    
+
     if (messagesDiv) {
         messagesDiv.innerHTML = `
             <div class="text-center space-y-6">
@@ -565,7 +565,7 @@ function showCompletion() {
                 </button>
             </div>
         `;
-        
+
         updateProgress(TOTAL_STEPS, 'הושלם!');
     }
 }
@@ -576,7 +576,7 @@ function showCompletion() {
  */
 function showError(message) {
     const messagesDiv = document.getElementById('messages');
-    
+
     if (messagesDiv) {
         messagesDiv.innerHTML = `
             <div class="text-center space-y-6">
@@ -608,7 +608,7 @@ function showInstructionModal(title, text) {
     const modal = document.getElementById('instructionModal');
     const modalTitle = document.getElementById('modalTitle');
     const modalText = document.getElementById('modalText');
-    
+
     if (modal && modalTitle && modalText) {
         modalTitle.textContent = title;
         modalText.textContent = text;
@@ -642,7 +642,7 @@ function renderRankingQuestion(data, questionNumber) {
 }
 
 // Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     initializeQuestionnaire();
 });
 

@@ -1,14 +1,14 @@
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_openai import OpenAIEmbeddings, ChatOpenAI
-from langchain_community.vectorstores import Chroma
-
-from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
-from pathlib import Path
-from langchain_community.document_loaders import PyPDFLoader, UnstructuredWordDocumentLoader
-import os
 import logging
-from ..utils.conversation_history import conversation_history
+import os
+from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.document_loaders import PyPDFLoader, UnstructuredWordDocumentLoader
+from langchain_community.vectorstores import Chroma
+from langchain_openai import OpenAIEmbeddings, ChatOpenAI
+from pathlib import Path
+
 from ..data.config import settings
+from ..utils.conversation_history import conversation_history
 
 # Configure logging
 logging.basicConfig(
@@ -27,6 +27,7 @@ if not os.getenv("OPENAI_API_KEY"):
 
 # Import system prompt from prompts module
 from ..prompts import BINT_CHAT_SOURCE_PROMPT
+
 
 class PDNRAG:
 
@@ -49,10 +50,10 @@ class PDNRAG:
         return documents
 
     def __init__(
-        self,
-        docs_path: str,
-        persist_dir: str = None,
-        persist: bool = True
+            self,
+            docs_path: str,
+            persist_dir: str = None,
+            persist: bool = True
     ):
         """
         Initialize the RAG pipeline.
@@ -61,12 +62,12 @@ class PDNRAG:
         :param persist: Whether to persist and reuse Chroma DB.
         """
         embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
-        
+
         # Load persisted DB if exists
         if persist and Path(persist_dir).exists():
             logger.info("Loading existing Chroma vectorstore...")
             self.vectorstore = Chroma(persist_directory=persist_dir, embedding_function=embeddings)
-            logger.info("Chroma vectorstore loaded successfully.")  
+            logger.info("Chroma vectorstore loaded successfully.")
         else:
             # Load and prepare documents
             logger.info("Loading documents...")
@@ -75,7 +76,7 @@ class PDNRAG:
 
             logger.info("Splitting documents...")
             splitter = RecursiveCharacterTextSplitter(
-                chunk_size=settings.RAG_CHUNK_SIZE, 
+                chunk_size=settings.RAG_CHUNK_SIZE,
                 chunk_overlap=settings.RAG_CHUNK_OVERLAP
             )
             docs = splitter.split_documents(docs)
@@ -87,7 +88,7 @@ class PDNRAG:
         # Setup retriever
         logger.info("Setting up retriever and QA chain...")
         self.retriever = self.vectorstore.as_retriever(
-            search_type="similarity", 
+            search_type="similarity",
             search_kwargs={"k": settings.RAG_SEARCH_K}
         )
 
@@ -111,41 +112,40 @@ class PDNRAG:
         user_info = ""
         if user_name or user_id:
             user_info = f" (User: {user_name or 'Unknown'}, ID: {user_id or 'Unknown'}, PDN Code: {pdn_code or 'Unknown'})"
-        
-        logger.info(f"Querying: {user_query}{user_info}")  
+
+        logger.info(f"Querying: {user_query}{user_info}")
         try:
             # Retrieve relevant documents
             docs = self.retriever.invoke(user_query)
-            
+
             # Combine context from documents
             context = "\n\n".join([doc.page_content for doc in docs])
-            
+
             # Add conversation history if user_id is provided
             conversation_context = ""
             if user_id:
                 conversation_context = conversation_history.get_conversation_context(user_id)
                 if conversation_context:
                     context = f"Previous Conversation:\n{conversation_context}\n\nDocument Context:\n{context}"
-            
+
             # Add user information to the question if provided
             enhanced_question = user_query
             if user_name or user_id:
-                user_context = f"User Name is: {user_name }\nUser PDN Code is: {pdn_code }\nUser ID is: {user_id }\n"
+                user_context = f"User Name is: {user_name}\nUser PDN Code is: {pdn_code}\nUser ID is: {user_id}\n"
                 enhanced_question = user_context + user_query
-            
+
             # Generate response using the LLM chain
             input_data = {"context": context, "question": enhanced_question}
             llm_response = self.qa_chain.invoke(input_data)
             response_text = llm_response.content
             logger.debug(f"LLM response: {llm_response}")
-            
+
             # Store conversation history if user_id is provided
             if user_id:
                 conversation_history.add_message(user_id, user_query, response_text, user_name)
                 logger.info(f"Conversation history stored for user {user_id}")
-            
+
             return response_text
         except Exception as e:
             logger.error(f"Error in RAG chain: {e}")
             raise e
-    

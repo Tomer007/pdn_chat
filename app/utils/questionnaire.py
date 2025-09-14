@@ -48,6 +48,3 @@ def get_question(question_number: int, questions: dict):
         "type": question.get("type"),
         "instructions": questions["phases"][phase].get("instructions", "")
     }
-
-
-

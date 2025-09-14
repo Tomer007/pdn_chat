@@ -20,8 +20,8 @@
             --gradient-end: #0b2e6b;
         }
 
-        body { 
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
             min-height: 100vh;
             margin: 0;
@@ -31,49 +31,73 @@
             transition: all 0.3s ease;
         }
 
-        .glass-effect { 
-            background: rgba(255, 255, 255, 0.95); 
-            backdrop-filter: blur(20px); 
-            border-radius: 24px; 
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
             box-shadow: 0 20px 40px var(--shadow-color);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        @keyframes fadeInUp { 
-            from { opacity: 0; transform: translateY(24px); } 
-            to { opacity: 1; transform: translateY(0); } 
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(24px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        
+
         .animate-fade-in-up {
-            animation: fadeInUp 0.5s cubic-bezier(0.4,0,0.2,1) both;
+            animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
         }
-        
+
         @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
         }
-        
+
         .animate-bounce {
             animation: bounce 1.2s infinite;
         }
-        
+
         @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
         }
-        
+
         .animate-pulse {
             animation: pulse 2s infinite;
         }
-        
+
         @keyframes audioBarBounce {
-            from { height: 8px; background: #c4b5fd; }
-            to   { height: 22px; background: #0b2e6b; }
+            from {
+                height: 8px;
+                background: #c4b5fd;
+            }
+            to {
+                height: 22px;
+                background: #0b2e6b;
+            }
         }
 
         @media (max-width: 600px) {
-            .glass-effect { padding: 1.2rem !important; }
+            .glass-effect {
+                padding: 1.2rem !important;
+            }
         }
 
         /* Voice record UI */
@@ -85,20 +109,31 @@
 
 
         .audio-bar {
-            width: 8px; 
-            height: 22px; 
-            background: #0b2e6b; 
-            margin: 0 2px; 
-            border-radius: 5px; 
-            display: inline-block; 
+            width: 8px;
+            height: 22px;
+            background: #0b2e6b;
+            margin: 0 2px;
+            border-radius: 5px;
+            display: inline-block;
             vertical-align: bottom;
             animation: audioBarBounce 1s infinite alternate;
         }
 
-        .audio-bar:nth-child(2) { animation-delay: .15s; }
-        .audio-bar:nth-child(3) { animation-delay: .3s; }
-        .audio-bar:nth-child(4) { animation-delay: .45s; }
-        .audio-bar:nth-child(5) { animation-delay: .6s; }
+        .audio-bar:nth-child(2) {
+            animation-delay: .15s;
+        }
+
+        .audio-bar:nth-child(3) {
+            animation-delay: .3s;
+        }
+
+        .audio-bar:nth-child(4) {
+            animation-delay: .45s;
+        }
+
+        .audio-bar:nth-child(5) {
+            animation-delay: .6s;
+        }
 
 
         .ranking-number.selected {
@@ -152,9 +187,6 @@
         }
 
 
-
-
-
         /* Mobile responsiveness */
         @media (max-width: 768px) {
             .glass-effect {
@@ -193,8 +225,8 @@
     <input type="hidden" id="userName" value="{{ user_name or '' }}">
     <input type="hidden" id="userId" value="{{ user_id or '' }}">
     <h1 class="text-4xl font-bold text-center text-blue-900 bg-gradient-to-r from-blue-900 to-blue-900 bg-clip-text text-transparent">
-        המסע לגילוי הצופן המקור שלך    </h1>
-    
+        המסע לגילוי הצופן המקור שלך </h1>
+
     <!-- Progress Bar -->
     <div id="progressContainer" class="mb-6">
         <div class="flex justify-between items-center mb-2">
@@ -202,7 +234,8 @@
             <span id="progressPercent" class="text-sm font-semibold text-blue-900"></span>
         </div>
         <div class="w-full bg-blue-100 rounded-full h-3 overflow-hidden">
-            <div id="progressBar" class="bg-blue-900 h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
+            <div id="progressBar" class="bg-blue-900 h-3 rounded-full transition-all duration-300"
+                 style="width: 0%"></div>
         </div>
     </div>
     <div id="messages" class="space-y-4 fade-in">
@@ -211,7 +244,7 @@
         <div id="voiceRecordArea"
              class="p-6 rounded-xl border border-blue-100 bg-gradient-to-r from-blue-100 to-blue-100 text-gray-800 shadow-sm fade-in text-right recording-validation"
              dir="rtl">
-            <p class="text-lg mb-4">שלום  {{ user_name }},</p>
+            <p class="text-lg mb-4">שלום {{ user_name }},</p>
             <p class="text-lg mb-4">בוא נגלה יחד את קוד המקור הייחודי שלך, המצפן הפנימי שלך לצמיחה והתפתחות.</p>
             <p class="text-lg mb-4">ענה על השאלה הבאה כדי לעזור לנו לזהות את קוד המקור שלך:</p>
             <div class="bg-blue-900 border border-blue-200 rounded-lg p-3 mb-4">
@@ -295,8 +328,8 @@
         <div id="options" class="space-y-3"></div>
     </div>
 
-        <!-- Footer Link -->
-        <div class="text-center pt-4 space-y-4">
+    <!-- Footer Link -->
+    <div class="text-center pt-4 space-y-4">
         <button id="backButton" onclick="goBack()"
                 class="text-sm w-1/2 py-2 px-3 bg-gradient-to-r from-blue-900 to-blue-900 text-white font-medium rounded-xl hover:from-blue-900 hover:to-blue-900 focus:outline-none focus:ring-4 focus:ring-blue-900/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hidden">
             חזור לשאלה הקודמת
@@ -307,516 +340,523 @@
 </main>
 
 <script>
-let currentQuestion = 1;
-let currentStage = '';
-let nextData = null;
-let questionHistory = []; // Array to store question history
-let currentUsername = '{{ email }}' || 'anonymous'; // Get username from template
+    let currentQuestion = 1;
+    let currentStage = '';
+    let nextData = null;
+    let questionHistory = []; // Array to store question history
+    let currentUsername = '{{ email }}' || 'anonymous'; // Get username from template
 
-// Progress logic
-const totalQuestions = 67; // Based on phases A-F (1-67)
-const totalSteps = 2 + totalQuestions; // 2 voice steps + questions
-let currentStepNumber = 1;
+    // Progress logic
+    const totalQuestions = 67; // Based on phases A-F (1-67)
+    const totalSteps = 2 + totalQuestions; // 2 voice steps + questions
+    let currentStepNumber = 1;
 
-function updateProgress(stepNumber, labelText) {
-    currentStepNumber = stepNumber;
-    const percent = Math.min(100, Math.max(0, Math.round((stepNumber / totalSteps) * 100)));
-    const bar = document.getElementById('progressBar');
-    const percentEl = document.getElementById('progressPercent');
-    const labelEl = document.getElementById('progressLabel');
-    if (bar) bar.style.width = percent + '%';
-    if (percentEl) percentEl.textContent = percent + '%';
-    if (labelEl) labelEl.textContent = labelText || `התקדמות: ${stepNumber} מתוך ${totalSteps}`;
-}
-
-// Initialize progress at first voice step
-updateProgress(1, 'הקלטה 1/2');
-
-// Modal logic
-const modal = document.getElementById('instructionModal');
-const modalTitle = document.getElementById('modalTitle');
-const modalText = document.getElementById('modalText');
-document.getElementById('modalClose').onclick = () => {
-    modal.style.display = 'none';
-    document.body.style.overflow = "";
-    if (nextData) { actuallyRenderQuestion(nextData); nextData = null; }
-};
-
-// Consolidated Voice Recording System
-class VoiceRecorder {
-    constructor(areaId, questionId) {
-        this.areaId = areaId;
-        this.questionId = questionId;
-        this.mediaRecorder = null;
-        this.audioChunks = [];
-        this.recordTimer = null;
-        this.recordElapsed = 0;
-        this.recordingValid = false;
-        
-        // Get DOM elements
-        this.startBtn = document.getElementById(`startRecordBtn${areaId === '2' ? '2' : ''}`);
-        this.stopBtn = document.getElementById(`stopRecordBtn${areaId === '2' ? '2' : ''}`);
-        this.reRecordBtn = document.getElementById(`reRecordBtn${areaId === '2' ? '2' : ''}`);
-        this.recordStatus = document.getElementById(`recordStatus${areaId === '2' ? '2' : ''}`);
-        this.audioPlayback = document.getElementById(`audioPlayback${areaId === '2' ? '2' : ''}`);
-        this.visualizer = document.getElementById(`visualizer${areaId === '2' ? '2' : ''}`);
-        this.uploadStatus = document.getElementById(`uploadStatus${areaId === '2' ? '2' : ''}`);
-        this.voiceArea = document.getElementById(`voiceRecordArea${areaId === '2' ? '2' : ''}`);
-        
-        this.bindEvents();
+    function updateProgress(stepNumber, labelText) {
+        currentStepNumber = stepNumber;
+        const percent = Math.min(100, Math.max(0, Math.round((stepNumber / totalSteps) * 100)));
+        const bar = document.getElementById('progressBar');
+        const percentEl = document.getElementById('progressPercent');
+        const labelEl = document.getElementById('progressLabel');
+        if (bar) bar.style.width = percent + '%';
+        if (percentEl) percentEl.textContent = percent + '%';
+        if (labelEl) labelEl.textContent = labelText || `התקדמות: ${stepNumber} מתוך ${totalSteps}`;
     }
-    
-    bindEvents() {
-        this.startBtn.onclick = () => this.startRecording();
-        this.stopBtn.onclick = () => this.stopRecording();
-        this.reRecordBtn.onclick = () => this.resetUI();
-    }
-    
-    async startRecording() {
-        this.audioChunks = [];
-        this.recordingValid = false;
-        this.recordStatus.innerHTML = '<span class="recording">מקליט... (00:00 / 01:30)</span>';
-        this.startBtn.classList.add('hidden');
-        this.stopBtn.classList.remove('hidden');
-        this.stopBtn.innerText = 'סיים הקלטה';
-        this.stopBtn.disabled = true;
-        this.stopBtn.classList.add('opacity-50', 'cursor-not-allowed');
-        this.audioPlayback.classList.add('hidden');
-        this.visualizer.innerHTML = '';
-        
-        // Add visual feedback for recording state
-        this.voiceArea.classList.remove('valid', 'invalid');
-        this.voiceArea.classList.add('recording');
-        
-        // Add fake bars for animation
-        for(let i = 0; i < 5; i++){
-            const bar = document.createElement('div');
-            bar.className = 'audio-bar';
-            this.visualizer.appendChild(bar);
+
+    // Initialize progress at first voice step
+    updateProgress(1, 'הקלטה 1/2');
+
+    // Modal logic
+    const modal = document.getElementById('instructionModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalText = document.getElementById('modalText');
+    document.getElementById('modalClose').onclick = () => {
+        modal.style.display = 'none';
+        document.body.style.overflow = "";
+        if (nextData) {
+            actuallyRenderQuestion(nextData);
+            nextData = null;
         }
-        
-        this.recordElapsed = 0;
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            this.mediaRecorder = new MediaRecorder(stream);
-            this.mediaRecorder.ondataavailable = e => this.audioChunks.push(e.data);
-            this.mediaRecorder.onstop = () => this.handleRecordingStop();
-            this.mediaRecorder.start();
-            
-            // Timer for duration
-            this.recordTimer = setInterval(() => {
-                this.recordElapsed++;
-                let sec = this.recordElapsed % 60, min = Math.floor(this.recordElapsed / 60);
-                let statusText = `מקליט... (${("0"+min).slice(-2)}:${("0"+sec).slice(-2)} / 01:30)`;
-                
-                this.recordStatus.innerHTML = `<span class="text-orange-600">${statusText}</span>`;
-                
-                // Auto-stop at 90 seconds (1 minute 30 seconds)
-                if(this.recordElapsed >= 90) {
-                    this.finishRecording();
-                }
-            }, 1000);
-        } catch (err) {
-            this.recordStatus.innerHTML = '<span class="text-red-600 font-semibold">שגיאה בגישה למיקרופון</span>';
-            this.stopBtn.classList.add('hidden');
-            this.startBtn.classList.remove('hidden');
+    };
+
+    // Consolidated Voice Recording System
+    class VoiceRecorder {
+        constructor(areaId, questionId) {
+            this.areaId = areaId;
+            this.questionId = questionId;
+            this.mediaRecorder = null;
+            this.audioChunks = [];
+            this.recordTimer = null;
+            this.recordElapsed = 0;
+            this.recordingValid = false;
+
+            // Get DOM elements
+            this.startBtn = document.getElementById(`startRecordBtn${areaId === '2' ? '2' : ''}`);
+            this.stopBtn = document.getElementById(`stopRecordBtn${areaId === '2' ? '2' : ''}`);
+            this.reRecordBtn = document.getElementById(`reRecordBtn${areaId === '2' ? '2' : ''}`);
+            this.recordStatus = document.getElementById(`recordStatus${areaId === '2' ? '2' : ''}`);
+            this.audioPlayback = document.getElementById(`audioPlayback${areaId === '2' ? '2' : ''}`);
+            this.visualizer = document.getElementById(`visualizer${areaId === '2' ? '2' : ''}`);
+            this.uploadStatus = document.getElementById(`uploadStatus${areaId === '2' ? '2' : ''}`);
+            this.voiceArea = document.getElementById(`voiceRecordArea${areaId === '2' ? '2' : ''}`);
+
+            this.bindEvents();
+        }
+
+        bindEvents() {
+            this.startBtn.onclick = () => this.startRecording();
+            this.stopBtn.onclick = () => this.stopRecording();
+            this.reRecordBtn.onclick = () => this.resetUI();
+        }
+
+        async startRecording() {
+            this.audioChunks = [];
+            this.recordingValid = false;
+            this.recordStatus.innerHTML = '<span class="recording">מקליט... (00:00 / 01:30)</span>';
+            this.startBtn.classList.add('hidden');
+            this.stopBtn.classList.remove('hidden');
+            this.stopBtn.innerText = 'סיים הקלטה';
+            this.stopBtn.disabled = true;
+            this.stopBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            this.audioPlayback.classList.add('hidden');
             this.visualizer.innerHTML = '';
-        }
-    }
-    
-    async handleRecordingStop() {
-        const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
-        this.audioPlayback.src = URL.createObjectURL(audioBlob);
-        this.audioPlayback.classList.remove('hidden');
-        this.visualizer.innerHTML = '';
-        
-        // Always accept the recording regardless of duration
-        this.recordingValid = true;
-        this.recordStatus.innerHTML = `<span class="text-green-600 font-bold">✓ הקלטה הושלמה (${this.formatTime(this.recordElapsed)})</span>`;
-        this.stopBtn.innerText = this.areaId === '2' ? 'המשך לאיבחון' : 'המשך לשאלה הבאה';
-        this.stopBtn.disabled = false;
-        this.stopBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-        
-        // Add visual feedback for valid state
-        this.voiceArea.classList.remove('recording', 'invalid');
-        this.voiceArea.classList.add('valid');
-        
-        // Upload audio to backend
-        try {
-            const result = await saveUserAudio(currentUsername, audioBlob, this.questionId);
-            this.uploadStatus.classList.remove('hidden');
-            this.uploadStatus.innerHTML = '<div class="text-green-600 font-semibold">הקלטה נשמרה בהצלחה!</div>';
-            console.log(`Audio uploaded successfully for ${this.questionId}:`, result);
-        } catch (error) {
-            console.error(`Failed to upload audio for ${this.questionId}:`, error);
-            this.uploadStatus.classList.remove('hidden');
-            this.uploadStatus.innerHTML = '<div class="text-red-600 font-semibold">שגיאה בשמירת ההקלטה</div>';
-        }
-    }
-    
-    stopRecording() {
-        if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
-            this.finishRecording();
-        } else if (this.recordingValid) {
-            if (this.areaId === '2') {
-                document.getElementById('voiceRecordArea2').classList.add('hidden');
-                document.getElementById('questionArea').classList.remove('hidden');
-                updateProgress(2 + currentQuestion, `שאלה ${currentQuestion} מתוך ${totalQuestions}`);
-                loadQuestion(currentQuestion);
-            } else {
-                document.getElementById('voiceRecordArea').classList.add('hidden');
-                document.getElementById('voiceRecordArea2').classList.remove('hidden');
-                voiceRecorder2.resetUI();
-                updateProgress(2, 'הקלטה 2/2');
+
+            // Add visual feedback for recording state
+            this.voiceArea.classList.remove('valid', 'invalid');
+            this.voiceArea.classList.add('recording');
+
+            // Add fake bars for animation
+            for (let i = 0; i < 5; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'audio-bar';
+                this.visualizer.appendChild(bar);
             }
-        } else {
-            this.resetUI();
+
+            this.recordElapsed = 0;
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+                this.mediaRecorder = new MediaRecorder(stream);
+                this.mediaRecorder.ondataavailable = e => this.audioChunks.push(e.data);
+                this.mediaRecorder.onstop = () => this.handleRecordingStop();
+                this.mediaRecorder.start();
+
+                // Timer for duration
+                this.recordTimer = setInterval(() => {
+                    this.recordElapsed++;
+                    let sec = this.recordElapsed % 60, min = Math.floor(this.recordElapsed / 60);
+                    let statusText = `מקליט... (${("0" + min).slice(-2)}:${("0" + sec).slice(-2)} / 01:30)`;
+
+                    this.recordStatus.innerHTML = `<span class="text-orange-600">${statusText}</span>`;
+
+                    // Auto-stop at 90 seconds (1 minute 30 seconds)
+                    if (this.recordElapsed >= 90) {
+                        this.finishRecording();
+                    }
+                }, 1000);
+            } catch (err) {
+                this.recordStatus.innerHTML = '<span class="text-red-600 font-semibold">שגיאה בגישה למיקרופון</span>';
+                this.stopBtn.classList.add('hidden');
+                this.startBtn.classList.remove('hidden');
+                this.visualizer.innerHTML = '';
+            }
+        }
+
+        async handleRecordingStop() {
+            const audioBlob = new Blob(this.audioChunks, {type: 'audio/webm'});
+            this.audioPlayback.src = URL.createObjectURL(audioBlob);
+            this.audioPlayback.classList.remove('hidden');
+            this.visualizer.innerHTML = '';
+
+            // Always accept the recording regardless of duration
+            this.recordingValid = true;
+            this.recordStatus.innerHTML = `<span class="text-green-600 font-bold">✓ הקלטה הושלמה (${this.formatTime(this.recordElapsed)})</span>`;
+            this.stopBtn.innerText = this.areaId === '2' ? 'המשך לאיבחון' : 'המשך לשאלה הבאה';
+            this.stopBtn.disabled = false;
+            this.stopBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+            // Add visual feedback for valid state
+            this.voiceArea.classList.remove('recording', 'invalid');
+            this.voiceArea.classList.add('valid');
+
+            // Upload audio to backend
+            try {
+                const result = await saveUserAudio(currentUsername, audioBlob, this.questionId);
+                this.uploadStatus.classList.remove('hidden');
+                this.uploadStatus.innerHTML = '<div class="text-green-600 font-semibold">הקלטה נשמרה בהצלחה!</div>';
+                console.log(`Audio uploaded successfully for ${this.questionId}:`, result);
+            } catch (error) {
+                console.error(`Failed to upload audio for ${this.questionId}:`, error);
+                this.uploadStatus.classList.remove('hidden');
+                this.uploadStatus.innerHTML = '<div class="text-red-600 font-semibold">שגיאה בשמירת ההקלטה</div>';
+            }
+        }
+
+        stopRecording() {
+            if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
+                this.finishRecording();
+            } else if (this.recordingValid) {
+                if (this.areaId === '2') {
+                    document.getElementById('voiceRecordArea2').classList.add('hidden');
+                    document.getElementById('questionArea').classList.remove('hidden');
+                    updateProgress(2 + currentQuestion, `שאלה ${currentQuestion} מתוך ${totalQuestions}`);
+                    loadQuestion(currentQuestion);
+                } else {
+                    document.getElementById('voiceRecordArea').classList.add('hidden');
+                    document.getElementById('voiceRecordArea2').classList.remove('hidden');
+                    voiceRecorder2.resetUI();
+                    updateProgress(2, 'הקלטה 2/2');
+                }
+            } else {
+                this.resetUI();
+            }
+        }
+
+        finishRecording() {
+            if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
+                this.mediaRecorder.stop();
+                clearInterval(this.recordTimer);
+            }
+        }
+
+        formatTime(seconds) {
+            const min = Math.floor(seconds / 60);
+            const sec = seconds % 60;
+            return `${("0" + min).slice(-2)}:${("0" + sec).slice(-2)}`;
+        }
+
+        resetUI() {
+            this.startBtn.classList.remove('hidden');
+            this.stopBtn.classList.add('hidden');
+            this.reRecordBtn.classList.add('hidden');
+            this.stopBtn.innerText = 'סיים הקלטה';
+            this.stopBtn.disabled = false;
+            this.stopBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            this.recordStatus.innerHTML = '';
+            this.audioPlayback.classList.add('hidden');
+            this.audioPlayback.src = '';
+            this.visualizer.innerHTML = '';
+            this.uploadStatus.classList.add('hidden');
+            this.recordingValid = false;
+
+            // Clear visual feedback
+            this.voiceArea.classList.remove('recording', 'valid', 'invalid');
+
+            if (this.mediaRecorder && this.mediaRecorder.state === 'recording') this.mediaRecorder.stop();
+            if (this.recordTimer) clearInterval(this.recordTimer);
         }
     }
-    
-    finishRecording() {
-        if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
-            this.mediaRecorder.stop();
-            clearInterval(this.recordTimer);
+
+    // Initialize voice recorders
+    const voiceRecorder1 = new VoiceRecorder('', 'question1');
+    const voiceRecorder2 = new VoiceRecorder('2', 'question2');
+
+
+    // Question/Modal logic
+    async function loadQuestion(questionNumber) {
+        const response = await fetch(`/pdn-diagnose/questionnaire/${questionNumber}`);
+        const data = await response.json();
+        if (data.message === "No more questions.") return completeQuestionnaire();
+        // Update progress for the current question, even if an instructions modal appears
+        updateProgress(2 + questionNumber, `שאלה ${questionNumber} מתוך ${totalQuestions}`);
+        if (data.stage !== currentStage) {
+            currentStage = data.stage;
+            if (data.instructions) {
+                //<div id="voiceRecordArea" class="p-6 rounded-xl border border-indigo-100 bg-gradient-to-r from-purple-100 to-indigo-100 text-gray-800 shadow-sm fade-in text-right" dir="rtl">
+
+                //modalTitle.innerHTML = "<div class=' p-6 text-lg font-bold text-gray-700 ' >הסבר:</div>";
+                modalText.innerText = data.instructions;
+                modal.style.display = 'flex';
+                document.body.style.overflow = "hidden";
+                setTimeout(() => {
+                    modal.classList.remove('modal-animate');
+                    void modal.offsetWidth; // Force reflow
+                    modal.classList.add('modal-animate');
+                }, 10);
+                nextData = data;
+                return;
+            }
         }
+        actuallyRenderQuestion(data);
     }
-    
-    formatTime(seconds) {
-        const min = Math.floor(seconds / 60);
-        const sec = seconds % 60;
-        return `${("0"+min).slice(-2)}:${("0"+sec).slice(-2)}`;
-    }
-    
-    resetUI() {
-        this.startBtn.classList.remove('hidden');
-        this.stopBtn.classList.add('hidden');
-        this.reRecordBtn.classList.add('hidden');
-        this.stopBtn.innerText = 'סיים הקלטה';
-        this.stopBtn.disabled = false;
-        this.stopBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-        this.recordStatus.innerHTML = '';
-        this.audioPlayback.classList.add('hidden');
-        this.audioPlayback.src = '';
-        this.visualizer.innerHTML = '';
-        this.uploadStatus.classList.add('hidden');
-        this.recordingValid = false;
-        
-        // Clear visual feedback
-        this.voiceArea.classList.remove('recording', 'valid', 'invalid');
-        
-        if (this.mediaRecorder && this.mediaRecorder.state === 'recording') this.mediaRecorder.stop();
-        if (this.recordTimer) clearInterval(this.recordTimer);
-    }
-}
 
-// Initialize voice recorders
-const voiceRecorder1 = new VoiceRecorder('', 'question1');
-const voiceRecorder2 = new VoiceRecorder('2', 'question2');
+    function actuallyRenderQuestion(data) {
+        document.getElementById('questionText').innerText = data.question;
+        const optionsDiv = document.getElementById('options');
+        optionsDiv.innerHTML = '';
 
+        // Show/hide back button based on question history
+        const backButton = document.getElementById('backButton');
+        backButton.classList.toggle('hidden', questionHistory.length === 0);
 
-
-// Question/Modal logic
-async function loadQuestion(questionNumber) {
-    const response = await fetch(`/pdn-diagnose/questionnaire/${questionNumber}`);
-    const data = await response.json();
-    if (data.message === "No more questions.") return completeQuestionnaire();
-    // Update progress for the current question, even if an instructions modal appears
-    updateProgress(2 + questionNumber, `שאלה ${questionNumber} מתוך ${totalQuestions}`);
-    if (data.stage !== currentStage) {
-        currentStage = data.stage;
-        if (data.instructions) {
-          //<div id="voiceRecordArea" class="p-6 rounded-xl border border-indigo-100 bg-gradient-to-r from-purple-100 to-indigo-100 text-gray-800 shadow-sm fade-in text-right" dir="rtl">
-
-            //modalTitle.innerHTML = "<div class=' p-6 text-lg font-bold text-gray-700 ' >הסבר:</div>";
-            modalText.innerText = data.instructions;
-            modal.style.display = 'flex';
-            document.body.style.overflow = "hidden";
-            setTimeout(() => {
-                modal.classList.remove('modal-animate');
-                void modal.offsetWidth; // Force reflow
-                modal.classList.add('modal-animate');
-            }, 10);
-            nextData = data;
+        if (['PartC', 'PartD'].includes(data.stage)) {
+            renderScaleQuestion(data, data.question_number);
             return;
         }
-    }
-    actuallyRenderQuestion(data);
-}
+        if (data.type === 'ranking') {
+            renderRankingQuestion(data, data.question_number);
+            return;
+        }
 
-function actuallyRenderQuestion(data) {
-    document.getElementById('questionText').innerText = data.question;
-    const optionsDiv = document.getElementById('options');
-    optionsDiv.innerHTML = '';
-    
-    // Show/hide back button based on question history
-    const backButton = document.getElementById('backButton');
-    backButton.classList.toggle('hidden', questionHistory.length === 0);
-
-    if (['PartC','PartD'].includes(data.stage)) {
-        renderScaleQuestion(data, data.question_number);
-        return;
-    }
-    if (data.type === 'ranking') {
-        renderRankingQuestion(data, data.question_number);
-        return;
-    }
-    
-    // Create an array of buttons first
-    const buttons = data.options.map(opt => {
-        const btn = document.createElement('button');
-        btn.innerText = opt.text;
-        btn.className = 'text-lg fade-in w-full py-4 px-6 bg-gradient-to-r from-blue-900 to-blue-900 text-white font-medium rounded-xl hover:from-blue-900 hover:to-blue-900 focus:outline-none focus:ring-4 focus:ring-blue-900/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg';
-        btn.onclick = () => submitAnswer(data.question_number, opt.code, opt.text);
-        return btn;
-    });
-    
-    // Randomize the order of buttons
-    buttons.sort(() => Math.random() - 0.5);
-    
-    // Append the randomized buttons to the options div
-    buttons.forEach(btn => optionsDiv.appendChild(btn));
-}
-
-function renderScaleQuestion(data, questionNumber) {
-      const container = document.createElement('div');
-      container.className = 'space-y-4';
-
-      const labelsRow = document.createElement('div');
-      labelsRow.className = 'flex justify-between items-center';
-
-      const leftLabel = document.createElement('span');
-      leftLabel.textContent = data.options[0].text;
-      const rightLabel = document.createElement('span');
-      rightLabel.textContent = data.options[1].text;
-
-      labelsRow.append(leftLabel, rightLabel);
-      container.append(labelsRow);
-
-      const [lText, rText] = data.options.map(o => o.text);
-      const descriptions = [
-        lText,
-        `לרב ${lText}`,
-        `במידה מסוימת ${lText}`,
-        'באמצע',
-        `במידה מסוימת ${rText}`,
-        `לרב ${rText}`,
-        rText,
-      ];
-
-      let currentStep = null;
-
-      const stepsRow = document.createElement('div');
-      stepsRow.className = 'flex justify-between items-center py-2';
-
-      function updateSelection() {
-        buttons.forEach((btn, idx) => {
-          btn.classList.toggle('from-blue-900', idx === currentStep);
-          btn.classList.toggle('to-blue-900', idx === currentStep);
-          btn.classList.toggle('bg-gradient-to-r', idx === currentStep);
-          btn.classList.toggle('text-white', idx === currentStep);
-          btn.classList.toggle('bg-gray-200', idx !== currentStep);
+        // Create an array of buttons first
+        const buttons = data.options.map(opt => {
+            const btn = document.createElement('button');
+            btn.innerText = opt.text;
+            btn.className = 'text-lg fade-in w-full py-4 px-6 bg-gradient-to-r from-blue-900 to-blue-900 text-white font-medium rounded-xl hover:from-blue-900 hover:to-blue-900 focus:outline-none focus:ring-4 focus:ring-blue-900/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg';
+            btn.onclick = () => submitAnswer(data.question_number, opt.code, opt.text);
+            return btn;
         });
-        valueDisplay.textContent = currentStep !== null ? descriptions[currentStep] : '';
-        submitBtn.disabled = currentStep === null;
-        submitBtn.classList.toggle('opacity-50', currentStep === null);
-        submitBtn.classList.toggle('cursor-not-allowed', currentStep === null);
-      }
 
-      const buttons = Array.from({length:7}, (_, idx) => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'w-8 h-8 rounded-full bg-gray-200 transition';
-        btn.setAttribute('aria-label', descriptions[idx]);
-        btn.onclick = () => {
-          currentStep = idx;
-          updateSelection();
-        };
-        stepsRow.appendChild(btn);
-        return btn;
-      });
+        // Randomize the order of buttons
+        buttons.sort(() => Math.random() - 0.5);
 
-      container.append(stepsRow);
-
-      const valueDisplay = document.createElement('div');
-      valueDisplay.className = 'text-center text-xl font-bold text-blue-900';
-      container.append(valueDisplay);
-
-      const submitBtn = document.createElement('button');
-      submitBtn.type = 'button';
-      submitBtn.innerText = 'שלח תשובה';
-      submitBtn.className = 'text-lg w-full py-3 px-6 bg-gradient-to-r from-blue-900 to-blue-900 text-white rounded-xl opacity-50 cursor-not-allowed';
-      submitBtn.disabled = true;
-      submitBtn.onclick = async () => {
-        if (currentStep === null) return;
-        const leftCode  = data.options[0].code;
-        const rightCode = data.options[1].code;
-        const scaleMap = [ [12,0],[10,2],[8,4],[6,6],[4,8],[2,10],[0,12] ];
-        const [lp, rp] = scaleMap[currentStep];
-        await submitAnswer(questionNumber, null, null, {[leftCode]:lp,[rightCode]:rp});
-
-      };
-      
-      container.append(submitBtn);
-
-      document.getElementById('options').appendChild(container);
-      updateSelection();
+        // Append the randomized buttons to the options div
+        buttons.forEach(btn => optionsDiv.appendChild(btn));
     }
 
+    function renderScaleQuestion(data, questionNumber) {
+        const container = document.createElement('div');
+        container.className = 'space-y-4';
 
+        const labelsRow = document.createElement('div');
+        labelsRow.className = 'flex justify-between items-center';
 
+        const leftLabel = document.createElement('span');
+        leftLabel.textContent = data.options[0].text;
+        const rightLabel = document.createElement('span');
+        rightLabel.textContent = data.options[1].text;
+
+        labelsRow.append(leftLabel, rightLabel);
+        container.append(labelsRow);
+
+        const [lText, rText] = data.options.map(o => o.text);
+        const descriptions = [
+            lText,
+            `לרב ${lText}`,
+            `במידה מסוימת ${lText}`,
+            'באמצע',
+            `במידה מסוימת ${rText}`,
+            `לרב ${rText}`,
+            rText,
+        ];
+
+        let currentStep = null;
+
+        const stepsRow = document.createElement('div');
+        stepsRow.className = 'flex justify-between items-center py-2';
+
+        function updateSelection() {
+            buttons.forEach((btn, idx) => {
+                btn.classList.toggle('from-blue-900', idx === currentStep);
+                btn.classList.toggle('to-blue-900', idx === currentStep);
+                btn.classList.toggle('bg-gradient-to-r', idx === currentStep);
+                btn.classList.toggle('text-white', idx === currentStep);
+                btn.classList.toggle('bg-gray-200', idx !== currentStep);
+            });
+            valueDisplay.textContent = currentStep !== null ? descriptions[currentStep] : '';
+            submitBtn.disabled = currentStep === null;
+            submitBtn.classList.toggle('opacity-50', currentStep === null);
+            submitBtn.classList.toggle('cursor-not-allowed', currentStep === null);
+        }
+
+        const buttons = Array.from({length: 7}, (_, idx) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'w-8 h-8 rounded-full bg-gray-200 transition';
+            btn.setAttribute('aria-label', descriptions[idx]);
+            btn.onclick = () => {
+                currentStep = idx;
+                updateSelection();
+            };
+            stepsRow.appendChild(btn);
+            return btn;
+        });
+
+        container.append(stepsRow);
+
+        const valueDisplay = document.createElement('div');
+        valueDisplay.className = 'text-center text-xl font-bold text-blue-900';
+        container.append(valueDisplay);
+
+        const submitBtn = document.createElement('button');
+        submitBtn.type = 'button';
+        submitBtn.innerText = 'שלח תשובה';
+        submitBtn.className = 'text-lg w-full py-3 px-6 bg-gradient-to-r from-blue-900 to-blue-900 text-white rounded-xl opacity-50 cursor-not-allowed';
+        submitBtn.disabled = true;
+        submitBtn.onclick = async () => {
+            if (currentStep === null) return;
+            const leftCode = data.options[0].code;
+            const rightCode = data.options[1].code;
+            const scaleMap = [[12, 0], [10, 2], [8, 4], [6, 6], [4, 8], [2, 10], [0, 12]];
+            const [lp, rp] = scaleMap[currentStep];
+            await submitAnswer(questionNumber, null, null, {[leftCode]: lp, [rightCode]: rp});
+
+        };
+
+        container.append(submitBtn);
+
+        document.getElementById('options').appendChild(container);
+        updateSelection();
+    }
 
 
     function renderRankingQuestion(data, questionNumber) {
-    const container = document.createElement('div');
-    container.className = 'glass-effect rounded-3xl shadow-lg p-8';
+        const container = document.createElement('div');
+        container.className = 'glass-effect rounded-3xl shadow-lg p-8';
 
-    // Enhanced instruction container with better styling
-    const instructionContainer = document.createElement('div');
-    instructionContainer.className = 'text-center mb-6';
-    
-    const mainInstruction = document.createElement('div');
-    mainInstruction.className = 'text-white bg-gradient-to-r from-blue-900 to-blue-900 px-6 py-4 rounded-2xl text-lg font-bold shadow-sm border border-blue-900 mb-3';
-    mainInstruction.innerHTML = 'לחץ לפי סדר החשיבות';
-    
-    const subInstruction = document.createElement('div');
-    subInstruction.className = 'text-blue-900 bg-blue-100 px-4 py-2 rounded-xl text-sm font-medium italic';
-    subInstruction.innerHTML = 'לא בטוח? תמיד אפשר ללחוץ שוב ולשנות';
-    
-    instructionContainer.appendChild(mainInstruction);
-    instructionContainer.appendChild(subInstruction);
-    container.appendChild(instructionContainer);
+        // Enhanced instruction container with better styling
+        const instructionContainer = document.createElement('div');
+        instructionContainer.className = 'text-center mb-6';
 
-    const list = document.createElement('ul');
-    list.id = 'rankingList';
-    list.className = 'space-y-3';
+        const mainInstruction = document.createElement('div');
+        mainInstruction.className = 'text-white bg-gradient-to-r from-blue-900 to-blue-900 px-6 py-4 rounded-2xl text-lg font-bold shadow-sm border border-blue-900 mb-3';
+        mainInstruction.innerHTML = 'לחץ לפי סדר החשיבות';
 
-    const randomizedOptions = [...data.options].sort(() => Math.random() - 0.5);
-    const selectedOrder = [];
+        const subInstruction = document.createElement('div');
+        subInstruction.className = 'text-blue-900 bg-blue-100 px-4 py-2 rounded-xl text-sm font-medium italic';
+        subInstruction.innerHTML = 'לא בטוח? תמיד אפשר ללחוץ שוב ולשנות';
 
-    randomizedOptions.forEach(opt => {
-        const li = document.createElement('li');
-        li.className = 'ranking-item bg-white rounded-xl p-4 flex items-center gap-4 border cursor-pointer hover:shadow-md transition-all duration-200';
-        li.setAttribute('data-code', opt.code);
+        instructionContainer.appendChild(mainInstruction);
+        instructionContainer.appendChild(subInstruction);
+        container.appendChild(instructionContainer);
 
-        const numberDiv = document.createElement('span');
-        numberDiv.className = 'ranking-number w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-500';
-        numberDiv.textContent = '?';
+        const list = document.createElement('ul');
+        list.id = 'rankingList';
+        list.className = 'space-y-3';
 
-        const textSpan = document.createElement('span');
-        textSpan.className = 'flex-1 text-gray-800';
-        textSpan.textContent = opt.text;
+        const randomizedOptions = [...data.options].sort(() => Math.random() - 0.5);
+        const selectedOrder = [];
 
-        li.appendChild(numberDiv);
-        li.appendChild(textSpan);
+        randomizedOptions.forEach(opt => {
+            const li = document.createElement('li');
+            li.className = 'ranking-item bg-white rounded-xl p-4 flex items-center gap-4 border cursor-pointer hover:shadow-md transition-all duration-200';
+            li.setAttribute('data-code', opt.code);
 
-        li.addEventListener('click', () => {
-            const code = opt.code;
-            const idx = selectedOrder.indexOf(code);
-            if (idx >= 0) {
-                selectedOrder.splice(idx, 1);
-            } else if (selectedOrder.length < 4) {
-                selectedOrder.push(code);
-            }
-            renderRanks();
-        });
+            const numberDiv = document.createElement('span');
+            numberDiv.className = 'ranking-number w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-500';
+            numberDiv.textContent = '?';
 
-        list.appendChild(li);
-    });
+            const textSpan = document.createElement('span');
+            textSpan.className = 'flex-1 text-gray-800';
+            textSpan.textContent = opt.text;
 
-    function renderRanks() {
-        list.querySelectorAll('li').forEach(li => {
-            const code = li.getAttribute('data-code');
-            const numberDiv = li.querySelector('.ranking-number');
-            const idx = selectedOrder.indexOf(code);
-            if (idx >= 0) {
-                numberDiv.textContent = idx + 1;
-                numberDiv.className = 'ranking-number w-10 h-10 rounded-full bg-blue-100 text-white flex items-center justify-center font-bold selected';
-                li.className = 'ranking-item bg-white rounded-xl p-4 flex items-center gap-4 border-2 border-blue-300 cursor-pointer shadow-md transition-all duration-200';
-            } else {
-                numberDiv.textContent = '?';
-                numberDiv.className = 'ranking-number w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-500';
-                li.className = 'ranking-item bg-white rounded-xl p-4 flex items-center gap-4 border cursor-pointer hover:shadow-md transition-all duration-200';
-            }
-        });
-    }
+            li.appendChild(numberDiv);
+            li.appendChild(textSpan);
 
-    container.appendChild(list);
-
-    const buttons = document.createElement('div');
-    buttons.className = 'flex gap-4 mt-8';
-
-    const submitBtn = document.createElement('button');
-    submitBtn.type = 'button';
-    submitBtn.className = 'flex-1 py-4 px-6 bg-gradient-to-r from-blue-900 to-blue-900 text-white font-semibold rounded-xl hover:from-blue-900 hover:to-blue-900 transform hover:scale-105 transition-all duration-200 shadow-lg';
-    submitBtn.textContent = 'שלח דירוג';
-
-    const errorDiv = document.createElement('div');
-    errorDiv.id = 'rankingError';
-    errorDiv.className = 'text-red-600 text-right mb-2 bg-red-50 border border-red-200 rounded-lg p-3 font-medium';
-    errorDiv.style.display = 'none';
-    document.getElementById('options').appendChild(errorDiv);
-
-    submitBtn.onclick = async () => {
-        if (selectedOrder.length < data.options.length) {
-            errorDiv.textContent = 'יש לדרג את כל האפשרויות';
-            errorDiv.style.display = 'block';
-            return;
-        } else {
-            errorDiv.style.display = 'none';
-            const result = {};
-            selectedOrder.forEach((code, index) => {
-                result[code] = index + 1;
+            li.addEventListener('click', () => {
+                const code = opt.code;
+                const idx = selectedOrder.indexOf(code);
+                if (idx >= 0) {
+                    selectedOrder.splice(idx, 1);
+                } else if (selectedOrder.length < 4) {
+                    selectedOrder.push(code);
+                }
+                renderRanks();
             });
-            await submitAnswer(questionNumber, null, null, result);
-        }
-    };
 
-    const resetBtn = document.createElement('button');
-    resetBtn.type = 'button';
-    resetBtn.className = 'flex-1 py-4 px-6 bg-gradient-to-r from-blue-900  to-blue-900  text-white font-semibold rounded-xl hover:from-blue-900 hover:to-blue-900 transform hover:scale-105 transition-all duration-200 border border-blue-900';
-    resetBtn.textContent = 'איפוס';
-
-    resetBtn.onclick = () => {
-        selectedOrder.length = 0;
-        renderRanks();
-    };
-
-    buttons.appendChild(submitBtn);
-    buttons.appendChild(resetBtn);
-
-    container.appendChild(buttons);
-    document.getElementById('options').appendChild(container);
-}
-
-async function submitAnswer(qNum, code, text, ranking = null) {
-    const questionText = document.getElementById('questionText').innerText;
-    const payload = { question_number: qNum, selected_option_code: code, selected_option_text: text, question: questionText };
-    
-    if (ranking) payload.ranking = ranking;
-    try {
-        await fetch('/pdn-diagnose/answer', {
-            method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
+            list.appendChild(li);
         });
-        // Store current question in history before moving to next
-        questionHistory.push(currentQuestion);
-        currentQuestion++; 
-        loadQuestion(currentQuestion);
-    } catch {
-        alert('שגיאה בשליחת התשובה, אנא נסה שוב.');
-    }
-}
 
-async function completeQuestionnaire() {
-    const resp = await fetch('/pdn-diagnose/complete_questionnaire', { method: 'POST', headers: {'Content-Type':'application/json'} });
-    if (resp.ok) window.location.href = '/pdn-diagnose/pdn_report'; else alert('שגיאה בסיום השאלון, אנא נסה שוב.');
-}
+        function renderRanks() {
+            list.querySelectorAll('li').forEach(li => {
+                const code = li.getAttribute('data-code');
+                const numberDiv = li.querySelector('.ranking-number');
+                const idx = selectedOrder.indexOf(code);
+                if (idx >= 0) {
+                    numberDiv.textContent = idx + 1;
+                    numberDiv.className = 'ranking-number w-10 h-10 rounded-full bg-blue-100 text-white flex items-center justify-center font-bold selected';
+                    li.className = 'ranking-item bg-white rounded-xl p-4 flex items-center gap-4 border-2 border-blue-300 cursor-pointer shadow-md transition-all duration-200';
+                } else {
+                    numberDiv.textContent = '?';
+                    numberDiv.className = 'ranking-number w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-500';
+                    li.className = 'ranking-item bg-white rounded-xl p-4 flex items-center gap-4 border cursor-pointer hover:shadow-md transition-all duration-200';
+                }
+            });
+        }
 
-async function goBack() {
-    if (questionHistory.length > 0) {
-        currentQuestion = questionHistory.pop();
-        loadQuestion(currentQuestion);
+        container.appendChild(list);
+
+        const buttons = document.createElement('div');
+        buttons.className = 'flex gap-4 mt-8';
+
+        const submitBtn = document.createElement('button');
+        submitBtn.type = 'button';
+        submitBtn.className = 'flex-1 py-4 px-6 bg-gradient-to-r from-blue-900 to-blue-900 text-white font-semibold rounded-xl hover:from-blue-900 hover:to-blue-900 transform hover:scale-105 transition-all duration-200 shadow-lg';
+        submitBtn.textContent = 'שלח דירוג';
+
+        const errorDiv = document.createElement('div');
+        errorDiv.id = 'rankingError';
+        errorDiv.className = 'text-red-600 text-right mb-2 bg-red-50 border border-red-200 rounded-lg p-3 font-medium';
+        errorDiv.style.display = 'none';
+        document.getElementById('options').appendChild(errorDiv);
+
+        submitBtn.onclick = async () => {
+            if (selectedOrder.length < data.options.length) {
+                errorDiv.textContent = 'יש לדרג את כל האפשרויות';
+                errorDiv.style.display = 'block';
+
+            } else {
+                errorDiv.style.display = 'none';
+                const result = {};
+                selectedOrder.forEach((code, index) => {
+                    result[code] = index + 1;
+                });
+                await submitAnswer(questionNumber, null, null, result);
+            }
+        };
+
+        const resetBtn = document.createElement('button');
+        resetBtn.type = 'button';
+        resetBtn.className = 'flex-1 py-4 px-6 bg-gradient-to-r from-blue-900  to-blue-900  text-white font-semibold rounded-xl hover:from-blue-900 hover:to-blue-900 transform hover:scale-105 transition-all duration-200 border border-blue-900';
+        resetBtn.textContent = 'איפוס';
+
+        resetBtn.onclick = () => {
+            selectedOrder.length = 0;
+            renderRanks();
+        };
+
+        buttons.appendChild(submitBtn);
+        buttons.appendChild(resetBtn);
+
+        container.appendChild(buttons);
+        document.getElementById('options').appendChild(container);
     }
-}
+
+    async function submitAnswer(qNum, code, text, ranking = null) {
+        const questionText = document.getElementById('questionText').innerText;
+        const payload = {
+            question_number: qNum,
+            selected_option_code: code,
+            selected_option_text: text,
+            question: questionText
+        };
+
+        if (ranking) payload.ranking = ranking;
+        try {
+            await fetch('/pdn-diagnose/answer', {
+                method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)
+            });
+            // Store current question in history before moving to next
+            questionHistory.push(currentQuestion);
+            currentQuestion++;
+            loadQuestion(currentQuestion);
+        } catch {
+            alert('שגיאה בשליחת התשובה, אנא נסה שוב.');
+        }
+    }
+
+    async function completeQuestionnaire() {
+        const resp = await fetch('/pdn-diagnose/complete_questionnaire', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'}
+        });
+        if (resp.ok) window.location.href = '/pdn-diagnose/pdn_report'; else alert('שגיאה בסיום השאלון, אנא נסה שוב.');
+    }
+
+    async function goBack() {
+        if (questionHistory.length > 0) {
+            currentQuestion = questionHistory.pop();
+            loadQuestion(currentQuestion);
+        }
+    }
 
 
 </script>

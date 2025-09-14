@@ -1,6 +1,5 @@
-from pathlib import Path
-
 import yaml
+from pathlib import Path
 
 
 class Settings:
@@ -8,7 +7,7 @@ class Settings:
         self._config = self.load_config()
         self.PROJECT_NAME: str = self._config['project']['name']
         self.VERSION: str = self._config['project']['version']
-        
+
         # RAG Configuration
         self.CHROMA_DB_PERSIST_DIR: str = self._config['rag']['chroma_db_persist_dir']
         self.RAG_CHUNK_SIZE: int = self._config['rag']['chunk_size']

@@ -37,9 +37,6 @@ def save_answer(email: str, question_number: int, answer_data: dict, question_te
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
-
-
-
 def load_answers(email: str) -> Optional[Dict[str, Any]]:
     """
     Load user answers from a JSON file
@@ -69,9 +66,6 @@ def load_answers(email: str) -> Optional[Dict[str, Any]]:
         return None
     except Exception:
         return None
-
-
-
 
 
 def save_user_metadata(metadata: Dict[str, Any], email: str = None) -> None:
