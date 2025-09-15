@@ -521,7 +521,7 @@
     <div class="card p-8 max-w-2xl w-full mx-4 rounded-2xl">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold text-gray-800 flex items-center">
-                <i class="fas fa-edit mr-2 text-blue-900"> עריכת אבחון </i>
+                <i class="fas fa-edit mr-2 text-blue-900">עריכת אבחון</i>
             </h2>
             <button onclick="closeModal('editDiagnoseModal')"
                     class="text-gray-500 hover:text-gray-700 text-2xl transition-colors">
@@ -1060,10 +1060,10 @@
                 <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium"> ${user.pdn_code}</span>
             </td>
             <td class="px-4 py-4">
-                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">🎤 ${user.pdn_voice_code || 'N/A'}</span>
+                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">${user.pdn_voice_code || 'N/A'}</span>
             </td>
             <td class="px-4 py-4">
-                <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">🟢 ${user.diagnose_pdn_code || 'N/A'}</span>
+                <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">${user.diagnose_pdn_code || 'N/A'}</span>
             </td>
             <td class="px-4 py-4 text-gray-700 max-w-xs truncate" title="${user.diagnose_comments || ''}">${user.diagnose_comments || ''}</td>
             <td class="px-4 py-4 text-gray-700 max-w-xs truncate" title="${user.pdn_update_comments || ''}">${user.pdn_update_comments || ''}</td>
@@ -1210,10 +1210,10 @@
         let filteredData = currentData.filter(user => {
             // Search filter - check both email and name
             const fullName = ((user.first_name || '') + ' ' + (user.last_name || '')).trim().toLowerCase();
-            const matchesSearch = user.email.toLowerCase().includes(searchTerm) || 
-                                 fullName.includes(searchTerm) ||
-                                 (user.first_name && user.first_name.toLowerCase().includes(searchTerm)) ||
-                                 (user.last_name && user.last_name.toLowerCase().includes(searchTerm));
+            const matchesSearch = user.email.toLowerCase().includes(searchTerm) ||
+                fullName.includes(searchTerm) ||
+                (user.first_name && user.first_name.toLowerCase().includes(searchTerm)) ||
+                (user.last_name && user.last_name.toLowerCase().includes(searchTerm));
 
             // Red users filter - check if any of the three codes are different
             const isRedUser = (user.pdn_code !== user.diagnose_pdn_code &&
@@ -1335,7 +1335,7 @@
         <div class="space-y-4">
         <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
         <div class="text-sm text-gray-500 mb-1">שם פרטי</div>
-        <div class="font-bold text-gray-900 text-lg">${ metadata["first_name"] || 'לא זמין'}</div>
+        <div class="font-bold text-gray-900 text-lg">${metadata["first_name"] || 'לא זמין'}</div>
         </div>
         <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
         <div class="text-sm text-gray-500 mb-1">שם משפחה</div>
@@ -1400,178 +1400,98 @@
         <div class="space-y-6">
         ${Object.entries(questions).map(([questionNumber, questionData]) => {
             // Handle different question types
-        let answerDisplay = '';
-        let codeDisplay = '';
-        let questionText = `
-    שאלה $
-        {
-            questionNumber
-        }
-        `;
+            let answerDisplay = '';
+            let codeDisplay = '';
+            let questionText = `שאלה ${questionNumber}`;
 
             // Get question text from questions data
-        if (questionsData) {
-            // Search for question in all phases
-        for (const phaseKey in questionsData.phases) {
-        const phase = questionsData.phases[phaseKey];
-        if (phase.questions && phase.questions[questionNumber]) {
-        questionText = phase.questions[questionNumber].text;
-        console.log(questionText);
-        break;
-        }
-        }
-        }
+            if (questionsData) {
+                // Search for question in all phases
+                for (const phaseKey in questionsData.phases) {
+                    const phase = questionsData.phases[phaseKey];
+                    if (phase.questions && phase.questions[questionNumber]) {
+                        questionText = phase.questions[questionNumber].text;
+                        console.log(questionText);
+                        break;
+                    }
+                }
+            }
 
             // If question text is not found in questions data, try to get it from the saved answer data
-        if (questionText === `
-    שאלה $
-        {
-            questionNumber
-        }
-        ` && questionData.question_text) {
-        questionText = questionData.question_text;
-        }
+            if (questionText === `שאלה ${questionNumber}` && questionData.question_text) {
+                questionText = questionData.question_text;
+            }
 
-        if (questionData.ranking) {
-            // Check if this is a scale question (has exactly 2 options with numeric values)
-        const rankingEntries = Object.entries(questionData.ranking);
+            if (questionData.ranking) {
+                // Check if this is a scale question (has exactly 2 options with numeric values)
+                const rankingEntries = Object.entries(questionData.ranking);
 
-        if (rankingEntries.length === 2 &&
-        typeof rankingEntries[0][1] === 'number' &&
-        typeof rankingEntries[1][1] === 'number') {
+                if (rankingEntries.length === 2 &&
+                    typeof rankingEntries[0][1] === 'number' &&
+                    typeof rankingEntries[1][1] === 'number') {
 
-            // This is a scale question - decode it properly
-        const [leftCode, leftValue] = rankingEntries[0];
-        const [rightCode, rightValue] = rankingEntries[1];
+                    // This is a scale question - decode it properly
+                    const [leftCode, leftValue] = rankingEntries[0];
+                    const [rightCode, rightValue] = rankingEntries[1];
 
-            // Get the question options to find the text labels
-        let leftText = leftCode;
-        let rightText = rightCode;
+                    // Get the question options to find the text labels
+                    let leftText = leftCode;
+                    let rightText = rightCode;
 
-        if (questionData.question_options && questionData.question_options.length >= 2) {
-        const leftOption = questionData.question_options.find(opt => opt.code === leftCode);
-        const rightOption = questionData.question_options.find(opt => opt.code === rightCode);
+                    if (questionData.question_options && questionData.question_options.length >= 2) {
+                        const leftOption = questionData.question_options.find(opt => opt.code === leftCode);
+                        const rightOption = questionData.question_options.find(opt => opt.code === rightCode);
 
-        if (leftOption) leftText = leftOption.text;
-        if (rightOption) rightText = rightOption.text;
-        }
+                        if (leftOption) leftText = leftOption.text;
+                        if (rightOption) rightText = rightOption.text;
+                    }
 
-            // Determine the scale position and create readable description
-        const scaleMap = [
-        {position: 0, description: `
-    $
-        {
-            leftText
-        }
-     (במידה רבה מאוד)
-        `, leftValue: 12, rightValue: 0},
-        {position: 1, description: `
-    $
-        {
-            leftText
-        }
-     (במידה רבה)
-        `, leftValue: 10, rightValue: 2},
-        {position: 2, description: `
-    $
-        {
-            leftText
-        }
-     (במידה מסוימת)
-        `, leftValue: 8, rightValue: 4},
-        {position: 3, description: `
-    באמצע (ניטרלי)
-        `, leftValue: 6, rightValue: 6},
-        {position: 4, description: `
-    $
-        {
-            rightText
-        }
-     (במידה מסוימת)
-        `, leftValue: 4, rightValue: 8},
-        {position: 5, description: `
-    $
-        {
-            rightText
-        }
-     (במידה רבה)
-        `, leftValue: 2, rightValue: 10},
-        {position: 6, description: `
-    $
-        {
-            rightText
-        }
-     (במידה רבה מאוד)
-        `, leftValue: 0, rightValue: 12}
-        ];
+                    // Determine the scale position and create readable description
+                    const scaleMap = [
+                        {position: 0, description: `${leftText} (במידה רבה מאוד)`, leftValue: 12, rightValue: 0},
+                        {position: 1, description: `${leftText} (במידה רבה)`, leftValue: 10, rightValue: 2},
+                        {position: 2, description: `${leftText} (במידה מסוימת)`, leftValue: 8, rightValue: 4},
+                        {position: 3, description: `באמצע (ניטרלי)`, leftValue: 6, rightValue: 6},
+                        {position: 4, description: `${rightText} (במידה מסוימת)`, leftValue: 4, rightValue: 8},
+                        {position: 5, description: `${rightText} (במידה רבה)`, leftValue: 2, rightValue: 10},
+                        {position: 6, description: `${rightText} (במידה רבה מאוד)`, leftValue: 0, rightValue: 12}
+                    ];
 
-            // Find the matching scale position
-        const scalePosition = scaleMap.find(pos =>
-        pos.leftValue === leftValue && pos.rightValue === rightValue
-        );
+                    // Find the matching scale position
+                    const scalePosition = scaleMap.find(pos =>
+                        pos.leftValue === leftValue && pos.rightValue === rightValue
+                    );
 
-        if (scalePosition) {
-            // Create visual scale indicator
-        const filledDots = '●'.repeat(scalePosition.position + 1);
-        const emptyDots = '○'.repeat(6 - scalePosition.position);
-        const scaleIndicator = filledDots + emptyDots;
+                    if (scalePosition) {
+                        // Create visual scale indicator
+                        const filledDots = '●'.repeat(scalePosition.position + 1);
+                        const emptyDots = '○'.repeat(6 - scalePosition.position);
+                        const scaleIndicator = filledDots + emptyDots;
 
-        answerDisplay = `
+                        answerDisplay = `
 
                                         <div class="space-y-2">
                                             <div class="flex items-center justify-between text-xs text-gray-600">
-                                                <span>$
-        {
-            leftText
-        }
-    </span>
-                                                <span>$
-        {
-            rightText
-        }
-    </span>
+                                                <span>${leftText}</span>
+                                                <span>${rightText}</span>
                                             </div>
                                             <div class="flex items-center justify-center">
-                                                <span class="text-lg tracking-wider">$
-        {
-            scaleIndicator
-        }
-    </span>
+                                                <span class="text-lg tracking-wider">${scaleIndicator}</span>
                                             </div>
                                             <div class="text-center text-sm font-medium text-blue-600">
-$
-        {
-            scalePosition.description
-        }
-
+${scalePosition.description}
                                             </div>
                                         </div>
 
         `;
-        codeDisplay = 'סולם העדפה';
-        } else {
-            // Fallback if exact match not found
-        answerDisplay = `
+                        codeDisplay = 'סולם העדפה';
+                    } else {
+                        // Fallback if exact match not found
+                        answerDisplay = `
 
                                         <div class="space-y-2">
                                             <div class="text-sm text-gray-600">
-$
-        {
-            leftText
-        }
-    : $
-        {
-            leftValue
-        }
-     | $
-        {
-            rightText
-        }
-    : $
-        {
-            rightValue
-        }
-
+${leftText}: ${leftValue} | ${rightText}: ${rightValue}
                                             </div>
                                             <div class="text-xs text-gray-500">
                                                 (לא ניתן לפענח את המיקום המדויק בסולם)
@@ -1579,124 +1499,85 @@ $
                                         </div>
 
         `;
-        codeDisplay = 'סולם העדפה';
-        }
+                        codeDisplay = 'סולם העדפה';
+                    }
 
-        } else {
-            // This is a regular ranking question - use existing logic
-        const sortedRanking = rankingEntries.sort((a, b) => a[1] - b[1]);
+                } else {
+                    // This is a regular ranking question - use existing logic
+                    const sortedRanking = rankingEntries.sort((a, b) => a[1] - b[1]);
 
-        let rankedTexts = [];
-        if (questionData.question_options && questionData.question_options.length > 0) {
-        rankedTexts = sortedRanking.map(([code, rank]) => {
-        const option = questionData.question_options.find(opt => opt.code === code);
-        return `
-    $
-        {
-            rank
-        }
-    . $
-        {
-            option ? option.text : code
-        }
-        `;
-        });
-        } else {
-        rankedTexts = sortedRanking.map(([code, rank]) => `
-    $
-        {
-            rank
-        }
-    . $
-        {
-            code
-        }
-        `);
-        }
+                    let rankedTexts = [];
+                    if (questionData.question_options && questionData.question_options.length > 0) {
+                        rankedTexts = sortedRanking.map(([code, rank]) => {
+                            const option = questionData.question_options.find(opt => opt.code === code);
+                            return `${rank}. ${option ? option.text : code}`;
+                        });
+                    } else {
+                        rankedTexts = sortedRanking.map(([code, rank]) => `${rank}. ${code}`);
+                    }
 
-        answerDisplay = rankedTexts.join('<br>');
-        codeDisplay = 'דירוג';
-        }
-        } else if (questionData.selected_option_code) {
-            // For questions with selected_option_code - find the actual text
-        let selectedText = questionData.selected_option_code; // Default to code if text not found
+                    answerDisplay = rankedTexts.join('<br>');
+                    codeDisplay = 'דירוג';
+                }
+            } else if (questionData.selected_option_code) {
+                // For questions with selected_option_code - find the actual text
+                let selectedText = questionData.selected_option_code; // Default to code if text not found
 
-            // Try to find the selected text from question options
-        if (questionData.question_options && questionData.question_options.length > 0) {
-        const selectedOption = questionData.question_options.find(option =>
-        option.code === questionData.selected_option_code
-        );
-        if (selectedOption) {
-        selectedText = selectedOption.text;
-        }
-        }
+                // Try to find the selected text from question options
+                if (questionData.question_options && questionData.question_options.length > 0) {
+                    const selectedOption = questionData.question_options.find(option =>
+                        option.code === questionData.selected_option_code
+                    );
+                    if (selectedOption) {
+                        selectedText = selectedOption.text;
+                    }
+                }
 
-        answerDisplay = selectedText;
-        codeDisplay = questionText;
-        } else if (questionData.answer && questionData.code) {
-            // For regular questions with answer and code
-        let cleanAnswer = questionData.answer;
+                answerDisplay = selectedText;
+                codeDisplay = questionText;
+            } else if (questionData.answer && questionData.code) {
+                // For regular questions with answer and code
+                let cleanAnswer = questionData.answer;
 
-            // Clean up the answer to show only the selected option text
-        if (questionData.question_options && questionData.question_options.length > 0) {
-            // Try to find the selected option by matching the answer text
-        const selectedOption = questionData.question_options.find(option =>
-        questionData.answer.includes(option.text)
-        );
-        if (selectedOption) {
-        cleanAnswer = selectedOption.text;
-        }
-        }
+                // Clean up the answer to show only the selected option text
+                if (questionData.question_options && questionData.question_options.length > 0) {
+                    // Try to find the selected option by matching the answer text
+                    const selectedOption = questionData.question_options.find(option =>
+                        questionData.answer.includes(option.text)
+                    );
+                    if (selectedOption) {
+                        cleanAnswer = selectedOption.text;
+                    }
+                }
 
-            // Remove any question text that might be mixed in
-        if (cleanAnswer.includes('?')) {
-        cleanAnswer = cleanAnswer.split('?').pop()?.trim() || cleanAnswer;
-        }
+                // Remove any question text that might be mixed in
+                if (cleanAnswer.includes('?')) {
+                    cleanAnswer = cleanAnswer.split('?').pop()?.trim() || cleanAnswer;
+                }
 
-            // For ranking questions, extract only the selected position
-        const rankingMatch = cleanAnswer.match(/(\d+)\.\s*([^0-9\n]+)/);
-        if (rankingMatch) {
-        cleanAnswer = `
-    $
-        {
-            rankingMatch[1]
-        }
-    . $
-        {
-            rankingMatch[2].trim()
-        }
-        `;
-        }
+                // For ranking questions, extract only the selected position
+                const rankingMatch = cleanAnswer.match(/(\d+)\.\s*([^0-9\n]+)/);
+                if (rankingMatch) {
+                    cleanAnswer = `${rankingMatch[1]}. ${rankingMatch[2].trim()}`;
+                }
 
-        answerDisplay = cleanAnswer;
-        codeDisplay = questionText;
-        } else {
-            // Fallback for any other structure
-        answerDisplay = 'לא זמין';
-        codeDisplay = 'לא זמין';
-        }
+                answerDisplay = cleanAnswer;
+                codeDisplay = questionText;
+            } else {
+                // Fallback for any other structure
+                answerDisplay = 'לא זמין';
+                codeDisplay = 'לא זמין';
+            }
 
-        return `
+            return `
 
                             <div class="border-b border-gray-200 pb-6 last:border-b-0">
                                 <div class="mb-4">
-                                    <p class="text-gray-800 text-lg leading-relaxed">$
-        {
-            questionNumber
-        }
-    . $
-        {
-            questionText
-        }
-    </p>
+                                    <p class="text-gray-800 text-lg leading-relaxed">${questionNumber}. ${questionText}</p>
                                 </div>
                                 <div class="bg-gray-50 px-4 py-3 rounded-lg border border-gray-200">
                                     <p class="text-gray-600 text-sm mb-1">תשובה:</p>
-                                    <p class="text-gray-800 text-sm mb-1">$
-        {
-            answerDisplay
-        }
-    </p>
+                                    <p class="text-gray-800 text-sm mb-1">${answerDisplay}</p>
                                 </div>
                             </div>
 
@@ -1705,58 +1586,58 @@ $
         </div>
         </div>
         `
-    ;
+        ;
 
         document.getElementById('questionnaireModal').style.display = 'flex';
     }
 
-    async function playVoice(email) {
-        if (!sessionToken) {
-            window.location.href = '/pdn-admin/';
-            return;
-        }
+        async function playVoice(email) {
+            if (!sessionToken) {
+                window.location.href = '/pdn-admin/';
+                return;
+            }
 
-        try {
-            console.log('Fetching voice for email:', email); // Debug log
+            try {
+                console.log('Fetching voice for email:', email); // Debug log
 
-            const response = await fetch(
-        `/pdn-admin/user/voice/${email}?session_token=${sessionToken}`
-    );
-            console.log('Response status:', response.status); // Debug log
+                const response = await fetch(
+                    `/pdn-admin/user/voice/${email}?session_token=${sessionToken}`
+                );
+                console.log('Response status:', response.status); // Debug log
 
-            if (response.ok) {
-                const data = await response.json();
-                console.log('Voice data received:', data); // Debug log
-                displayVoice(data);
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Voice data received:', data); // Debug log
+                    displayVoice(data);
+                    // Reset loading state for this specific row
+                    resetRowLoadingState(email, 'voice');
+                } else if (response.status === 401) {
+                    // Session expired or invalid, redirect to login
+                    console.log('Session expired, redirecting to login');
+                    localStorage.removeItem('adminSessionToken');
+                    window.location.href = '/pdn-admin/';
+                } else {
+                    const errorText = await response.text();
+                    console.error('Server error:', errorText); // Debug log
+                    throw new Error(
+                        `Failed to load voice: ${response.status} ${errorText}`
+                    );
+                }
+            } catch (error) {
+                console.error('Error loading voice:', error);
+                showNotification('שגיאה בטעינת ההקלטה', 'error');
                 // Reset loading state for this specific row
                 resetRowLoadingState(email, 'voice');
-            } else if (response.status === 401) {
-                // Session expired or invalid, redirect to login
-                console.log('Session expired, redirecting to login');
-                localStorage.removeItem('adminSessionToken');
-                window.location.href = '/pdn-admin/';
-            } else {
-                const errorText = await response.text();
-                console.error('Server error:', errorText); // Debug log
-                throw new Error(
-        `Failed to load voice: ${response.status} ${errorText}`
-    );
             }
-        } catch (error) {
-            console.error('Error loading voice:', error);
-            showNotification('שגיאה בטעינת ההקלטה', 'error');
-            // Reset loading state for this specific row
-            resetRowLoadingState(email, 'voice');
         }
-    }
 
-    function displayVoice(data) {
-        const content = document.getElementById('voiceContent');
+        function displayVoice(data) {
+            const content = document.getElementById('voiceContent');
 
-        // Check if we have the required data
-        if (!data || !data.voice_recordings || Object.keys(data.voice_recordings).length === 0) {
-            content.innerHTML =
-        `
+            // Check if we have the required data
+            if (!data || !data.voice_recordings || Object.keys(data.voice_recordings).length === 0) {
+                content.innerHTML =
+                    `
         <div class="bg-red-50 p-6 rounded-xl border border-red-200">
         <h3 class="text-lg font-semibold mb-4 text-red-800 flex items-center">
         <i class="fas fa-exclamation-triangle mr-2"></i>שגיאה
@@ -1764,45 +1645,45 @@ $
         <p class="text-red-700">לא נמצא קובץ הקלטה למשתמש זה</p>
         </div>
         `
-    ;
-            document.getElementById('voiceModal').style.display = 'flex';
-            return;
-        }
-
-        // Build HTML for multiple recordings
-        let recordingsHtml = '';
-        const recordings = data.voice_recordings;
-
-        // Helper function to create audio URL
-        function createAudioUrl(filePath) {
-            // Extract just the relative path from the full file path
-            let processedPath = filePath;
-
-            // Remove 'saved_results/' prefix if it exists
-            if (processedPath.startsWith('saved_results/')) {
-                processedPath = processedPath.substring('saved_results/'.length);
+                ;
+                document.getElementById('voiceModal').style.display = 'flex';
+                return;
             }
 
-            // Remove '/pdn/saved_results/' prefix if it exists
-            if (processedPath.startsWith('/pdn/saved_results/')) {
-                processedPath = processedPath.substring('/pdn/saved_results/'.length);
+            // Build HTML for multiple recordings
+            let recordingsHtml = '';
+            const recordings = data.voice_recordings;
+
+            // Helper function to create audio URL
+            function createAudioUrl(filePath) {
+                // Extract just the relative path from the full file path
+                let processedPath = filePath;
+
+                // Remove 'saved_results/' prefix if it exists
+                if (processedPath.startsWith('saved_results/')) {
+                    processedPath = processedPath.substring('saved_results/'.length);
+                }
+
+                // Remove '/pdn/saved_results/' prefix if it exists
+                if (processedPath.startsWith('/pdn/saved_results/')) {
+                    processedPath = processedPath.substring('/pdn/saved_results/'.length);
+                }
+
+                // Remove 'pdn/saved_results/' prefix if it exists
+                if (processedPath.startsWith('pdn/saved_results/')) {
+                    processedPath = processedPath.substring('pdn/saved_results/'.length);
+                }
+
+                return
+                `/pdn-admin/audio/${encodeURIComponent(processedPath)}?session_token=${sessionToken}`
+                ;
             }
 
-            // Remove 'pdn/saved_results/' prefix if it exists
-            if (processedPath.startsWith('pdn/saved_results/')) {
-                processedPath = processedPath.substring('pdn/saved_results/'.length);
-            }
-
-            return
-        `/pdn-admin/audio/${encodeURIComponent(processedPath)}?session_token=${sessionToken}`
-    ;
-        }
-
-        // Add question1 recording if exists
-        if (recordings.question1) {
-            const audioUrl = createAudioUrl(recordings.question1.path);
-            recordingsHtml +=
-        `
+            // Add question1 recording if exists
+            if (recordings.question1) {
+                const audioUrl = createAudioUrl(recordings.question1.path);
+                recordingsHtml +=
+                    `
         <div class="bg-white p-6 rounded-xl border border-gray-200 mb-4">
         <h4 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
         <i class="fas fa-microphone mr-2 text-blue-600"></i>שאלה 1 - חוויה חיובית
@@ -1815,73 +1696,49 @@ $
         </audio>
         </div>
         `;
-        }
+            }
 
-        // Add question2 recording if exists
-        if (recordings.question2) {
-        const audioUrl = createAudioUrl(recordings.question2.path);
-        recordingsHtml += `
+            // Add question2 recording if exists
+            if (recordings.question2) {
+                const audioUrl = createAudioUrl(recordings.question2.path);
+                recordingsHtml += `
 
                 <div class="bg-white p-6 rounded-xl border border-gray-200 mb-4">
                     <h4 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
                         <i class="fas fa-microphone mr-2 text-blue-600"></i>שאלה 2 - אתגר משמעותי
                     </h4>
                     <audio controls class="w-full" preload="metadata">
-                        <source src="$
-        {
-            audioUrl
-        }
-    " type="audio/wav">
-                        <source src="$
-        {
-            audioUrl
-        }
-    " type="audio/mp3">
-                        <source src="$
-        {
-            audioUrl
-        }
-    " type="audio/mpeg">
+                        <source src="${audioUrl}" type="audio/wav">
+                        <source src="${audioUrl}" type="audio/mp3">
+                        <source src="${audioUrl}" type="audio/mpeg">
                         הדפדפן שלך לא תומך בנגינת אודיו.
                     </audio>
                 </div>
 
         `;
-        }
+            }
 
-        // Add legacy recording if exists
-        if (recordings.legacy) {
-        const audioUrl = createAudioUrl(recordings.legacy.path);
-        recordingsHtml += `
+            // Add legacy recording if exists
+            if (recordings.legacy) {
+                const audioUrl = createAudioUrl(recordings.legacy.path);
+                recordingsHtml += `
 
                 <div class="bg-white p-6 rounded-xl border border-gray-200 mb-4">
                     <h4 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
                         <i class="fas fa-microphone mr-2 text-blue-900"> הקלטה קולית </i>
                     </h4>
                     <audio controls class="w-full" preload="metadata">
-                        <source src="$
-        {
-            audioUrl
-        }
-    " type="audio/wav">
-                        <source src="$
-        {
-            audioUrl
-        }
-    " type="audio/mp3">
-                        <source src="$
-        {
-            audioUrl
-        }
-    " type="audio/mpeg">
+                        <source src="${audioUrl}" type="audio/wav">
+                        <source src="${audioUrl}" type="audio/mp3">
+                        <source src="${audioUrl}" type="audio/mpeg">
                         הדפדפן שלך לא תומך בנגינת אודיו.
                     </audio>
                 </div>
 
         `;
-        }
+            }
 
-        content.innerHTML = `
+            content.innerHTML = `
         <div class="bg-gradient-to-r from-blue-100 to-blue-100 p-6 rounded-xl border border-blue-200 mb-6">
         <h3 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
         <i class="fas fa-info-circle mr-2 text-blue-900"> פרטי הקלטה </i>
@@ -1894,472 +1751,368 @@ $
         ${recordingsHtml}
         `;
 
-        document.getElementById('voiceModal').style.display = 'flex';
+            document.getElementById('voiceModal').style.display = 'flex';
 
-        // Add event listeners to all audio elements for debugging
-        const audioElements = content.querySelectorAll('audio');
-        audioElements.forEach((audioElement, index) => {
-        audioElement.addEventListener('loadstart', () => console.log(`
-    Audio $
-        {
-            index + 1
-        }
-     loading started
-        `));
-        audioElement.addEventListener('canplay', () => console.log(`
-    Audio $
-        {
-            index + 1
-        }
-     can play
-        `));
-        audioElement.addEventListener('error', (e) => {
-        console.error(`
-    Audio $
-        {
-            index + 1
-        }
-     error:
-        `, e);
-        console.error(`
-    Audio $
-        {
-            index + 1
-        }
-     error details:
-        `, audioElement.error);
-        });
-        audioElement.addEventListener('loadeddata', () => console.log(`
-    Audio $
-        {
-            index + 1
-        }
-     data loaded
-        `));
-        });
+            // Add event listeners to all audio elements for debugging
+            const audioElements = content.querySelectorAll('audio');
+            audioElements.forEach((audioElement, index) => {
+                audioElement.addEventListener('loadstart', () => console.log(`Audio ${index + 1} loading started`));
+                audioElement.addEventListener('canplay', () => console.log(`Audio ${index + 1} can play`));
+                audioElement.addEventListener('error', (e) => {
+                    console.error(`Audio ${index + 1} error:`, e);
+                    console.error(`Audio ${index + 1} error details:`, audioElement.error);
+                });
+                audioElement.addEventListener('loadeddata', () => console.log(`Audio ${index + 1} data loaded`));
+            });
         }
 
         function editDiagnose(email) {
-        currentEditEmail = email;
-        const user = currentData.find(u => u.email === email);
+            currentEditEmail = email;
+            const user = currentData.find(u => u.email === email);
 
-        if (user) {
-        document.getElementById('diagnosePdnCode').value = user.diagnose_pdn_code;
-        document.getElementById('diagnoseComments').value = user.diagnose_comments;
-        document.getElementById('editDiagnoseModal').style.display = 'flex';
-            // Reset loading state for this specific row
-        resetRowLoadingState(email, 'edit');
-        }
+            if (user) {
+                document.getElementById('diagnosePdnCode').value = user.diagnose_pdn_code;
+                document.getElementById('diagnoseComments').value = user.diagnose_comments;
+                document.getElementById('editDiagnoseModal').style.display = 'flex';
+                // Reset loading state for this specific row
+                resetRowLoadingState(email, 'edit');
+            }
         }
 
         async function handleEditDiagnose(e) {
-        e.preventDefault();
-        if (!sessionToken || !currentEditEmail) {
-        if (!sessionToken) {
-        window.location.href = '/pdn-admin/';
-        }
-        return;
-        }
+            e.preventDefault();
+            if (!sessionToken || !currentEditEmail) {
+                if (!sessionToken) {
+                    window.location.href = '/pdn-admin/';
+                }
+                return;
+            }
 
-        showLoading();
-        try {
-        const formData = {
-        diagnose_pdn_code: document.getElementById('diagnosePdnCode').value,
-        diagnose_comments: document.getElementById('diagnoseComments').value
-        };
+            showLoading();
+            try {
+                const formData = {
+                    diagnose_pdn_code: document.getElementById('diagnosePdnCode').value,
+                    diagnose_comments: document.getElementById('diagnoseComments').value
+                };
 
-        const response = await fetch(`
-    /pdn-admin/user/diagnose/$
-        {
-            currentEditEmail
-        }
-    ?session_token=$
-        {
-            sessionToken
-        }
-        `, {
-        method: 'PUT',
-        headers: {
-        'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-        });
+                const response = await fetch(`/pdn-admin/user/diagnose/${currentEditEmail}?session_token=${sessionToken}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
 
-        if (response.ok) {
-        const data = await response.json();
-            // Update local data
-        const userIndex = currentData.findIndex(u => u.email === currentEditEmail);
-        if (userIndex !== -1) {
-        currentData[userIndex] = data.user;
-        renderTable(currentData);
-        }
-        closeModal('editDiagnoseModal');
-        } else if (response.status === 401) {
-            // Session expired or invalid, redirect to login
-        console.log('Session expired, redirecting to login');
-        localStorage.removeItem('adminSessionToken');
-        window.location.href = '/pdn-admin/';
-        } else {
-        throw new Error('Failed to update diagnose');
-        }
-        } catch (error) {
-        console.error('Error updating diagnose:', error);
-        alert('שגיאה בעדכון האבחון');
-        } finally {
-        hideLoading();
-        }
+                if (response.ok) {
+                    const data = await response.json();
+                    // Update local data
+                    const userIndex = currentData.findIndex(u => u.email === currentEditEmail);
+                    if (userIndex !== -1) {
+                        currentData[userIndex] = data.user;
+                        renderTable(currentData);
+                    }
+                    closeModal('editDiagnoseModal');
+                } else if (response.status === 401) {
+                    // Session expired or invalid, redirect to login
+                    console.log('Session expired, redirecting to login');
+                    localStorage.removeItem('adminSessionToken');
+                    window.location.href = '/pdn-admin/';
+                } else {
+                    throw new Error('Failed to update diagnose');
+                }
+            } catch (error) {
+                console.error('Error updating diagnose:', error);
+                alert('שגיאה בעדכון האבחון');
+            } finally {
+                hideLoading();
+            }
         }
 
         async function sendEmail(email) {
-        if (!sessionToken) {
-        window.location.href = '/pdn-admin/';
-        return;
-        }
+            if (!sessionToken) {
+                window.location.href = '/pdn-admin/';
+                return;
+            }
 
             // Find user data
-        const user = currentData.find(u => u.email === email);
-        if (!user) {
-        showNotification('משתמש לא נמצא', 'error');
-        resetRowLoadingState(email, 'email');
-        return;
-        }
+            const user = currentData.find(u => u.email === email);
+            if (!user) {
+                showNotification('משתמש לא נמצא', 'error');
+                resetRowLoadingState(email, 'email');
+                return;
+            }
 
             // Check if PDN code equals diagnose code (קוד מאבחן)
-        const codesMatch = user.pdn_code === user.diagnose_pdn_code &&
-        user.diagnose_pdn_code !== "N/A" &&
-        user.diagnose_pdn_code !== "";
+            const codesMatch = user.pdn_code === user.diagnose_pdn_code &&
+                user.diagnose_pdn_code !== "N/A" &&
+                user.diagnose_pdn_code !== "";
 
-        if (!codesMatch) {
-        showNotification('לא ניתן לשלוח אימייל - קוד פדן אינו תואם לקוד המאבחן', 'error');
-        resetRowLoadingState(email, 'email');
-        return;
-        }
+            if (!codesMatch) {
+                showNotification('לא ניתן לשלוח אימייל - קוד פדן אינו תואם לקוד המאבחן', 'error');
+                resetRowLoadingState(email, 'email');
+                return;
+            }
 
             // Prompt for admin password
-        const password = prompt('הזן סיסמת מנהל לשליחת אימייל:');
-        if (!password) {
-        resetRowLoadingState(email, 'email');
-        return;
-        }
+            const password = prompt('הזן סיסמת מנהל לשליחת אימייל:');
+            if (!password) {
+                resetRowLoadingState(email, 'email');
+                return;
+            }
 
-        if (password !== 'admin') {
-        showNotification('סיסמה שגויה', 'error');
-        resetRowLoadingState(email, 'email');
-        return;
-        }
+            if (password !== 'admin') {
+                showNotification('סיסמה שגויה', 'error');
+                resetRowLoadingState(email, 'email');
+                return;
+            }
 
-        try {
-        const response = await fetch(`
-    /pdn-admin/user/send_email/$
-        {
-            email
-        }
-    ?session_token=$
-        {
-            sessionToken
-        }
-        `, {
-        method: 'POST',
-        headers: {
-        'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({password: password})
-        });
+            try {
+                const response = await fetch(`/pdn-admin/user/send_email/${email}?session_token=${sessionToken}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({password: password})
+                });
 
-        if (response.ok) {
-        const data = await response.json();
-        showNotification(`
-    אימייל נשלח בהצלחה ל-$
-        {
-            email
-        }
-        `, 'success');
-            // Reset loading state for this specific row
-        resetRowLoadingState(email, 'email');
-        } else if (response.status === 401) {
-            // Session expired or invalid, redirect to login
-        console.log('Session expired, redirecting to login');
-        localStorage.removeItem('adminSessionToken');
-        window.location.href = '/pdn-admin/';
-        } else {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to send email');
-        }
-        } catch (error) {
-        console.error('Error sending email:', error);
-        showNotification(`
-    שגיאה בשליחת האימייל: $
-        {
-            error.message
-        }
+                if (response.ok) {
+                    const data = await response.json();
+                    showNotification(`אימייל נשלח בהצלחה ל-${email}`, 'success');
+                    // Reset loading state for this specific row
+                    resetRowLoadingState(email, 'email');
+                } else if (response.status === 401) {
+                    // Session expired or invalid, redirect to login
+                    console.log('Session expired, redirecting to login');
+                    localStorage.removeItem('adminSessionToken');
+                    window.location.href = '/pdn-admin/';
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to send email');
+                }
+            } catch (error) {
+                console.error('Error sending email:', error);
+                showNotification(`
+    שגיאה בשליחת האימייל: ${error.message}
         `, 'error');
-            // Reset loading state for this specific row
-        resetRowLoadingState(email, 'email');
-        }
+                // Reset loading state for this specific row
+                resetRowLoadingState(email, 'email');
+            }
         }
 
         async function recalculatePdnCode(email) {
-        if (!sessionToken) {
-        window.location.href = '/pdn-admin/';
-        return;
-        }
+            if (!sessionToken) {
+                window.location.href = '/pdn-admin/';
+                return;
+            }
 
             // Find user data
-        const user = currentData.find(u => u.email === email);
-        if (!user) {
-        showNotification('משתמש לא נמצא', 'error');
-        resetRowLoadingState(email, 'recalculate');
-        return;
-        }
+            const user = currentData.find(u => u.email === email);
+            if (!user) {
+                showNotification('משתמש לא נמצא', 'error');
+                resetRowLoadingState(email, 'recalculate');
+                return;
+            }
 
             // Prompt for admin password
-        const password = prompt('הזן סיסמת מנהל לחישוב מחדש של קוד פדן:');
-        if (!password) {
-        resetRowLoadingState(email, 'recalculate');
-        return;
-        }
+            const password = prompt('הזן סיסמת מנהל לחישוב מחדש של קוד פדן:');
+            if (!password) {
+                resetRowLoadingState(email, 'recalculate');
+                return;
+            }
 
-        if (password !== 'admin') {
-        showNotification('סיסמה שגויה', 'error');
-        resetRowLoadingState(email, 'recalculate');
-        return;
-        }
+            if (password !== 'admin') {
+                showNotification('סיסמה שגויה', 'error');
+                resetRowLoadingState(email, 'recalculate');
+                return;
+            }
 
-        try {
-        const response = await fetch(`
-    /pdn-admin/user/recalculate_pdn/$
-        {
-            email
-        }
-    ?session_token=$
-        {
-            sessionToken
-        }
-        `, {
-        method: 'POST',
-        headers: {
-        'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({password: password})
-        });
+            try {
+                const response = await fetch(`/pdn-admin/user/recalculate_pdn/${email}?session_token=${sessionToken}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({password: password})
+                });
 
-        if (response.ok) {
-        const data = await response.json();
-        showNotification(`
-    קוד פדן חושב מחדש בהצלחה: $
-        {
-            data.pdn_code
-        }
-     על ידי $
-        {
-            data.updated_by
-        }
-        `, 'success');
+                if (response.ok) {
+                    const data = await response.json();
+                    showNotification(`קוד פדן חושב מחדש בהצלחה: ${data.pdn_code} על ידי ${data.updated_by}`, 'success');
 
-            // Update local data
-        const userIndex = currentData.findIndex(u => u.email === email);
-        if (userIndex !== -1) {
-        currentData[userIndex].pdn_code = data.pdn_code;
-        currentData[userIndex].date = data.date;
-            // Update the PDN update comments if available
-        if (data.pdn_update_comments) {
-        currentData[userIndex].pdn_update_comments = data.pdn_update_comments;
-        }
-        renderTable(currentData);
-        }
+                    // Update local data
+                    const userIndex = currentData.findIndex(u => u.email === email);
+                    if (userIndex !== -1) {
+                        currentData[userIndex].pdn_code = data.pdn_code;
+                        currentData[userIndex].date = data.date;
+                        // Update the PDN update comments if available
+                        if (data.pdn_update_comments) {
+                            currentData[userIndex].pdn_update_comments = data.pdn_update_comments;
+                        }
+                        renderTable(currentData);
+                    }
 
-            // Reset loading state for this specific row
-        resetRowLoadingState(email, 'recalculate');
-        } else if (response.status === 401) {
-            // Session expired or invalid, redirect to login
-        console.log('Session expired, redirecting to login');
-        localStorage.removeItem('adminSessionToken');
-        window.location.href = '/pdn-admin/';
-        } else {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to recalculate PDN code');
-        }
-        } catch (error) {
-        console.error('Error recalculating PDN code:', error);
-        showNotification(`
-    שגיאה בחישוב מחדש של קוד פדן: $
-        {
-            error.message
-        }
-        `, 'error');
-            // Reset loading state for this specific row
-        resetRowLoadingState(email, 'recalculate');
-        }
+                    // Reset loading state for this specific row
+                    resetRowLoadingState(email, 'recalculate');
+                } else if (response.status === 401) {
+                    // Session expired or invalid, redirect to login
+                    console.log('Session expired, redirecting to login');
+                    localStorage.removeItem('adminSessionToken');
+                    window.location.href = '/pdn-admin/';
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to recalculate PDN code');
+                }
+            } catch (error) {
+                console.error('Error recalculating PDN code:', error);
+                showNotification(`שגיאה בחישוב מחדש של קוד פדן: ${error.message}`, 'error');
+                // Reset loading state for this specific row
+                resetRowLoadingState(email, 'recalculate');
+            }
         }
 
         function closeModal(modalId) {
-        document.getElementById(modalId).style.display = 'none';
-        if (modalId === 'editDiagnoseModal') {
-        currentEditEmail = null;
-        }
+            document.getElementById(modalId).style.display = 'none';
+            if (modalId === 'editDiagnoseModal') {
+                currentEditEmail = null;
+            }
         }
 
         function showLoading() {
-        document.getElementById('loadingSpinner').classList.remove('hidden');
+            document.getElementById('loadingSpinner').classList.remove('hidden');
         }
 
         function hideLoading() {
-        document.getElementById('loadingSpinner').classList.add('hidden');
+            document.getElementById('loadingSpinner').classList.add('hidden');
         }
 
         // Close modals when clicking outside
-        document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('modal-backdrop')) {
-        e.target.style.display = 'none';
-        }
+        document.addEventListener('click', function (e) {
+            if (e.target.classList.contains('modal-backdrop')) {
+                e.target.style.display = 'none';
+            }
         });
 
         // Add keyboard event listeners for modal
-        document.addEventListener('keydown', function(event) {
-        const questionnaireModal = document.getElementById('questionnaireModal');
+        document.addEventListener('keydown', function (event) {
+            const questionnaireModal = document.getElementById('questionnaireModal');
 
             // Check if questionnaire modal is visible
-        if (questionnaireModal && questionnaireModal.style.display === 'flex') {
-            // Close on Escape key
-        if (event.key === 'Escape') {
-        closeModal('questionnaireModal');
-        }
-            // Close on Enter key
-        if (event.key === 'Enter') {
-        closeModal('questionnaireModal');
-        }
-        }
+            if (questionnaireModal && questionnaireModal.style.display === 'flex') {
+                // Close on Escape key
+                if (event.key === 'Escape') {
+                    closeModal('questionnaireModal');
+                }
+                // Close on Enter key
+                if (event.key === 'Enter') {
+                    closeModal('questionnaireModal');
+                }
+            }
         });
 
-        // Function to re-sort data by date// Function to re-sort data by date
+        // Function to re-sort data by date
         function resortByDate() {
-        if (!currentData || currentData.length === 0) {
-        console.log('No data to sort');
-        return;
-        }
+            if (!currentData || currentData.length === 0) {
+                console.log('No data to sort');
+                return;
+            }
 
             // Helper function to parse dates in different formats
-        const parseDate = (dateStr) => {
-        if (!dateStr || dateStr === 'N/A' || dateStr === '') {
-        return new Date(0);
-        }
+            const parseDate = (dateStr) => {
+                if (!dateStr || dateStr === 'N/A' || dateStr === '') {
+                    return new Date(0);
+                }
 
-        const parts = dateStr.split('/');
-        if (parts.length === 3) {
-        const day = parseInt(parts[0], 10);
-        const month = parseInt(parts[1], 10) - 1; // Month is 0-based
-        const year = parseInt(parts[2], 10);
-        const date = new Date(year, month, day);
-        if (!isNaN(date.getTime())) {
-        return date;
-        }
-        }
+                const parts = dateStr.split('/');
+                if (parts.length === 3) {
+                    const day = parseInt(parts[0], 10);
+                    const month = parseInt(parts[1], 10) - 1; // Month is 0-based
+                    const year = parseInt(parts[2], 10);
+                    const date = new Date(year, month, day);
+                    if (!isNaN(date.getTime())) {
+                        return date;
+                    }
+                }
 
-        console.warn(`
-    Could not parse date: $
-        {
-            dateStr
-        }
-        `);
-        return new Date(0);
-        };
+                console.warn(`Could not parse date: ${dateStr}`);
+                return new Date(0);
+            }
 
             // Toggle sort direction (newest first by default, then oldest first)
-        const dateHeader = document.querySelector('th[onclick="resortByDate()"]');
-        const currentDirection = dateHeader.querySelector('span').textContent;
+            const dateHeader = document.querySelector('th[onclick="resortByDate()"]');
+            const currentDirection = dateHeader.querySelector('span').textContent;
 
-        if (currentDirection === '↓') {
-            // Sort by date from oldest to newest
-        currentData.sort((a, b) => {
-        const dateA = parseDate(a.date);
-        const dateB = parseDate(b.date);
-        return dateA - dateB; // Oldest first
-        });
-        dateHeader.querySelector('span').textContent = '↑';
-        } else {
-            // Sort by date from newest to oldest
-        currentData.sort((a, b) => {
-        const dateA = parseDate(a.date);
-        const dateB = parseDate(b.date);
-        return dateB - dateA; // Newest first
-        });
-        dateHeader.querySelector('span').textContent = '↓';
-        }
+            if (currentDirection === '↓') {
+                // Sort by date from oldest to newest
+                currentData.sort((a, b) => {
+                    const dateA = parseDate(a.date);
+                    const dateB = parseDate(b.date);
+                    return dateA - dateB; // Oldest first
+                });
+                dateHeader.querySelector('span').textContent = '↑';
+            } else {
+                // Sort by date from newest to oldest
+                currentData.sort((a, b) => {
+                    const dateA = parseDate(a.date);
+                    const dateB = parseDate(b.date);
+                    return dateB - dateA; // Newest first
+                });
+                dateHeader.querySelector('span').textContent = '↓';
+            }
 
             // Re-render the table with sorted data
-        renderTable(currentData);
+            renderTable(currentData);
 
-        console.log('Data re-sorted by date:', currentData.map(u => ({email: u.email, date: u.date, parsed: parseDate(u.date)})));
+            console.log('Data re-sorted by date:', currentData.map(u => ({
+                email: u.email,
+                date: u.date,
+                parsed: parseDate(u.date)
+            })));
         }
+
         function showNotification(message, type = 'info') {
             // Create notification element
-        const notification = document.createElement('div');
-        notification.className = `
+            const notification = document.createElement('div');
+            notification.className = `
     fixed top-6 right-6 z-[9999] p-6 rounded-xl shadow-2xl transition-all duration-500 transform translate-x-full border-2
         `;
 
             // Enhanced styling based on type
-        let bgColor, borderColor, icon, textColor;
-        switch(type) {
-        case 'success':
-        bgColor = 'bg-green-50';
-        borderColor = 'border-green-500';
-        icon = 'fa-check-circle';
-        textColor = 'text-green-800';
-        break;
-        case 'error':
-        bgColor = 'bg-red-50';
-        borderColor = 'border-red-500';
-        icon = 'fa-exclamation-triangle';
-        textColor = 'text-red-800';
-        break;
-        case 'warning':
-        bgColor = 'bg-yellow-50';
-        borderColor = 'border-yellow-500';
-        icon = 'fa-exclamation-circle';
-        textColor = 'text-yellow-800';
-        break;
-        default:
-        bgColor = 'bg-blue-50';
-        borderColor = 'border-blue-500';
-        icon = 'fa-info-circle';
-        textColor = 'text-blue-800';
-        }
+            let bgColor, borderColor, icon, textColor;
+            switch (type) {
+                case 'success':
+                    bgColor = 'bg-green-50';
+                    borderColor = 'border-green-500';
+                    icon = 'fa-check-circle';
+                    textColor = 'text-green-800';
+                    break;
+                case 'error':
+                    bgColor = 'bg-red-50';
+                    borderColor = 'border-red-500';
+                    icon = 'fa-exclamation-triangle';
+                    textColor = 'text-red-800';
+                    break;
+                case 'warning':
+                    bgColor = 'bg-yellow-50';
+                    borderColor = 'border-yellow-500';
+                    icon = 'fa-exclamation-circle';
+                    textColor = 'text-yellow-800';
+                    break;
+                default:
+                    bgColor = 'bg-blue-50';
+                    borderColor = 'border-blue-500';
+                    icon = 'fa-info-circle';
+                    textColor = 'text-blue-800';
+            }
 
-        notification.className += `
-     $
-        {
-            bgColor
-        }
-     $
-        {
-            borderColor
-        }
-        `;
-        notification.innerHTML = `
+            notification.className += ` ${bgColor} ${borderColor}`;
+            notification.innerHTML = `
 
             <div class="flex items-start space-x-3 space-x-reverse">
                 <div class="flex-shrink-0">
-                    <i class="fas $
-        {
-            icon
-        }
-     text-xl $
-        {
-            textColor
-        }
-    "></i>
+                    <i class="fas ${icon} text-xl ${textColor}"></i>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium $
-        {
-            textColor
-        }
-     leading-5">$
-        {
-            message
-        }
-    </p>
+                    <p class="text-sm font-medium ${textColor} leading-5">${message}</p>
                 </div>
                 <div class="flex-shrink-0">
                     <button onclick="this.closest('.notification-item').remove()"
@@ -2372,150 +2125,140 @@ $
         `;
 
             // Add a unique class for easier targeting
-        notification.classList.add('notification-item');
+            notification.classList.add('notification-item');
 
-        document.body.appendChild(notification);
+            document.body.appendChild(notification);
 
             // Animate in with bounce effect
-        setTimeout(() => {
-        notification.classList.remove('translate-x-full');
-        notification.classList.add('animate-bounce');
-        setTimeout(() => {
-        notification.classList.remove('animate-bounce');
-        }, 1000);
-        }, 100);
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+                notification.classList.add('animate-bounce');
+                setTimeout(() => {
+                    notification.classList.remove('animate-bounce');
+                }, 1000);
+            }, 100);
 
             // Auto remove after 8 seconds (increased from 5)
-        setTimeout(() => {
-        notification.classList.add('translate-x-full');
-        setTimeout(() => {
-        if (notification.parentElement) {
-        notification.remove();
-        }
-        }, 500);
-        }, 8000);
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    if (notification.parentElement) {
+                        notification.remove();
+                    }
+                }, 500);
+            }, 8000);
 
             // Add sound for error notifications
-        if (type === 'error') {
-            // Create a simple beep sound
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
+            if (type === 'error') {
+                // Create a simple beep sound
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
 
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
 
-        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-        oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
 
-        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
 
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.2);
-        }
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.2);
+            }
         }
 
         // Add this new function to reset loading state for a specific row
         function resetRowLoadingState(email, buttonType) {
             // Find the row for this email
-        const rows = document.querySelectorAll('#tableBody tr');
-        rows.forEach(row => {
-        const emailCell = row.querySelector('td:first-child');
-        if (emailCell && emailCell.textContent.trim() === email) {
-            // Find the Alpine component in this row
-        const alpineComponent = row.querySelector('[x-data]');
-        if (alpineComponent && alpineComponent._x_dataStack && alpineComponent._x_dataStack[0]) {
-        alpineComponent._x_dataStack[0].loadingBtn = '';
-        alpineComponent._x_dataStack[0].showModal = false;
-        }
-        }
-        });
+            const rows = document.querySelectorAll('#tableBody tr');
+            rows.forEach(row => {
+                const emailCell = row.querySelector('td:first-child');
+                if (emailCell && emailCell.textContent.trim() === email) {
+                    // Find the Alpine component in this row
+                    const alpineComponent = row.querySelector('[x-data]');
+                    if (alpineComponent && alpineComponent._x_dataStack && alpineComponent._x_dataStack[0]) {
+                        alpineComponent._x_dataStack[0].loadingBtn = '';
+                        alpineComponent._x_dataStack[0].showModal = false;
+                    }
+                }
+            });
         }
 
         // Update the existing resetAlpineLoadingState function
         function resetAlpineLoadingState() {
             // Reset all Alpine components
-        document.querySelectorAll('[x-data]').forEach(element => {
-        if (element._x_dataStack && element._x_dataStack[0]) {
-        element._x_dataStack[0].loadingBtn = '';
-        element._x_dataStack[0].showModal = false;
-        }
-        });
+            document.querySelectorAll('[x-data]').forEach(element => {
+                if (element._x_dataStack && element._x_dataStack[0]) {
+                    element._x_dataStack[0].loadingBtn = '';
+                    element._x_dataStack[0].showModal = false;
+                }
+            });
         }
 
         async function downloadCsvFile() {
-        try {
-        showLoading();
-        const response = await fetch(`
-    /pdn-admin/download/csv?session_token=$
-        {
-            sessionToken
-        }
-        `);
+            try {
+                showLoading();
+                const response = await fetch(`/pdn-admin/download/csv?session_token=${sessionToken}`);
 
-        if (response.ok) {
-            // Get the blob from the response
-        const blob = await response.blob();
+                if (response.ok) {
+                    // Get the blob from the response
+                    const blob = await response.blob();
 
-            // Create a download link
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'user_metadata.csv';
+                    // Create a download link
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'user_metadata.csv';
 
-            // Trigger download
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+                    // Trigger download
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
 
-            // Clean up the URL object
-        window.URL.revokeObjectURL(url);
+                    // Clean up the URL object
+                    window.URL.revokeObjectURL(url);
 
-        showNotification('הקובץ הורד בהצלחה!', 'success');
-        } else if (response.status === 404) {
-        showNotification('קובץ CSV לא נמצא', 'error');
-        } else {
-        throw new Error(`
-    HTTP error! status: $
-        {
-            response.status
-        }
-        `);
-        }
-        } catch (error) {
-        console.error('Error downloading CSV:', error);
-        showNotification('שגיאה בהורדת הקובץ', 'error');
-        } finally {
-        hideLoading();
-        }
+                    showNotification('הקובץ הורד בהצלחה!', 'success');
+                } else if (response.status === 404) {
+                    showNotification('קובץ CSV לא נמצא', 'error');
+                } else {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+            } catch (error) {
+                console.error('Error downloading CSV:', error);
+                showNotification('שגיאה בהורדת הקובץ', 'error');
+            } finally {
+                hideLoading();
+            }
         }
 
         function downloadTableAsCsv(data) {
-        if (!data || data.length === 0) {
-        alert('אין נתונים להורדה');
-        return;
-        }
+            if (!data || data.length === 0) {
+                alert('אין נתונים להורדה');
+                return;
+            }
             // Define the columns to export
-        const columns = [
-        {key: 'email', label: 'אימייל'},
-        {key: 'date', label: 'תאריך איבחון'},
-        {key: 'pdn_code', label: 'פדן קוד'},
-        {key: 'pdn_voice_code', label: 'ניתוח קול קוד'},
-        {key: 'diagnose_pdn_code', label: 'קוד מאבחן'},
-        {key: 'diagnose_comments', label: 'הערות המאבחן'}
-        ];
-        let csvContent = columns.map(col => col.label).join(',') + '\n';
-        data.forEach(row => {
-        csvContent += columns.map(col => '"' + (row[col.key] || '').replace(/"/g, '""') + '"').join(',') + '\n';
-        });
-        const blob = new Blob([csvContent], {type: 'text/csv;charset=utf-8;'});
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.setAttribute('download', 'user_metadata.csv');
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+            const columns = [
+                {key: 'email', label: 'אימייל'},
+                {key: 'date', label: 'תאריך איבחון'},
+                {key: 'pdn_code', label: 'פדן קוד'},
+                {key: 'pdn_voice_code', label: 'ניתוח קול קוד'},
+                {key: 'diagnose_pdn_code', label: 'קוד מאבחן'},
+                {key: 'diagnose_comments', label: 'הערות המאבחן'}
+            ];
+            let csvContent = columns.map(col => col.label).join(',') + '\n';
+            data.forEach(row => {
+                csvContent += columns.map(col => '"' + (row[col.key] || '').replace(/"/g, '""') + '"').join(',') + '\n';
+            });
+            const blob = new Blob([csvContent], {type: 'text/csv;charset=utf-8;'});
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute('download', 'user_metadata.csv');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 </script>
 </body>
