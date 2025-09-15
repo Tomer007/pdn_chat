@@ -1,218 +1,343 @@
 # PDN Chat Application
 
 ## Overview
-PDN Chat is a modular Flask application for administering, diagnosing, and interacting with users through a structured questionnaire and chat interface. The app is organized into three main modules:
+PDN Chat is a comprehensive Flask application designed for psychological assessment and diagnosis through structured questionnaires, AI-powered chat interactions, and administrative management. The application is organized into three main modules that work together to provide a complete assessment platform.
 
-- `pdn_diagnose`: User questionnaire, answer submission, and PDN code calculation
-- `pdn_admin`: Admin dashboard, audio upload, and management
-- `pdn_chat_ai`: Chat interface and AI interaction
+## Key Features
+- **Structured Questionnaire System**: 65-question psychological assessment with voice recording capabilities
+- **AI-Powered Chat Interface**: Intelligent conversation system with context awareness
+- **Administrative Dashboard**: Complete user management, data visualization, and system administration
+- **Voice Analysis**: Audio recording and analysis for enhanced assessment
+- **Report Generation**: Automated PDF and JSON report generation
+- **Email Integration**: Automated report delivery to users
+- **Data Export**: CSV export functionality for data analysis
 
-## Project Structure
-```
-app/
-  pdn_diagnose/
-    diagnosis_routes.py
-    templates/
-      diagnose_login.html
-      user_form.html
-      chat.html
-      pdn_report.html
-    static/
-    ...
-  pdn_admin/
-    admin_routes.py
-    admin_api.py
-    audio_routes.py
-    templates/
-      admin_login.html      # Separate login page
-      admin_dashboard.html  # Pure dashboard (no login modal)
-    ...
-  pdn_chat_ai/
-    chat_routes.py
-    templates/
-    ...
-  utils/
-    answer_storage.py
-    pdn_calculator.py
-    report_generator.py
-    csv_metadata_handler.py
-    email_sender.py
-    questionnaire.py
-    ...
-  data/
-    questions.json
-    config.yaml
-    pdn_reports.json
-    ...
-  static/                   # Centralized static files
-    css/
-    js/
-    images/
-    ...
-  templates/partials/       # Shared Jinja partials (footer)
+## Architecture
+
+### Core Modules
+- **`pdn_diagnose`**: User questionnaire, answer submission, and PDN code calculation
+- **`pdn_chat_ai`**: AI-powered chat interface with RAG (Retrieval-Augmented Generation)
+- **`pdn_admin`**: Administrative dashboard for user and system management
+
+### Technology Stack
+- **Backend**: Python 3.9+, Flask 3.1.1, FastAPI 0.115.6
+- **Frontend**: HTML5, JavaScript (ES6+), Tailwind CSS 3.4.0
+- **AI/ML**: OpenAI GPT, LangChain, ChromaDB for vector storage
+- **Database**: SQLite (ChromaDB), File-based session storage
+- **PDF Generation**: HTML2PDF.js
+- **Audio Processing**: Web Audio API, WAV format support
+
+## Installation & Setup
+
+### Prerequisites
+- Python 3.9 or higher
+- Node.js 16+ (for Tailwind CSS compilation)
+- Git
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/Tomer007/pdn_chat.git
+cd pdn_chat
 ```
 
-## Tech Stack
-- Python 3.x
-- Flask
-- JavaScript (frontend logic)
-- Tailwind CSS (via CDN for development)
-- HTML2PDF.js (for PDF generation)
- 
-## Shared Partials
-- Footer: `{% include 'partials/footer.html' %}` is used in diagnose, admin, and chat templates for a consistent, card-styled footer within `container mx-auto p-6 max-w-4xl`.
+### 2. Python Environment Setup
+```bash
+# Create virtual environment
+python -m venv venv
 
-## URL Structure & Endpoints
+# Activate virtual environment
+# On macOS/Linux:
+source venv/bin/activate
+# On Windows:
+venv\Scripts\activate
 
-### Root Endpoint
-- **Home:** `GET /` - Welcome message with module links
+# Install Python dependencies
+pip install -r requirements.txt
+```
+
+### 3. Node.js Dependencies (for CSS compilation)
+```bash
+# Install Node.js dependencies
+npm install
+
+# Build CSS (development)
+npm run build:css
+
+# Build CSS (production)
+npm run build:css:prod
+```
+
+### 4. Environment Configuration
+Create a `.env` file in the root directory:
+```env
+# Admin Configuration
+ADMIN_PASSWORD=your_secure_password
+
+# OpenAI Configuration
+OPENAI_API_KEY=your_openai_api_key
+
+# Database Configuration
+CHROMA_DB_PATH=./chroma_db
+
+# Email Configuration (optional)
+SMTP_SERVER=your_smtp_server
+SMTP_PORT=587
+SMTP_USERNAME=your_email
+SMTP_PASSWORD=your_password
+```
+
+### 5. Run the Application
+```bash
+# Development mode
+python run.py
+
+# Production mode
+gunicorn -w 4 -b 0.0.0.0:8001 app:app
+```
+
+## Application Access
+
+### Main Endpoints
+- **Home**: `http://127.0.0.1:8001/`
+- **User Assessment**: `http://127.0.0.1:8001/pdn-diagnose/`
+- **AI Chat Interface**: `http://127.0.0.1:8001/pdn-chat-ai/`
+- **Admin Login**: `http://127.0.0.1:8001/pdn-admin/`
+- **Admin Dashboard**: `http://127.0.0.1:8001/pdn-admin/dashboard`
+
+## API Documentation
 
 ### PDN Diagnose Module (`/pdn-diagnose`)
 **User Interface:**
-- `GET /pdn-diagnose/` - Login page
+- `GET /pdn-diagnose/` - User login page
 - `GET /pdn-diagnose/user_info` - User information form
 - `POST /pdn-diagnose/user_info` - Save user information
-- `POST /pdn-diagnose/login` - User login
+- `POST /pdn-diagnose/login` - User authentication
 
-**Questionnaire:**
+**Questionnaire System:**
 - `GET /pdn-diagnose/questionnaire/<question_number>` - Get specific question
-- `POST /pdn-diagnose/answer` - Submit answer for a question
-- `POST /pdn-diagnose/complete_questionnaire` - Complete questionnaire and calculate PDN code
+- `POST /pdn-diagnose/answer` - Submit question answer
+- `POST /pdn-diagnose/complete_questionnaire` - Complete assessment
 
 **Reports & Results:**
 - `GET /pdn-diagnose/pdn_report` - View PDN report
-- `GET /pdn-diagnose/get_report_data` - Get report data as JSON
-- `GET /pdn-diagnose/get_user_name` - Get user name
-- `POST /pdn-diagnose/send_email` - Send PDN report via email
-
-### PDN Admin Module (`/pdn-admin`)
-**Admin Interface:**
-- `GET /pdn-admin/` - Admin login page (separate from dashboard)
-- `GET /pdn-admin/dashboard` - Admin dashboard (requires authentication)
-- `POST /pdn-admin/login` - Admin login
-- `GET /pdn-admin/logout` - Admin logout
-
-**Data Management:**
-- `GET /pdn-admin/metadata` - Get metadata CSV data
-- `GET /pdn-admin/metadata/csv` - Download metadata as CSV
-- `GET /pdn-admin/user/questionnaire/<email>` - Get user questionnaire data
-- `GET /pdn-admin/user/voice/<email>` - Get user voice recording URL
-- `PUT /pdn-admin/user/diagnose/<email>` - Update user diagnose information
-- `POST /pdn-admin/user/send_email/<email>` - Send email to user
-
-**Audio Management:**
-- `GET /pdn-admin/audio/<path:file_path>` - Serve audio files
-- `POST /pdn-admin/api/save-audio` - Save user audio file
+- `GET /pdn-diagnose/get_report_data` - Get report data (JSON)
+- `POST /pdn-diagnose/send_email` - Send report via email
 
 ### PDN Chat AI Module (`/pdn-chat-ai`)
 **Chat Interface:**
-- `GET /pdn-chat-ai/` - Chat interface page (includes questionnaire functionality)
-- `POST /pdn-chat-ai/chat` - Handle chat messages
-- `GET /pdn-chat-ai/context` - Get user context for chat
+- `GET /pdn-chat-ai/` - Chat interface page
+- `POST /pdn-chat-ai/chat` - Send chat message
+- `GET /pdn-chat-ai/context` - Get user context
 - `GET /pdn-chat-ai/history` - Get chat history
 - `POST /pdn-chat-ai/clear_history` - Clear chat history
 - `GET /pdn-chat-ai/settings` - Get chat settings
 - `PUT /pdn-chat-ai/settings` - Update chat settings
 
-### Static Files
-- `GET /static/<path:filename>` - Serve static files (CSS, JS, images)
+### PDN Admin Module (`/pdn-admin`)
+**Authentication:**
+- `GET /pdn-admin/` - Admin login page
+- `POST /pdn-admin/login` - Admin authentication
+- `GET /pdn-admin/logout` - Admin logout
 
-## Questionnaire Flow
-- 65 questions, divided into several parts (A-F)
-- Questions 1-26: Single-choice (code in `selected_option_code`)
-- Questions 27-65: Ranking or other types (data in `ranking`)
-- Answers are saved per user and used for PDN code calculation
-- Completion triggers PDN code calculation and report generation
-- Users are redirected to `/pdn-diagnose/pdn_report` after completion
+**Data Management:**
+- `GET /pdn-admin/metadata/csv` - Get user metadata
+- `GET /pdn-admin/download/csv` - Download CSV data
+- `GET /pdn-admin/user/questionnaire/<email>` - Get user questionnaire
+- `GET /pdn-admin/user/voice/<email>` - Get voice recordings
+- `PUT /pdn-admin/user/diagnose/<email>` - Update diagnosis
+- `POST /pdn-admin/user/send_email/<email>` - Send email to user
+- `POST /pdn-admin/user/recalculate_pdn/<email>` - Recalculate PDN code
+
+**Audio Management:**
+- `GET /pdn-admin/audio/<path:file_path>` - Serve audio files
+- `POST /pdn-admin/api/save-audio` - Save audio file
+
+## Questionnaire System
+
+### Question Structure
+- **Total Questions**: 65 questions across 6 sections (A-F)
+- **Question Types**:
+  - Questions 1-26: Single-choice questions
+  - Questions 27-65: Ranking and scale questions
+- **Voice Recording**: Questions 1 and 2 support voice recording
+- **Progress Tracking**: Real-time progress indication
+
+### PDN Code Calculation
+- Automated calculation based on questionnaire responses
+- Multiple validation layers for accuracy
+- Support for manual recalculation by administrators
+
+## AI Chat Features
+
+### RAG (Retrieval-Augmented Generation)
+- **Vector Database**: ChromaDB for document storage and retrieval
+- **Document Processing**: PDF parsing and text extraction
+- **Context Awareness**: User-specific conversation history
+- **Prompt Engineering**: Specialized prompts for psychological assessment
+
+### Chat Capabilities
+- **Real-time Messaging**: WebSocket-based communication
+- **Voice Integration**: Audio message support
+- **History Management**: Persistent conversation storage
+- **Settings Management**: Customizable chat parameters
 
 ## Admin Dashboard Features
-- **Separate Login Page:** Clean login interface at `/pdn-admin/`
-- **Pure Dashboard:** Dashboard at `/pdn-admin/dashboard` without embedded login
-- **User Management:** View, edit, and manage user data
-- **Audio Management:** Upload and manage user voice recordings
-- **Email System:** Send PDN reports to users
-- **Data Export:** Download metadata as CSV
-- **Visual Indicators:** Red highlighting for users with inconsistent PDN codes
 
-## Audio Upload
-- Audio is uploaded via `/pdn-admin/api/save-audio`
-- Audio files are saved under `saved_results/<user>/<filename>.wav`
-- Supported in both chat interface and admin dashboard
+### User Management
+- **User Overview**: Complete user data visualization
+- **Search & Filter**: Advanced filtering capabilities
+- **Data Export**: CSV export functionality
+- **Visual Indicators**: Color-coded status indicators
 
-## Running the App
-1. Activate your virtual environment:
-   ```bash
-   source venv/bin/activate  # On macOS/Linux
-   # or
-   venv\Scripts\activate     # On Windows
-   ```
+### Audio Management
+- **Voice Recording Playback**: Listen to user voice recordings
+- **File Management**: Organize and manage audio files
+- **Quality Control**: Audio validation and processing
 
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+### System Administration
+- **Session Management**: Monitor active sessions
+- **Log Analysis**: Comprehensive logging system
+- **Performance Monitoring**: System health indicators
 
-3. Run the app:
-   ```bash
-   python app.py
-   ```
+## Security Features
 
-4. Access the application:
-   - Main app: `http://127.0.0.1:8001/`
-   - Admin login: `http://127.0.0.1:8001/pdn-admin/`
-   - Admin dashboard: `http://127.0.0.1:8001/pdn-admin/dashboard`
-   - Chat interface: `http://127.0.0.1:8001/pdn-chat-ai/`
-   - Diagnose interface: `http://127.0.0.1:8001/pdn-diagnose/`
+### Authentication
+- **Admin Authentication**: Secure admin login system
+- **Session Management**: File-based session storage
+- **Password Protection**: Configurable admin passwords
 
-## Configuration
-- Admin password: Set in `config.py` or environment variable `ADMIN_PASSWORD` (default: 'pdn')
-- Session management: File-based sessions (configurable)
-- Static files: Centralized in `app/static/`
+### Data Protection
+- **Input Validation**: Comprehensive data validation
+- **File Upload Security**: Secure audio file handling
+- **Error Handling**: Graceful error management
 
-## Logs & Debugging
-- Logs are written to `logs/app.log`
-- To tail logs: `tail -f logs/app.log`
-- Check logs for import errors, endpoint errors, or calculation issues
+## Development
+
+### Running Tests
+```bash
+# Run all tests
+pytest
+
+# Run specific test file
+pytest tests/test_pdn_calculator.py
+
+# Run with coverage
+pytest --cov=app tests/
+```
+
+### CSS Development
+```bash
+# Watch mode for CSS changes
+npm run build:css
+
+# Production CSS build
+npm run build:css:prod
+```
+
+### Code Quality
+- **Linting**: Python code follows PEP 8 standards
+- **Type Hints**: Comprehensive type annotations
+- **Documentation**: Inline code documentation
+- **Error Handling**: Robust error management
+
+## Deployment
+
+### Production Configuration
+- **WSGI Server**: Gunicorn with multiple workers
+- **Static Files**: Served via Flask static file handling
+- **Database**: ChromaDB for vector storage
+- **Logging**: Structured logging with rotation
+
+### Environment Variables
+```env
+# Required
+ADMIN_PASSWORD=secure_password
+OPENAI_API_KEY=your_api_key
+
+# Optional
+FLASK_ENV=production
+LOG_LEVEL=INFO
+CHROMA_DB_PATH=./chroma_db
+```
 
 ## Troubleshooting
 
 ### Common Issues
-- **404 Errors:** Ensure you're using the correct URL prefixes (`/pdn-admin/`, `/pdn-diagnose/`, `/pdn-chat-ai/`)
-- **Static File Issues:** Static files are now centralized in `app/static/`
-- **Admin Access:** Use `/pdn-admin/` for login, `/pdn-admin/dashboard` for the dashboard
-- **Session Issues:** Clear browser cache or restart the application
 
-### Error Resolution
-- **400 Errors on Answer Submission:** Check that answers include `selected_option_code` or `ranking` as appropriate
-- **400 Errors on Questionnaire Completion:** Verify answer structure matches expected format
-- **Import Errors:** Ensure all dependencies are installed and virtual environment is activated
-- **PDN Report Loading:** Ensure the correct endpoint `/pdn-diagnose/get_report_data` is being called
+**1. Import Errors**
+```bash
+# Ensure virtual environment is activated
+source venv/bin/activate
+pip install -r requirements.txt
+```
 
-## Recent Updates (Latest)
-- **Unified Footer:** Added shared footer partials and included across pages (`templates/partials/footer.html`)
-- **Report UI Refresh:** Modern blue theme aligned with chat; personalized header with user name
-- **Questionnaire UX:** Added progress bar; re-record buttons for voice prompts; validation for duration
-- **Header Consistency:** Standardized gradient header styling across chat, diagnose, report
-- **Centralized Static Files:** Moved assets to `app/static/`
-- **Refactored Admin Interface:** Separated login and dashboard into distinct pages
-- **Fixed PDN Report:** Ensured data loads from `/pdn-diagnose/get_report_data`
+**2. Static File Issues**
+```bash
+# Rebuild CSS
+npm run build:css:prod
+```
 
-## Known Issues
-- **Tailwind CSS CDN Warnings:** In development, Tailwind is loaded via CDN which may show warnings
-- **Session Management:** Currently uses file-based sessions; consider Redis for production
-- **Admin Authentication:** Simple password-based authentication; consider implementing proper session management for production
+**3. Database Issues**
+```bash
+# Clear ChromaDB if corrupted
+rm -rf chroma_db/
+# Restart application
+```
+
+**4. Audio Upload Issues**
+- Check file permissions in `saved_results/`
+- Verify audio format (WAV supported)
+- Check browser console for JavaScript errors
+
+### Log Analysis
+```bash
+# View application logs
+tail -f logs/app.log
+
+# View specific error logs
+grep "ERROR" logs/app.log
+```
 
 ## Contributing
-- Fork the repo and create a feature branch
-- Submit pull requests with clear descriptions
-- Report issues via GitHub Issues
 
-## Test Coverage
-- Tests are located in the `tests/` directory
-- Run tests with `pytest` or your preferred test runner
+### Development Workflow
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/new-feature`
+3. Make changes and test thoroughly
+4. Commit changes: `git commit -m "Add new feature"`
+5. Push to branch: `git push origin feature/new-feature`
+6. Create a Pull Request
 
-## Security Notes
-- Admin password should be changed in production
-- Consider implementing proper session management
-- Review and secure file upload endpoints
-- Implement rate limiting for production use
+### Code Standards
+- Follow PEP 8 for Python code
+- Use meaningful variable and function names
+- Add type hints for all functions
+- Include docstrings for classes and functions
+- Write tests for new functionality
+
+## License
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Support
+For support and questions:
+- Create an issue on GitHub
+- Check the troubleshooting section
+- Review the logs for error details
+
+## Changelog
+
+### Version 1.0.0 (Latest)
+- ✅ Complete admin dashboard redesign with modern UI
+- ✅ Fixed JavaScript template literal syntax errors
+- ✅ Enhanced voice recording functionality
+- ✅ Improved questionnaire user experience
+- ✅ Added comprehensive error handling
+- ✅ Implemented RAG (Retrieval-Augmented Generation)
+- ✅ Added PDF and JSON report generation
+- ✅ Enhanced security and authentication
+- ✅ Comprehensive test coverage
+- ✅ Production-ready deployment configuration
+
+---
+
+**Note**: This application is designed for psychological assessment purposes. Ensure compliance with relevant data protection regulations (GDPR, HIPAA, etc.) when handling personal data.
