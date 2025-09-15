@@ -109,6 +109,7 @@ def get_user_metadata():
 def verify_session(session_token: str):
     """Verify admin session"""
     if session_token not in admin_sessions:
+        logger.warning(f"Invalid session token: {session_token}")
         abort(401, description="Invalid session")
     return True
 
@@ -117,7 +118,8 @@ def get_session_user_info(session_token: str):
     """Get user info from session token"""
     if session_token in admin_sessions:
         return admin_sessions[session_token]
-    return None
+    logger.warning(f"Invalid session token: {session_token}")
+    abort(401, description="Invalid session")
 
 
 @pdn_admin_bp.route('/')
@@ -147,6 +149,7 @@ def admin_login():
 
     try:
         login_data = request.get_json()
+        email = login_data.get('email', '')
         password = login_data.get('password', '')
 
         # Simple password check (you can make this more secure)
@@ -154,8 +157,7 @@ def admin_login():
             session_token = secrets.token_urlsafe(32)
             # Store user info with session token
             admin_sessions[session_token] = {
-                "username": "Admin",
-                "email": "admin@pdn.co.il",
+                "email": email,
                 "login_time": datetime.now().strftime("%d/%m/%Y %H:%M")
             }
             return jsonify({
@@ -580,6 +582,51 @@ def serve_audio(file_path):
     except Exception as e:
         logger.error(f"Error serving audio file: {e}")
         abort(500, description="Error serving audio file")
+
+
+@pdn_admin_bp.route('/api/save-audio', methods=['POST'])
+def save_audio():
+    """Save uploaded audio file."""
+    logger.debug("POST /pdn-admin/api/save-audio called")
+    logger.info("Request: %s %s", request.method, request.url)
+    
+    try:
+        # Check if audio file is present
+        if 'audio' not in request.files:
+            logger.warning("No audio file in request")
+            return jsonify({"error": "No audio file provided"}), 400
+        
+        audio_file = request.files['audio']
+        username = request.form.get('username', 'unknown')
+        
+        if audio_file.filename == '':
+            logger.warning("No audio file selected")
+            return jsonify({"error": "No audio file selected"}), 400
+        
+        # Get the filename from the form data
+        filename = audio_file.filename
+        
+        # Create user directory if it doesn't exist
+        pdn_file_path = PDNFilePath()
+        user_dir = pdn_file_path.get_user_dir(username)
+        user_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Save the audio file
+        audio_path = user_dir / filename
+        audio_file.save(audio_path)
+        
+        logger.info(f"Audio file saved successfully: {audio_path}")
+        
+        return jsonify({
+            "message": "Audio saved successfully",
+            "filename": filename,
+            "path": str(audio_path),
+            "status": "success"
+        })
+        
+    except Exception as e:
+        logger.error(f"Error saving audio file: {str(e)}")
+        return jsonify({"error": f"Failed to save audio: {str(e)}"}), 500
 
 
 @pdn_admin_bp.route('/download-json')
