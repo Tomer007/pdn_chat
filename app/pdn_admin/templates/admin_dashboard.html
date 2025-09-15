@@ -1674,9 +1674,7 @@ ${leftText}: ${leftValue} | ${rightText}: ${rightValue}
                     processedPath = processedPath.substring('pdn/saved_results/'.length);
                 }
 
-                return
-                `/pdn-admin/audio/${encodeURIComponent(processedPath)}?session_token=${sessionToken}`
-                ;
+                return `/pdn-admin/audio/${encodeURIComponent(processedPath)}?session_token=${sessionToken}`;
             }
 
             // Add question1 recording if exists
@@ -1886,8 +1884,15 @@ ${leftText}: ${leftValue} | ${rightText}: ${rightValue}
                     localStorage.removeItem('adminSessionToken');
                     window.location.href = '/pdn-admin/';
                 } else {
-                    const errorData = await response.json();
-                    throw new Error(errorData.detail || 'Failed to send email');
+                    let errorMessage = 'Failed to send email';
+                    try {
+                        const errorData = await response.json();
+                        errorMessage = errorData.detail || errorData.error || errorMessage;
+                    } catch (parseError) {
+                        // If response is not JSON (e.g., HTML error page), use status text
+                        errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+                    }
+                    throw new Error(errorMessage);
                 }
             } catch (error) {
                 console.error('Error sending email:', error);
@@ -1959,8 +1964,15 @@ ${leftText}: ${leftValue} | ${rightText}: ${rightValue}
                     localStorage.removeItem('adminSessionToken');
                     window.location.href = '/pdn-admin/';
                 } else {
-                    const errorData = await response.json();
-                    throw new Error(errorData.detail || 'Failed to recalculate PDN code');
+                    let errorMessage = 'Failed to recalculate PDN code';
+                    try {
+                        const errorData = await response.json();
+                        errorMessage = errorData.detail || errorData.error || errorMessage;
+                    } catch (parseError) {
+                        // If response is not JSON (e.g., HTML error page), use status text
+                        errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+                    }
+                    throw new Error(errorMessage);
                 }
             } catch (error) {
                 console.error('Error recalculating PDN code:', error);

@@ -317,28 +317,43 @@ def get_user_voice(email):
         voice_recordings = {}
 
         if question1_filename is not None and question1_filename.exists():
-            voice_recordings['question1'] = {
-                'filename': str(question1_filename),
-                'path': str(question1_filename),
-                'exists': True
-            }
+            # Double-check that the file actually exists and is readable
+            try:
+                if question1_filename.is_file() and question1_filename.stat().st_size > 0:
+                    voice_recordings['question1'] = {
+                        'filename': str(question1_filename),
+                        'path': str(question1_filename),
+                        'exists': True
+                    }
+            except (OSError, IOError) as e:
+                logger.warning(f"Error accessing question1 file {question1_filename}: {e}")
 
         if question2_filename is not None and question2_filename.exists():
-            voice_recordings['question2'] = {
-                'filename': str(question2_filename),
-                'path': str(question2_filename),
-                'exists': True
-            }
+            # Double-check that the file actually exists and is readable
+            try:
+                if question2_filename.is_file() and question2_filename.stat().st_size > 0:
+                    voice_recordings['question2'] = {
+                        'filename': str(question2_filename),
+                        'path': str(question2_filename),
+                        'exists': True
+                    }
+            except (OSError, IOError) as e:
+                logger.warning(f"Error accessing question2 file {question2_filename}: {e}")
 
         # If no new format recordings found, try old format for backward compatibility
         if not voice_recordings:
             user_audio_path = pdn_file_path.find_user_file(email, ".wav")
             if user_audio_path is not None and user_audio_path.exists():
-                voice_recordings['legacy'] = {
-                    'filename': str(user_audio_path),
-                    'path': str(user_audio_path),
-                    'exists': True
-                }
+                # Double-check that the file actually exists and is readable
+                try:
+                    if user_audio_path.is_file() and user_audio_path.stat().st_size > 0:
+                        voice_recordings['legacy'] = {
+                            'filename': str(user_audio_path),
+                            'path': str(user_audio_path),
+                            'exists': True
+                        }
+                except (OSError, IOError) as e:
+                    logger.warning(f"Error accessing legacy audio file {user_audio_path}: {e}")
 
         if not voice_recordings:
             return jsonify({"error": "User voice recording not found"}), 404

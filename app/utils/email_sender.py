@@ -491,14 +491,25 @@ def send_pdn_code_email(user_answers: Dict[str, Any], pdn_code: str) -> bool:
         # Attach PDF if available
         # Try different filename formats for the PDF
         pdf_filenames = [
-            f"{pdn_code}.pdf",  # P10.pdf
-            f"P-{pdn_code[1:]}.pdf",  # P-10.pdf (if pdn_code is P10)
+            f"{pdn_code}.pdf",  # T8.pdf, P10.pdf
+            f"P-{pdn_code[1:]}.pdf",  # P-8.pdf (if pdn_code is T8), P-10.pdf (if pdn_code is P10)
             f"{pdn_code.replace('P', 'P-')}.pdf",  # P-10.pdf (alternative)
-            f"{pdn_code.lower()}.pdf"  # p10.pdf
+            f"{pdn_code.lower()}.pdf",  # t8.pdf, p10.pdf
         ]
+        
+        # Add fallback PDFs for common patterns
+        fallback_pdfs = [
+            "P-10.pdf",  # General fallback
+            "P10.pdf",
+            "p-10.pdf",
+            "p10.pdf"
+        ]
+        
+        # Combine specific and fallback PDFs
+        all_pdf_filenames = pdf_filenames + fallback_pdfs
 
         pdf_attached = False
-        for pdf_filename in pdf_filenames:
+        for pdf_filename in all_pdf_filenames:
             pdf_path = os.path.join("app", "static", "reports", pdf_filename)
 
             if os.path.exists(pdf_path):
@@ -516,7 +527,8 @@ def send_pdn_code_email(user_answers: Dict[str, Any], pdn_code: str) -> bool:
 
         if not pdf_attached:
             logger.warning(
-                f"PDF not found for code: {pdn_code}. Tried paths: {[os.path.join('app', 'static', 'reports', f) for f in pdf_filenames]}")
+                f"PDF not found for code: {pdn_code}. Tried paths: {[os.path.join('app', 'static', 'reports', f) for f in all_pdf_filenames]}")
+            logger.info("Email sent without PDF attachment")
 
         # Send email
         with smtplib.SMTP('smtp.gmail.com', 587) as server:
