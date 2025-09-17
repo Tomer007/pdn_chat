@@ -902,6 +902,238 @@
             font-size: 13px;
         }
     }
+
+    /* 45-Day Plan Modal Styles */
+    .plan-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 2000;
+        backdrop-filter: blur(5px);
+    }
+
+    .plan-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #ffffff;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        max-width: 600px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+        direction: rtl;
+    }
+
+    [data-theme="dark"] .plan-content {
+        background: #1a1a1a;
+        border: 1px solid #333;
+    }
+
+    .plan-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 25px 30px 20px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    [data-theme="dark"] .plan-header {
+        border-bottom-color: #333;
+    }
+
+    .plan-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #0b2e6b;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    [data-theme="dark"] .plan-title {
+        color: #60a5fa;
+    }
+
+    .plan-close {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: #6b7280;
+        cursor: pointer;
+        padding: 5px;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+    }
+
+    .plan-close:hover {
+        background: #f3f4f6;
+        color: #374151;
+    }
+
+    [data-theme="dark"] .plan-close:hover {
+        background: #333;
+        color: #fff;
+    }
+
+    .plan-body {
+        padding: 30px;
+    }
+
+    .plan-description {
+        font-size: 1.1rem;
+        color: #4b5563;
+        margin-bottom: 25px;
+        line-height: 1.6;
+    }
+
+    [data-theme="dark"] .plan-description {
+        color: #d1d5db;
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 10px;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    [data-theme="dark"] .form-label {
+        color: #e5e7eb;
+    }
+
+    .form-textarea {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-family: inherit;
+        resize: vertical;
+        min-height: 100px;
+        transition: all 0.3s ease;
+        direction: rtl;
+    }
+
+    .form-textarea:focus {
+        outline: none;
+        border-color: #0b2e6b;
+        box-shadow: 0 0 0 3px rgba(11, 46, 107, 0.1);
+    }
+
+    [data-theme="dark"] .form-textarea {
+        background: #2d2d2d;
+        border-color: #4b5563;
+        color: #e5e7eb;
+    }
+
+    [data-theme="dark"] .form-textarea:focus {
+        border-color: #60a5fa;
+        box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 15px;
+        justify-content: flex-end;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    [data-theme="dark"] .form-actions {
+        border-top-color: #333;
+    }
+
+    .plan-btn {
+        padding: 12px 24px;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border: none;
+    }
+
+    .plan-btn.cancel {
+        background: #f3f4f6;
+        color: #6b7280;
+        border: 1px solid #d1d5db;
+    }
+
+    .plan-btn.cancel:hover {
+        background: #e5e7eb;
+        color: #374151;
+    }
+
+    [data-theme="dark"] .plan-btn.cancel {
+        background: #374151;
+        color: #d1d5db;
+        border-color: #4b5563;
+    }
+
+    [data-theme="dark"] .plan-btn.cancel:hover {
+        background: #4b5563;
+        color: #fff;
+    }
+
+    .plan-btn.submit {
+        background: #0b2e6b;
+        color: #ffffff;
+    }
+
+    .plan-btn.submit:hover {
+        background: #0a2a5f;
+        transform: translateY(-1px);
+    }
+
+    .plan-btn.submit:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    @media (max-width: 768px) {
+        .plan-content {
+            width: 95%;
+            margin: 20px;
+        }
+        
+        .plan-header {
+            padding: 20px 20px 15px;
+        }
+        
+        .plan-body {
+            padding: 20px;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+        }
+        
+        .plan-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
 </style>
 
 <!-- Header with improved layout -->
@@ -963,6 +1195,72 @@
                 <i class="fas fa-check"></i>
                 אישור
             </button>
+        </div>
+    </div>
+</div>
+
+<!-- 45-Day Plan Modal -->
+<div class="plan-modal" id="planModal">
+    <div class="plan-content">
+        <div class="plan-header">
+            <h3 class="plan-title">
+                <i class="fas fa-calendar-alt"></i>
+                בנה לי תוכנית 45 יום להתמרה
+            </h3>
+            <button class="plan-close" onclick="hidePlanModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="plan-body">
+            <p class="plan-description">
+                כדי לבנות לך תוכנית מותאמת אישית, אנא ספר לנו בקצרה:
+            </p>
+            
+            <form id="planForm" onsubmit="submitPlanRequest(event)">
+                <div class="form-group">
+                    <label for="planGoals" class="form-label">
+                        <i class="fas fa-target"></i>
+                        מה אתה רוצה להשיג בתוכנית הזו?
+                    </label>
+                    <textarea 
+                        id="planGoals" 
+                        name="goals" 
+                        class="form-textarea" 
+                        placeholder="תאר בקצרה את המטרות שלך (למשל: שיפור ביטחון עצמי, פיתוח קריירה, יצירת הרגלים חדשים...)"
+                        required
+                        rows="4"
+                        onkeydown="handlePlanFormKeyPress(event)"
+                    ></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="planSuccess" class="form-label">
+                        <i class="fas fa-trophy"></i>
+                        איך תגדיר הצלחה עבורך?
+                    </label>
+                    <textarea 
+                        id="planSuccess" 
+                        name="success" 
+                        class="form-textarea" 
+                        placeholder="תאר איך תראה ההצלחה שלך (למשל: הרגשה טובה יותר, הישגים ספציפיים, שינויים בהתנהגות...)"
+                        required
+                        rows="4"
+                        onkeydown="handlePlanFormKeyPress(event)"
+                    ></textarea>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="plan-btn cancel" onclick="hidePlanModal()">
+                        <i class="fas fa-times"></i>
+                        ביטול
+                    </button>
+                    <button type="submit" class="plan-btn submit" id="submitPlanBtn">
+                        <i class="fas fa-paper-plane"></i>
+                        שלח בקשה
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -1527,7 +1825,7 @@
             "תוכל/י להסביר יותר על קוד המקור שלי?",
             "איך אני יכול/ה להשתמש בקוד המקור בחיי היומיום?",
             "מה השלב הבא במסע שלי?",
-            "סיים שיחה"
+            "בנה לי תוכנית 45 יום להתמרה"
         ];
 
         const quickRepliesDiv = document.createElement("div");
@@ -1538,9 +1836,10 @@
             button.className = "quick-reply-btn";
             button.textContent = reply;
             button.onclick = () => {
-                // Special handling for "תודה על השיחה" - redirect to login
-                if (reply === "תודה על השיחה") {
-                    handleThankYouClick();
+                // Special handling for "בנה לי תוכנית 45 יום להתמרה" - show modal
+                if (reply === "בנה לי תוכנית 45 יום להתמרה") {
+                    // Show 45-day plan modal
+                    showPlanModal();
                 } else {
                     document.getElementById("userInput").value = reply;
                     sendMessage();
@@ -1733,6 +2032,128 @@
             smartLists: true,
             smartypants: true
         });
+    }
+
+    // 45-Day Plan Modal Functions
+    function showPlanModal() {
+        const modal = document.getElementById('planModal');
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+
+        // Focus on the first input for accessibility
+        setTimeout(() => {
+            document.getElementById('planGoals').focus();
+        }, 100);
+    }
+
+    function hidePlanModal() {
+        const modal = document.getElementById('planModal');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+
+        // Reset form
+        document.getElementById('planForm').reset();
+    }
+
+    async function submitPlanRequest(event) {
+        event.preventDefault();
+        
+        const submitBtn = document.getElementById('submitPlanBtn');
+        const originalText = submitBtn.innerHTML;
+        
+        try {
+            // Disable button and show loading
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> שולח...';
+            
+            // Get form data
+            const formData = new FormData(event.target);
+            const goals = formData.get('goals').trim();
+            const success = formData.get('success').trim();
+            
+            if (!goals || !success) {
+                showError('אנא מלא את כל השדות הנדרשים');
+                return;
+            }
+            
+            // Send request to backend
+            const response = await fetch('/pdn-chat-ai/45-day-plan', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    goals: goals,
+                    success: success,
+                    user_name: USER_NAME,
+                    user_id: USER_ID,
+                    pdn_code: PDN_CODE
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                
+                // Hide modal
+                hidePlanModal();
+                
+                // Add user message to chat
+                const chatContainer = document.getElementById("chatContainer");
+                const userBubble = document.createElement("div");
+                userBubble.className = "chat-bubble user animated";
+                userBubble.innerHTML = `
+                    <div class="message-header">${USER_NAME}:</div>
+                    <div class="message-content">${safeMarkdownParse(goals + '\n\n' + success)}</div>
+                    <div class="message-time">${getCurrentTime()}</div>
+                `;
+                chatContainer.appendChild(userBubble);
+                
+                // Add bot response to chat
+                const botBubble = document.createElement("div");
+                botBubble.className = "chat-bubble bot animated";
+                botBubble.innerHTML = `
+                    <div class="message-header">בינת קוד המקור:</div>
+                    <div class="message-content">${safeMarkdownParse(data.response)}</div>
+                    <div class="message-time">${getCurrentTime()}</div>
+                `;
+                chatContainer.appendChild(botBubble);
+                
+                // Scroll to bottom
+                scrollToBottom(true);
+                
+                // Show success notification
+                showSuccess('הבקשה נשלחה בהצלחה!');
+                
+            } else {
+                const errorData = await response.json();
+                showError(errorData.error || 'שגיאה בשליחת הבקשה');
+            }
+            
+        } catch (error) {
+            console.error('Error submitting plan request:', error);
+            showError('שגיאה בשליחת הבקשה לשרת');
+        } finally {
+            // Restore button
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        }
+    }
+
+    // Handle Enter key press in 45-day plan form
+    function handlePlanFormKeyPress(event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            // Submit the form
+            const form = document.getElementById('planForm');
+            if (form) {
+                // Create a new event object with the form as target
+                const formEvent = {
+                    preventDefault: () => {},
+                    target: form
+                };
+                submitPlanRequest(formEvent);
+            }
+        }
     }
 </script>
 

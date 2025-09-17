@@ -220,3 +220,66 @@ def chat_message():
     except Exception as e:
         logger.error(f"Error in chat: {e}")
         return jsonify({"error": "Chat error occurred"}), 500
+
+
+@pdn_chat_ai_bp.route('/45-day-plan', methods=['POST'])
+def create_45_day_plan():
+    """Handle 45-day transformation plan requests"""
+    logger.debug("POST /pdn-chat-ai/45-day-plan called")
+    logger.info("Request: %s %s", request.method, request.url)
+
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+
+        goals = data.get('goals', '').strip()
+        success = data.get('success', '').strip()
+        user_name = data.get('user_name', 'Anonymous')
+        pdn_code = data.get('pdn_code', '')
+
+        if not goals or not success:
+            return jsonify({"error": "Goals and success definition are required"}), 400
+
+        # Create a comprehensive prompt for the 45-day plan
+        plan_prompt = f"""
+        אני מבקש ממך לבנות תוכנית 45 יום להתמרה אישית עבור {user_name}.
+        
+        קוד המקור של המשתמש: {pdn_code}
+        
+        המטרות שהמשתמש רוצה להשיג:
+        {goals}
+        
+        הגדרת הצלחה של המשתמש:
+        {success}
+        
+        אנא בנה תוכנית מפורטת של 45 יום הכוללת:
+        1. מטרות שבועיות ברורות
+        2. משימות יומיות ספציפיות
+        3. כלים וטכניקות מותאמות לקוד המקור {pdn_code}
+        4. נקודות בדיקה ומדידה
+        5. התאמות לפי הצורך
+        6. טיפים מעשיים ליישום
+        
+        התוכנית צריכה להיות מעשית, מותאמת אישית, ומבוססת על קוד המקור של המשתמש.
+        """
+
+        # Generate response using A7Agent
+        if pdn_code == "A7":
+            response = A7Agent().get_response(plan_prompt, user_name, pdn_code)
+        else:
+            raise ValueError(f"Unknown PDN code: {pdn_code}")
+
+        logger.info(f"45-day plan generated for user {user_name} with PDN code {pdn_code}")
+
+        return jsonify({
+            "response": response,
+            "timestamp": datetime.now().isoformat(),
+            "plan_type": "45_day_transformation",
+            "user_name": user_name,
+            "pdn_code": pdn_code
+        })
+
+    except Exception as e:
+        logger.error(f"Error creating 45-day plan: {e}")
+        return jsonify({"error": "Failed to create 45-day plan"}), 500
