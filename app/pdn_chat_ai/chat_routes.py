@@ -1,5 +1,7 @@
+import os
 import uuid
 from datetime import datetime
+from string import Template
 from flask import Blueprint, request, render_template, jsonify, session, current_app
 
 from .binat_agents.a7_agent import A7Agent
@@ -230,7 +232,10 @@ def create_45_day_plan():
 
     try:
         data = request.get_json()
+        logger.info(f"Received data: {data}")
+        
         if not data:
+            logger.warning("No data provided in request")
             return jsonify({"error": "No data provided"}), 400
 
         goals = data.get('goals', '').strip()
@@ -238,48 +243,42 @@ def create_45_day_plan():
         user_name = data.get('user_name', 'Anonymous')
         pdn_code = data.get('pdn_code', '')
 
+        logger.info(f"Processing 45-day plan for user: {user_name}, PDN code: {pdn_code}")
+
         if not goals or not success:
+            logger.warning("Missing goals or success definition")
             return jsonify({"error": "Goals and success definition are required"}), 400
 
-        # Create a comprehensive prompt for the 45-day plan
-        plan_prompt = f"""
-        אני מבקש ממך לבנות תוכנית 45 יום להתמרה אישית עבור {user_name}.
-        
-        קוד המקור של המשתמש: {pdn_code}
-        
-        המטרות שהמשתמש רוצה להשיג:
-        {goals}
-        
-        הגדרת הצלחה של המשתמש:
-        {success}
-        
-        אנא בנה תוכנית מפורטת של 45 יום הכוללת:
-        1. מטרות שבועיות ברורות
-        2. משימות יומיות ספציפיות
-        3. כלים וטכניקות מותאמות לקוד המקור {pdn_code}
-        4. נקודות בדיקה ומדידה
-        5. התאמות לפי הצורך
-        6. טיפים מעשיים ליישום
-        
-        התוכנית צריכה להיות מעשית, מותאמת אישית, ומבוססת על קוד המקור של המשתמש.
+        # Create user context for the 45-day plan
+        user_context = f"""
+        User Goals: {goals}
+        User Success Definition: {success}
         """
 
         # Generate response using A7Agent
+        logger.info(f"Generating response for PDN code: {pdn_code}")
+        
         if pdn_code == "A7":
-            response = A7Agent().get_response(plan_prompt, user_name, pdn_code)
+            try:
+                logger.info("Initializing A7Agent...")
+                agentA7 = A7Agent()
+                logger.info("A7Agent initialized successfully")
+                
+                logger.info("Generating response...")
+                response = agentA7.get_response_for_45_day_plan(user_context, user_name, pdn_code)
+                logger.info("Response generated successfully")
+                
+            except Exception as agent_error:
+                logger.error(f"Error with A7Agent: {agent_error}")
+                response = "I apologize, but I encountered an error while processing your request. Please try again."
         else:
-            raise ValueError(f"Unknown PDN code: {pdn_code}")
-
-        logger.info(f"45-day plan generated for user {user_name} with PDN code {pdn_code}")
+            logger.warning(f"Unknown PDN code: {pdn_code}, using fallback response")
+            response = "I apologize, but I encountered an error while processing your request. Please try again."
 
         return jsonify({
             "response": response,
-            "timestamp": datetime.now().isoformat(),
-            "plan_type": "45_day_transformation",
-            "user_name": user_name,
-            "pdn_code": pdn_code
+            "timestamp": datetime.now().isoformat()
         })
-
     except Exception as e:
         logger.error(f"Error creating 45-day plan: {e}")
         return jsonify({"error": "Failed to create 45-day plan"}), 500

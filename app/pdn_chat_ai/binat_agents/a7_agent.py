@@ -63,6 +63,15 @@ class A7Agent:
                 "Conversation History:\n{history}\n\nCurrent Question: {question}\n\nAnswer:")
         ])
 
+        # Load the 45-day plan prompt
+        self.plan_prompt = self._load_45_day_plan_prompt()
+
+        # Build 45-day plan prompt template
+        self.plan_prompt_template = ChatPromptTemplate.from_messages([
+            SystemMessagePromptTemplate.from_template(self.plan_prompt),
+            HumanMessagePromptTemplate.from_template("{user_goals_and_success}")
+        ])
+
         # In-memory conversation history storage
         self.conversation_history = defaultdict(list)
 
@@ -90,6 +99,30 @@ class A7Agent:
                 raise FileNotFoundError("A7 agent prompt file not found")
         except Exception as e:
             logger.error(f"Error loading A7 agent prompt: {e}")
+            raise
+
+    def _load_45_day_plan_prompt(self) -> str:
+        """
+        Load the 45-day plan prompt from the 45_plan.prompt file.
+        
+        Returns:
+            The 45-day plan prompt as a string
+        """
+        try:
+            prompt_path = Path(__file__).parent / "prompts" / "45_plan.prompt"
+            if prompt_path.exists():
+                with open(prompt_path, 'r', encoding='utf-8') as f:
+                    prompt_content = f.read().strip()
+                    if prompt_content:
+                        return prompt_content
+                    else:
+                        logger.error("45-day plan prompt file is empty")
+                        raise ValueError("45-day plan prompt file is empty")
+            else:
+                logger.error("45-day plan prompt file not found")
+                raise FileNotFoundError("45-day plan prompt file not found")
+        except Exception as e:
+            logger.error(f"Error loading 45-day plan prompt: {e}")
             raise
 
     def _add_to_history(self, user_name: str, user_query: str, response: str):
@@ -182,6 +215,43 @@ class A7Agent:
         except Exception as e:
             logger.error(f"Error in A7 Agent response generation: {e}")
             return "I apologize, but I encountered an error while processing your request. Please try again."
+
+    def get_response_for_45_day_plan(self, user_context: str, user_name: str = None, pdn_code: str = None) -> str:
+        """
+        Generate a 45-day transformation plan response using the specialized 45-day plan prompt.
+        
+        Args:
+            user_context: The user's goals and success definition
+            user_name: Name of the user (optional)
+            pdn_code: PDN code of the user (optional)
+            
+        Returns:
+            The 45-day plan response as a string
+        """
+        try:
+            # Log user information if provided
+            logger.info(f"A7 Agent generating 45-day plan for {user_name} with PDN code {pdn_code}")
+
+            # Create the final context for the LLM
+            final_context = f"User Name: {user_name}\n"
+            final_context += f"User PDN Code: {pdn_code}\n\n"
+            final_context += f"User Goals and Success Definition:\n{user_context}"
+
+            # Generate response using the 45-day plan LLM
+            llm_response = self.llm.invoke(self.plan_prompt_template.format_messages(
+                user_goals_and_success=final_context
+            ))
+            response_text = llm_response.content
+
+            # # Add to conversation history if user_name is provided
+            # if user_name:
+            #     self._add_to_history(user_name, f"45-day plan request: {user_context}", response_text)
+
+            return response_text
+
+        except Exception as e:
+            logger.error(f"Error in A7 Agent 45-day plan generation: {e}")
+            return "I apologize, but I encountered an error while generating your 45-day plan. Please try again."
 
     def get_user_history(self, user_name: str) -> list:
         """

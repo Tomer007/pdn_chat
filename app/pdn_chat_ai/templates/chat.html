@@ -2064,7 +2064,7 @@
         try {
             // Disable button and show loading
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> שולח...';
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>בונה תוכנית 45 יום להתמרה...';
             
             // Get form data
             const formData = new FormData(event.target);
@@ -2092,7 +2092,14 @@
             });
             
             if (response.ok) {
-                const data = await response.json();
+                let data;
+                try {
+                    data = await response.json();
+                } catch (jsonError) {
+                    console.error('Error parsing JSON response:', jsonError);
+                    showError('שגיאה בעיבוד התגובה מהשרת');
+                    return;
+                }
                 
                 // Hide modal
                 hidePlanModal();
@@ -2125,8 +2132,15 @@
                 showSuccess('הבקשה נשלחה בהצלחה!');
                 
             } else {
-                const errorData = await response.json();
-                showError(errorData.error || 'שגיאה בשליחת הבקשה');
+                let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.error || errorMessage;
+                } catch (jsonError) {
+                    // If response is not JSON, use the status text
+                    console.warn('Error response is not JSON:', jsonError);
+                }
+                showError(errorMessage);
             }
             
         } catch (error) {
