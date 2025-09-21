@@ -4,8 +4,11 @@ Handles user authentication, chat messaging, and 45-day plan generation.
 """
 
 import uuid
+import time
 from datetime import datetime
 from string import Template
+from typing import Optional, Dict, Any
+from functools import wraps
 from flask import Blueprint, request, render_template, jsonify, session, current_app
 
 from .binat_agents.a7_agent import A7Agent
@@ -13,6 +16,76 @@ from .logger import setup_logger
 
 # Setup logger
 logger = setup_logger()
+
+
+def retry_on_failure(max_retries: int = 3, delay: float = 1.0, backoff: float = 2.0):
+    """
+    Decorator to retry function calls on failure with exponential backoff.
+    
+    Args:
+        max_retries: Maximum number of retry attempts
+        delay: Initial delay between retries in seconds
+        backoff: Multiplier for delay after each retry
+    """
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            current_delay = delay
+            last_exception = None
+            
+            for attempt in range(max_retries + 1):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    last_exception = e
+                    if attempt < max_retries:
+                        logger.warning(
+                            "Attempt %d failed for %s: %s. Retrying in %.2f seconds...",
+                            attempt + 1, func.__name__, str(e), current_delay
+                        )
+                        time.sleep(current_delay)
+                        current_delay *= backoff
+                    else:
+                        logger.error(
+                            "All %d attempts failed for %s. Last error: %s",
+                            max_retries + 1, func.__name__, str(e)
+                        )
+            
+            # If all retries failed, raise the last exception
+            raise last_exception
+        return wrapper
+    return decorator
+
+
+def safe_ai_call(ai_function, *args, **kwargs) -> Optional[str]:
+    """
+    Safely call AI functions with error recovery and fallback responses.
+    
+    Args:
+        ai_function: The AI function to call
+        *args: Arguments for the AI function
+        **kwargs: Keyword arguments for the AI function
+        
+    Returns:
+        AI response or fallback message
+    """
+    try:
+        return ai_function(*args, **kwargs)
+    except Exception as e:
+        logger.error("AI function call failed: %s", str(e))
+        
+        # Return appropriate fallback based on function type
+        if "45_day_plan" in str(ai_function):
+            return (
+                "אני מתנצל, אבל נתקלתי בבעיה טכנית זמנית. "
+                "אנא נסה שוב בעוד כמה דקות או פנה לתמיכה אם הבעיה נמשכת."
+            )
+        else:
+            return (
+                "אני מתנצל, אבל נתקלתי בבעיה טכנית זמנית. "
+                "אנא נסה שוב או פנה לתמיכה אם הבעיה נמשכת."
+            )
+
 
 # Static user data for authentication
 USERS_DATA = {
@@ -43,8 +116,9 @@ USERS_DATA = {
 _rag_system = None
 
 
+@retry_on_failure(max_retries=3, delay=1.0, backoff=2.0)
 def get_rag_system():
-    """Get or initialize the RAG system lazily"""
+    """Get or initialize the RAG system lazily with retry mechanism"""
     global _rag_system
     if _rag_system is None:
         try:

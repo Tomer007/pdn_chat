@@ -19,7 +19,7 @@ charset-normalizer==3.4.2
 chromadb==1.0.15
 click==8.1.8
 coloredlogs==15.0.1
-cryptography>=41.0.0,<46.0.0
+cryptography>=41.0.0,<45.0.0
 dataclasses-json==0.6.7
 distro==1.9.0
 dnspython==2.7.0
