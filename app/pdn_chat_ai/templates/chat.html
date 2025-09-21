@@ -2066,6 +2066,9 @@
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>בונה תוכנית 45 יום להתמרה...';
             
+            // Show progress message
+            showSuccess('מתחיל לבנות את התוכנית המותאמת אישית שלך... זה יכול לקחת עד 2 דקות');
+            
             // Get form data
             const formData = new FormData(event.target);
             const goals = formData.get('goals').trim();
@@ -2076,7 +2079,10 @@
                 return;
             }
             
-            // Send request to backend
+            // Send request to backend with timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 150000); 
+            
             const response = await fetch('/pdn-chat-ai/45-day-plan', {
                 method: 'POST',
                 headers: {
@@ -2088,8 +2094,11 @@
                     user_name: USER_NAME,
                     user_id: USER_ID,
                     pdn_code: PDN_CODE
-                })
+                }),
+                signal: controller.signal
             });
+            
+            clearTimeout(timeoutId);
             
             if (response.ok) {
                 let data;
@@ -2145,7 +2154,14 @@
             
         } catch (error) {
             console.error('Error submitting plan request:', error);
-            showError('שגיאה בשליחת הבקשה לשרת');
+            
+            if (error.name === 'AbortError') {
+                showError('הבקשה ארכה יותר מדי זמן. אנא נסה שוב או פנה לתמיכה אם הבעיה נמשכת.');
+            } else if (error.message && error.message.includes('timeout')) {
+                showError('הבקשה ארכה יותר מדי זמן. זה יכול להיות בגלל עומס על השרת. אנא נסה שוב בעוד כמה רגעים.');
+            } else {
+                showError('שגיאה בשליחת הבקשה לשרת');
+            }
         } finally {
             // Restore button
             submitBtn.disabled = false;

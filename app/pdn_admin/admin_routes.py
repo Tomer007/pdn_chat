@@ -33,7 +33,7 @@ def load_user_metadata():
     """
     try:
         csv_file_path = Path(os.getenv('SAVED_RESULTS_DIR', 'saved_results')) / 'user_metadata.csv'
-        logger.info(f"CSV file path: {csv_file_path}")
+        logger.info("CSV file path: %s", csv_file_path)
         if not csv_file_path.exists():
             logger.warning("user_metadata.csv file not found")
             return []
@@ -57,7 +57,7 @@ def load_user_metadata():
                     if questionnaire_data and 'metadata' in questionnaire_data:
                         json_metadata = questionnaire_data['metadata']
                 except Exception as e:
-                    logger.warning(f"Could not load JSON metadata for {email}: {e}")
+                    logger.warning("Could not load JSON metadata for %s: %s", email, e)
 
                 # Convert CSV column names to the expected format and merge with JSON metadata
                 user_data = {
@@ -88,11 +88,11 @@ def load_user_metadata():
                 }
                 metadata_list.append(user_data)
 
-        logger.info(f"Loaded {len(metadata_list)} user records from CSV and JSON")
+        logger.info("Loaded %d user records from CSV and JSON", len(metadata_list))
         return metadata_list
 
     except Exception as e:
-        logger.error(f"Error loading user metadata from CSV: {e}")
+        logger.error("Error loading user metadata from CSV: %s", e)
         return []
 
 
@@ -109,7 +109,7 @@ def get_user_metadata():
 def verify_session(session_token: str):
     """Verify admin session"""
     if session_token not in admin_sessions:
-        logger.warning(f"Invalid session token: {session_token}")
+        logger.warning("Invalid session token: %s", session_token)
         abort(401, description="Invalid session")
     return True
 
@@ -118,7 +118,7 @@ def get_session_user_info(session_token: str):
     """Get user info from session token"""
     if session_token in admin_sessions:
         return admin_sessions[session_token]
-    logger.warning(f"Invalid session token: {session_token}")
+    logger.warning("Invalid session token: %s", session_token)
     abort(401, description="Invalid session")
 
 
@@ -167,12 +167,12 @@ def admin_login():
             })
 
         # Log failed login attempt
-        logger.warning(f"Failed login attempt with password: {password}")
+        logger.warning("Failed login attempt with password: %s", password)
 
         return jsonify({"error": "Invalid credentials"}), 401
 
     except Exception as e:
-        logger.error(f"Login error: {e}")
+        logger.error("Login error: %s", e)
         return jsonify({"error": "Login failed"}), 400
 
 
@@ -227,7 +227,7 @@ def download_csv_file():
             mimetype="text/csv"
         )
     except Exception as e:
-        logger.error(f"Error downloading CSV file: {e}")
+        logger.error("Error downloading CSV file: %s", e)
         return jsonify({"error": "Failed to download CSV file"}), 500
 
 
@@ -244,7 +244,7 @@ def remove_none_keys(obj):
 @pdn_admin_bp.route('/user/questionnaire/<email>')
 def get_user_questionnaire(email):
     """Get user questionnaire data"""
-    logger.debug(f"GET /pdn-admin/user/questionnaire/{email} called")
+    logger.debug("GET /pdn-admin/user/questionnaire/%s called", email)
     logger.info("Request: %s %s", request.method, request.url)
     logger.info("Response: %s", 200)
 
@@ -254,19 +254,19 @@ def get_user_questionnaire(email):
     try:
         # Find user in data
         csv_metadata_handler = UserMetadataHandler()
-        logger.info(f"Loading questionnaire data for {email}")
+        logger.info("Loading questionnaire data for %s", email)
 
         questionnaire_data = csv_metadata_handler.get_user_files(email, "answers")
-        logger.info(f"Questionnaire data loaded: {questionnaire_data is not None}")
+        logger.info("Questionnaire data loaded: %s", questionnaire_data is not None)
 
         if not questionnaire_data:
-            logger.warning(f"No questionnaire data found for user: {email}")
+            logger.warning("No questionnaire data found for user: %s", email)
             return jsonify({"error": "User questionnaire not found"}), 404
 
         # Get user metadata from CSV (including User ID)
-        logger.info(f"Loading CSV metadata for {email}")
+        logger.info("Loading CSV metadata for %s", email)
         user_metadata = csv_metadata_handler.get_user_by_email(email)
-        logger.info(f"CSV metadata loaded: {user_metadata is not None}")
+        logger.info("CSV metadata loaded: %s", user_metadata is not None)
 
         if user_metadata:
             # Merge CSV metadata with existing JSON metadata

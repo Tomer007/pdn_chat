@@ -1,3 +1,8 @@
+"""
+PDN Chat AI Routes - Flask routes for AI-powered chat interface.
+Handles user authentication, chat messaging, and 45-day plan generation.
+"""
+
 import os
 import uuid
 from datetime import datetime
@@ -47,8 +52,8 @@ def get_rag_system():
             from .pdn_chat_rag import PDNRAG
             _rag_system = PDNRAG("./rag", persist_dir="./chroma_db", persist=True)
             logger.info("RAG system initialized successfully")
-        except Exception as e:
-            logger.error(f"Failed to initialize RAG system: {e}")
+        except (ImportError, AttributeError, ValueError) as e:
+            logger.error("Failed to initialize RAG system: %s", e)
             _rag_system = None
     return _rag_system
 
@@ -116,8 +121,8 @@ def login():
                 "error": "Invalid email or password"
             }), 401
 
-    except Exception as e:
-        logger.error(f"Error in login: {e}")
+    except (KeyError, ValueError, TypeError) as e:
+        logger.error("Error in login: %s", e)
         return jsonify({"error": "Login error occurred"}), 500
 
 
@@ -139,8 +144,8 @@ def logout():
             "message": "Logout successful"
         })
 
-    except Exception as e:
-        logger.error(f"Error in logout: {e}")
+    except (KeyError, ValueError) as e:
+        logger.error("Error in logout: %s", e)
         return jsonify({"error": "Logout error occurred"}), 500
 
 
@@ -219,8 +224,8 @@ def chat_message():
         #         "response": "מצטער, לא הצלחתי לעבד את השאלה שלך. אנא נסה שוב."
         #     }), 500
 
-    except Exception as e:
-        logger.error(f"Error in chat: {e}")
+    except (ValueError, AttributeError, TypeError) as e:
+        logger.error("Error in chat: %s", e)
         return jsonify({"error": "Chat error occurred"}), 500
 
 
@@ -232,7 +237,7 @@ def create_45_day_plan():
 
     try:
         data = request.get_json()
-        logger.info(f"Received data: {data}")
+        logger.info("Received data: %s", data)
         
         if not data:
             logger.warning("No data provided in request")
@@ -243,7 +248,7 @@ def create_45_day_plan():
         user_name = data.get('user_name', 'Anonymous')
         pdn_code = data.get('pdn_code', '')
 
-        logger.info(f"Processing 45-day plan for user: {user_name}, PDN code: {pdn_code}")
+        logger.info("Processing 45-day plan for user: %s, PDN code: %s", user_name, pdn_code)
 
         if not goals or not success:
             logger.warning("Missing goals or success definition")
@@ -256,7 +261,7 @@ def create_45_day_plan():
         """
 
         # Generate response using A7Agent
-        logger.info(f"Generating response for PDN code: {pdn_code}")
+        logger.info("Generating response for PDN code: %s", pdn_code)
         
         if pdn_code == "A7":
             try:
@@ -268,17 +273,27 @@ def create_45_day_plan():
                 response = agentA7.get_response_for_45_day_plan(user_context, user_name, pdn_code)
                 logger.info("Response generated successfully")
                 
-            except Exception as agent_error:
-                logger.error(f"Error with A7Agent: {agent_error}")
+            except (AttributeError, ValueError, ImportError) as agent_error:
+                logger.error("Error with A7Agent: %s", agent_error)
                 response = "I apologize, but I encountered an error while processing your request. Please try again."
+            except Exception as timeout_error:
+                logger.error("Unexpected error with A7Agent: %s", timeout_error)
+                if "timeout" in str(timeout_error).lower() or "timed out" in str(timeout_error).lower():
+                    response = (
+                        "I apologize, but the request is taking longer than expected. "
+                        "This might be due to high server load. Please try again in a few moments."
+                    )
+                else:
+                    response = "I apologize, but I encountered an unexpected error. Please try again."
         else:
-            logger.warning(f"Unknown PDN code: {pdn_code}, using fallback response")
+            logger.warning("Unknown PDN code: %s, using fallback response", pdn_code)
             response = "I apologize, but I encountered an error while processing your request. Please try again."
 
         return jsonify({
             "response": response,
             "timestamp": datetime.now().isoformat()
         })
-    except Exception as e:
-        logger.error(f"Error creating 45-day plan: {e}")
+
+    except (ValueError, KeyError, TypeError) as e:
+        logger.error("Error creating 45-day plan: %s", e)
         return jsonify({"error": "Failed to create 45-day plan"}), 500

@@ -1,3 +1,8 @@
+"""
+PDN Diagnose Routes - Flask routes for psychological assessment questionnaire.
+Handles user registration, questionnaire management, PDN code calculation, and report generation.
+"""
+
 from flask import Blueprint, request, render_template, jsonify, session, current_app
 
 from .logger import setup_logger
@@ -37,7 +42,7 @@ def user_info_page():
     questions = current_app.config.get('QUESTIONS_FILE', {})
 
     personal_instructions = questions.get("phases", {}).get("PersonalDetails", {}).get("instructions", "")
-    logger.info(f" /user_info  personal_instructions: {personal_instructions}")
+    logger.info(" /user_info  personal_instructions: %s", personal_instructions)
     return render_template("user_form.html",
                            include_menu=True,
                            email=email,
@@ -57,8 +62,8 @@ def save_user_info_api():
         save_user_metadata(user_data, email)
         session["user_data"] = user_data
         return jsonify({"message": "User information saved successfully."})
-    except Exception as e:
-        logger.error(f"Error saving user info: {e}")
+    except (ValueError, KeyError, TypeError) as e:
+        logger.error("Error saving user info: %s", e)
         return jsonify({"error": str(e)}), 400
 
 
@@ -76,15 +81,15 @@ def login_user():
             return jsonify({"message": "Login successful"})
         else:
             return jsonify({"error": "Invalid credentials"}), 401
-    except Exception as e:
-        logger.error(f"Login error: {e}")
+    except (ValueError, KeyError, TypeError) as e:
+        logger.error("Login error: %s", e)
         return jsonify({"error": "Login failed"}), 400
 
 
 @pdn_diagnose_bp.route('/questionnaire/<int:question_number>')
 def get_question_route(question_number):
     """Get specific question by number"""
-    logger.debug(f"GET /pdn-diagnose/questionnaire/{question_number} called")
+    logger.debug("GET /pdn-diagnose/questionnaire/%s called", question_number)
     logger.info("Request: %s %s", request.method, request.url)
     logger.info("Response: %s", 200)
 
@@ -127,6 +132,7 @@ def submit_answer_route():
 
         # Get question text from questions data
         question_text = None
+        question_options = None
         try:
             questions = current_app.config.get('QUESTIONS_FILE', {})
             question_data = get_question(question_number, questions)
@@ -134,7 +140,7 @@ def submit_answer_route():
                 question_text = question_data['question']
                 question_options = question_data['options']
         except Exception as e:
-            logger.error(f"Could not get question text for question {question_number}: {e}")
+            logger.error("Could not get question text for question %s: %s", question_number, e)
 
         # Create answer data dictionary
         answer_data = {
@@ -146,14 +152,14 @@ def submit_answer_route():
         # Save answer with question text
         try:
             save_answer(email, question_number, answer_data, question_text)
-            logger.info(f"Answer saved successfully for question {question_number}")
+            logger.info("Answer saved successfully for question %s", question_number)
         except Exception as save_error:
-            logger.error(f"Error saving answer: {save_error}")
+            logger.error("Error saving answer: %s", save_error)
             return jsonify({"error": f"Failed to save answer: {str(save_error)}"}), 500
 
         return jsonify({"message": "Answer saved successfully"})
-    except Exception as e:
-        logger.error(f"Error submitting answer: {e}")
+    except (ValueError, KeyError, FileNotFoundError) as e:
+        logger.error("Error submitting answer: %s", e)
         return jsonify({"error": str(e)}), 400
 
 
@@ -166,22 +172,22 @@ def complete_questionnaire():
 
     try:
         email = session.get('email', 'anonymous')
-        logger.info(f"Completing questionnaire for email: {email}")
+        logger.info("Completing questionnaire for email: %s", email)
 
         user_answers_data = load_answers(email)
         # logger.info(f"Loaded answers data: {user_answers_data}")
 
         if not user_answers_data:
-            logger.error(f"No answers found for email: {email}")
+            logger.error("No answers found for email: %s", email)
             return jsonify({"error": "No answers found"}), 400
 
         # Calculate PDN code
         pdn_code = calculate_pdn_code(user_answers_data)
 
-        logger.info(f"PDN code for {email}: {pdn_code}")
+        logger.info("PDN code for %s: %s", email, pdn_code)
 
         if not pdn_code:
-            logger.error(f"Could not calculate PDN code for user {email}")
+            logger.error("Could not calculate PDN code for user %s", email)
             return jsonify({"error": "Could not calculate PDN code - insufficient answers"}), 400
 
         # Update CSV with the calculated PDN code
@@ -189,14 +195,14 @@ def complete_questionnaire():
             from ..utils.csv_metadata_handler import UserMetadataHandler
             csv_handler = UserMetadataHandler()
             csv_handler.update_pdn_code(email, pdn_code)
-            logger.info(f"Successfully updated CSV with PDN code {pdn_code} for {email}")
+            logger.info("Successfully updated CSV with PDN code %s for %s", pdn_code, email)
         except Exception as csv_error:
-            logger.warning(f"Failed to update CSV with PDN code: {csv_error}")
+            logger.warning("Failed to update CSV with PDN code: %s", csv_error)
             # Don't fail the entire request if CSV update fails
 
         return jsonify({"pdn_code": pdn_code, "message": "Questionnaire completed successfully"})
-    except Exception as e:
-        logger.error(f"Error completing questionnaire: {e}")
+    except (ValueError, KeyError, FileNotFoundError) as e:
+        logger.error("Error completing questionnaire: %s", e)
         return jsonify({"error": str(e)}), 400
 
 
@@ -219,27 +225,27 @@ def get_report_data():
     try:
         # Get the current user's email from session
         email = session.get('email', 'anonymous')
-        logger.info(f"Getting report data for email: {email}")
+        logger.info("Getting report data for email: %s", email)
 
         # Load user answers
         user_answers_data = load_answers(email)
 
         if not user_answers_data:
-            logger.error(f"No answers found for email: {email}")
+            logger.error("No answers found for email: %s", email)
             return jsonify({'error': 'No answers found'}), 400
 
         # Calculate PDN code
         pdn_code = calculate_pdn_code(user_answers_data)
 
         if not pdn_code:
-            logger.error(f"Could not calculate PDN code for user {email}")
+            logger.error("Could not calculate PDN code for user %s", email)
             return jsonify({'error': 'Could not calculate PDN code'}), 400
 
         # Load report data
         report_data = load_pdn_report(pdn_code)
 
         if not report_data:
-            logger.error(f"Could not load PDN report for code {pdn_code}")
+            logger.error("Could not load PDN report for code %s", pdn_code)
             return jsonify({'error': 'Could not load PDN report'}), 400
 
         # Get user metadata
@@ -259,8 +265,8 @@ def get_report_data():
 
         return jsonify(response_data)
 
-    except Exception as e:
-        logger.error(f"Error getting report data: {str(e)}")
+    except (ValueError, KeyError, FileNotFoundError) as e:
+        logger.error("Error getting report data: %s", str(e))
         return jsonify({'error': 'Internal server error'}), 500
 
 

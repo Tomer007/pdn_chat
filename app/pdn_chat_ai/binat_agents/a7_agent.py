@@ -1,9 +1,19 @@
+"""
+A7Agent - AI-powered chat agent for PDN chat system.
+Handles conversation management, prompt loading, and response generation.
+"""
+
 import logging
 import os
 from collections import defaultdict
-from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
-from langchain_openai import ChatOpenAI
 from pathlib import Path
+
+from langchain.prompts import (
+    ChatPromptTemplate,
+    SystemMessagePromptTemplate,
+    HumanMessagePromptTemplate
+)
+from langchain_openai import ChatOpenAI
 
 # Configure logging
 logging.basicConfig(
@@ -18,7 +28,10 @@ logger = logging.getLogger(__name__)
 
 # Check if OpenAI API key is set in environment
 if not os.getenv("OPENAI_API_KEY"):
-    raise ValueError("OPENAI_API_KEY environment variable is not set. Please set it before running the application.")
+    raise ValueError(
+        "OPENAI_API_KEY environment variable is not set. "
+        "Please set it before running the application."
+    )
 
 
 class A7Agent:
@@ -37,7 +50,8 @@ class A7Agent:
         Initialize the A7 Agent.
         
         Args:
-            temperature: Controls randomness in the LLM response (0.0 = deterministic, 1.0 = very random)
+            temperature: Controls randomness in the LLM response
+                        (0.0 = deterministic, 1.0 = very random)
         """
         # Check if already initialized to prevent re-initialization
         if hasattr(self, '_initialized'):
@@ -47,10 +61,12 @@ class A7Agent:
         self.temperature = temperature
         self.max_history = 5  # Maximum number of messages to keep per user
 
-        # Setup the LLM
+        # Setup the LLM with optimized settings for faster responses
         self.llm = ChatOpenAI(
             model="gpt-4o-mini",
-            temperature=self.temperature
+            temperature=self.temperature,
+            max_tokens=2000,  # Reduced for faster generation
+            request_timeout=120  # 2 minute timeout for complex requests
         )
 
         # Load the A7 agent prompt
@@ -60,7 +76,9 @@ class A7Agent:
         self.prompt = ChatPromptTemplate.from_messages([
             SystemMessagePromptTemplate.from_template(self.system_prompt),
             HumanMessagePromptTemplate.from_template(
-                "Conversation History:\n{history}\n\nCurrent Question: {question}\n\nAnswer:")
+                "Conversation History:\n{history}\n\n"
+                "Current Question: {question}\n\nAnswer:"
+            )
         ])
 
         # Load the 45-day plan prompt
@@ -69,7 +87,9 @@ class A7Agent:
         # Build 45-day plan prompt template
         self.plan_prompt_template = ChatPromptTemplate.from_messages([
             SystemMessagePromptTemplate.from_template(self.plan_prompt),
-            HumanMessagePromptTemplate.from_template("{user_goals_and_success}")
+            HumanMessagePromptTemplate.from_template(
+                "{user_goals_and_success}"
+            )
         ])
 
         # In-memory conversation history storage
@@ -91,38 +111,45 @@ class A7Agent:
                     prompt_content = f.read().strip()
                     if prompt_content:
                         return prompt_content
-                    else:
-                        logger.error("A7 agent prompt file is empty")
-                        raise ValueError("A7 agent prompt file is empty")
-            else:
-                logger.error("A7 agent prompt file not found")
-                raise FileNotFoundError("A7 agent prompt file not found")
-        except Exception as e:
-            logger.error(f"Error loading A7 agent prompt: {e}")
+                    logger.error("A7 agent prompt file is empty")
+                    raise ValueError("A7 agent prompt file is empty")
+            logger.error("A7 agent prompt file not found")
+            raise FileNotFoundError("A7 agent prompt file not found")
+        except (FileNotFoundError, ValueError) as e:
+            logger.error("Error loading A7 agent prompt: %s", e)
             raise
 
     def _load_45_day_plan_prompt(self) -> str:
         """
-        Load the 45-day plan prompt from the 45_plan.prompt file.
+        Load the 45-day plan prompt from the optimized prompt file.
         
         Returns:
             The 45-day plan prompt as a string
         """
         try:
+            # Try optimized prompt first
+            optimized_path = Path(__file__).parent / "prompts" / "45_plan_optimized.prompt"
+            if optimized_path.exists():
+                with open(optimized_path, 'r', encoding='utf-8') as f:
+                    prompt_content = f.read().strip()
+                    if prompt_content:
+                        logger.info("Using optimized 45-day plan prompt")
+                        return prompt_content
+
+            # Fallback to original prompt
             prompt_path = Path(__file__).parent / "prompts" / "45_plan.prompt"
             if prompt_path.exists():
                 with open(prompt_path, 'r', encoding='utf-8') as f:
                     prompt_content = f.read().strip()
                     if prompt_content:
+                        logger.info("Using original 45-day plan prompt")
                         return prompt_content
-                    else:
-                        logger.error("45-day plan prompt file is empty")
-                        raise ValueError("45-day plan prompt file is empty")
-            else:
-                logger.error("45-day plan prompt file not found")
-                raise FileNotFoundError("45-day plan prompt file not found")
-        except Exception as e:
-            logger.error(f"Error loading 45-day plan prompt: {e}")
+                    logger.error("45-day plan prompt file is empty")
+                    raise ValueError("45-day plan prompt file is empty")
+            logger.error("45-day plan prompt file not found")
+            raise FileNotFoundError("45-day plan prompt file not found")
+        except (FileNotFoundError, ValueError) as e:
+            logger.error("Error loading 45-day plan prompt: %s", e)
             raise
 
     def _add_to_history(self, user_name: str, user_query: str, response: str):
@@ -145,9 +172,15 @@ class A7Agent:
 
         # Keep only the last max_history exchanges
         if len(self.conversation_history[user_name]) > self.max_history:
-            self.conversation_history[user_name] = self.conversation_history[user_name][-self.max_history:]
+            self.conversation_history[user_name] = (
+                self.conversation_history[user_name][-self.max_history:]
+            )
 
-        logger.debug(f"Added to history for {user_name}. Total exchanges: {len(self.conversation_history[user_name])}")
+        logger.debug(
+            "Added to history for %s. Total exchanges: %d",
+            user_name,
+            len(self.conversation_history[user_name])
+        )
 
     def _format_history(self, user_name: str) -> str:
         """
@@ -187,14 +220,12 @@ class A7Agent:
         """
         try:
             # Log user information if provided
-            logger.info(f"A7 Agent query from {user_name}: {user_query}")
+            logger.info("A7 Agent query from %s: %s", user_name, user_query)
 
             # Get conversation history for the user
             history_context = self._format_history(user_name)
 
             # Add user information to the question if provided
-            enhanced_question = user_query
-
             user_context = f"User Name is: {user_name}\n"
             user_context += f"User PDN Code is: {pdn_code}\n"
             enhanced_question = user_context + user_query
@@ -212,11 +243,16 @@ class A7Agent:
 
             return response_text
 
-        except Exception as e:
-            logger.error(f"Error in A7 Agent response generation: {e}")
-            return "I apologize, but I encountered an error while processing your request. Please try again."
+        except (ValueError, FileNotFoundError, IOError) as e:
+            logger.error("Error in A7 Agent response generation: %s", e)
+            return (
+                "I apologize, but I encountered an error while processing your request. "
+                "Please try again."
+            )
 
-    def get_response_for_45_day_plan(self, user_context: str, user_name: str = None, pdn_code: str = None) -> str:
+    def get_response_for_45_day_plan(
+        self, user_context: str, user_name: str = None, pdn_code: str = None
+    ) -> str:
         """
         Generate a 45-day transformation plan response using the specialized 45-day plan prompt.
         
@@ -230,28 +266,49 @@ class A7Agent:
         """
         try:
             # Log user information if provided
-            logger.info(f"A7 Agent generating 45-day plan for {user_name} with PDN code {pdn_code}")
+            logger.info(
+                "A7 Agent generating 45-day plan for %s with PDN code %s",
+                user_name, pdn_code
+            )
 
-            # Create the final context for the LLM
-            final_context = f"User Name: {user_name}\n"
-            final_context += f"User PDN Code: {pdn_code}\n\n"
-            final_context += f"User Goals and Success Definition:\n{user_context}"
+            # Use a more efficient approach - direct string formatting instead of template
+            formatted_prompt = self.plan_prompt.replace(
+                '$user_name', user_name or 'המשתמש'
+            )
+            formatted_prompt = formatted_prompt.replace('$success', user_context)
 
-            # Generate response using the 45-day plan LLM
-            llm_response = self.llm.invoke(self.plan_prompt_template.format_messages(
-                user_goals_and_success=final_context
-            ))
+            # Create a simpler prompt template for faster processing
+            simple_prompt = ChatPromptTemplate.from_messages([
+                SystemMessagePromptTemplate.from_template(formatted_prompt),
+                HumanMessagePromptTemplate.from_template(
+                    "צור תוכנית 45 יום מותאמת אישית"
+                )
+            ])
+
+            # Generate response using the optimized prompt
+            llm_response = self.llm.invoke(simple_prompt.format_messages())
             response_text = llm_response.content
-
-            # # Add to conversation history if user_name is provided
-            # if user_name:
-            #     self._add_to_history(user_name, f"45-day plan request: {user_context}", response_text)
 
             return response_text
 
+        except (ValueError, FileNotFoundError, IOError) as e:
+            logger.error("Error in A7 Agent 45-day plan generation: %s", e)
+            return (
+                "I apologize, but I encountered an error while generating your "
+                "45-day plan. Please try again."
+            )
         except Exception as e:
-            logger.error(f"Error in A7 Agent 45-day plan generation: {e}")
-            return "I apologize, but I encountered an error while generating your 45-day plan. Please try again."
+            logger.error("Unexpected error in A7 Agent 45-day plan generation: %s", e)
+            # Check if it's a timeout error
+            if "timeout" in str(e).lower() or "timed out" in str(e).lower():
+                return (
+                    "I apologize, but the request is taking longer than expected. "
+                    "Please try again with a simpler request or contact support if the issue persists."
+                )
+            return (
+                "I apologize, but I encountered an unexpected error while generating your "
+                "45-day plan. Please try again."
+            )
 
     def get_user_history(self, user_name: str) -> list:
         """
@@ -280,9 +337,9 @@ class A7Agent:
         try:
             if user_name in self.conversation_history:
                 del self.conversation_history[user_name]
-                logger.info(f"Cleared conversation history for user: {user_name}")
+                logger.info("Cleared conversation history for user: %s", user_name)
                 return True
             return False
-        except Exception as e:
-            logger.error(f"Error clearing history for user {user_name}: {e}")
+        except (KeyError, ValueError) as e:
+            logger.error("Error clearing history for user %s: %s", user_name, e)
             return False
