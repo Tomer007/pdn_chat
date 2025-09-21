@@ -6,6 +6,7 @@ PDN Chat is a comprehensive Flask application designed for psychological assessm
 ## Key Features
 - **Structured Questionnaire System**: 65-question psychological assessment with voice recording capabilities
 - **AI-Powered Chat Interface**: Intelligent conversation system with context awareness
+- **45-Day Transformation Plans**: Personalized transformation programs based on user goals and PDN codes
 - **Administrative Dashboard**: Complete user management, data visualization, and system administration
 - **Voice Analysis**: Audio recording and analysis for enhanced assessment
 - **Report Generation**: Automated PDF and JSON report generation
@@ -133,6 +134,9 @@ gunicorn -w 4 -b 0.0.0.0:8001 app:app
 - `GET /pdn-chat-ai/settings` - Get chat settings
 - `PUT /pdn-chat-ai/settings` - Update chat settings
 
+**45-Day Transformation Plans:**
+- `POST /pdn-chat-ai/45-day-plan` - Generate personalized 45-day transformation plan
+
 ### PDN Admin Module (`/pdn-admin`)
 **Authentication:**
 - `GET /pdn-admin/` - Admin login page
@@ -180,6 +184,15 @@ gunicorn -w 4 -b 0.0.0.0:8001 app:app
 - **Voice Integration**: Audio message support
 - **History Management**: Persistent conversation storage
 - **Settings Management**: Customizable chat parameters
+
+### 45-Day Transformation Plans
+- **Personalized Plans**: Custom transformation programs based on user goals and PDN codes
+- **Interactive Modal**: User-friendly interface for goal setting and success definition
+- **A7Agent Integration**: Specialized AI agent for plan generation using A7 PDN code
+- **Structured Format**: Daily plans with mindset focus, practice, and reflection components
+- **Hebrew Language Support**: Full RTL support and Hebrew interface
+- **Enter Key Support**: Quick form submission with keyboard shortcuts
+- **Error Handling**: Comprehensive error management and fallback responses
 
 ## Admin Dashboard Features
 
@@ -326,7 +339,12 @@ For support and questions:
 
 ## Changelog
 
-### Version 1.0.0 (Latest)
+### Version 1.1.0 (Latest)
+- ✅ **NEW**: 45-Day Transformation Plan feature with interactive modal
+- ✅ **NEW**: Personalized transformation programs based on user goals and PDN codes
+- ✅ **NEW**: A7Agent integration for specialized plan generation
+- ✅ **NEW**: Hebrew language support with RTL interface
+- ✅ **NEW**: Enter key support for quick form submission
 - ✅ Complete admin dashboard redesign with modern UI
 - ✅ Fixed JavaScript template literal syntax errors
 - ✅ Enhanced voice recording functionality
