@@ -199,7 +199,6 @@ class A7Agent:
                     if prompt_content:
                         logger.info("Using optimized 45-day plan prompt")
                         return prompt_content
-
             # Fallback to original prompt
             prompt_path = Path(__file__).parent / "prompts" / "45_plan.prompt"
             if prompt_path.exists():
