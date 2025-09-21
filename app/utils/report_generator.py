@@ -1,3 +1,16 @@
+"""
+Report Generator Module
+
+This module provides functionality for loading and managing PDN (Personality Development Number)
+reports from JSON data files. It handles report retrieval based on PDN codes with fallback
+to default reports when specific codes are not found.
+
+Key features:
+- PDN report loading from JSON files
+- Fallback to default reports for unknown codes
+- Error handling and logging for report operations
+"""
+
 import json
 import logging
 from pathlib import Path

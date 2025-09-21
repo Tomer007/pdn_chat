@@ -1,3 +1,17 @@
+"""
+Conversation History Module
+
+This module provides functionality for managing conversation history between users
+and the AI system. It maintains a rolling history of messages with configurable
+limits and provides context formatting for RAG (Retrieval-Augmented Generation) systems.
+
+Key features:
+- Per-user conversation history storage
+- Configurable message limits
+- Context formatting for AI systems
+- Safe file handling with error recovery
+"""
+
 import json
 import logging
 import os

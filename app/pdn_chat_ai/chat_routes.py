@@ -3,7 +3,6 @@ PDN Chat AI Routes - Flask routes for AI-powered chat interface.
 Handles user authentication, chat messaging, and 45-day plan generation.
 """
 
-import os
 import uuid
 from datetime import datetime
 from string import Template

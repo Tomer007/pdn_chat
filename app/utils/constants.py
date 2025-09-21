@@ -1,3 +1,16 @@
+"""
+Constants Module
+
+This module defines constants used throughout the PDN (Personality Development Number)
+application. It provides centralized configuration values for conversation management,
+file paths, and other system-wide settings.
+
+Key constants:
+- Conversation history limits
+- Storage directory paths
+- System configuration values
+"""
+
 class ConversationConstants:
     """Constants for conversation history management"""
 

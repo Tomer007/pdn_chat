@@ -1,3 +1,16 @@
+"""
+Answer Storage Module
+
+This module provides functionality for saving and loading user questionnaire answers
+and metadata. It handles JSON file operations with proper Hebrew encoding support
+and integrates with the CSV metadata handler for comprehensive data management.
+
+Key functions:
+- save_answer: Save individual question answers
+- load_answers: Load all user answers from JSON file
+- save_user_metadata: Save user metadata with timestamp
+"""
+
 import json
 import os
 from datetime import datetime
@@ -11,7 +24,15 @@ pdn_file_path = PDNFilePath()
 
 
 def save_answer(email: str, question_number: int, answer_data: dict, question_text: str = None):
-    """Save a single answer to the user's temp file."""
+    """
+    Save a single answer to the user's temporary JSON file.
+    
+    Args:
+        email (str): User's email address (used for file naming)
+        question_number (int): The question number being answered
+        answer_data (dict): Dictionary containing the answer data
+        question_text (str, optional): The text of the question being answered
+    """
 
     # Create filename
     filename = f"{email}_answers.json"
@@ -39,7 +60,13 @@ def save_answer(email: str, question_number: int, answer_data: dict, question_te
 
 def load_answers(email: str) -> Optional[Dict[str, Any]]:
     """
-    Load user answers from a JSON file
+    Load user answers from a JSON file.
+    
+    Args:
+        email (str): User's email address (used for file naming)
+        
+    Returns:
+        Optional[Dict[str, Any]]: Dictionary containing all user answers, or None if file doesn't exist
     """
     try:
         filename = f"{email}_answers.json"
@@ -71,7 +98,13 @@ def load_answers(email: str) -> Optional[Dict[str, Any]]:
 def save_user_metadata(metadata: Dict[str, Any], email: str = None) -> None:
     """
     Save user metadata to the answers JSON file with proper Hebrew encoding.
-    Includes timestamp in filename.
+    
+    Args:
+        metadata (Dict[str, Any]): Dictionary containing user metadata
+        email (str, optional): User's email address (required for file naming)
+        
+    Raises:
+        ValueError: If email is not provided
     """
     if not email:
         raise ValueError("Email is required to save user metadata")

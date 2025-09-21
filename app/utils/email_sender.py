@@ -1,3 +1,18 @@
+"""
+Email Sender Module
+
+This module provides functionality for sending PDN (Personality Development Number)
+reports via email to users. It includes HTML email generation with modern styling,
+PDF attachment handling, and comprehensive error management.
+
+Key features:
+- HTML email generation with Hebrew RTL support
+- PDF report attachment with fallback handling
+- Modern responsive email design
+- SMTP integration with Gmail
+- Comprehensive error logging and recovery
+"""
+
 import logging
 import os
 import smtplib
@@ -42,7 +57,8 @@ def send_pdn_code_email(user_answers: Dict[str, Any], pdn_code: str) -> bool:
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>מפת הדרכים האישית שלך - {pdn_code}</title>
-            <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+            <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap" 
+                  rel="stylesheet">
             <style>
                 * {{
                     margin: 0;

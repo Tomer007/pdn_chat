@@ -1,8 +1,31 @@
+"""
+PDN Chat RAG Module
+
+This module provides Retrieval-Augmented Generation (RAG) functionality for the PDN
+(Personality Development Number) chat system. It handles document loading, text
+splitting, vector storage, and AI-powered question answering.
+
+Key features:
+- Document loading from PDF and DOCX files
+- Text splitting and chunking for optimal processing
+- Vector database integration with ChromaDB
+- OpenAI embeddings and chat model integration
+- Conversation history management
+- RAG-based question answering system
+"""
+
 import logging
 import os
-from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
+from langchain.prompts import (
+    ChatPromptTemplate,
+    SystemMessagePromptTemplate,
+    HumanMessagePromptTemplate
+)
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.document_loaders import PyPDFLoader, UnstructuredWordDocumentLoader
+from langchain_community.document_loaders import (
+    PyPDFLoader,
+    UnstructuredWordDocumentLoader
+)
 from langchain_community.vectorstores import Chroma
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from pathlib import Path
@@ -23,7 +46,10 @@ logger = logging.getLogger(__name__)
 
 # Check if OpenAI API key is set in environment
 if not os.getenv("OPENAI_API_KEY"):
-    raise ValueError("OPENAI_API_KEY environment variable is not set. Please set it before running the application.")
+    raise ValueError(
+        "OPENAI_API_KEY environment variable is not set. "
+        "Please set it before running the application."
+    )
 
 # Import system prompt from prompts module
 from ..prompts import BINT_CHAT_SOURCE_PROMPT
@@ -82,7 +108,9 @@ class PDNRAG:
             docs = splitter.split_documents(docs)
 
             logger.info("Creating embeddings and vector store...")
-            self.vectorstore = Chroma.from_documents(docs, embeddings, persist_directory=persist_dir)
+            self.vectorstore = Chroma.from_documents(
+                docs, embeddings, persist_directory=persist_dir
+            )
             logger.info("Chroma vectorstore created successfully.")
 
         # Setup retriever
@@ -95,7 +123,9 @@ class PDNRAG:
         # Build prompt template with PDN chat source prompt
         self.prompt = ChatPromptTemplate.from_messages([
             SystemMessagePromptTemplate.from_template(BINT_CHAT_SOURCE_PROMPT),
-            HumanMessagePromptTemplate.from_template("Context: {context}\n\nQuestion: {question}\n\nAnswer:")
+            HumanMessagePromptTemplate.from_template(
+                "Context: {context}\n\nQuestion: {question}\n\nAnswer:"
+            )
         ])
 
         # Setup the LLM with system prompt
@@ -104,14 +134,24 @@ class PDNRAG:
 
         logger.info("RAG setup complete.")
 
-    def retrieve(self, user_query: str, user_name: str = None, user_id: str = None, pdn_code: str = None) -> str:
+    def retrieve(
+        self,
+        user_query: str,
+        user_name: str = None,
+        user_id: str = None,
+        pdn_code: str = None
+    ) -> str:
         """
         Retrieve and generate an answer for a given user query using the PDN RAG system.
         """
         # Log user information if provided
         user_info = ""
         if user_name or user_id:
-            user_info = f" (User: {user_name or 'Unknown'}, ID: {user_id or 'Unknown'}, PDN Code: {pdn_code or 'Unknown'})"
+            user_info = (
+                f" (User: {user_name or 'Unknown'}, "
+                f"ID: {user_id or 'Unknown'}, "
+                f"PDN Code: {pdn_code or 'Unknown'})"
+            )
 
         logger.info(f"Querying: {user_query}{user_info}")
         try:
@@ -126,12 +166,19 @@ class PDNRAG:
             if user_id:
                 conversation_context = conversation_history.get_conversation_context(user_id)
                 if conversation_context:
-                    context = f"Previous Conversation:\n{conversation_context}\n\nDocument Context:\n{context}"
+                    context = (
+                        f"Previous Conversation:\n{conversation_context}\n\n"
+                        f"Document Context:\n{context}"
+                    )
 
             # Add user information to the question if provided
             enhanced_question = user_query
             if user_name or user_id:
-                user_context = f"User Name is: {user_name}\nUser PDN Code is: {pdn_code}\nUser ID is: {user_id}\n"
+                user_context = (
+                    f"User Name is: {user_name}\n"
+                    f"User PDN Code is: {pdn_code}\n"
+                    f"User ID is: {user_id}\n"
+                )
                 enhanced_question = user_context + user_query
 
             # Generate response using the LLM chain

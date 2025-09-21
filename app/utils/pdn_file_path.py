@@ -1,3 +1,17 @@
+"""
+PDN File Path Module
+
+This module provides utilities for managing file paths and directories
+for the PDN (Personality Development Number) system. It handles user-specific
+directory creation, file path generation, and safe filename handling.
+
+Key features:
+- User directory management based on email addresses
+- Safe filename generation (removing special characters)
+- File path resolution with automatic directory creation
+- File discovery utilities for different file types
+"""
+
 import os
 from pathlib import Path
 from typing import Optional

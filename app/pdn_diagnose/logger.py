@@ -1,3 +1,17 @@
+"""
+Logger Module for PDN Diagnose
+
+This module provides logging configuration for the PDN Diagnose system.
+It sets up console logging with standardized formatting for debugging
+and monitoring purposes.
+
+Key features:
+- Console-based logging output
+- Standardized log format with timestamps
+- Configurable log levels
+- Module-specific logger instances
+"""
+
 import logging
 
 

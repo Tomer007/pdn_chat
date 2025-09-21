@@ -1,3 +1,17 @@
+"""
+Questionnaire Module
+
+This module provides functionality for managing the PDN (Personality Development Number)
+questionnaire system. It handles question retrieval, phase management, and question
+type classification for the multi-stage personality assessment.
+
+Key features:
+- Question retrieval by number and phase
+- Phase classification (Part A through Part F)
+- Question type and instruction management
+- Structured question data formatting
+"""
+
 import json
 import logging
 
@@ -6,8 +20,21 @@ logger = logging.getLogger(__name__)
 
 def get_question(question_number: int, questions: dict):
     """
-    Fetch a specific question by its number.
-    Returns the question text and its options.
+    Fetch a specific question by its number from the questionnaire data.
+    
+    Args:
+        question_number (int): The question number to retrieve
+        questions (dict): The complete questions data structure
+        
+    Returns:
+        dict: Dictionary containing question data with keys:
+            - question_number: The question number
+            - question: The question text
+            - options: Available answer options
+            - stage: The phase/part (PartA, PartB, etc.)
+            - type: Question type (if specified)
+            - instructions: Phase-specific instructions
+        Returns {"message": "No more questions."} if question not found
     """
 
     # Check Part A questions (1-26)

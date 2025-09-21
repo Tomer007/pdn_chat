@@ -1,15 +1,33 @@
+"""
+PDN Calculator Module
+
+This module provides functionality to calculate PDN (Personality Development Number) codes
+based on user questionnaire answers. The calculation follows a multi-stage process:
+
+- Stage A: Primary trait calculation (A, T, P, E)
+- Stage B: Energy type calculation (D, S, F) 
+- Stage C: Validation and tie-breaking for traits
+- Stage D: Validation and tie-breaking for energy types
+- Stage E: Strengthen dominant trait
+
+The final PDN code is determined by combining the dominant trait and energy type
+using a predefined matrix.
+"""
+
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-def calculate_pdn_code(answers: dict) -> dict:
+def calculate_pdn_code(answers: dict) -> str:
     """
     Calculate the PDN code based on user's answers.
+    
     Args:
         answers (dict): Dictionary containing user's answers with question numbers as keys
+        
     Returns:
-        dict: Dictionary containing the calculated PDN code and related information
+        str: The calculated PDN code (e.g., 'A7', 'P10', 'T4', etc.)
     """
     # Initialize result dictionary
     result = {
