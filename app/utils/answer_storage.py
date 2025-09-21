@@ -15,6 +15,7 @@ import json
 import os
 from datetime import datetime
 from typing import Dict, Any, Optional
+from functools import lru_cache
 
 from .csv_metadata_handler import UserMetadataHandler
 from .pdn_file_path import PDNFilePath
@@ -22,8 +23,37 @@ from .pdn_file_path import PDNFilePath
 # Initialize the utility
 pdn_file_path = PDNFilePath()
 
+# Cache for frequently accessed data
+_answer_cache: Dict[str, Dict[str, Any]] = {}
+_cache_timestamp: Optional[datetime] = None
+_cache_validity_seconds = 30  # Cache valid for 30 seconds
 
-def save_answer(email: str, question_number: int, answer_data: dict, question_text: str = None):
+
+def _is_cache_valid() -> bool:
+    """Check if the current cache is still valid."""
+    global _cache_timestamp
+    if _cache_timestamp is None:
+        return False
+    
+    current_time = datetime.now()
+    return (current_time - _cache_timestamp).total_seconds() < _cache_validity_seconds
+
+
+def _invalidate_cache() -> None:
+    """Invalidate the current cache."""
+    global _answer_cache, _cache_timestamp
+    _answer_cache.clear()
+    _cache_timestamp = None
+
+
+def _update_cache(email: str, data: Dict[str, Any]) -> None:
+    """Update the cache with new data."""
+    global _answer_cache, _cache_timestamp
+    _answer_cache[email] = data
+    _cache_timestamp = datetime.now()
+
+
+def save_answer(email: str, question_number: int, answer_data: Dict[str, Any], question_text: Optional[str] = None) -> None:
     """
     Save a single answer to the user's temporary JSON file.
     
@@ -36,14 +66,24 @@ def save_answer(email: str, question_number: int, answer_data: dict, question_te
 
     # Create filename
     filename = f"{email}_answers.json"
-
     file_path = pdn_file_path.get_user_file_path(email, filename)
 
-    if file_path.exists():
-        with open(file_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-    else:
-        data = {}
+    # Try to get data from cache first
+    data = _answer_cache.get(email, {})
+    
+    # If not in cache or cache is invalid, load from file
+    if not data or not _is_cache_valid():
+        if file_path.exists():
+            try:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+            except (json.JSONDecodeError, IOError):
+                data = {}
+        else:
+            data = {}
+        
+        # Update cache
+        _update_cache(email, data)
 
     # Filter out None values from answer_data
     filtered_answer_data = {k: v for k, v in answer_data.items() if v is not None}
@@ -54,13 +94,22 @@ def save_answer(email: str, question_number: int, answer_data: dict, question_te
 
     data[str(question_number)] = filtered_answer_data
 
-    with open(file_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+    # Save to file
+    try:
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        
+        # Update cache with new data
+        _update_cache(email, data)
+    except IOError as e:
+        # If file write fails, invalidate cache
+        _invalidate_cache()
+        raise e
 
 
 def load_answers(email: str) -> Optional[Dict[str, Any]]:
     """
-    Load user answers from a JSON file.
+    Load user answers from a JSON file with caching for performance.
     
     Args:
         email (str): User's email address (used for file naming)
@@ -68,6 +117,10 @@ def load_answers(email: str) -> Optional[Dict[str, Any]]:
     Returns:
         Optional[Dict[str, Any]]: Dictionary containing all user answers, or None if file doesn't exist
     """
+    # Check cache first
+    if _is_cache_valid() and email in _answer_cache:
+        return _answer_cache[email]
+    
     try:
         filename = f"{email}_answers.json"
         file_path = pdn_file_path.get_user_file_path(email, filename)
@@ -87,9 +140,12 @@ def load_answers(email: str) -> Optional[Dict[str, Any]]:
         # Load the JSON file
         with open(file_path, "r", encoding="utf-8") as f:
             answers = json.load(f)
+            
+            # Update cache
+            _update_cache(email, answers)
             return answers
 
-    except (FileNotFoundError, json.JSONDecodeError):
+    except (FileNotFoundError, json.JSONDecodeError, IOError):
         return None
     except Exception:
         return None
@@ -117,18 +173,32 @@ def save_user_metadata(metadata: Dict[str, Any], email: str = None) -> None:
     csv_metadata_handler = UserMetadataHandler()
     csv_metadata_handler.append_user_metadata(metadata)
 
-    if file_path.exists():
-        with open(file_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-    else:
-        data = {}
-
-    # Generate timestamp
+    # Try to get data from cache first
+    data = _answer_cache.get(email, {})
+    
+    # If not in cache or cache is invalid, load from file
+    if not data or not _is_cache_valid():
+        if file_path.exists():
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+            except (json.JSONDecodeError, IOError):
+                data = {}
+        else:
+            data = {}
 
     # Update metadata
     metadata['timestamp'] = datetime.now().strftime("%Y_%m_%d_%H_%M")
     data['metadata'] = metadata
 
     # Save with proper Hebrew encoding
-    with open(file_path, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+    try:
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        
+        # Update cache with new data
+        _update_cache(email, data)
+    except IOError as e:
+        # If file write fails, invalidate cache
+        _invalidate_cache()
+        raise e

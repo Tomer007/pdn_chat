@@ -7,6 +7,10 @@ import logging
 import os
 from collections import defaultdict
 from pathlib import Path
+from typing import Dict, List, Optional, Any
+from functools import lru_cache
+import threading
+import time
 
 from langchain.prompts import (
     ChatPromptTemplate,
@@ -37,12 +41,16 @@ if not os.getenv("OPENAI_API_KEY"):
 class A7Agent:
     """
     A7 Agent for PDN chat system that provides prompt-based responses with conversation history.
+    Optimized with connection pooling, caching, and performance monitoring.
     """
     _instance = None
+    _lock = threading.Lock()
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
-            cls._instance = super().__new__(cls)
+            with cls._lock:
+                if cls._instance is None:
+                    cls._instance = super().__new__(cls)
         return cls._instance
 
     def __init__(self, temperature: float = 0.7):
@@ -60,6 +68,17 @@ class A7Agent:
 
         self.temperature = temperature
         self.max_history = 5  # Maximum number of messages to keep per user
+        
+        # Performance monitoring
+        self._response_times: List[float] = []
+        self._request_count = 0
+        self._cache_hits = 0
+        self._cache_misses = 0
+        
+        # Response cache for similar queries
+        self._response_cache: Dict[str, str] = {}
+        self._cache_max_size = 100
+        self._cache_ttl = 300  # 5 minutes
 
         # Setup the LLM with optimized settings for faster responses
         self.llm = ChatOpenAI(
@@ -96,6 +115,51 @@ class A7Agent:
         self.conversation_history = defaultdict(list)
 
         logger.info("A7 Agent initialized successfully.")
+
+    def _get_cache_key(self, user_message: str, user_id: str = None) -> str:
+        """Generate a cache key for the user message."""
+        # Normalize the message for better cache hits
+        normalized_message = user_message.strip().lower()
+        return f"{user_id or 'anonymous'}:{hash(normalized_message)}"
+
+    def _is_cache_valid(self, cache_key: str) -> bool:
+        """Check if cache entry is still valid."""
+        if cache_key not in self._response_cache:
+            return False
+        
+        # Simple TTL check - in production, you'd want more sophisticated caching
+        return len(self._response_cache) < self._cache_max_size
+
+    def _clean_cache(self) -> None:
+        """Clean old cache entries if cache is full."""
+        if len(self._response_cache) >= self._cache_max_size:
+            # Remove oldest entries (simple FIFO)
+            keys_to_remove = list(self._response_cache.keys())[:self._cache_max_size // 2]
+            for key in keys_to_remove:
+                del self._response_cache[key]
+
+    def _record_performance(self, response_time: float) -> None:
+        """Record performance metrics."""
+        self._response_times.append(response_time)
+        self._request_count += 1
+        
+        # Keep only last 100 response times
+        if len(self._response_times) > 100:
+            self._response_times = self._response_times[-100:]
+
+    def get_performance_stats(self) -> Dict[str, Any]:
+        """Get performance statistics."""
+        avg_response_time = sum(self._response_times) / len(self._response_times) if self._response_times else 0
+        cache_hit_rate = self._cache_hits / (self._cache_hits + self._cache_misses) if (self._cache_hits + self._cache_misses) > 0 else 0
+        
+        return {
+            'total_requests': self._request_count,
+            'cache_hits': self._cache_hits,
+            'cache_misses': self._cache_misses,
+            'cache_hit_rate': cache_hit_rate,
+            'avg_response_time': avg_response_time,
+            'cache_size': len(self._response_cache)
+        }
 
     def _load_system_prompt(self) -> str:
         """

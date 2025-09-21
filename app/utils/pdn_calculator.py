@@ -15,11 +15,12 @@ using a predefined matrix.
 """
 
 import logging
+from typing import Dict, Any, Tuple
 
 logger = logging.getLogger(__name__)
 
 
-def calculate_pdn_code(answers: dict) -> str:
+def calculate_pdn_code(answers: Dict[str, Any]) -> str:
     """
     Calculate the PDN code based on user's answers.
     
@@ -29,8 +30,8 @@ def calculate_pdn_code(answers: dict) -> str:
     Returns:
         str: The calculated PDN code (e.g., 'A7', 'P10', 'T4', etc.)
     """
-    # Initialize result dictionary
-    result = {
+    # Initialize result dictionary with proper typing
+    result: Dict[str, Any] = {
         'pdn_code': 'NA',
         'trait': 'Undetermined',
         'energy': 'Undetermined',
@@ -53,7 +54,7 @@ def calculate_pdn_code(answers: dict) -> str:
             elif answer == 'TP':
                 result['scores']['T'] += 1
                 result['scores']['P'] += 1
-    dominant_trait = max(result['scores'], key=result['scores'].get)
+    dominant_trait: str = max(result['scores'], key=result['scores'].get)
     result['trait'] = dominant_trait
 
     logger.info("Stage A: Trait Calculation for A %s", result['scores']['A'])
@@ -63,7 +64,7 @@ def calculate_pdn_code(answers: dict) -> str:
     logger.info("Stage A dominant trait %s", dominant_trait)
 
     # Stage B: Energy Type Calculation
-    energy_counts = {'D': 0, 'S': 0, 'F': 0}
+    energy_counts: Dict[str, int] = {'D': 0, 'S': 0, 'F': 0}
     for i in range(27, 38):
         if str(i) in answers:
             ranking = answers[str(i)]['ranking']
@@ -173,14 +174,14 @@ def calculate_pdn_code(answers: dict) -> str:
     logger.info("Stage E dominant trait %s", dominant_trait)
 
     # Finalizing the PDN code
-    pdn_matrix = {
+    pdn_matrix: Dict[Tuple[str, str], str] = {
         ('P', 'D'): 'P10', ('P', 'S'): 'P2', ('P', 'F'): 'P6',
         ('E', 'D'): 'E1', ('E', 'S'): 'E5', ('E', 'F'): 'E9',
         ('A', 'D'): 'A7', ('A', 'S'): 'A11', ('A', 'F'): 'A3',
         ('T', 'D'): 'T4', ('T', 'S'): 'T8', ('T', 'F'): 'T12'
     }
 
-    pdn_code = pdn_matrix.get((result['trait'], result['energy']), 'NA')
+    pdn_code: str = pdn_matrix.get((result['trait'], result['energy']), 'NA')
     result['pdn_code'] = pdn_code
 
     logger.info("Finalizing the PDN code %s", pdn_code)
