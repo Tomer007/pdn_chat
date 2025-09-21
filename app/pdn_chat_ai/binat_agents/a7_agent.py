@@ -47,10 +47,12 @@ class A7Agent:
         self.temperature = temperature
         self.max_history = 5  # Maximum number of messages to keep per user
 
-        # Setup the LLM
+        # Setup the LLM with optimized settings for faster responses
         self.llm = ChatOpenAI(
             model="gpt-4o-mini",
-            temperature=self.temperature
+            temperature=self.temperature,
+            max_tokens=4000,  # Limit response length for faster generation
+            request_timeout=30  # 30 second timeout
         )
 
         # Load the A7 agent prompt
@@ -103,17 +105,28 @@ class A7Agent:
 
     def _load_45_day_plan_prompt(self) -> str:
         """
-        Load the 45-day plan prompt from the 45_plan.prompt file.
+        Load the 45-day plan prompt from the optimized prompt file.
         
         Returns:
             The 45-day plan prompt as a string
         """
         try:
+            # Try optimized prompt first
+            optimized_path = Path(__file__).parent / "prompts" / "45_plan_optimized.prompt"
+            if optimized_path.exists():
+                with open(optimized_path, 'r', encoding='utf-8') as f:
+                    prompt_content = f.read().strip()
+                    if prompt_content:
+                        logger.info("Using optimized 45-day plan prompt")
+                        return prompt_content
+            
+            # Fallback to original prompt
             prompt_path = Path(__file__).parent / "prompts" / "45_plan.prompt"
             if prompt_path.exists():
                 with open(prompt_path, 'r', encoding='utf-8') as f:
                     prompt_content = f.read().strip()
                     if prompt_content:
+                        logger.info("Using original 45-day plan prompt")
                         return prompt_content
                     else:
                         logger.error("45-day plan prompt file is empty")
@@ -232,15 +245,21 @@ class A7Agent:
             # Log user information if provided
             logger.info(f"A7 Agent generating 45-day plan for {user_name} with PDN code {pdn_code}")
 
-            # Create the final context for the LLM
-            final_context = f"User Name: {user_name}\n"
-            final_context += f"User PDN Code: {pdn_code}\n\n"
-            final_context += f"User Goals and Success Definition:\n{user_context}"
+            # Create a more concise context for faster processing
+            final_context = f"User: {user_name or 'Anonymous'}\nPDN Code: {pdn_code or 'A7'}\nGoals: {user_context}"
 
-            # Generate response using the 45-day plan LLM
-            llm_response = self.llm.invoke(self.plan_prompt_template.format_messages(
-                user_goals_and_success=final_context
-            ))
+            # Use a more efficient approach - direct string formatting instead of template
+            formatted_prompt = self.plan_prompt.replace('$user_name', user_name or 'המשתמש')
+            formatted_prompt = formatted_prompt.replace('$success', user_context)
+            
+            # Create a simpler prompt template for faster processing
+            simple_prompt = ChatPromptTemplate.from_messages([
+                SystemMessagePromptTemplate.from_template(formatted_prompt),
+                HumanMessagePromptTemplate.from_template("צור תוכנית 45 יום מותאמת אישית")
+            ])
+
+            # Generate response using the optimized prompt
+            llm_response = self.llm.invoke(simple_prompt.format_messages())
             response_text = llm_response.content
 
             # # Add to conversation history if user_name is provided
