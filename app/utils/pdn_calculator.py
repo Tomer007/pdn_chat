@@ -41,19 +41,24 @@ def calculate_pdn_code(answers: Dict[str, Any]) -> str:
     # Stage A: Primary Trait Calculation
     for i in range(1, 27):
         if str(i) in answers:
-            answer = answers[str(i)]['selected_option_code']
-            if answer == 'AP':
-                result['scores']['A'] += 1
-                result['scores']['P'] += 1
-            elif answer == 'ET':
-                result['scores']['E'] += 1
-                result['scores']['T'] += 1
-            elif answer == 'AE':
-                result['scores']['A'] += 1
-                result['scores']['E'] += 1
-            elif answer == 'TP':
-                result['scores']['T'] += 1
-                result['scores']['P'] += 1
+            answer_data = answers[str(i)]
+            # Check if selected_option_code exists and is valid
+            if 'selected_option_code' in answer_data and isinstance(answer_data['selected_option_code'], str):
+                answer = answer_data['selected_option_code']
+                if answer == 'AP':
+                    result['scores']['A'] += 1
+                    result['scores']['P'] += 1
+                elif answer == 'ET':
+                    result['scores']['E'] += 1
+                    result['scores']['T'] += 1
+                elif answer == 'AE':
+                    result['scores']['A'] += 1
+                    result['scores']['E'] += 1
+                elif answer == 'TP':
+                    result['scores']['T'] += 1
+                    result['scores']['P'] += 1
+            else:
+                logger.warning("Missing or invalid selected_option_code for question %s", i)
     dominant_trait: str = max(result['scores'], key=result['scores'].get)
     result['trait'] = dominant_trait
 
@@ -67,14 +72,20 @@ def calculate_pdn_code(answers: Dict[str, Any]) -> str:
     energy_counts: Dict[str, int] = {'D': 0, 'S': 0, 'F': 0}
     for i in range(27, 38):
         if str(i) in answers:
-            ranking = answers[str(i)]['ranking']
-            for energy, rank in ranking.items():
-                if rank == 1:
-                    energy_counts[energy] += 3
-                elif rank == 2:
-                    energy_counts[energy] += 2
-                elif rank == 3:
-                    energy_counts[energy] += 1
+            answer_data = answers[str(i)]
+            # Check if ranking data exists and is valid
+            if 'ranking' in answer_data and isinstance(answer_data['ranking'], dict):
+                ranking = answer_data['ranking']
+                for energy, rank in ranking.items():
+                    if isinstance(rank, (int, float)) and energy in energy_counts:
+                        if rank == 1:
+                            energy_counts[energy] += 3
+                        elif rank == 2:
+                            energy_counts[energy] += 2
+                        elif rank == 3:
+                            energy_counts[energy] += 1
+            else:
+                logger.warning("Missing or invalid ranking data for question %s", i)
 
     result['scores'].update(energy_counts)
     dominant_energy = max(energy_counts, key=energy_counts.get)
@@ -88,20 +99,27 @@ def calculate_pdn_code(answers: Dict[str, Any]) -> str:
     # Stage C: Validation and Tie-Breaking
     for i in range(38, 43):
         if str(i) in answers:
-            ranking = answers[str(i)]['ranking']
-            traits = list(ranking.keys())
-            trait1, trait2 = traits
-            value1, value2 = ranking[trait1], ranking[trait2]
+            answer_data = answers[str(i)]
+            # Check if ranking data exists and is valid
+            if 'ranking' in answer_data and isinstance(answer_data['ranking'], dict):
+                ranking = answer_data['ranking']
+                traits = list(ranking.keys())
+                if len(traits) >= 2:
+                    trait1, trait2 = traits[0], traits[1]
+                    value1, value2 = ranking[trait1], ranking[trait2]
 
-            difference = value1 - value2
-            score_adjustment = abs(difference)
+                    if isinstance(value1, (int, float)) and isinstance(value2, (int, float)):
+                        difference = value1 - value2
+                        score_adjustment = abs(difference)
 
-            if difference > 0:
-                result['scores'][trait1] += 1
-                # result['scores'][trait2] -= 1
-            elif difference < 0:
-                # result['scores'][trait1] -= 1
-                result['scores'][trait2] += 1
+                        if difference > 0:
+                            result['scores'][trait1] += 1
+                            # result['scores'][trait2] -= 1
+                        elif difference < 0:
+                            # result['scores'][trait1] -= 1
+                            result['scores'][trait2] += 1
+            else:
+                logger.warning("Missing or invalid ranking data for question %s", i)
 
     dominant_trait = max(result['scores'], key=result['scores'].get)
     result['trait'] = dominant_trait
@@ -115,30 +133,38 @@ def calculate_pdn_code(answers: Dict[str, Any]) -> str:
     # Stage D: Validation and Tie-Breaking
     for i in range(43, 57):
         if str(i) in answers:
-            ranking = answers[str(i)]['ranking']
-            # Get the trait combinations and their rankings
-            trait_combinations = list(ranking.keys())
-            if len(trait_combinations) == 2:
-                combo1, combo2 = trait_combinations
-                value1, value2 = ranking[combo1], ranking[combo2]
+            answer_data = answers[str(i)]
+            # Check if ranking data exists and is valid
+            if 'ranking' in answer_data and isinstance(answer_data['ranking'], dict):
+                ranking = answer_data['ranking']
+                # Get the trait combinations and their rankings
+                trait_combinations = list(ranking.keys())
+                if len(trait_combinations) == 2:
+                    combo1, combo2 = trait_combinations
+                    value1, value2 = ranking[combo1], ranking[combo2]
 
-                difference = value1 - value2
-                score_adjustment = abs(difference) * 2
+                    if isinstance(value1, (int, float)) and isinstance(value2, (int, float)):
+                        difference = value1 - value2
+                        score_adjustment = abs(difference) * 2
 
-                if difference > 0:
-                    # Add points to both traits in the winning combination
-                    result['scores'][combo1[0]] += 1
-                    result['scores'][combo1[1]] += 1
-                    # Subtract points from both traits in the losing combination
-                    # result['scores'][combo2[0]] -= 1
-                    # result['scores'][combo2[1]] -= 1
-                elif difference < 0:
-                    # Add points to both traits in the winning combination
-                    result['scores'][combo2[0]] += 1
-                    result['scores'][combo2[1]] += 1
-                    # Subtract points from both traits in the losing combination
-                    # result['scores'][combo1[0]] -= 1
-                    # result['scores'][combo1[1]] -= 1
+                        if difference > 0:
+                            # Add points to both traits in the winning combination
+                            if len(combo1) >= 2:
+                                result['scores'][combo1[0]] += 1
+                                result['scores'][combo1[1]] += 1
+                            # Subtract points from both traits in the losing combination
+                            # result['scores'][combo2[0]] -= 1
+                            # result['scores'][combo2[1]] -= 1
+                        elif difference < 0:
+                            # Add points to both traits in the winning combination
+                            if len(combo2) >= 2:
+                                result['scores'][combo2[0]] += 1
+                                result['scores'][combo2[1]] += 1
+                            # Subtract points from both traits in the losing combination
+                            # result['scores'][combo1[0]] -= 1
+                            # result['scores'][combo1[1]] -= 1
+            else:
+                logger.warning("Missing or invalid ranking data for question %s", i)
 
     # Recalculate dominant trait after all adjustments
     dominant_trait = max(result['scores'], key=result['scores'].get)
@@ -153,16 +179,22 @@ def calculate_pdn_code(answers: Dict[str, Any]) -> str:
     # Stage E: Strengthen Dominant Trait
     for i in range(57, 61):
         if str(i) in answers:
-            ranking = answers[str(i)]['ranking']
-            for trait, rank in ranking.items():
-                if rank == 1:
-                    result['scores'][trait] += 8
-                elif rank == 2:
-                    result['scores'][trait] += 4
-                elif rank == 3:
-                    result['scores'][trait] += 2
-                elif rank == 4:
-                    result['scores'][trait] += 0
+            answer_data = answers[str(i)]
+            # Check if ranking data exists and is valid
+            if 'ranking' in answer_data and isinstance(answer_data['ranking'], dict):
+                ranking = answer_data['ranking']
+                for trait, rank in ranking.items():
+                    if isinstance(rank, (int, float)) and trait in result['scores']:
+                        if rank == 1:
+                            result['scores'][trait] += 8
+                        elif rank == 2:
+                            result['scores'][trait] += 4
+                        elif rank == 3:
+                            result['scores'][trait] += 2
+                        elif rank == 4:
+                            result['scores'][trait] += 0
+            else:
+                logger.warning("Missing or invalid ranking data for question %s", i)
 
     dominant_trait = max(result['scores'], key=result['scores'].get)
     result['trait'] = dominant_trait
