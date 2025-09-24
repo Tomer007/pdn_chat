@@ -480,8 +480,15 @@ def recalculate_user_pdn(email):
         if not user_answers:
             return jsonify({"error": "User answers not found"}), 404
 
-        # Calculate PDN code using the calculate_pdn_code function
-        pdn_code = calculate_pdn_code(user_answers)
+        # Calculate PDN code using the calculate_pdn_code function with details
+        calculation_result = calculate_pdn_code(user_answers, return_details=True)
+        
+        if isinstance(calculation_result, dict):
+            pdn_code = calculation_result['pdn_code']
+            calculation_details = calculation_result['calculation_details']
+        else:
+            pdn_code = calculation_result
+            calculation_details = None
 
         logger.info(f"recalculate_pdn PDN code: {pdn_code} for user {email}")
 
@@ -511,14 +518,20 @@ def recalculate_user_pdn(email):
                 user_data = csv_handler.get_user_by_email(email)
                 pdn_update_comments = user_data.get("PDN Update Comments", "") if user_data else ""
 
-                return jsonify({
+                response_data = {
                     "success": True,
                     "message": f"PDN code recalculated successfully for {email}",
                     "pdn_code": pdn_code,
                     "date": current_date,
                     "updated_by": updated_by,
                     "pdn_update_comments": pdn_update_comments
-                })
+                }
+                
+                # Add calculation details if available
+                if calculation_details:
+                    response_data["calculation_details"] = calculation_details
+                
+                return jsonify(response_data)
             else:
                 logger.error(f"Failed to update CSV for {email}")
                 return jsonify({"error": "Failed to update CSV with new PDN code"}), 500

@@ -1942,7 +1942,31 @@ ${leftText}: ${leftValue} | ${rightText}: ${rightValue}
 
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('Full response data:', data); // Debug log
                     showNotification(`קוד פדן חושב מחדש בהצלחה: ${data.pdn_code} על ידי ${data.updated_by}`, 'success');
+
+                    // Display calculation details in console if available
+                    if (data.calculation_details) {
+                        console.log('=== PDN Recalculation Details ===');
+                        console.log('Number of stages:', data.calculation_details.length);
+                        data.calculation_details.forEach((stage, index) => {
+                            console.log(`\n--- Stage ${index + 1}: ${stage.stage} - ${stage.name} ---`);
+                            if (stage.scores) {
+                                console.log('Scores:', stage.scores);
+                            }
+                            if (stage.dominant) {
+                                console.log('Dominant:', stage.dominant);
+                            }
+                            if (stage.pdn_code) {
+                                console.log('Final PDN Code:', stage.pdn_code);
+                                console.log('Trait:', stage.trait);
+                                console.log('Energy:', stage.energy);
+                            }
+                        });
+                        console.log('================================');
+                    } else {
+                        console.log('No calculation details found in response');
+                    }
 
                     // Update local data
                     const userIndex = currentData.findIndex(u => u.email === email);

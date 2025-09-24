@@ -20,15 +20,16 @@ from typing import Dict, Any, Tuple
 logger = logging.getLogger(__name__)
 
 
-def calculate_pdn_code(answers: Dict[str, Any]) -> str:
+def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) -> str:
     """
     Calculate the PDN code based on user's answers.
     
     Args:
         answers (dict): Dictionary containing user's answers with question numbers as keys
+        return_details (bool): If True, returns detailed calculation steps along with the PDN code
         
     Returns:
-        str: The calculated PDN code (e.g., 'A7', 'P10', 'T4', etc.)
+        str or dict: The calculated PDN code (e.g., 'A7', 'P10', 'T4', etc.) or dict with details if return_details=True
     """
     # Initialize result dictionary with proper typing
     result: Dict[str, Any] = {
@@ -37,6 +38,9 @@ def calculate_pdn_code(answers: Dict[str, Any]) -> str:
         'energy': 'Undetermined',
         'scores': {'A': 0, 'T': 0, 'P': 0, 'E': 0, 'D': 0, 'S': 0, 'F': 0}
     }
+    
+    # Initialize calculation details if requested
+    calculation_details = [] if return_details else None
 
     # Stage A: Primary Trait Calculation
     for i in range(1, 27):
@@ -54,7 +58,12 @@ def calculate_pdn_code(answers: Dict[str, Any]) -> str:
             elif answer == 'TP':
                 result['scores']['T'] += 1
                 result['scores']['P'] += 1
-    dominant_trait: str = max(result['scores'], key=result['scores'].get)
+    # Find dominant trait, but only if there are actual scores > 0
+    trait_scores = {k: v for k, v in result['scores'].items() if k in ['A', 'T', 'P', 'E']}
+    if any(score > 0 for score in trait_scores.values()):
+        dominant_trait: str = max(trait_scores, key=trait_scores.get)
+    else:
+        dominant_trait: str = 'Undetermined'
     result['trait'] = dominant_trait
 
     logger.info("Stage A: Trait Calculation for A %s", result['scores']['A'])
@@ -62,6 +71,21 @@ def calculate_pdn_code(answers: Dict[str, Any]) -> str:
     logger.info("Stage A: Trait Calculation for P %s", result['scores']['P'])
     logger.info("Stage A: Trait Calculation for E %s", result['scores']['E'])
     logger.info("Stage A dominant trait %s", dominant_trait)
+    
+    
+    # Add to calculation details if requested
+    if calculation_details is not None:
+        calculation_details.append({
+            'stage': 'A',
+            'name': 'Primary Trait Calculation',
+            'scores': {
+                'A': result['scores']['A'],
+                'T': result['scores']['T'],
+                'P': result['scores']['P'],
+                'E': result['scores']['E']
+            },
+            'dominant': dominant_trait
+        })
 
     # Stage B: Energy Type Calculation
     energy_counts: Dict[str, int] = {'D': 0, 'S': 0, 'F': 0}
@@ -77,13 +101,31 @@ def calculate_pdn_code(answers: Dict[str, Any]) -> str:
                     energy_counts[energy] += 1
 
     result['scores'].update(energy_counts)
-    dominant_energy = max(energy_counts, key=energy_counts.get)
+    # Find dominant energy, but only if there are actual scores > 0
+    if any(score > 0 for score in energy_counts.values()):
+        dominant_energy = max(energy_counts, key=energy_counts.get)
+    else:
+        dominant_energy = 'Undetermined'
     result['energy'] = dominant_energy
 
     logger.info("Stage B: Energy Type Calculation for D %s", energy_counts['D'])
     logger.info("Stage B: Energy Type Calculation for S %s", energy_counts['S'])
     logger.info("Stage B: Energy Type Calculation for F %s", energy_counts['F'])
     logger.info("Stage B dominant energy %s", dominant_energy)
+    
+    
+    # Add to calculation details if requested
+    if calculation_details is not None:
+        calculation_details.append({
+            'stage': 'B',
+            'name': 'Energy Type Calculation',
+            'scores': {
+                'D': energy_counts['D'],
+                'S': energy_counts['S'],
+                'F': energy_counts['F']
+            },
+            'dominant': dominant_energy
+        })
 
     # Stage C: Validation and Tie-Breaking
     for i in range(38, 43):
@@ -103,7 +145,12 @@ def calculate_pdn_code(answers: Dict[str, Any]) -> str:
                 # result['scores'][trait1] -= 1
                 result['scores'][trait2] += 1
 
-    dominant_trait = max(result['scores'], key=result['scores'].get)
+    # Find dominant trait, but only if there are actual scores > 0
+    trait_scores = {k: v for k, v in result['scores'].items() if k in ['A', 'T', 'P', 'E']}
+    if any(score > 0 for score in trait_scores.values()):
+        dominant_trait = max(trait_scores, key=trait_scores.get)
+    else:
+        dominant_trait = 'Undetermined'
     result['trait'] = dominant_trait
 
     logger.info("Stage C: Trait Calculation for A %s", result['scores']['A'])
@@ -111,6 +158,21 @@ def calculate_pdn_code(answers: Dict[str, Any]) -> str:
     logger.info("Stage C: Trait Calculation for P %s", result['scores']['P'])
     logger.info("Stage C: Trait Calculation for E %s", result['scores']['E'])
     logger.info("Stage C dominant trait %s", dominant_trait)
+    
+    
+    # Add to calculation details if requested
+    if calculation_details is not None:
+        calculation_details.append({
+            'stage': 'C',
+            'name': 'Validation and Tie-Breaking (Traits)',
+            'scores': {
+                'A': result['scores']['A'],
+                'T': result['scores']['T'],
+                'P': result['scores']['P'],
+                'E': result['scores']['E']
+            },
+            'dominant': dominant_trait
+        })
 
     # Stage D: Validation and Tie-Breaking
     for i in range(43, 57):
@@ -141,7 +203,11 @@ def calculate_pdn_code(answers: Dict[str, Any]) -> str:
                     # result['scores'][combo1[1]] -= 1
 
     # Recalculate dominant trait after all adjustments
-    dominant_trait = max(result['scores'], key=result['scores'].get)
+    trait_scores = {k: v for k, v in result['scores'].items() if k in ['A', 'T', 'P', 'E']}
+    if any(score > 0 for score in trait_scores.values()):
+        dominant_trait = max(trait_scores, key=trait_scores.get)
+    else:
+        dominant_trait = 'Undetermined'
     result['trait'] = dominant_trait
 
     logger.info("Stage D: Trait Calculation for A %s", result['scores']['A'])
@@ -149,6 +215,24 @@ def calculate_pdn_code(answers: Dict[str, Any]) -> str:
     logger.info("Stage D: Trait Calculation for P %s", result['scores']['P'])
     logger.info("Stage D: Trait Calculation for E %s", result['scores']['E'])
     logger.info("Stage D dominant trait %s", dominant_trait)
+    
+    
+    # Add to calculation details if requested
+    if calculation_details is not None:
+        calculation_details.append({
+            'stage': 'D',
+            'name': 'Validation and Tie-Breaking (Energy Types)',
+            'scores': {
+                'A': result['scores']['A'],
+                'T': result['scores']['T'],
+                'P': result['scores']['P'],
+                'E': result['scores']['E'],
+                'D': result['scores']['D'],
+                'S': result['scores']['S'],
+                'F': result['scores']['F']
+            },
+            'dominant': dominant_trait
+        })
 
     # Stage E: Strengthen Dominant Trait
     for i in range(57, 61):
@@ -164,7 +248,12 @@ def calculate_pdn_code(answers: Dict[str, Any]) -> str:
                 elif rank == 4:
                     result['scores'][trait] += 0
 
-    dominant_trait = max(result['scores'], key=result['scores'].get)
+    # Find dominant trait, but only if there are actual scores > 0
+    trait_scores = {k: v for k, v in result['scores'].items() if k in ['A', 'T', 'P', 'E']}
+    if any(score > 0 for score in trait_scores.values()):
+        dominant_trait = max(trait_scores, key=trait_scores.get)
+    else:
+        dominant_trait = 'Undetermined'
     result['trait'] = dominant_trait
 
     logger.info("Stage E: Trait Calculation for A %s", result['scores']['A'])
@@ -172,6 +261,23 @@ def calculate_pdn_code(answers: Dict[str, Any]) -> str:
     logger.info("Stage E: Trait Calculation for P %s", result['scores']['P'])
     logger.info("Stage E: Trait Calculation for E %s", result['scores']['E'])
     logger.info("Stage E dominant trait %s", dominant_trait)
+    
+    # Add to calculation details if requested
+    if calculation_details is not None:
+        calculation_details.append({
+            'stage': 'E',
+            'name': 'Strengthen Dominant Trait',
+            'scores': {
+                'A': result['scores']['A'],
+                'T': result['scores']['T'],
+                'P': result['scores']['P'],
+                'E': result['scores']['E'],
+                'D': result['scores']['D'],
+                'S': result['scores']['S'],
+                'F': result['scores']['F']
+            },
+            'dominant': dominant_trait
+        })
 
     # Finalizing the PDN code
     pdn_matrix: Dict[Tuple[str, str], str] = {
@@ -185,5 +291,20 @@ def calculate_pdn_code(answers: Dict[str, Any]) -> str:
     result['pdn_code'] = pdn_code
 
     logger.info("Finalizing the PDN code %s", pdn_code)
+    
+    # Add final result to calculation details if requested
+    if calculation_details is not None:
+        calculation_details.append({
+            'stage': 'Final',
+            'name': 'Final Result',
+            'pdn_code': pdn_code,
+            'trait': result['trait'],
+            'energy': result['energy'],
+            'scores': result['scores'].copy()
+        })
+        return {
+            'pdn_code': pdn_code,
+            'calculation_details': calculation_details
+        }
 
     return pdn_code
