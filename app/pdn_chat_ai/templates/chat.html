@@ -939,27 +939,165 @@
     .plan-header {
         display: flex;
         justify-content: space-between;
-        align-items: center;
-        padding: 25px 30px 20px;
+        align-items: flex-start;
+        padding: 30px 30px 25px;
         border-bottom: 1px solid #e5e7eb;
+        position: relative;
     }
 
     [data-theme="dark"] .plan-header {
         border-bottom-color: #333;
     }
 
-    .plan-title {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #0b2e6b;
-        margin: 0;
+    .plan-title-container {
+        flex: 1;
+        text-align: center;
+        padding: 0 20px;
+    }
+
+    .plan-title-main {
         display: flex;
         align-items: center;
-        gap: 10px;
+        justify-content: center;
+        gap: 12px;
+        margin-bottom: 8px;
+    }
+
+    .plan-icon {
+        font-size: 1.8rem;
+        color: #0b2e6b;
+        background: linear-gradient(135deg, #0b2e6b, #1c0f97);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: pulse 2s infinite;
+    }
+
+    [data-theme="dark"] .plan-icon {
+        background: linear-gradient(135deg, #60a5fa, #3b82f6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .plan-title {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #0b2e6b;
+        margin: 0;
+        background: linear-gradient(135deg, #0b2e6b, #1c0f97);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1.2;
     }
 
     [data-theme="dark"] .plan-title {
+        background: linear-gradient(135deg, #60a5fa, #3b82f6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .plan-subtitle {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #6b7280;
+        margin-bottom: 16px;
+        font-style: italic;
+    }
+
+    [data-theme="dark"] .plan-subtitle {
+        color: #9ca3af;
+    }
+
+    .plan-tagline {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .plan-tagline-item {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #0b2e6b;
+        background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+        padding: 8px 16px;
+        border-radius: 20px;
+        border: 2px solid rgba(11, 46, 107, 0.1);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .plan-tagline-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(11, 46, 107, 0.1), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .plan-tagline-item:hover::before {
+        left: 100%;
+    }
+
+    .plan-tagline-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(11, 46, 107, 0.2);
+        border-color: rgba(11, 46, 107, 0.3);
+    }
+
+    [data-theme="dark"] .plan-tagline-item {
         color: #60a5fa;
+        background: linear-gradient(135deg, #1e293b, #334155);
+        border-color: rgba(96, 165, 250, 0.2);
+    }
+
+    .plan-tagline-separator {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #0b2e6b;
+        opacity: 0.6;
+    }
+
+    [data-theme="dark"] .plan-tagline-separator {
+        color: #60a5fa;
+    }
+
+    .plan-description {
+        font-size: 1rem;
+        line-height: 1.6;
+        color: #4b5563;
+        text-align: center;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    [data-theme="dark"] .plan-description {
+        color: #d1d5db;
+    }
+
+    .plan-description strong {
+        color: #0b2e6b;
+        font-weight: 700;
+        background: linear-gradient(135deg, #0b2e6b, #1c0f97);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    [data-theme="dark"] .plan-description strong {
+        background: linear-gradient(135deg, #60a5fa, #3b82f6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
 
     .plan-close {
@@ -968,14 +1106,28 @@
         font-size: 1.5rem;
         color: #6b7280;
         cursor: pointer;
-        padding: 5px;
+        padding: 8px;
         border-radius: 50%;
         transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        z-index: 10;
     }
 
     .plan-close:hover {
         background: #f3f4f6;
         color: #374151;
+        transform: scale(1.1);
+    }
+
+    [data-theme="dark"] .plan-close {
+        color: #9ca3af;
     }
 
     [data-theme="dark"] .plan-close:hover {
@@ -1119,6 +1271,33 @@
         
         .plan-header {
             padding: 20px 20px 15px;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .plan-title-container {
+            padding: 0 10px;
+            margin-bottom: 20px;
+        }
+
+        .plan-title {
+            font-size: 1.5rem;
+        }
+
+        .plan-tagline {
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .plan-tagline-separator {
+            display: none;
+        }
+
+        .plan-close {
+            position: relative;
+            top: auto;
+            left: auto;
+            margin-top: 10px;
         }
         
         .plan-body {
@@ -1199,14 +1378,27 @@
     </div>
 </div>
 
-<!-- 45-Day Plan Modal -->
+<!-- 21-Day Plan Modal -->
 <div class="plan-modal" id="planModal">
     <div class="plan-content">
         <div class="plan-header">
-            <h3 class="plan-title">
-                <i class="fas fa-calendar-alt"></i>
-                בנה לי תוכנית 45 יום להתמרה
-            </h3>
+            <div class="plan-title-container">
+                <div class="plan-title-main">
+                    <h3 class="plan-title">אתגר 21 יום</h3>
+                </div>
+                <div class="plan-subtitle">להשגת מטרה</div>
+                <div class="plan-tagline">
+                    <span class="plan-tagline-item">מפחד לעוצמה</span>
+                    <span class="plan-tagline-separator">|</span>
+                    <span class="plan-tagline-item">מתקיעות לניווט</span>
+                    <span class="plan-tagline-separator">|</span>
+                    <span class="plan-tagline-item">מחלום להגשמה</span>
+                </div>
+                <div class="plan-description">
+                    לא משנה באיזה תחום ברצונך להגשים - קריירה, משפחה, זוגיות, יחסים, ביטחון עצמי. 
+                    <strong>המפתח הוא להכיר את "קוד המקור" האישי שלך</strong> וכך תוכל לנווט את חייך בהצלחה.
+                </div>
+            </div>
             <button class="plan-close" onclick="hidePlanModal()">
                 <i class="fas fa-times"></i>
             </button>
@@ -1257,7 +1449,7 @@
                     </button>
                     <button type="submit" class="plan-btn submit" id="submitPlanBtn">
                         <i class="fas fa-paper-plane"></i>
-                        שלח בקשה
+                        צא לאתגר
                     </button>
                 </div>
             </form>
@@ -1825,8 +2017,8 @@
             "תוכל/י להסביר יותר על קוד המקור שלי?",
             "איך אני יכול/ה להשתמש בקוד המקור בחיי היומיום?",
             "מה השלב הבא במסע שלי?",
-            "בנה לי תוכנית 45 יום להתמרה"
-        ];
+            "אתגר 21 יום"
+            ];
 
         const quickRepliesDiv = document.createElement("div");
         quickRepliesDiv.className = "quick-replies";
@@ -1836,8 +2028,8 @@
             button.className = "quick-reply-btn";
             button.textContent = reply;
             button.onclick = () => {
-                // Special handling for "בנה לי תוכנית 45 יום להתמרה" - show modal
-                if (reply === "בנה לי תוכנית 45 יום להתמרה") {
+                // Special handling for "אתגר 21 יום" - show modal
+                if (reply === "אתגר 21 יום") {
                     // Show 45-day plan modal
                     showPlanModal();
                 } else {
