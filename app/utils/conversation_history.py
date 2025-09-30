@@ -3,7 +3,7 @@ Conversation History Module
 
 This module provides functionality for managing conversation history between users
 and the AI system. It maintains a rolling history of messages with configurable
-limits and provides context formatting for RAG (Retrieval-Augmented Generation) systems.
+limits and provides context formatting for AI chat systems.
 
 Key features:
 - Per-user conversation history storage
@@ -91,7 +91,7 @@ class ConversationHistory:
 
     def get_conversation_context(self, user_id: str) -> str:
         """
-        Get conversation history formatted as context for the RAG system
+        Get conversation history formatted as context for the AI system
         
         Args:
             user_id: Unique identifier for the user

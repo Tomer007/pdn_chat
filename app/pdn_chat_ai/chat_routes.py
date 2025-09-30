@@ -1,90 +1,61 @@
 """
 PDN Chat AI Routes - Flask routes for AI-powered chat interface.
-Handles user authentication, chat messaging, and 45-day plan generation.
+Handles user authentication, chat messaging, and 21-day plan generation.
 """
 
 import uuid
-import time
 from datetime import datetime
-from string import Template
-from typing import Optional, Dict, Any
-from functools import wraps
 from flask import Blueprint, request, render_template, jsonify, session, current_app
 
-from .binat_agents.a7_agent import A7Agent
+from .binat_agents.pdn_agent import PDNAgent
 from .logger import setup_logger
 
 # Setup logger
 logger = setup_logger()
 
+# Global agent instance to maintain conversation history
+_pdn_agent = None
 
-def retry_on_failure(max_retries: int = 3, delay: float = 1.0, backoff: float = 2.0):
+# Single source of truth for valid PDN codes
+VALID_PDN_CODES = ["A7", "E5", "P6", "P10"]
+
+def get_agent_instance():
+    """Get or create the single PDN agent instance"""
+    global _pdn_agent
+    
+    if _pdn_agent is None:
+        _pdn_agent = PDNAgent()
+        logger.info("Created new PDNAgent instance")
+    
+    return _pdn_agent
+
+
+def validate_pdn_authorization(pdn_code: str, user_name: str, endpoint_name: str) -> tuple[bool, dict]:
     """
-    Decorator to retry function calls on failure with exponential backoff.
+    Validate PDN code authorization.
     
     Args:
-        max_retries: Maximum number of retry attempts
-        delay: Initial delay between retries in seconds
-        backoff: Multiplier for delay after each retry
-    """
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            current_delay = delay
-            last_exception = None
-            
-            for attempt in range(max_retries + 1):
-                try:
-                    return func(*args, **kwargs)
-                except Exception as e:
-                    last_exception = e
-                    if attempt < max_retries:
-                        logger.warning(
-                            "Attempt %d failed for %s: %s. Retrying in %.2f seconds...",
-                            attempt + 1, func.__name__, str(e), current_delay
-                        )
-                        time.sleep(current_delay)
-                        current_delay *= backoff
-                    else:
-                        logger.error(
-                            "All %d attempts failed for %s. Last error: %s",
-                            max_retries + 1, func.__name__, str(e)
-                        )
-            
-            # If all retries failed, raise the last exception
-            raise last_exception
-        return wrapper
-    return decorator
-
-
-def safe_ai_call(ai_function, *args, **kwargs) -> Optional[str]:
-    """
-    Safely call AI functions with error recovery and fallback responses.
-    
-    Args:
-        ai_function: The AI function to call
-        *args: Arguments for the AI function
-        **kwargs: Keyword arguments for the AI function
+        pdn_code: The user's PDN code to validate
+        user_name: The user's name for logging
+        endpoint_name: The endpoint being accessed for logging
         
     Returns:
-        AI response or fallback message
+        tuple: (is_authorized, error_response_dict)
     """
-    try:
-        return ai_function(*args, **kwargs)
-    except Exception as e:
-        logger.error("AI function call failed: %s", str(e))
+    if not pdn_code or pdn_code not in VALID_PDN_CODES:
+        logger.warning("Unauthorized access attempt to %s - User: %s, PDN Code: %s", 
+                      endpoint_name, user_name, pdn_code)
         
-        # Return appropriate fallback based on function type
-        if "45_day_plan" in str(ai_function):
-            return (
-                "אני מתנצל, אבל נתקלתי בבעיה טכנית זמנית. "
-                "אנא נסה שוב בעוד כמה דקות או פנה לתמיכה אם הבעיה נמשכת."
-            )
-        else:
-            return (
-                "אני מתנצל, אבל נתקלתי בבעיה טכנית זמנית. "
-                "אנא נסה שוב או פנה לתמיכה אם הבעיה נמשכת."
-            )
+        error_response = {
+            "error": "Unauthorized access",
+            "response": f"משתמש {user_name} לא מורשה לגשת למערכת. קוד PDN: {pdn_code} אינו תקין.",
+            "timestamp": datetime.now().isoformat()
+        }
+        return False, error_response
+    
+    return True, {}
+
+
 
 
 # Static user data for authentication
@@ -108,28 +79,13 @@ USERS_DATA = {
         'password': 'pdn',
         'pdn_code': 'A7',
         'name': 'דניאל'
+    },
+    'sigal417@gmail.com': {    
+        'password': 'pdn',
+        'pdn_code': 'P6',
+        'name': 'סיגל'
     }
-
 }
-
-# Replace with this lazy initialization approach:
-_rag_system = None
-
-
-@retry_on_failure(max_retries=3, delay=1.0, backoff=2.0)
-def get_rag_system():
-    """Get or initialize the RAG system lazily with retry mechanism"""
-    global _rag_system
-    if _rag_system is None:
-        try:
-            from .pdn_chat_rag import PDNRAG
-            _rag_system = PDNRAG("./rag", persist_dir="./chroma_db", persist=True)
-            logger.info("RAG system initialized successfully")
-        except (ImportError, AttributeError, ValueError) as e:
-            logger.error("Failed to initialize RAG system: %s", e)
-            _rag_system = None
-    return _rag_system
-
 
 # Create blueprint
 pdn_chat_ai_bp = Blueprint('pdn_chat_ai', __name__,
@@ -140,19 +96,14 @@ pdn_chat_ai_bp = Blueprint('pdn_chat_ai', __name__,
 @pdn_chat_ai_bp.route('/')
 def chat():
     """Binat Chat AI login endpoint"""
-
-    logger.debug("GET /pdn-chat-ai/ called")
-    logger.info("Request: %s %s", request.method, request.url)
-    logger.info("Response: %s", 200)
-
+    logger.info("Login page accessed")
     return render_template("binat_login.html")
 
 
 @pdn_chat_ai_bp.route('/login', methods=['POST'])
 def login():
     """Handle user login with email and password verification"""
-    logger.debug("POST /pdn-chat-ai/login called")
-    logger.info("Request: %s %s", request.method, request.url)
+    logger.info("Login attempt")
 
     try:
         data = request.get_json()
@@ -202,12 +153,16 @@ def login():
 @pdn_chat_ai_bp.route('/logout', methods=['POST'])
 def logout():
     """Handle user logout"""
-    logger.debug("POST /pdn-chat-ai/logout called")
-    logger.info("Request: %s %s", request.method, request.url)
+    logger.info("User logout")
 
     try:
-
-        A7Agent().clear_user_history(session.get('user_name'))
+        # Clear conversation history from the agent instance
+        user_name = session.get('user_name')
+        if user_name:
+            agent = get_agent_instance()
+            agent.clear_user_history(user_name)
+            logger.info("Cleared conversation history for user: %s", user_name)
+        
         # Clear session data
         session.clear()
         logger.info("User logged out successfully")
@@ -225,14 +180,25 @@ def logout():
 @pdn_chat_ai_bp.route('/chat-ai')
 def chat_interface():
     """Chat interface endpoint - accessed after login"""
-    logger.debug("GET /pdn-chat-ai/chat-ai called")
-    logger.info("Request: %s %s", request.method, request.url)
-    logger.info("Response: %s", 200)
+    logger.info("Chat interface accessed")
 
     # Get user data from session or query parameters
     user_name = session.get('user_name') or request.args.get('user_name', 'Anonymous')
     user_id = session.get('user_id') or request.args.get('user_id', '')
     pdn_code = session.get('pdn_code') or request.args.get('pdn_code', '')
+
+    # Check if user is authorized (has valid PDN code)
+    is_authorized, error_response = validate_pdn_authorization(pdn_code, user_name, "chat-interface")
+    if not is_authorized:
+        return render_template(
+            "chat.html",
+            welcome_message=error_response["response"],
+            user_name=user_name,
+            user_id=user_id,
+            pdn_code=pdn_code,
+            include_menu=True,
+            error_message=error_response["response"]
+        )
 
     config = current_app.config.get('PDN_CONFIG', {})
     welcome_message = config.get("chatbots", {}).get("chatbot_PDN", {}).get("welcome_message",
@@ -251,8 +217,7 @@ def chat_interface():
 @pdn_chat_ai_bp.route('/chat', methods=['POST'])
 def chat_message():
     """Handle chat messages with improved AI responses"""
-    logger.debug("POST /pdn-chat-ai/chat called")
-    logger.info("Request: %s %s", request.method, request.url)
+    logger.info("Chat message received")
 
     try:
         data = request.get_json()
@@ -261,56 +226,33 @@ def chat_message():
 
         message = data.get('message', '').strip()
         user_name = data.get('user_name', 'Anonymous')
-        # user_id = data.get('user_id', '')
         pdn_code = data.get('pdn_code', '')
 
-        if pdn_code == "A7":
-            return jsonify({
-                "response": A7Agent().get_response(message, user_name, pdn_code),
-                "timestamp": datetime.now().isoformat()
-            })
-        else:
-            raise ValueError(f"Unknown PDN code: {pdn_code}")
+        # Check if user is authorized (has valid PDN code)
+        is_authorized, error_response = validate_pdn_authorization(pdn_code, user_name, "chat")
+        if not is_authorized:
+            return jsonify(error_response), 403
 
-        # # Check if RAG system is available
-        # rag = get_rag_system()
-        # if rag is None:
-        #     logger.error("RAG system not initialized")
-        #     return jsonify({
-        #         "error": "AI system not available. Please try again later.",
-        #         "response": "מערכת הבינה המלאכותית אינה זמינה כרגע. אנא נסה שוב מאוחר יותר."
-        #     }), 503
-
-        # # Generate AI response using RAG
-        # try:
-        #     response = rag.retrieve(message, user_name, user_id, pdn_code)
-        #     logger.info("AI response generated successfully")
-
-        #     return jsonify({
-        #         "response": response,
-        #         "timestamp": datetime.now().isoformat()
-        #     })
-        # except Exception as e:
-        #     logger.error(f"Error generating AI response: {e}")
-        #     return jsonify({
-        #         "error": "Failed to generate response",
-        #         "response": "מצטער, לא הצלחתי לעבד את השאלה שלך. אנא נסה שוב."
-        #     }), 500
+        # Get the single agent instance
+        agent = get_agent_instance()
+        
+        return jsonify({
+            "response": agent.chat_with_user(message, user_name, pdn_code),
+            "timestamp": datetime.now().isoformat()
+        })
 
     except (ValueError, AttributeError, TypeError) as e:
         logger.error("Error in chat: %s", e)
         return jsonify({"error": "Chat error occurred"}), 500
 
 
-@pdn_chat_ai_bp.route('/45-day-plan', methods=['POST'])
-def create_45_day_plan():
-    """Handle 45-day transformation plan requests"""
-    logger.debug("POST /pdn-chat-ai/45-day-plan called")
-    logger.info("Request: %s %s", request.method, request.url)
+@pdn_chat_ai_bp.route('/21-day-plan', methods=['POST'])
+def create_21_day_plan():
+    """Handle 21-day transformation plan requests"""
+    logger.info("21-day plan request received")
 
     try:
         data = request.get_json()
-        logger.info("Received data: %s", data)
         
         if not data:
             logger.warning("No data provided in request")
@@ -321,46 +263,40 @@ def create_45_day_plan():
         user_name = data.get('user_name', 'Anonymous')
         pdn_code = data.get('pdn_code', '')
 
-        logger.info("Processing 45-day plan for user: %s, PDN code: %s", user_name, pdn_code)
+        logger.info("Processing 21-day plan for %s (PDN: %s)", user_name, pdn_code)
+
+        # Check if user is authorized (has valid PDN code)
+        is_authorized, error_response = validate_pdn_authorization(pdn_code, user_name, "21-day-plan")
+        if not is_authorized:
+            return jsonify(error_response), 403
 
         if not goals or not success:
             logger.warning("Missing goals or success definition")
             return jsonify({"error": "Goals and success definition are required"}), 400
 
-        # Create user context for the 45-day plan
+        # Create user context for the 21-day plan
         user_context = f"""
         User Goals: {goals}
         User Success Definition: {success}
         """
 
-        # Generate response using A7Agent
-        logger.info("Generating response for PDN code: %s", pdn_code)
-        
-        if pdn_code == "A7":
-            try:
-                logger.info("Initializing A7Agent...")
-                agentA7 = A7Agent()
-                logger.info("A7Agent initialized successfully")
-                
-                logger.info("Generating response...")
-                response = agentA7.get_response_for_45_day_plan(user_context, user_name, pdn_code)
-                logger.info("Response generated successfully")
-                
-            except (AttributeError, ValueError, ImportError) as agent_error:
-                logger.error("Error with A7Agent: %s", agent_error)
-                response = "I apologize, but I encountered an error while processing your request. Please try again."
-            except Exception as timeout_error:
-                logger.error("Unexpected error with A7Agent: %s", timeout_error)
-                if "timeout" in str(timeout_error).lower() or "timed out" in str(timeout_error).lower():
-                    response = (
-                        "I apologize, but the request is taking longer than expected. "
-                        "This might be due to high server load. Please try again in a few moments."
-                    )
-                else:
-                    response = "I apologize, but I encountered an unexpected error. Please try again."
-        else:
-            logger.warning("Unknown PDN code: %s, using fallback response", pdn_code)
+        # Generate response using the single PDN agent
+        try:
+            agent = get_agent_instance()
+            response = agent.get_response_for_21_day_plan(user_context, user_name, pdn_code)
+            
+        except (AttributeError, ValueError, ImportError) as agent_error:
+            logger.error("Error with PDNAgent: %s", agent_error)
             response = "I apologize, but I encountered an error while processing your request. Please try again."
+        except Exception as timeout_error:
+            logger.error("Unexpected error with PDNAgent: %s", timeout_error)
+            if "timeout" in str(timeout_error).lower() or "timed out" in str(timeout_error).lower():
+                response = (
+                    "I apologize, but the request is taking longer than expected. "
+                    "This might be due to high server load. Please try again in a few moments."
+                )
+            else:
+                response = "I apologize, but I encountered an unexpected error. Please try again."
 
         return jsonify({
             "response": response,
@@ -368,5 +304,5 @@ def create_45_day_plan():
         })
 
     except (ValueError, KeyError, TypeError) as e:
-        logger.error("Error creating 45-day plan: %s", e)
-        return jsonify({"error": "Failed to create 45-day plan"}), 500
+        logger.error("Error creating 21-day plan: %s", e)
+        return jsonify({"error": "Failed to create 21-day plan"}), 500

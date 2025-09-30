@@ -1972,11 +1972,24 @@
             });
 
             if (!res.ok) {
+                // Handle unauthorized access specifically
+                if (res.status === 403) {
+                    const errorData = await res.json();
+                    typing.remove();
+                    showError(errorData.response || 'אין לך הרשאה לגשת למערכת');
+                    return;
+                }
                 throw new Error(`HTTP error! status: ${res.status}`);
             }
 
             const data = await res.json();
             typing.remove();
+
+            // Check if response contains error (unauthorized access)
+            if (data.error === "Unauthorized access") {
+                showError(data.response || 'אין לך הרשאה לגשת למערכת');
+                return;
+            }
 
             // Create bot message bubble
             const botBubble = document.createElement("div");
@@ -2030,7 +2043,7 @@
             button.onclick = () => {
                 // Special handling for "אתגר 21 יום" - show modal
                 if (reply === "אתגר 21 יום") {
-                    // Show 45-day plan modal
+                    // Show 21-day plan modal
                     showPlanModal();
                 } else {
                     document.getElementById("userInput").value = reply;
@@ -2256,10 +2269,10 @@
         try {
             // Disable button and show loading
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>בונה תוכנית 45 יום להתמרה...';
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>בונה  אתגר 21 יום...';
             
             // Show progress message
-            showSuccess('מתחיל לבנות את התוכנית המותאמת אישית שלך... זה יכול לקחת עד 2 דקות');
+            showSuccess('מתחיל לבנות אתגר 21 יום... זה יכול לקחת עד 2 דקות');
             
             // Get form data
             const formData = new FormData(event.target);
@@ -2275,7 +2288,7 @@
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 150000); 
             
-            const response = await fetch('/pdn-chat-ai/45-day-plan', {
+            const response = await fetch('/pdn-chat-ai/21-day-plan', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -2333,6 +2346,17 @@
                 showSuccess('הבקשה נשלחה בהצלחה!');
                 
             } else {
+                // Handle unauthorized access specifically
+                if (response.status === 403) {
+                    try {
+                        const errorData = await response.json();
+                        showError(errorData.response || 'אין לך הרשאה לגשת למערכת');
+                    } catch (jsonError) {
+                        showError('אין לך הרשאה לגשת למערכת');
+                    }
+                    return;
+                }
+                
                 let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
                 try {
                     const errorData = await response.json();
@@ -2361,7 +2385,7 @@
         }
     }
 
-    // Handle Enter key press in 45-day plan form
+    // Handle Enter key press in 21-day plan form
     function handlePlanFormKeyPress(event) {
         if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();

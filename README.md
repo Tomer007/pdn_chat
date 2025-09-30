@@ -17,14 +17,14 @@ PDN Chat is a comprehensive Flask application designed for psychological assessm
 
 ### Core Modules
 - **`pdn_diagnose`**: User questionnaire, answer submission, and PDN code calculation
-- **`pdn_chat_ai`**: AI-powered chat interface with RAG (Retrieval-Augmented Generation)
+- **`pdn_chat_ai`**: AI-powered chat interface with PDN-specific agents
 - **`pdn_admin`**: Administrative dashboard for user and system management
 
 ### Technology Stack
 - **Backend**: Python 3.9+, Flask 3.1.1, FastAPI 0.115.6
 - **Frontend**: HTML5, JavaScript (ES6+), Tailwind CSS 3.4.0
-- **AI/ML**: OpenAI GPT, LangChain, ChromaDB for vector storage
-- **Database**: SQLite (ChromaDB), File-based session storage
+- **AI/ML**: OpenAI GPT, LangChain for AI-powered conversations
+- **Database**: File-based session storage
 - **PDF Generation**: HTML2PDF.js
 - **Audio Processing**: Web Audio API, WAV format support
 
@@ -78,7 +78,6 @@ ADMIN_PASSWORD=your_secure_password
 OPENAI_API_KEY=your_openai_api_key
 
 # Database Configuration
-CHROMA_DB_PATH=./chroma_db
 
 # Email Configuration (optional)
 SMTP_SERVER=your_smtp_server
@@ -173,11 +172,11 @@ gunicorn -w 4 -b 0.0.0.0:8001 app:app
 
 ## AI Chat Features
 
-### RAG (Retrieval-Augmented Generation)
-- **Vector Database**: ChromaDB for document storage and retrieval
-- **Document Processing**: PDF parsing and text extraction
-- **Context Awareness**: User-specific conversation history
-- **Prompt Engineering**: Specialized prompts for psychological assessment
+### AI Chat System
+- **PDN-Specific Agents**: Dynamic prompt loading based on user's PDN code
+- **Conversation History**: Persistent conversation storage per user
+- **21-Day Plans**: Personalized transformation plan generation
+- **Multi-Language Support**: Hebrew and English responses
 
 ### Chat Capabilities
 - **Real-time Messaging**: WebSocket-based communication
@@ -258,7 +257,7 @@ npm run build:css:prod
 ### Production Configuration
 - **WSGI Server**: Gunicorn with multiple workers
 - **Static Files**: Served via Flask static file handling
-- **Database**: ChromaDB for vector storage
+- **Database**: File-based session storage
 - **Logging**: Structured logging with rotation
 
 ### Environment Variables
@@ -270,7 +269,6 @@ OPENAI_API_KEY=your_api_key
 # Optional
 FLASK_ENV=production
 LOG_LEVEL=INFO
-CHROMA_DB_PATH=./chroma_db
 ```
 
 ## Troubleshooting
@@ -292,8 +290,8 @@ npm run build:css:prod
 
 **3. Database Issues**
 ```bash
-# Clear ChromaDB if corrupted
-rm -rf chroma_db/
+# Clear session data if corrupted
+rm -rf flask_session/
 # Restart application
 ```
 
@@ -350,7 +348,7 @@ For support and questions:
 - ✅ Enhanced voice recording functionality
 - ✅ Improved questionnaire user experience
 - ✅ Added comprehensive error handling
-- ✅ Implemented RAG (Retrieval-Augmented Generation)
+- ✅ Implemented PDN-specific AI agents
 - ✅ Added PDF and JSON report generation
 - ✅ Enhanced security and authentication
 - ✅ Comprehensive test coverage
