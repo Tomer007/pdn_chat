@@ -80,7 +80,7 @@ USERS_DATA = {
         'pdn_code': 'A7',
         'name': 'דניאל'
     },
-    'sigal417@gmail.com': {    
+    'sigal4170@gmail.com': {    
         'password': 'pdn',
         'pdn_code': 'P6',
         'name': 'סיגל'
