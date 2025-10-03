@@ -440,9 +440,16 @@ def send_user_email(email):
             return jsonify({"error": "User answers not found"}), 404
 
         # Calculate PDN code
-        pdn_code = calculate_pdn_code(user_answers)
+        calculation_result = calculate_pdn_code(user_answers)
+        
+        if isinstance(calculation_result, dict):
+            pdn_code = calculation_result['pdn_code']
+            needs_verification = calculation_result.get('needs_verification', False)
+        else:
+            pdn_code = calculation_result
+            needs_verification = False
 
-        logger.info(f"send_email PDN code: {pdn_code} for user {email}")
+        logger.info(f"send_email PDN code: {pdn_code} for user {email}, needs_verification: {needs_verification}")
 
         if not pdn_code:
             return jsonify({"error": "Could not calculate PDN code"}), 400
@@ -454,7 +461,8 @@ def send_user_email(email):
             return jsonify({
                 "success": True,
                 "message": f"Email sent successfully to {email}",
-                "pdn_code": pdn_code
+                "pdn_code": pdn_code,
+                "needs_verification": needs_verification
             })
         else:
             return jsonify({"error": "Failed to send email"}), 500
@@ -486,11 +494,13 @@ def recalculate_user_pdn(email):
         if isinstance(calculation_result, dict):
             pdn_code = calculation_result['pdn_code']
             calculation_details = calculation_result['calculation_details']
+            needs_verification = calculation_result.get('needs_verification', False)
         else:
             pdn_code = calculation_result
             calculation_details = None
+            needs_verification = False
 
-        logger.info(f"recalculate_pdn PDN code: {pdn_code} for user {email}")
+        logger.info(f"recalculate_pdn PDN code: {pdn_code} for user {email}, needs_verification: {needs_verification}")
 
         if not pdn_code:
             return jsonify({"error": "Could not calculate PDN code"}), 400
@@ -524,7 +534,8 @@ def recalculate_user_pdn(email):
                     "pdn_code": pdn_code,
                     "date": current_date,
                     "updated_by": updated_by,
-                    "pdn_update_comments": pdn_update_comments
+                    "pdn_update_comments": pdn_update_comments,
+                    "needs_verification": needs_verification
                 }
                 
                 # Add calculation details if available

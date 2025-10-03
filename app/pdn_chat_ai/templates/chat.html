@@ -11,7 +11,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="/static/js/marked.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
             --primary-color: #1c0f97;
@@ -848,7 +847,7 @@
 </button>
 
 <!-- Export button -->
-<button class="export-button" onclick="exportChat()" title="ייצא שיחה" aria-label="ייצא שיחה">
+<button class="export-button" onclick="exportAsText()" title="ייצא שיחה כקובץ טקסט" aria-label="ייצא שיחה כקובץ טקסט">
     <i class="fas fa-download"></i> ייצא
 </button>
 
@@ -1619,6 +1618,12 @@
 
     // Voice recording and speech recognition functionality
     function toggleMicrophone() {
+        // Don't allow voice recording during message processing
+        if (isProcessing) {
+            showError('אנא המתן עד שההודעה הנוכחית תסיים עיבוד');
+            return;
+        }
+
         if (!speechRecognition) {
             speechRecognition = initializeSpeechRecognition();
             if (!speechRecognition) {
@@ -1694,6 +1699,65 @@
     let userScrolledUp = false;
     let lastScrollTop = 0;
 
+    // UI state management
+    function disableUI() {
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const micBtn = document.getElementById('micBtn');
+        
+        if (userInput) {
+            userInput.disabled = true;
+            userInput.placeholder = 'מעבד הודעה...';
+        }
+        
+        if (sendBtn) {
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<span class="loading-spinner"></span> מעבד...';
+        }
+        
+        if (micBtn) {
+            micBtn.disabled = true;
+            micBtn.style.opacity = '0.5';
+        }
+        
+        // Disable all quick reply buttons
+        const quickReplyBtns = document.querySelectorAll('.quick-reply-btn');
+        quickReplyBtns.forEach(btn => {
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+            btn.style.cursor = 'not-allowed';
+        });
+    }
+
+    function enableUI() {
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const micBtn = document.getElementById('micBtn');
+        
+        if (userInput) {
+            userInput.disabled = false;
+            userInput.placeholder = 'כתוב לי עכשיו...';
+        }
+        
+        if (sendBtn) {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> שלח';
+        }
+        
+        if (micBtn) {
+            micBtn.disabled = false;
+            micBtn.style.opacity = '1';
+        }
+        
+        // Enable all quick reply buttons
+        const quickReplyBtns = document.querySelectorAll('.quick-reply-btn');
+        quickReplyBtns.forEach(btn => {
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            btn.style.cursor = 'pointer';
+        });
+    }
+
     // Check if user has manually scrolled up
     function checkUserScroll() {
         const chatContainer = document.getElementById('chatContainer');
@@ -1733,7 +1797,11 @@
     function handleKeyPress(event) {
         if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
-            sendMessage();
+            if (!isProcessing) {
+                sendMessage();
+            } else {
+                showError('אנא המתן עד שההודעה הנוכחית תסיים עיבוד');
+            }
         } else if (event.key === 'Tab') {
             event.preventDefault();
             // Navigate between controls
@@ -1756,149 +1824,97 @@
         localStorage.setItem('darkMode', isDarkMode);
     }
 
-    // Enhanced export chat with PDF formatting
-    function exportChat() {
+    // Simple text export function
+    function exportAsText() {
         try {
             const chatContainer = document.getElementById('chatContainer');
-            const messages = Array.from(chatContainer.querySelectorAll('.chat-bubble'));
-
+            if (!chatContainer) {
+                alert('לא נמצא מיכל השיחה');
+                return;
+            }
+            
+            // Get all chat bubbles
+            const messages = chatContainer.querySelectorAll('.chat-bubble');
+            
             if (messages.length === 0) {
-                showError('אין הודעות לייצוא');
+                alert('אין הודעות לייצוא');
                 return;
             }
 
-            // Create PDF content with nice formatting
-            const pdfContent = document.createElement('div');
-            pdfContent.style.cssText = `
-                    direction: rtl;
-                    font-family: 'Noto Sans Hebrew', 'Arial', sans-serif;
-                    padding: 20px;
-                    background: white;
-                    color: #333;
-                    line-height: 1.6;
-                `;
+            // Build simple text content
+            let text = 'שיחת בינת קוד המקור\n';
+            text += 'משתמש: ' + USER_NAME + '\n';
+            text += 'תאריך: ' + new Date().toLocaleDateString('he-IL') + '\n';
+            text += '========================================\n\n';
 
-            // Header
-            const header = document.createElement('div');
-            header.style.cssText = `
-                    text-align: center;
-                    margin-bottom: 30px;
-                    padding-bottom: 20px;
-                    border-bottom: 2px solid #6366f1;
-                `;
-            header.innerHTML = `
-                    <h1 style="color: #6366f1; margin: 0 0 10px 0; font-size: 24px;">שיחת בינת קוד המקור</h1>
-                    <p style="color: #666; margin: 0; font-size: 14px;">משתמש: ${USER_NAME}</p>
-                    <p style="color: #666; margin: 5px 0 0 0; font-size: 14px;">תאריך: ${new Date().toLocaleDateString('he-IL')}</p>
-                `;
-            pdfContent.appendChild(header);
-
-            // Messages container
-            const messagesContainer = document.createElement('div');
-            messagesContainer.style.cssText = `
-                    max-width: 100%;
-                `;
-
-            messages.forEach((msg, index) => {
+            // Process each message
+            for (let i = 0; i < messages.length; i++) {
+                const msg = messages[i];
                 const isUser = msg.classList.contains('user');
-                const content = msg.querySelector('.message-content').textContent;
-                const time = msg.querySelector('.message-time').textContent;
-                const sender = isUser ? USER_NAME : 'בינת קוד המקור';
-
-                const messageDiv = document.createElement('div');
-                messageDiv.style.cssText = `
-                        margin-bottom: 20px;
-                        padding: 15px;
-                        border-radius: 10px;
-                        position: relative;
-                        ${isUser ?
-                    'background: linear-gradient(135deg, #0b2e6b, #0a2a5f); color: white; margin-right: 20px;' :
-                    'background: #f8fafc; border: 1px solid #e2e8f0; margin-left: 20px;'
+                
+                // Get message content - try different selectors
+                let content = '';
+                let time = '';
+                
+                // Try to find content
+                const contentEl = msg.querySelector('.message-content');
+                if (contentEl) {
+                    content = contentEl.innerText || contentEl.textContent || '';
+                } else {
+                    // Fallback: get all text content
+                    content = msg.innerText || msg.textContent || '';
                 }
-                    `;
-
-                // Sender and time
-                const senderDiv = document.createElement('div');
-                senderDiv.style.cssText = `
-                        font-weight: bold;
-                        font-size: 12px;
-                        margin-bottom: 8px;
-                        opacity: 0.8;
-                    `;
-                senderDiv.textContent = `${sender} • ${time}`;
-                messageDiv.appendChild(senderDiv);
-
-                // Message content
-                const contentDiv = document.createElement('div');
-                contentDiv.style.cssText = `
-                        font-size: 14px;
-                        white-space: pre-wrap;
-                        word-wrap: break-word;
-                    `;
-                contentDiv.textContent = content;
-                messageDiv.appendChild(contentDiv);
-
-                messagesContainer.appendChild(messageDiv);
-            });
-
-            pdfContent.appendChild(messagesContainer);
-
-            // Footer
-            const footer = document.createElement('div');
-            footer.style.cssText = `
-                    text-align: center;
-                    margin-top: 30px;
-                    padding-top: 20px;
-                    border-top: 1px solid #e2e8f0;
-                    color: #666;
-                    font-size: 12px;
-                `;
-            footer.innerHTML = `
-                    <p style="margin: 0;">© 2024 PDN Center - Personal Development Navigator</p>
-                    <p style="margin: 5px 0 0 0;">בינת קוד המקור - מערכת ניהול נתוני אבחון פדן</p>
-                `;
-            pdfContent.appendChild(footer);
-
-            // PDF options
-            const opt = {
-                margin: [0.5, 0.5, 0.5, 0.5],
-                filename: `chat-export-${USER_NAME}-${new Date().toISOString().split('T')[0]}.pdf`,
-                image: {type: 'jpeg', quality: 0.98},
-                html2canvas: {
-                    scale: 2,
-                    useCORS: true,
-                    letterRendering: true,
-                    allowTaint: true,
-                    foreignObjectRendering: false
-                },
-                jsPDF: {
-                    unit: 'in',
-                    format: 'a4',
-                    orientation: 'portrait'
+                
+                // Try to find time
+                const timeEl = msg.querySelector('.message-time');
+                if (timeEl) {
+                    time = timeEl.innerText || timeEl.textContent || '';
                 }
-            };
+                
+                // Clean up content
+                content = content.replace(/\n\s*\n/g, '\n').trim();
+                
+                if (content) {
+                    const sender = isUser ? USER_NAME : 'בינת קוד המקור';
+                    text += '[' + time + '] ' + sender + ':\n';
+                    text += content + '\n\n';
+                }
+            }
 
-            // Generate and download PDF
-            html2pdf().set(opt).from(pdfContent).save().then(() => {
-                showSuccess('השיחה יוצאה בהצלחה!');
-            }).catch((error) => {
-                console.error('PDF generation error:', error);
-                showError('שגיאה בייצוא ה-PDF');
-            });
+            text += '========================================\n';
+            text += '© 2024 PDN Center\n';
+
+            // Create and download file
+            const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'chat-export-' + USER_NAME + '-' + new Date().toISOString().split('T')[0] + '.txt';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            
+            alert('השיחה יוצאה בהצלחה!');
 
         } catch (error) {
             console.error('Export error:', error);
-            showError('שגיאה בייצוא השיחה');
+            alert('שגיאה בייצוא השיחה: ' + error.message);
         }
     }
+
 
     // Enhanced send message function with queue and error handling
     async function sendMessage() {
         const input = document.getElementById("userInput");
-        const sendBtn = document.getElementById("sendBtn");
         const message = input.value.trim();
 
-        if (message === "" || isProcessing) return;
+        if (message === "" || isProcessing) {
+            if (isProcessing) {
+                showError('אנא המתן עד שההודעה הנוכחית תסיים עיבוד');
+            }
+            return;
+        }
 
         // Check if user typed ""סיים שיחה" manually
         if (message.toLowerCase().includes("סיים שיחה") ||
@@ -1923,12 +1939,10 @@
         isProcessing = true;
         const message = messageQueue.shift();
 
-        const sendBtn = document.getElementById("sendBtn");
         const chatContainer = document.getElementById("chatContainer");
 
-        // Show loading state
-        sendBtn.innerHTML = '<span class="loading-spinner"></span>';
-        sendBtn.disabled = true;
+        // Disable UI elements
+        disableUI();
 
         // Create user message bubble
         const userBubble = document.createElement("div");
@@ -2012,9 +2026,8 @@
             typing.remove();
             showError('שגיאה בשליחת ההודעה לשרת');
         } finally {
-            // Restore button state
-            sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> שלח';
-            sendBtn.disabled = false;
+            // Re-enable UI elements
+            enableUI();
             isProcessing = false;
 
             // Process next message in queue
@@ -2046,8 +2059,11 @@
                     // Show 21-day plan modal
                     showPlanModal();
                 } else {
-                    document.getElementById("userInput").value = reply;
-                    sendMessage();
+                    // Disable UI before sending message
+                    if (!isProcessing) {
+                        document.getElementById("userInput").value = reply;
+                        sendMessage();
+                    }
                 }
             };
             quickRepliesDiv.appendChild(button);

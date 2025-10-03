@@ -459,6 +459,7 @@
                         תאריך <span class="text-blue-600 text-sm">↓</span>
                     </th>
                     <th class="px-4 py-4 text-right font-semibold text-gray-700" title="קוד המערכת">קוד מערכת</th>
+                    <th class="px-4 py-4 text-right font-semibold text-gray-700" title="סטטוס אימות">אימות</th>
                     <th class="px-4 py-4 text-right font-semibold text-gray-700" title="ניתוח קול">ניתוח קול</th>
                     <th class="px-4 py-4 text-right font-semibold text-gray-700" title="קוד מאבחן">קוד מאבחן</th>
                     <th class="px-4 py-4 text-right font-semibold text-gray-700" title="הערות המאבחן">הערות</th>
@@ -953,6 +954,13 @@
                 const data = await response.json();
                 currentData = data.data;
 
+                // Calculate verification status for each user
+                currentData.forEach(user => {
+                    // For existing data, we'll set needs_verification to false by default
+                    // The actual verification will be calculated when recalculating PDN codes
+                    user.needs_verification = false;
+                });
+
                 // Helper function to parse dates in different formats
                 const parseDate = (dateStr) => {
                     if (!dateStr || dateStr === 'N/A' || dateStr === '') {
@@ -1058,6 +1066,12 @@
             <td class="px-4 py-4 text-gray-700">${user.date}</td>
             <td class="px-4 py-4">
                 <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium"> ${user.pdn_code}</span>
+            </td>
+            <td class="px-4 py-4">
+                ${user.needs_verification ? 
+                    '<span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium" title="נדרש אימות אנושי - הפער בין הציונים קטן מ-5 נקודות">⚠️ אימות</span>' : 
+                    '<span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">✓ תקין</span>'
+                }
             </td>
             <td class="px-4 py-4">
                 <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">${user.pdn_voice_code || 'N/A'}</span>
@@ -1875,7 +1889,21 @@ ${leftText}: ${leftValue} | ${rightText}: ${rightValue}
 
                 if (response.ok) {
                     const data = await response.json();
-                    showNotification(`אימייל נשלח בהצלחה ל-${email}`, 'success');
+                    
+                    // Show appropriate notification based on verification status
+                    if (data.needs_verification) {
+                        showNotification(`אימייל נשלח ל-${email} - ⚠️ נדרש אימות אנושי (הפער בין הציונים קטן מ-5 נקודות)`, 'warning');
+                    } else {
+                        showNotification(`אימייל נשלח בהצלחה ל-${email}`, 'success');
+                    }
+                    
+                    // Update local data with verification status
+                    const userIndex = currentData.findIndex(u => u.email === email);
+                    if (userIndex !== -1) {
+                        currentData[userIndex].needs_verification = data.needs_verification || false;
+                        renderTable(currentData);
+                    }
+                    
                     // Reset loading state for this specific row
                     resetRowLoadingState(email, 'email');
                 } else if (response.status === 401) {
@@ -1943,7 +1971,13 @@ ${leftText}: ${leftValue} | ${rightText}: ${rightValue}
                 if (response.ok) {
                     const data = await response.json();
                     console.log('Full response data:', data); // Debug log
-                    showNotification(`קוד פדן חושב מחדש בהצלחה: ${data.pdn_code} על ידי ${data.updated_by}`, 'success');
+                    
+                    // Show appropriate notification based on verification status
+                    if (data.needs_verification) {
+                        showNotification(`קוד פדן חושב מחדש: ${data.pdn_code} - ⚠️ נדרש אימות אנושי (הפער בין הציונים קטן מ-5 נקודות)`, 'warning');
+                    } else {
+                        showNotification(`קוד פדן חושב מחדש בהצלחה: ${data.pdn_code} על ידי ${data.updated_by}`, 'success');
+                    }
 
                     // Display calculation details in console if available
                     if (data.calculation_details) {
@@ -1973,6 +2007,7 @@ ${leftText}: ${leftValue} | ${rightText}: ${rightValue}
                     if (userIndex !== -1) {
                         currentData[userIndex].pdn_code = data.pdn_code;
                         currentData[userIndex].date = data.date;
+                        currentData[userIndex].needs_verification = data.needs_verification || false;
                         // Update the PDN update comments if available
                         if (data.pdn_update_comments) {
                             currentData[userIndex].pdn_update_comments = data.pdn_update_comments;

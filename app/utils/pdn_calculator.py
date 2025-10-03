@@ -20,6 +20,33 @@ from typing import Dict, Any, Tuple
 logger = logging.getLogger(__name__)
 
 
+def check_verification_needed(scores: Dict[str, int]) -> bool:
+    """
+    Check if human verification is needed based on E, P, A, T scores.
+    Verification is needed if there's a gap of less than 5 points between any of the scores.
+    
+    Args:
+        scores (dict): Dictionary containing the trait scores
+        
+    Returns:
+        bool: True if verification is needed, False otherwise
+    """
+    trait_scores = {k: v for k, v in scores.items() if k in ['A', 'T', 'P', 'E']}
+    
+    # Get all score values
+    score_values = list(trait_scores.values())
+    
+    # Check if any two scores have a gap of less than 5 points
+    for i in range(len(score_values)):
+        for j in range(i + 1, len(score_values)):
+            gap = abs(score_values[i] - score_values[j])
+            if gap < 5:
+                logger.info(f"Verification needed: gap of {gap} points between scores {score_values[i]} and {score_values[j]}")
+                return True
+    
+    return False
+
+
 def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) -> str:
     """
     Calculate the PDN code based on user's answers.
@@ -36,7 +63,8 @@ def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) ->
         'pdn_code': 'NA',
         'trait': 'Undetermined',
         'energy': 'Undetermined',
-        'scores': {'A': 0, 'T': 0, 'P': 0, 'E': 0, 'D': 0, 'S': 0, 'F': 0}
+        'scores': {'A': 0, 'T': 0, 'P': 0, 'E': 0, 'D': 0, 'S': 0, 'F': 0},
+        'needs_verification': False
     }
     
     # Initialize calculation details if requested
@@ -279,6 +307,12 @@ def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) ->
             'dominant': dominant_trait
         })
 
+    # Check if verification is needed based on E, P, A, T scores
+    result['needs_verification'] = check_verification_needed(result['scores'])
+    
+    if result['needs_verification']:
+        logger.warning("PDN calculation requires human verification due to close scores")
+    
     # Finalizing the PDN code
     pdn_matrix: Dict[Tuple[str, str], str] = {
         ('P', 'D'): 'P10', ('P', 'S'): 'P2', ('P', 'F'): 'P6',
@@ -300,11 +334,21 @@ def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) ->
             'pdn_code': pdn_code,
             'trait': result['trait'],
             'energy': result['energy'],
-            'scores': result['scores'].copy()
+            'scores': result['scores'].copy(),
+            'needs_verification': result['needs_verification']
         })
         return {
             'pdn_code': pdn_code,
+            'needs_verification': result['needs_verification'],
             'calculation_details': calculation_details
         }
 
+    # If verification is needed, return the full result object instead of just the code
+    if result['needs_verification']:
+        return {
+            'pdn_code': pdn_code,
+            'needs_verification': True,
+            'scores': result['scores']
+        }
+    
     return pdn_code
