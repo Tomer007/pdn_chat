@@ -1,0 +1,26 @@
+# Cursor Rules for PDN Chat Project
+
+## Git and Version Control
+- NEVER commit code automatically without explicit user approval
+- ALWAYS show changes first using `git diff` or `git show` before committing
+- ALWAYS ask "Should I proceed with these changes?" before any commit
+- Use `git add` and `git commit` as separate steps, never combined
+- Wait for user confirmation before pushing to remote repository
+
+## Code Changes
+- Show exactly what files will be modified before making changes
+- Explain the purpose and impact of each change
+- Use descriptive commit messages when user approves commits
+- Prefer small, focused commits over large changes
+
+## Communication
+- Always explain what I'm about to do before doing it
+- Ask for permission before making any destructive changes
+- Provide clear summaries of all changes made
+- Be explicit about the scope and impact of modifications
+
+## Safety
+- Never force push without explicit permission
+- Always backup important changes before major modifications
+- Respect the user's workflow and preferences
+- Prioritize code safety and stability over speed

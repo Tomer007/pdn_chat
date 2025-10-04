@@ -1,0 +1,1514 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data:; connect-src 'self';">
+    <title>Neo - הקמה והקלטה קולית</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #1c0f97;
+            --secondary-color: #1c0f97;
+            --accent-color: #1c0f97;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --gradient-start: #0b2e6b;
+            --gradient-end: #0b2e6b;
+        }
+
+        /* Dark mode variables */
+        [data-theme="dark"] {
+            --primary-color: #3570d7;
+            --secondary-color: #3570d7;
+            --accent-color: #3570d7;
+            --text-primary: #f9fafb;
+            --text-secondary: #d1d5db;
+            --bg-primary: #1f2937;
+            --bg-secondary: #111827;
+            --border-color: #374151;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --gradient-start: #3570d7;
+            --gradient-end: #3570d7;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            direction: rtl;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        /* Header with improved layout */
+        .header-gradient {
+            background: linear-gradient(135deg, #0b2e6b 0%, #0b2e6b 50%, #0b2e6b 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-gradient::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 20px;
+            background: linear-gradient(to bottom, transparent, rgba(224, 231, 255, 0.8));
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+        }
+
+        .logout-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .logout-btn i {
+            font-size: 16px;
+        }
+
+        .logo-link {
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            display: block;
+        }
+
+        .logo-link:hover {
+            transform: scale(1.05);
+        }
+
+        .header-logo {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            border: 4px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .header-text {
+            text-align: right;
+            direction: rtl;
+        }
+
+        /* Enhanced main container */
+        .main-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 24px;
+            max-width: 900px;
+            width: 100%;
+            box-shadow: 0 20px 40px var(--shadow-color);
+            display: flex;
+            flex-direction: column;
+            animation: fadeIn 1s ease-in-out;
+            transition: all 0.4s ease;
+            min-height: 600px;
+            overflow-y: auto;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            scroll-behavior: smooth;
+            margin: 40px auto;
+        }
+
+        [data-theme="dark"] .main-container {
+            background: rgba(31, 41, 55, 0.95);
+            border: 1px solid rgba(55, 65, 81, 0.3);
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 25px;
+            border: 1px solid rgba(11, 46, 107, 0.1);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        [data-theme="dark"] .section {
+            background: rgba(31, 41, 55, 0.8);
+            border: 1px solid rgba(55, 65, 81, 0.3);
+        }
+
+        .section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            direction: rtl;
+            text-align: right;
+        }
+
+        .badge {
+            background: #e74c3c;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .badge.success {
+            background: #27ae60;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid rgba(11, 46, 107, 0.2);
+            border-radius: 16px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            direction: rtl;
+        }
+
+        [data-theme="dark"] .form-group input,
+        [data-theme="dark"] .form-group textarea,
+        [data-theme="dark"] .form-group select {
+            background: rgba(31, 41, 55, 0.9);
+            border: 2px solid rgba(11, 46, 107, 0.3);
+            color: var(--text-primary);
+            direction: ltr;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #0b2e6b;
+            box-shadow: 0 0 0 3px rgba(11, 46, 107, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        /* URL link styling */
+        .url-link {
+            color: #0b2e6b;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .url-link:hover {
+            color: #0a2a5f;
+            text-decoration: underline;
+        }
+        
+        .url-link i {
+            transition: transform 0.3s ease;
+        }
+        
+        .url-link:hover i {
+            transform: translateX(3px);
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 0.9rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .product-row {
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: white;
+            border: 1px solid #e1e5e9;
+            border-radius: 6px;
+        }
+
+        .product-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .product-row .form-group:last-child {
+            flex: 0 0 auto;
+            width: 100px;
+        }
+        
+        /* Product list styling */
+        .product-item {
+            background: white;
+            border: 2px solid rgba(11, 46, 107, 0.15);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .product-item:hover {
+            border-color: rgba(11, 46, 107, 0.3);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .product-header {
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid rgba(11, 46, 107, 0.1);
+        }
+        
+        .product-title {
+            color: #0b2e6b;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .product-title::before {
+            content: '●';
+            margin-right: 10px;
+            color: #0b2e6b;
+            font-size: 0.8em;
+        }
+        
+        .product-body {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .product-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .product-label {
+            color: #0b2e6b;
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin: 0;
+        }
+        
+        .product-description {
+            color: #4b5563;
+            line-height: 1.6;
+            margin: 0;
+            text-align: justify;
+            direction: rtl;
+        }
+        
+        .product-url {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        [data-theme="dark"] .product-item {
+            background: rgba(31, 41, 55, 0.9);
+            border-color: rgba(11, 46, 107, 0.3);
+        }
+        
+        [data-theme="dark"] .product-description {
+            color: #d1d5db;
+        }
+        
+        /* Markdown styling for analysis results */
+        .markdown-content h1,
+        .markdown-content h2,
+        .markdown-content h3,
+        .markdown-content h4 {
+            color: #0b2e6b;
+            font-weight: 700;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .markdown-content h1 { font-size: 1.5rem; }
+        .markdown-content h2 { font-size: 1.3rem; }
+        .markdown-content h3 { font-size: 1.1rem; }
+        
+        .markdown-content p {
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+        
+        .markdown-content strong {
+            color: #0b2e6b;
+            font-weight: 700;
+        }
+        
+        .markdown-content ul,
+        .markdown-content ol {
+            margin: 10px 0;
+            padding-right: 25px;
+            direction: rtl;
+        }
+        
+        .markdown-content li {
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+        
+        .markdown-content code {
+            background: rgba(11, 46, 107, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        
+        .markdown-content pre {
+            background: rgba(11, 46, 107, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        
+        .markdown-content blockquote {
+            border-right: 4px solid #0b2e6b;
+            padding-right: 15px;
+            margin: 15px 0;
+            color: #4b5563;
+            font-style: italic;
+        }
+
+        .remove-btn {
+            background: #0b2e6b;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.3s ease;
+        }
+
+        .remove-btn:hover {
+            background: #0a2a5f;
+        }
+
+        .add-product-btn {
+            background: #0b2e6b;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s ease;
+        }
+
+        .add-product-btn:hover {
+            background: #0a2a5f;
+        }
+
+        .voice-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .voice-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(11, 46, 107, 0.3);
+        }
+
+        .voice-btn.primary {
+            background: #0b2e6b;
+            color: white;
+        }
+
+        .voice-btn.primary:hover {
+            background: #0a2a5f;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(11, 46, 107, 0.4);
+        }
+
+        .voice-btn.secondary {
+            background: #0b2e6b;
+            color: white;
+        }
+
+        .voice-btn.secondary:hover {
+            background: #0a2a5f;
+            transform: translateY(-2px);
+        }
+
+        .voice-btn.danger {
+            background: #0b2e6b;
+            color: white;
+        }
+
+        .voice-btn.danger:hover {
+            background: #0a2a5f;
+            transform: translateY(-2px);
+        }
+
+        .voice-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .timer {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #0b2e6b;
+            margin-left: 10px;
+        }
+
+        .audio-preview {
+            margin-top: 15px;
+        }
+
+        .audio-preview audio {
+            width: 100%;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #e1e5e9;
+        }
+
+        .action-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(11, 46, 107, 0.3);
+        }
+
+        .action-btn.primary {
+            background: #0b2e6b;
+            color: white;
+        }
+
+        .action-btn.primary:hover {
+            background: #0a2a5f;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(11, 46, 107, 0.4);
+        }
+
+        .action-btn.secondary {
+            background: #0b2e6b;
+            color: white;
+        }
+
+        .action-btn.secondary:hover {
+            background: #0a2a5f;
+            transform: translateY(-2px);
+        }
+
+        .action-btn.danger {
+            background: #0b2e6b;
+            color: white;
+        }
+
+        .action-btn.danger:hover {
+            background: #0a2a5f;
+            transform: translateY(-2px);
+        }
+
+        .action-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .warning-banner {
+            background: #f39c12;
+            color: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .restore-prompt {
+            background: #3498db;
+            color: white;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .restore-prompt button {
+            background: #0b2e6b;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: background 0.3s ease;
+        }
+        
+        .restore-prompt button:hover {
+            background: #0a2a5f;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                margin: 20px;
+                padding: 20px;
+                border-radius: 16px;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+
+            .header-left {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .header-text {
+                text-align: center;
+            }
+
+            .product-row {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .product-row .form-group:last-child {
+                width: 100%;
+            }
+            
+            .product-item {
+                padding: 15px;
+            }
+            
+            .product-title {
+                font-size: 1.1rem;
+            }
+            
+            .product-description {
+                font-size: 0.9rem;
+            }
+
+            .voice-controls {
+                justify-content: center;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+        }
+
+        [dir="ltr"] {
+            text-align: left;
+        }
+
+        [dir="ltr"] .product-row {
+            flex-direction: row;
+        }
+
+        [dir="ltr"] .timer {
+            margin-left: 10px;
+            margin-right: 0;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Accessibility improvements */
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            .main-container {
+                border: 2px solid #000;
+            }
+
+            .form-group input,
+            .form-group textarea {
+                border: 2px solid #000;
+            }
+        }
+
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+            .main-container, .voice-btn, .action-btn {
+                animation: none;
+                transition: none;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Header with improved layout -->
+<header class="header-gradient">
+    <div class="header-content" style="justify-content: space-between;">
+        <!-- Logout button -->
+        <div class="header-right">
+            <a href="{{ url_for('neo.logout') }}" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                התנתק
+            </a>
+        </div>
+        
+        <!-- Logo and title section -->
+        <div class="header-left">
+            <div class="header-text text-right">
+                <h1 class="text-2xl font-bold mb-2 text-white" style="text-align: right;">Neo</h1>
+                <p class="text-2xl opacity-90 text-white">PDN Center</p>
+            </div>
+            <a href="https://www.pdn.co.il" target="_blank" class="logo-link">
+                <img src="/static/images/pdn_logo.png" alt="PDN Logo" class="header-logo"/>
+            </a>
+        </div>
+    </div>
+</header>
+
+<!-- Main container -->
+<div class="container mx-auto p-6 max-w-4xl">
+    <div class="main-container">
+            <div id="restorePrompt" class="restore-prompt" style="display: none;">
+                <p>Found saved data. Would you like to restore it?</p>
+                <button onclick="restoreData()">Yes, Restore</button>
+                <button onclick="clearRestorePrompt()">No, Start Fresh</button>
+            </div>
+
+            <div id="mediaWarning" class="warning-banner" style="display: none;">
+                <strong>Warning:</strong> Your browser doesn't support voice recording. Please use a modern browser like Chrome, Firefox, or Edge.
+            </div>
+
+            <div class="section">
+                <h2>פרטי החברה</h2>
+                
+                <div class="form-group">
+                    <label for="companySelector">בחר חברה *</label>
+                    <select id="companySelector" class="form-input" onchange="loadCompanyData()" style="direction: rtl; text-align: right;">
+                        <option value="">-- בחר חברה --</option>
+                        {% for company in insurance_data.companies %}
+                        <option value="{{ loop.index0 }}">{{ company['Company Name'] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div id="companyInfoContainer" style="display: none;">
+                    <div class="product-item">
+                        <div class="product-body">
+                            <div class="product-field">
+                                <label class="product-label">אודות החברה:</label>
+                                <p class="product-description" id="companyAbout"></p>
+                            </div>
+                            <div class="product-field">
+                                <label class="product-label">אתר החברה:</label>
+                                <a id="companyUrlLink" href="#" target="_blank" class="url-link product-url">
+                                    <span id="companyUrlText"></span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 onclick="toggleProducts()" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between;">
+                    <span>מוצרים</span>
+                    <i id="productsToggleIcon" class="fas fa-chevron-down" style="transition: transform 0.3s ease;"></i>
+                </h2>
+                
+                <div id="productsContainer" style="display: none; overflow: hidden; transition: all 0.3s ease;">
+                    <p style="text-align: center; color: #6b7280; font-style: italic;">בחר חברה כדי לצפות במוצרים</p>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>
+                    הקלטה קולית
+                    <span id="voiceBadge" class="badge">לא הוקלט</span>
+                </h2>
+                
+                <div class="voice-controls">
+                    <button class="voice-btn primary" id="startBtn" onclick="startRecording()">התחל הקלטה</button>
+                    <button class="voice-btn secondary" id="stopBtn" onclick="stopRecording()" disabled>סיים</button>
+                    <button class="voice-btn secondary" id="playBtn" onclick="playRecording()" disabled>השמע</button>
+                    <button class="voice-btn danger" id="rerecordBtn" onclick="rerecord()" disabled>הקלט מחדש</button>
+                    <span id="timer" class="timer" style="display: none;">00:00</span>
+                </div>
+                
+                <div id="audioPreview" class="audio-preview" style="display: none;">
+                    <audio id="audioPlayer" controls></audio>
+                </div>
+            </div>
+            
+            <div class="actions" style="display: flex; justify-content: center; margin-top: 30px; padding-top: 30px; border-top: 2px solid #e1e5e9;">
+                <button class="action-btn primary" id="analyzeBtn" onclick="sendForAnalysis()">
+                    <i class="fas fa-brain" style="margin-left: 8px;"></i>
+                    שלח לאנליזה
+                </button>
+            </div>
+            
+            <!-- Analysis Results Section -->
+            <div id="analysisResults" class="section" style="display: none; margin-top: 30px;">
+                <h2>תוצאות האנליזה</h2>
+                
+                <div class="product-item">
+                    <div class="product-body">
+                        <div class="product-field">
+                            <label class="product-label">תמלול ההקלטה:</label>
+                            <p class="product-description" id="transcriptionText"></p>
+                        </div>
+                        <div class="product-field" style="margin-top: 20px;">
+                            <label class="product-label">אנליזה:</label>
+                            <div class="product-description markdown-content" id="analysisText" style="direction: rtl; text-align: right;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Insurance data from JSON
+    const insuranceData = {{ insurance_data|tojson|safe }};
+    
+    // Global variables
+    let mediaRecorder;
+    let audioChunks = [];
+    let audioBlob = null;
+    let recordingStartTime = null;
+    let timerInterval = null;
+    let isRecording = false;
+    let isPlaying = false;
+    
+    // Load company data when company is selected
+    function loadCompanyData() {
+        const selector = document.getElementById('companySelector');
+        const companyIndex = selector.value;
+        
+        if (companyIndex === '') {
+            // Hide company info
+            document.getElementById('companyInfoContainer').style.display = 'none';
+            document.getElementById('productsContainer').innerHTML = '<p style="text-align: center; color: #6b7280; font-style: italic;">בחר חברה כדי לצפות במוצרים</p>';
+            
+            // Collapse products section
+            document.getElementById('productsContainer').style.display = 'none';
+            document.getElementById('productsToggleIcon').style.transform = 'rotate(0deg)';
+            
+            updateBadges();
+            return;
+        }
+        
+        const company = insuranceData.companies[companyIndex];
+        
+        // Show and populate company info
+        document.getElementById('companyInfoContainer').style.display = 'block';
+        document.getElementById('companyAbout').textContent = company['About the Company'];
+        
+        // Set company URL as clickable link
+        const companyUrl = company['Company URL'];
+        document.getElementById('companyUrlLink').href = companyUrl;
+        document.getElementById('companyUrlText').textContent = companyUrl;
+        
+        // Populate products
+        const productsContainer = document.getElementById('productsContainer');
+        productsContainer.innerHTML = '';
+        
+        company.insurances.forEach((insurance, index) => {
+            const productDiv = document.createElement('div');
+            productDiv.className = 'product-item';
+            productDiv.innerHTML = `
+                <div class="product-header">
+                    <h2>${insurance['Product Name']}</h2>
+                </div>
+                <div class="product-body">
+                    <div class="product-field">
+                        <p class="product-description">${insurance['Description']}</p>
+                    </div>
+                    <div class="product-field">
+                        <label class="product-label">אתר המוצר:</label>
+                        <a href="${insurance['Product URL']}" target="_blank" class="url-link product-url">
+                            ${insurance['Product URL']}
+                        </a>
+                    </div>
+                </div>
+            `;
+            productsContainer.appendChild(productDiv);
+        });
+        
+        // Auto-expand products section when company is selected
+        document.getElementById('productsContainer').style.display = 'block';
+        document.getElementById('productsToggleIcon').style.transform = 'rotate(180deg)';
+        
+        // Update badges after products are added to DOM
+        setTimeout(() => updateBadges(), 0);
+    }
+    
+    // Toggle products section visibility
+    function toggleProducts() {
+        const container = document.getElementById('productsContainer');
+        const icon = document.getElementById('productsToggleIcon');
+        
+        if (container.style.display === 'none') {
+            container.style.display = 'block';
+            icon.style.transform = 'rotate(180deg)';
+        } else {
+            container.style.display = 'none';
+            icon.style.transform = 'rotate(0deg)';
+        }
+    }
+
+    // Initialize the application
+    function init() {
+        bindUI();
+        checkMediaSupport();
+        checkForSavedData();
+        updateBadges();
+    }
+
+    // Bind UI event listeners
+    function bindUI() {
+        // Form change detection
+        document.querySelectorAll('input, textarea').forEach(input => {
+            input.addEventListener('input', updateBadges);
+        });
+        
+        // Audio player event listeners
+        const audioPlayer = document.getElementById('audioPlayer');
+        if (audioPlayer) {
+            // When audio ends, reset play button
+            audioPlayer.addEventListener('ended', () => {
+                const playBtn = document.getElementById('playBtn');
+                if (playBtn) {
+                    playBtn.textContent = 'השמע';
+                    isPlaying = false;
+                }
+            });
+            
+            // When audio is paused
+            audioPlayer.addEventListener('pause', () => {
+                const playBtn = document.getElementById('playBtn');
+                if (playBtn && !audioPlayer.ended) {
+                    playBtn.textContent = 'השמע';
+                    isPlaying = false;
+                }
+            });
+            
+            // When audio starts playing
+            audioPlayer.addEventListener('play', () => {
+                const playBtn = document.getElementById('playBtn');
+                if (playBtn) {
+                    playBtn.textContent = 'השהה';
+                    isPlaying = true;
+                }
+            });
+        }
+    }
+
+    // Check if MediaRecorder is supported
+    function checkMediaSupport() {
+        if (!navigator.mediaDevices || !window.MediaRecorder) {
+            document.getElementById('mediaWarning').style.display = 'block';
+        }
+    }
+
+    // Check for saved data on load
+    function checkForSavedData() {
+        const savedData = localStorage.getItem('neo_pdn_company_form');
+        if (savedData) {
+            document.getElementById('restorePrompt').style.display = 'block';
+        }
+    }
+
+    // Add a new product row
+    function addProductRow() {
+        const container = document.getElementById('productsContainer');
+        const rowId = 'product-' + Date.now();
+        
+        const row = document.createElement('div');
+        row.className = 'product-row';
+        row.id = rowId;
+        
+        row.innerHTML = `
+            <div class="form-group">
+                <label for="${rowId}-name">Product Name *</label>
+                <input type="text" id="${rowId}-name" required oninput="validateProductName('${rowId}')">
+                <div class="error-message" id="${rowId}-nameError">Product name is required</div>
+            </div>
+            <div class="form-group">
+                <label for="${rowId}-desc">Description</label>
+                <textarea id="${rowId}-desc" placeholder="Short description..."></textarea>
+            </div>
+            <div class="form-group">
+                <label for="${rowId}-url">Product URL</label>
+                <input type="url" id="${rowId}-url" placeholder="https://example.com" oninput="validateProductUrl('${rowId}')">
+                <div class="error-message" id="${rowId}-urlError">Please enter a valid URL</div>
+            </div>
+            <div class="form-group">
+                <button class="remove-btn" onclick="removeProductRow('${rowId}')">Remove</button>
+            </div>
+        `;
+        
+        container.appendChild(row);
+        updateBadges();
+    }
+
+    // Remove a product row
+    function removeProductRow(rowId) {
+        document.getElementById(rowId).remove();
+        updateBadges();
+    }
+
+
+    // Validate product name
+    function validateProductName(rowId) {
+        const input = document.getElementById(rowId + '-name');
+        const error = document.getElementById(rowId + '-nameError');
+        const isValid = input.value.trim().length > 0;
+        
+        if (isValid) {
+            error.classList.remove('show');
+            input.style.borderColor = '#e1e5e9';
+        } else {
+            error.classList.add('show');
+            input.style.borderColor = '#e74c3c';
+        }
+        
+        updateBadges();
+        return isValid;
+    }
+
+    // Validate product URL
+    function validateProductUrl(rowId) {
+        const input = document.getElementById(rowId + '-url');
+        const error = document.getElementById(rowId + '-urlError');
+        const url = input.value.trim();
+        
+        if (url === '') {
+            error.classList.remove('show');
+            input.style.borderColor = '#e1e5e9';
+            return true;
+        }
+        
+        const isValid = isValidUrl(url);
+        
+        if (isValid) {
+            error.classList.remove('show');
+            input.style.borderColor = '#e1e5e9';
+        } else {
+            error.classList.add('show');
+            input.style.borderColor = '#e74c3c';
+        }
+        
+        updateBadges();
+        return isValid;
+    }
+
+    // Simple URL validation
+    function isValidUrl(string) {
+        try {
+            const url = new URL(string);
+            return url.protocol === 'http:' || url.protocol === 'https:';
+        } catch (_) {
+            return false;
+        }
+    }
+
+    // Update progress badges
+    function updateBadges() {
+        // Company badge
+        const companySelector = document.getElementById('companySelector');
+        const companyValid = companySelector ? companySelector.value !== '' : false;
+        
+        const companyBadge = document.getElementById('companyBadge');
+        if (companyBadge) {
+            if (companyValid) {
+                companyBadge.textContent = 'הושלם';
+                companyBadge.className = 'badge success';
+            } else {
+                companyBadge.textContent = 'לא הושלם';
+                companyBadge.className = 'badge';
+            }
+        }
+
+        // Voice badge
+        const voiceBadge = document.getElementById('voiceBadge');
+        if (voiceBadge) {
+            if (audioBlob) {
+                voiceBadge.textContent = 'הוקלט ✓';
+                voiceBadge.className = 'badge success';
+            } else {
+                voiceBadge.textContent = 'לא הוקלט';
+                voiceBadge.className = 'badge';
+            }
+        }
+    }
+
+    // Start voice recording
+    async function startRecording() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = event => {
+                audioChunks.push(event.data);
+            };
+
+            mediaRecorder.onstop = () => {
+                audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                const audioUrl = URL.createObjectURL(audioBlob);
+                document.getElementById('audioPlayer').src = audioUrl;
+                document.getElementById('audioPreview').style.display = 'block';
+                updateBadges();
+            };
+
+            mediaRecorder.start();
+            isRecording = true;
+            recordingStartTime = Date.now();
+            
+            // Update UI
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+            document.getElementById('timer').style.display = 'inline';
+            
+            // Start timer
+            timerInterval = setInterval(updateTimer, 1000);
+            
+        } catch (error) {
+            console.error('Error starting recording:', error);
+            alert('לא ניתן לגשת למיקרופון. אנא בדוק את ההרשאות.');
+        }
+    }
+
+    // Stop voice recording
+    function stopRecording() {
+        if (mediaRecorder && isRecording) {
+            mediaRecorder.stop();
+            isRecording = false;
+            
+            // Stop timer
+            clearInterval(timerInterval);
+            
+            // Update UI
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+            document.getElementById('playBtn').disabled = false;
+            document.getElementById('rerecordBtn').disabled = false;
+            document.getElementById('timer').style.display = 'none';
+            
+            // Stop all tracks
+            mediaRecorder.stream.getTracks().forEach(track => track.stop());
+        }
+    }
+
+    // Play/pause recording
+    function playRecording() {
+        const audio = document.getElementById('audioPlayer');
+        const playBtn = document.getElementById('playBtn');
+        
+        if (!audio || !audio.src) {
+            alert('אין הקלטה זמינה להשמעה');
+            return;
+        }
+        
+        if (isPlaying) {
+            audio.pause();
+            playBtn.textContent = 'השמע';
+            isPlaying = false;
+        } else {
+            audio.play().then(() => {
+                playBtn.textContent = 'השהה';
+                isPlaying = true;
+            }).catch(error => {
+                console.error('Error playing audio:', error);
+                alert('שגיאה בהשמעת ההקלטה');
+                isPlaying = false;
+            });
+        }
+    }
+
+    // Re-record audio
+    function rerecord() {
+        // Stop playback if playing
+        const audio = document.getElementById('audioPlayer');
+        if (audio) {
+            audio.pause();
+            audio.currentTime = 0;
+        }
+        
+        // Reset state
+        audioBlob = null;
+        isPlaying = false;
+        
+        // Update UI
+        document.getElementById('audioPreview').style.display = 'none';
+        document.getElementById('playBtn').disabled = true;
+        document.getElementById('playBtn').textContent = 'השמע';
+        document.getElementById('rerecordBtn').disabled = true;
+        
+        updateBadges();
+    }
+
+    // Update recording timer
+    function updateTimer() {
+        if (isRecording && recordingStartTime) {
+            const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            document.getElementById('timer').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+    }
+
+    // Convert blob to base64
+    function blobToBase64(blob) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result.split(',')[1]);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    }
+
+    // Save data locally
+    async function saveLocally() {
+        try {
+            const data = await collectFormData();
+            localStorage.setItem('neo_pdn_company_form', JSON.stringify(data));
+            alert('Data saved locally!');
+        } catch (error) {
+            console.error('Error saving data:', error);
+            alert('Error saving data. Please try again.');
+        }
+    }
+
+    // Export JSON
+    async function exportJSON() {
+        try {
+            const data = await collectFormData();
+            const jsonString = JSON.stringify(data, null, 2);
+            
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'company_profile.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+        } catch (error) {
+            console.error('Error exporting data:', error);
+            alert('Error exporting data. Please try again.');
+        }
+    }
+
+    // Clear form
+    function clearForm() {
+        if (confirm('Are you sure you want to clear all data?')) {
+            // Clear company selector
+            document.getElementById('companySelector').value = '';
+            
+            // Hide company info
+            document.getElementById('companyInfoContainer').style.display = 'none';
+            
+            // Clear products
+            document.getElementById('productsContainer').innerHTML = '<p style="text-align: center; color: #6b7280; font-style: italic;">בחר חברה כדי לצפות במוצרים</p>';
+            document.getElementById('productsContainer').style.display = 'none';
+            document.getElementById('productsToggleIcon').style.transform = 'rotate(0deg)';
+            
+            // Clear audio
+            audioBlob = null;
+            document.getElementById('audioPreview').style.display = 'none';
+            document.getElementById('playBtn').disabled = true;
+            document.getElementById('rerecordBtn').disabled = true;
+            
+            // Clear localStorage
+            localStorage.removeItem('neo_pdn_company_form');
+            
+            // Update UI
+            updateBadges();
+            clearRestorePrompt();
+        }
+    }
+
+    // Collect all form data
+    async function collectFormData() {
+        const products = [];
+        
+        // Get products from the selected company
+        const companySelector = document.getElementById('companySelector');
+        if (companySelector.value !== '') {
+            const company = insuranceData.companies[companySelector.value];
+            company.insurances.forEach(insurance => {
+                products.push({
+                    name: insurance['Product Name'],
+                    description: insurance['Description'],
+                    url: insurance['Product URL'] || null
+                });
+            });
+        }
+
+        let voiceRecording = null;
+        if (audioBlob) {
+            const base64 = await blobToBase64(audioBlob);
+            voiceRecording = {
+                mimeType: audioBlob.type,
+                base64,
+                durationSec: Math.floor(audioBlob.size / 16000) // Rough estimate
+            };
+        }
+
+        // Get company details
+        const selectedCompany = companySelector.value !== '' ? insuranceData.companies[companySelector.value]['Company Name'] : '';
+        const companyUrlLink = document.getElementById('companyUrlLink');
+        const companyUrl = companyUrlLink.href && companyUrlLink.href !== '#' ? companyUrlLink.href : '';
+        const companyAboutText = document.getElementById('companyAbout').textContent || '';
+        
+        return {
+            company: {
+                name: selectedCompany,
+                about: companyAboutText.trim(),
+                url: companyUrl
+            },
+            products,
+            voiceRecording,
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Restore saved data
+    async function restoreData() {
+        try {
+            const savedData = localStorage.getItem('neo_pdn_company_form');
+            if (!savedData) return;
+
+            const data = JSON.parse(savedData);
+            
+            // Restore company data
+            // Find company by name and set selector
+            const companyName = data.company.name || '';
+            const companyIndex = insuranceData.companies.findIndex(c => c['Company Name'] === companyName);
+            if (companyIndex !== -1) {
+                document.getElementById('companySelector').value = companyIndex;
+                loadCompanyData(); // This will restore company info and products
+            }
+            
+            // Restore audio
+            if (data.voiceRecording && data.voiceRecording.base64) {
+                const audioData = 'data:' + data.voiceRecording.mimeType + ';base64,' + data.voiceRecording.base64;
+                document.getElementById('audioPlayer').src = audioData;
+                document.getElementById('audioPreview').style.display = 'block';
+                document.getElementById('playBtn').disabled = false;
+                document.getElementById('rerecordBtn').disabled = false;
+                
+                // Create blob for validation
+                const response = await fetch(audioData);
+                audioBlob = await response.blob();
+            }
+            
+            clearRestorePrompt();
+            updateBadges();
+            
+        } catch (error) {
+            console.error('Error restoring data:', error);
+            alert('שגיאה בשחזור הנתונים. אנא נסה שוב.');
+        }
+    }
+
+    // Clear restore prompt
+    function clearRestorePrompt() {
+        document.getElementById('restorePrompt').style.display = 'none';
+    }
+    
+    // Send data for analysis
+    async function sendForAnalysis() {
+        try {
+            // Validate that a company is selected
+            const companySelector = document.getElementById('companySelector');
+            if (!companySelector.value) {
+                alert('אנא בחר חברה לפני שליחה לאנליזה');
+                return;
+            }
+            
+            // Validate that voice recording exists
+            if (!audioBlob) {
+                alert('אנא הקלט הקלטה קולית לפני שליחה לאנליזה');
+                return;
+            }
+            
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            analyzeBtn.disabled = true;
+            analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-left: 8px;"></i> מתמלל ומנתח...';
+            
+            // Hide previous results
+            document.getElementById('analysisResults').style.display = 'none';
+            
+            // Collect form data
+            const data = await collectFormData();
+            
+            // Send to backend for analysis
+            const response = await fetch('/neo/analyze', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // Display transcription
+                document.getElementById('transcriptionText').textContent = result.transcription;
+                
+                // Render markdown for analysis
+                const analysisDiv = document.getElementById('analysisText');
+                if (typeof marked !== 'undefined') {
+                    // Configure marked for RTL and Hebrew
+                    marked.setOptions({
+                        breaks: true,
+                        gfm: true
+                    });
+                    analysisDiv.innerHTML = marked.parse(result.analysis);
+                } else {
+                    // Fallback to plain text if marked.js not loaded
+                    analysisDiv.textContent = result.analysis;
+                }
+                
+                document.getElementById('analysisResults').style.display = 'block';
+                
+                // Scroll to results
+                document.getElementById('analysisResults').scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start' 
+                });
+                
+            } else {
+                alert('שגיאה בשליחה לאנליזה: ' + (result.error || 'שגיאה לא ידועה'));
+            }
+            
+        } catch (error) {
+            console.error('Error sending for analysis:', error);
+            alert('שגיאה בשליחה לאנליזה. אנא נסה שוב.');
+        } finally {
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            analyzeBtn.disabled = false;
+            analyzeBtn.innerHTML = '<i class="fas fa-brain" style="margin-left: 8px;"></i> שלח לאנליזה';
+        }
+    }
+
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

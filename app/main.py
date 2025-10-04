@@ -9,6 +9,7 @@ from app.pdn_admin import pdn_admin_bp, audio_bp
 from app.pdn_chat_ai import pdn_chat_ai_bp
 # Import blueprints
 from app.pdn_diagnose import pdn_diagnose_bp
+from app.neo import neo_bp
 from flask_session import Session
 
 
@@ -101,6 +102,7 @@ def create_app():
     app.register_blueprint(pdn_admin_bp, url_prefix='/pdn-admin')
     app.register_blueprint(audio_bp, url_prefix='/pdn-admin')  # Audio endpoints
     app.register_blueprint(pdn_chat_ai_bp, url_prefix='/pdn-chat-ai')
+    app.register_blueprint(neo_bp, url_prefix='/neo')
 
     # Mount static files
     app.static_folder = 'static'
@@ -112,7 +114,8 @@ def create_app():
         return {"message": "Welcome to PDN Flask Application 1.0 ", "modules": [
             "/pdn-diagnose - Personal development interaction",
             "/pdn-admin - Admin dashboard and monitoring",
-            "/pdn-chat-ai - AI chat assistance"
+            "/pdn-chat-ai - AI chat assistance",
+            "/neo - Neo P.D.N Center"
         ]}
 
     # Request logging middleware
