@@ -283,7 +283,7 @@ def create_21_day_plan():
         # Generate response using the single PDN agent
         try:
             agent = get_agent_instance()
-            response = agent.get_response_for_21_day_plan(user_context, user_name, pdn_code)
+            response = agent.build_21_transformation_plan(user_context, user_name, pdn_code)
             
         except (AttributeError, ValueError, ImportError) as agent_error:
             logger.error("Error with PDNAgent: %s", agent_error)

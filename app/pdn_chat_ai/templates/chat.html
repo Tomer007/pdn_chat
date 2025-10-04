@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="Content-Security-Policy"
-          content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data:; connect-src 'self';">
+          content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data:; connect-src 'self';">
     <title>בינת קוד המקור - שיחה עם הנווט הפנימי</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="/static/js/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
     <style>
         :root {
             --primary-color: #1c0f97;
@@ -998,6 +998,51 @@
         background-clip: text;
     }
 
+    .plan-auto-fill-btn {
+        background: transparent;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        color: transparent;
+        font-size: 16px;
+        position: relative;
+        opacity: 0;
+        z-index: 10;
+    }
+
+    .plan-auto-fill-btn:hover {
+        opacity: 0.1;
+        background: rgba(245, 158, 11, 0.1);
+    }
+
+    .plan-auto-fill-btn:active {
+        opacity: 0.2;
+        background: rgba(245, 158, 11, 0.2);
+    }
+
+    .plan-auto-fill-btn i {
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+
+    .plan-auto-fill-btn:hover i {
+        opacity: 0.3;
+    }
+
+    [data-theme="dark"] .plan-auto-fill-btn:hover {
+        background: rgba(251, 191, 36, 0.1);
+    }
+
+    [data-theme="dark"] .plan-auto-fill-btn:active {
+        background: rgba(251, 191, 36, 0.2);
+    }
+
     .plan-subtitle {
         font-size: 1.1rem;
         font-weight: 600;
@@ -1384,6 +1429,9 @@
             <div class="plan-title-container">
                 <div class="plan-title-main">
                     <h3 class="plan-title">אתגר 21 יום</h3>
+                    <button class="plan-auto-fill-btn" onclick="autoFillPlanForm()" title="">
+                        <i class="fas fa-eagle"></i>
+                    </button>
                 </div>
                 <div class="plan-subtitle">להשגת מטרה</div>
                 <div class="plan-tagline">
@@ -1653,12 +1701,217 @@
         return div.innerHTML;
     }
 
-    // Security: XSS prevention for markdown
+    // Security: XSS prevention for markdown with enhanced formatting
     function safeMarkdownParse(text) {
+        if (!text) return '';
+        
+        // Replace all placeholders with actual values
+        let processedText = text;
+        
+        // Replace user name placeholders
+        processedText = processedText.replace(/\$המשתמש_name/g, USER_NAME || 'המשתמש');
+        processedText = processedText.replace(/\$user_name/g, USER_NAME || 'המשתמש');
+        processedText = processedText.replace(/\$נעים להכיר/g, USER_NAME || 'המשתמש');
+        
+        // Replace PDN code placeholders
+        processedText = processedText.replace(/\$user_code_name/g, PDN_CODE || 'קוד המקור');
+        processedText = processedText.replace(/\$user_code_title/g, getPDNCodeTitle(PDN_CODE) || 'הקוד האישי שלך');
+        
+        // Note: Goals and success should already be replaced by the backend
+        // If they're still showing as placeholders, it means the backend didn't process them correctly
+        
         // First sanitize the input
-        const sanitized = sanitizeInput(text);
-        // Then parse with marked (which should be configured to escape HTML)
-        return marked.parse(sanitized);
+        const sanitized = sanitizeInput(processedText);
+        
+        // Check if marked is available
+        if (typeof marked === 'undefined') {
+            console.warn('Marked library not loaded, returning plain text');
+            return `<div class="formatted-content">${sanitized}</div>`;
+        }
+        
+        try {
+            // Configure marked options for better formatting
+            marked.setOptions({
+                breaks: true,
+                gfm: true,
+                headerIds: false,
+                mangle: false,
+                sanitize: false, // We handle sanitization manually
+                smartLists: true,
+                smartypants: true
+            });
+            
+            // Parse with marked
+            const parsed = marked.parse(sanitized);
+            
+            // Debug logging
+            console.log('Original text:', text.substring(0, 200) + '...');
+            console.log('Processed text:', processedText.substring(0, 200) + '...');
+            console.log('Parsed result:', parsed.substring(0, 200) + '...');
+            
+            // Check if markdown was actually parsed (not just returned as-is)
+            if (parsed === sanitized || parsed.includes('##') || parsed.includes('**')) {
+                console.warn('Marked library may not be working properly, using fallback parser');
+                const fallbackParsed = parseMarkdownFallback(sanitized);
+                return `<div class="formatted-content">${fallbackParsed}</div>`;
+            }
+            
+            // Wrap in a container with enhanced styling
+            return `<div class="formatted-content">${parsed}</div>`;
+        } catch (error) {
+            console.error('Error parsing markdown:', error);
+            const fallbackParsed = parseMarkdownFallback(sanitized);
+            return `<div class="formatted-content">${fallbackParsed}</div>`;
+        }
+    }
+
+    // Get PDN code title based on code
+    function getPDNCodeTitle(pdnCode) {
+        const codeTitles = {
+            'E5': 'קבלה והנהגה',
+            'A7': 'עוצמה ושליטה',
+            'P6': 'פיתוח וצמיחה',
+            'M3': 'מנהיגות ויצירה',
+            'S4': 'שירות ותמיכה',
+            'C2': 'יצירה וחיבור',
+            'L8': 'לימוד והתפתחות',
+            'R1': 'מחקר וחקירה'
+        };
+        
+        return codeTitles[pdnCode] || 'הקוד האישי שלך';
+    }
+
+    // Fallback markdown parser for basic formatting
+    function parseMarkdownFallback(text) {
+        if (!text) return '';
+        
+        let parsed = text;
+        
+        // Convert headers (## Header -> <h2>Header</h2>)
+        parsed = parsed.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+        parsed = parsed.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+        parsed = parsed.replace(/^#### (.+)$/gm, '<h4>$1</h4>');
+        
+        // Convert bold text (**text** -> <strong>text</strong>)
+        parsed = parsed.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        
+        // Convert italic text (*text* -> <em>text</em>)
+        parsed = parsed.replace(/\*(.+?)\*/g, '<em>$1</em>');
+        
+        // Convert line breaks
+        parsed = parsed.replace(/\n/g, '<br>');
+        
+        // Convert horizontal rules (--- -> <hr>)
+        parsed = parsed.replace(/^---$/gm, '<hr>');
+        
+        // Convert lists
+        parsed = parsed.replace(/^[\s]*\* (.+)$/gm, '<li>$1</li>');
+        parsed = parsed.replace(/^[\s]*\- (.+)$/gm, '<li>$1</li>');
+        parsed = parsed.replace(/^[\s]*\d+\. (.+)$/gm, '<li>$1</li>');
+        
+        // Wrap consecutive list items in ul/ol
+        parsed = parsed.replace(/(<li>.*<\/li>)/gs, (match) => {
+            const listItems = match.match(/<li>.*?<\/li>/g);
+            if (listItems && listItems.length > 0) {
+                return `<ul>${match}</ul>`;
+            }
+            return match;
+        });
+        
+        return parsed;
+    }
+
+    // Conversation history management
+    function saveMessageToHistory(message) {
+        try {
+            const history = getConversationHistory();
+            history.push(message);
+            localStorage.setItem('binat_chat_history', JSON.stringify(history));
+        } catch (error) {
+            console.error('Error saving message to history:', error);
+        }
+    }
+
+    function getConversationHistory() {
+        try {
+            const history = localStorage.getItem('binat_chat_history');
+            return history ? JSON.parse(history) : [];
+        } catch (error) {
+            console.error('Error loading conversation history:', error);
+            return [];
+        }
+    }
+
+    function clearConversationHistory() {
+        try {
+            localStorage.removeItem('binat_chat_history');
+        } catch (error) {
+            console.error('Error clearing conversation history:', error);
+        }
+    }
+
+    function restoreConversationHistory() {
+        try {
+            const history = getConversationHistory();
+            const chatContainer = document.getElementById('chatContainer');
+            
+            if (!chatContainer || history.length === 0) {
+                return;
+            }
+
+            // Find the initial welcome message (the last one with "בינת קוד המקור:" header)
+            const existingMessages = Array.from(chatContainer.querySelectorAll('.chat-bubble'));
+            const welcomeMessage = existingMessages.find(msg => {
+                const header = msg.querySelector('.message-header');
+                return header && header.textContent.includes('בינת קוד המקור:') && 
+                       msg.querySelector('.message-content').textContent.includes('שלום');
+            });
+
+            // Remove all messages except the welcome message
+            existingMessages.forEach(msg => {
+                if (msg !== welcomeMessage) {
+                    msg.remove();
+                }
+            });
+
+            // Restore messages from history
+            history.forEach(messageData => {
+                const messageElement = createMessageElement(messageData);
+                if (messageElement) {
+                    chatContainer.appendChild(messageElement);
+                }
+            });
+
+            // Scroll to bottom after restoring
+            scrollToBottom(true);
+        } catch (error) {
+            console.error('Error restoring conversation history:', error);
+        }
+    }
+
+    function createMessageElement(messageData) {
+        try {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-bubble ${messageData.type} animated`;
+            
+            if (messageData.type === 'user') {
+                messageDiv.innerHTML = `
+                    <div class="message-content">${messageData.content}</div>
+                    <div class="message-time">${messageData.timestamp}</div>
+                `;
+            } else if (messageData.type === 'bot') {
+                messageDiv.innerHTML = `
+                    <div class="message-header">${messageData.header || 'בינת קוד המקור:'}</div>
+                    <div class="message-content">${messageData.content}</div>
+                    <div class="message-time">${messageData.timestamp}</div>
+                `;
+            }
+            
+            return messageDiv;
+        } catch (error) {
+            console.error('Error creating message element:', error);
+            return null;
+        }
     }
 
     // Error handling utility
@@ -1947,11 +2200,19 @@
         // Create user message bubble
         const userBubble = document.createElement("div");
         userBubble.className = "chat-bubble user animated";
+        const currentTime = getCurrentTime();
         userBubble.innerHTML = `
                 <div class="message-header">${USER_NAME}:</div>
                 <div class="message-content">${safeMarkdownParse(message)}</div>
-                <div class="message-time">${getCurrentTime()}</div>
+                <div class="message-time">${currentTime}</div>
             `;
+
+        // Save user message to history
+        saveMessageToHistory({
+            type: 'user',
+            content: safeMarkdownParse(message),
+            timestamp: currentTime
+        });
 
         chatContainer.appendChild(userBubble);
         scrollToBottom(true); // Force scroll for new user message
@@ -2008,11 +2269,21 @@
             // Create bot message bubble
             const botBubble = document.createElement("div");
             botBubble.className = "chat-bubble bot animated";
+            const botTime = getCurrentTime();
+            const botContent = safeMarkdownParse(data.message || data.response || 'מצטער, אירעה שגיאה. אנא נסה שוב.');
             botBubble.innerHTML = `
                     <div class="message-header">בינת קוד המקור:</div>
-                    <div class="message-content">${safeMarkdownParse(data.message || data.response || 'מצטער, אירעה שגיאה. אנא נסה שוב.')}</div>
-                    <div class="message-time">${getCurrentTime()}</div>
+                    <div class="message-content">${botContent}</div>
+                    <div class="message-time">${botTime}</div>
                 `;
+
+            // Save bot message to history
+            saveMessageToHistory({
+                type: 'bot',
+                content: botContent,
+                timestamp: botTime,
+                header: 'בינת קוד המקור:'
+            });
 
             chatContainer.appendChild(botBubble);
             scrollToBottom(true); // Force scroll for bot message
@@ -2122,13 +2393,29 @@
         localStorage.removeItem('binat_username');
         localStorage.removeItem('binat_user_id');
         localStorage.removeItem('binat_pdn_code');
-        localStorage.removeItem('binat_chat_history');
+        clearConversationHistory();
 
         // Clear server-side chat history
         clearServerChatHistory();
 
-        // Show goodbye message before redirecting
+        // Clear all chat messages visually
         const chatContainer = document.getElementById("chatContainer");
+        if (chatContainer) {
+            // Remove all existing messages except the initial welcome message
+            const existingMessages = Array.from(chatContainer.querySelectorAll('.chat-bubble'));
+            existingMessages.forEach(msg => {
+                const header = msg.querySelector('.message-header');
+                const isWelcomeMessage = header && 
+                    header.textContent.includes('בינת קוד המקור:') && 
+                    msg.querySelector('.message-content').textContent.includes('שלום');
+                
+                if (!isWelcomeMessage) {
+                    msg.remove();
+                }
+            });
+        }
+
+        // Show goodbye message before redirecting
         const goodbyeBubble = document.createElement("div");
         goodbyeBubble.className = "chat-bubble bot animated";
         goodbyeBubble.innerHTML = `
@@ -2234,6 +2521,9 @@
             chatContainer.appendChild(initialBot);
             addQuickReplies(initialBot);
 
+            // Restore conversation history
+            restoreConversationHistory();
+
             // Focus on input
             document.getElementById("userInput").focus();
 
@@ -2274,6 +2564,23 @@
 
         // Reset form
         document.getElementById('planForm').reset();
+    }
+
+    function autoFillPlanForm() {
+        // Fill the goals field
+        const goalsField = document.getElementById('planGoals');
+        if (goalsField) {
+            goalsField.value = 'להוריד במשקל';
+        }
+
+        // Fill the success field
+        const successField = document.getElementById('planSuccess');
+        if (successField) {
+            successField.value = '5 ק״ג פחות';
+        }
+
+        // Show a brief success message
+        showSuccess('הטופס מולא אוטומטית!');
     }
 
     async function submitPlanRequest(event) {
@@ -2338,21 +2645,46 @@
                 const chatContainer = document.getElementById("chatContainer");
                 const userBubble = document.createElement("div");
                 userBubble.className = "chat-bubble user animated";
+                const userTime = getCurrentTime();
+                const userContent = safeMarkdownParse(goals + '\n\n' + success);
                 userBubble.innerHTML = `
                     <div class="message-header">${USER_NAME}:</div>
-                    <div class="message-content">${safeMarkdownParse(goals + '\n\n' + success)}</div>
-                    <div class="message-time">${getCurrentTime()}</div>
+                    <div class="message-content">${userContent}</div>
+                    <div class="message-time">${userTime}</div>
                 `;
+
+                // Save user message to history
+                saveMessageToHistory({
+                    type: 'user',
+                    content: userContent,
+                    timestamp: userTime
+                });
+
                 chatContainer.appendChild(userBubble);
                 
                 // Add bot response to chat
                 const botBubble = document.createElement("div");
                 botBubble.className = "chat-bubble bot animated";
+                const botTime = getCurrentTime();
+                let botContent = safeMarkdownParse(data.response);
+                botContent = botContent.replace('```markdown', '')
+                botContent = botContent.replace('---', '');
+
+
                 botBubble.innerHTML = `
                     <div class="message-header">בינת קוד המקור:</div>
-                    <div class="message-content">${safeMarkdownParse(data.response)}</div>
-                    <div class="message-time">${getCurrentTime()}</div>
+                    <div class="message-content">${botContent}</div>
+                    <div class="message-time">${botTime}</div>
                 `;
+
+                // Save bot message to history
+                saveMessageToHistory({
+                    type: 'bot',
+                    content: botContent,
+                    timestamp: botTime,
+                    header: 'בינת קוד המקור:'
+                });
+
                 chatContainer.appendChild(botBubble);
                 
                 // Scroll to bottom

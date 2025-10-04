@@ -85,10 +85,7 @@ class PDNAgent:
         self.conversation_history = defaultdict(list)
         self.max_history = 10  # Keep last 10 exchanges per user
         self._history_lock = threading.Lock()
-        
-        # Load 21-day plan prompt (common for all PDN codes)
-        self.plan_prompt = self._load_21_day_plan_prompt()
-        
+    
         # Configure logging
         self.logger = logging.getLogger("pdn_agent")
         self.logger.setLevel(logging.INFO)
@@ -113,7 +110,6 @@ class PDNAgent:
     def _cleanup_old_conversations(self):
         """Clean up old conversation histories to prevent memory leaks."""
         with self._history_lock:
-            current_time = time.time()
             users_to_remove = []
             
             for user_name, history in self.conversation_history.items():
@@ -173,18 +169,24 @@ class PDNAgent:
         
         return ChatPromptTemplate.from_messages([system_message, human_message])
 
-    def _load_21_day_plan_prompt(self) -> ChatPromptTemplate:
+    def _load_21_day_plan_prompt(self, pdn_code: str) -> ChatPromptTemplate:
         """Load the 21-day plan prompt from file."""
+
+        prompt_code_filename = self._get_prompt_filename(pdn_code)
+        prompt_code_path = Path(__file__).parent / "prompts" / prompt_code_filename
+            
         prompt_path = Path(__file__).parent / "prompts" / "21_plan.prompt"
         with open(prompt_path, 'r', encoding='utf-8') as f:
-            prompt_text = f.read()
+            prompt_21_text = f.read()
+
+        with open(prompt_code_path, 'r', encoding='utf-8') as f:
+            prompt_code_text = f.read()
+            
+        plan_21_day_prompt =  prompt_21_text + prompt_code_text
         
-        system_message = SystemMessagePromptTemplate.from_template(prompt_text)
-        human_message = HumanMessagePromptTemplate.from_template(
-            "User goals and success criteria: {goals_and_success}"
-        )
+        self.logger.debug(f"Loaded 21-day plan prompt for PDN code {pdn_code} from {plan_21_day_prompt}")
         
-        return ChatPromptTemplate.from_messages([system_message, human_message])
+        return plan_21_day_prompt
 
     def _add_to_history(self, user_name: str, user_query: str, assistant_response: str):
         """Add a conversation exchange to the user's history."""
@@ -252,17 +254,24 @@ class PDNAgent:
         return response_text
 
     @retry_on_failure(max_retries=2, delay=1.0, backoff=2.0)
-    def get_response_for_21_day_plan(self, user_goals_and_success: str, user_name: str, pdn_code: str) -> str:
+    def build_21_transformation_plan(self, user_goals_and_success: str, user_name: str, pdn_code: str) -> str:
         """Generate a 21-day transformation plan for the user."""
-        self.logger.info("Generating 21-day plan for %s (PDN: %s)", user_name, pdn_code)
+        system_message_21_day_plan = self._load_21_day_plan_prompt(pdn_code)  
+        # Create user message with the context
+        user_message = f"User Name: {user_name}\n"
+        user_message += f"PDN Code: {pdn_code}\n"
+        user_message += f"Goals and Success: {user_goals_and_success}"
+        # Create messages list for LangChain
+        from langchain_core.messages import SystemMessage, HumanMessage
+        messages = [
+            SystemMessage(content=system_message_21_day_plan),
+            HumanMessage(content=user_message)
+        ]
+        # Generate plan using LLM with messages
+        llm_response = self.llm.invoke(messages)
+        plan_21_day_text = llm_response.content
 
-        # Generate plan using LLM
-        llm_response = self.llm.invoke(self.plan_prompt.format_messages(
-            goals_and_success=user_goals_and_success
-        ))
-        plan_text = llm_response.content
-
-        return plan_text
+        return plan_21_day_text
 
     def clear_user_history(self, user_name: str):
         """Clear conversation history for a specific user."""
