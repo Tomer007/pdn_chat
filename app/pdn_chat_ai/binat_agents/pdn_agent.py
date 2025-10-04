@@ -77,8 +77,8 @@ class PDNAgent:
         self.llm = ChatOpenAI(
             model="gpt-4o-mini",
             temperature=0.7,
-            max_tokens=2000,
-            request_timeout=120  # 2 minute timeout for complex requests
+            max_tokens=4000,  # Increased for 21-day plan but still reasonable
+            request_timeout=180  # 3 minute timeout for 21-day plan requests
         )
         
         # Conversation history storage
