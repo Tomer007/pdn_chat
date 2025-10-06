@@ -23,10 +23,11 @@ from .pdn_file_path import PDNFilePath
 # Initialize the utility
 pdn_file_path = PDNFilePath()
 
-# Cache for frequently accessed data
+# Cache for frequently accessed data with size limits
 _answer_cache: Dict[str, Dict[str, Any]] = {}
 _cache_timestamp: Optional[datetime] = None
 _cache_validity_seconds = 30  # Cache valid for 30 seconds
+_max_cache_size = 100  # Maximum number of users in cache
 
 
 def _is_cache_valid() -> bool:
@@ -46,11 +47,23 @@ def _invalidate_cache() -> None:
     _cache_timestamp = None
 
 
+def _cleanup_cache() -> None:
+    """Clean up cache if it exceeds maximum size."""
+    global _answer_cache
+    if len(_answer_cache) > _max_cache_size:
+        # Remove oldest entries (simple FIFO approach)
+        keys_to_remove = list(_answer_cache.keys())[:len(_answer_cache) - _max_cache_size + 10]
+        for key in keys_to_remove:
+            _answer_cache.pop(key, None)
+
+
 def _update_cache(email: str, data: Dict[str, Any]) -> None:
     """Update the cache with new data."""
     global _answer_cache, _cache_timestamp
     _answer_cache[email] = data
     _cache_timestamp = datetime.now()
+    # Clean up cache if it gets too large
+    _cleanup_cache()
 
 
 def save_answer(email: str, question_number: int, answer_data: Dict[str, Any], question_text: Optional[str] = None) -> None:

@@ -5,15 +5,15 @@ import multiprocessing
 bind = "0.0.0.0:8000"
 backlog = 2048
 
-# Worker processes
-workers = multiprocessing.cpu_count() * 2 + 1
+# Worker processes - reduce for memory efficiency
+workers = 2  # Reduced from cpu_count * 2 + 1 to save memory
 worker_class = "sync"
 worker_connections = 1000
 timeout = 300  # 5 minutes timeout for long-running requests like 21-day plan
 keepalive = 2
 
-# Restart workers after this many requests, to prevent memory leaks
-max_requests = 1000
+# Restart workers more frequently to prevent memory leaks
+max_requests = 500  # Reduced from 1000
 max_requests_jitter = 50
 
 # Logging

@@ -7,674 +7,524 @@
     <meta http-equiv="Content-Security-Policy"
           content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data:; connect-src 'self';">
     <title>Neo - הקמה והקלטה קולית</title>
+    
+    <!-- External Dependencies -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
+        /* ===== CSS VARIABLES ===== */
         :root {
-            --primary-color: #1c0f97;
-            --secondary-color: #1c0f97;
-            --accent-color: #1c0f97;
+            --primary-color: #0b2e6b;
             --text-primary: #1f2937;
             --text-secondary: #6b7280;
-            --shadow-color: rgba(0, 0, 0, 0.1);
-            --gradient-start: #0b2e6b;
-            --gradient-end: #0b2e6b;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f9fafb;
+            --border-color: #e5e7eb;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
 
-        /* Dark mode variables */
         [data-theme="dark"] {
             --primary-color: #3570d7;
-            --secondary-color: #3570d7;
-            --accent-color: #3570d7;
             --text-primary: #f9fafb;
             --text-secondary: #d1d5db;
             --bg-primary: #1f2937;
             --bg-secondary: #111827;
             --border-color: #374151;
-            --shadow-color: rgba(0, 0, 0, 0.3);
-            --gradient-start: #3570d7;
-            --gradient-end: #3570d7;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+
+        /* ===== RESET & BASE STYLES ===== */
+        * {
+            box-sizing: border-box;
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color) 100%);
             min-height: 100vh;
             margin: 0;
             padding: 0;
             direction: rtl;
             color: var(--text-primary);
-            transition: all 0.3s ease;
         }
 
-        /* Header with improved layout */
-        .header-gradient {
-            background: linear-gradient(135deg, #0b2e6b 0%, #0b2e6b 50%, #0b2e6b 100%);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .header-gradient::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 20px;
-            background: linear-gradient(to bottom, transparent, rgba(224, 231, 255, 0.8));
-        }
-
-        .header-content {
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
+        /* ===== LAYOUT COMPONENTS ===== */
+        .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 30px 20px;
+            padding: 2rem;
+        }
+
+        .main-container {
+            background: var(--bg-primary);
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        /* ===== HEADER STYLES ===== */
+        .header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color) 100%);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
         }
 
         .header-left {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 1rem;
         }
-        
+
         .header-right {
             display: flex;
             align-items: center;
         }
 
-        .logout-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 20px;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            text-decoration: none;
+        .logo {
+            width: 50px;
+            height: 50px;
             border-radius: 8px;
-            font-weight: 500;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .header-text h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .header-text p {
+            margin: 0;
+            font-size: 1.25rem;
+            opacity: 0.9;
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background 0.3s ease;
         }
 
         .logout-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.2);
         }
 
-        .logout-btn i {
-            font-size: 16px;
-        }
-
-        .logo-link {
-            cursor: pointer;
-            transition: transform 0.2s ease;
-            display: block;
-        }
-
-        .logo-link:hover {
-            transform: scale(1.05);
-        }
-
-        .header-logo {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            object-fit: cover;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-            border: 4px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .header-text {
-            text-align: right;
-            direction: rtl;
-        }
-
-        /* Enhanced main container */
-        .main-container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 24px;
-            padding: 24px;
-            max-width: 900px;
-            width: 100%;
-            box-shadow: 0 20px 40px var(--shadow-color);
-            display: flex;
-            flex-direction: column;
-            animation: fadeIn 1s ease-in-out;
-            transition: all 0.4s ease;
-            min-height: 600px;
-            overflow-y: auto;
-            position: relative;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            scroll-behavior: smooth;
-            margin: 40px auto;
-        }
-
-        [data-theme="dark"] .main-container {
-            background: rgba(31, 41, 55, 0.95);
-            border: 1px solid rgba(55, 65, 81, 0.3);
-        }
-
+        /* ===== SECTION STYLES ===== */
         .section {
-            margin-bottom: 30px;
-            padding: 25px;
-            border: 1px solid rgba(11, 46, 107, 0.1);
-            border-radius: 16px;
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-        }
-
-        [data-theme="dark"] .section {
-            background: rgba(31, 41, 55, 0.8);
-            border: 1px solid rgba(55, 65, 81, 0.3);
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
         }
 
         .section h2 {
-            color: #2c3e50;
-            margin-bottom: 20px;
-            font-size: 1.4rem;
+            margin: 0 0 1rem 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
             display: flex;
             align-items: center;
-            gap: 10px;
-            direction: rtl;
-            text-align: right;
+            justify-content: space-between;
         }
 
+        /* ===== BADGE STYLES ===== */
         .badge {
-            background: #e74c3c;
+            background: var(--primary-color);
             color: white;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 0.8rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
             font-weight: 500;
         }
 
         .badge.success {
-            background: #27ae60;
+            background: #10b981;
         }
 
+        /* ===== FORM STYLES ===== */
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 1rem;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 0.5rem;
             font-weight: 500;
-            color: #2c3e50;
+            color: var(--text-primary);
         }
 
-        .form-group input,
-        .form-group textarea,
-        .form-group select {
+        .form-input {
             width: 100%;
-            padding: 16px 20px;
-            border: 2px solid rgba(11, 46, 107, 0.2);
-            border-radius: 16px;
-            font-size: 16px;
-            background: rgba(255, 255, 255, 0.9);
-            color: var(--text-primary);
-            transition: all 0.3s ease;
-            direction: rtl;
-        }
-
-        [data-theme="dark"] .form-group input,
-        [data-theme="dark"] .form-group textarea,
-        [data-theme="dark"] .form-group select {
-            background: rgba(31, 41, 55, 0.9);
-            border: 2px solid rgba(11, 46, 107, 0.3);
-            color: var(--text-primary);
-            direction: ltr;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #0b2e6b;
-            box-shadow: 0 0 0 3px rgba(11, 46, 107, 0.1);
-            transform: translateY(-1px);
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-        
-        /* URL link styling */
-        .url-link {
-            color: #0b2e6b;
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-        
-        .url-link:hover {
-            color: #0a2a5f;
-            text-decoration: underline;
-        }
-        
-        .url-link i {
-            transition: transform 0.3s ease;
-        }
-        
-        .url-link:hover i {
-            transform: translateX(3px);
-        }
-
-        .error-message {
-            color: #e74c3c;
-            font-size: 0.9rem;
-            margin-top: 5px;
-            display: none;
-        }
-
-        .error-message.show {
-            display: block;
-        }
-
-        .product-row {
-            display: flex;
-            gap: 15px;
-            align-items: flex-start;
-            margin-bottom: 15px;
-            padding: 15px;
-            background: white;
-            border: 1px solid #e1e5e9;
-            border-radius: 6px;
-        }
-
-        .product-row .form-group {
-            flex: 1;
-            margin-bottom: 0;
-        }
-
-        .product-row .form-group:last-child {
-            flex: 0 0 auto;
-            width: 100px;
-        }
-        
-        /* Product list styling */
-        .product-item {
-            background: white;
-            border: 2px solid rgba(11, 46, 107, 0.15);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-        
-        .product-item:hover {
-            border-color: rgba(11, 46, 107, 0.3);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-            transform: translateY(-2px);
-        }
-        
-        .product-header {
-            margin-bottom: 15px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid rgba(11, 46, 107, 0.1);
-        }
-        
-        .product-title {
-            color: #0b2e6b;
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin: 0;
-            display: flex;
-            align-items: center;
-        }
-        
-        .product-title::before {
-            content: '●';
-            margin-right: 10px;
-            color: #0b2e6b;
-            font-size: 0.8em;
-        }
-        
-        .product-body {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        
-        .product-field {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        
-        .product-label {
-            color: #0b2e6b;
-            font-weight: 600;
-            font-size: 0.95rem;
-            margin: 0;
-        }
-        
-        .product-description {
-            color: #4b5563;
-            line-height: 1.6;
-            margin: 0;
-            text-align: justify;
-            direction: rtl;
-        }
-        
-        .product-url {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        [data-theme="dark"] .product-item {
-            background: rgba(31, 41, 55, 0.9);
-            border-color: rgba(11, 46, 107, 0.3);
-        }
-        
-        [data-theme="dark"] .product-description {
-            color: #d1d5db;
-        }
-        
-        /* Markdown styling for analysis results */
-        .markdown-content h1,
-        .markdown-content h2,
-        .markdown-content h3,
-        .markdown-content h4 {
-            color: #0b2e6b;
-            font-weight: 700;
-            margin-top: 20px;
-            margin-bottom: 10px;
-        }
-        
-        .markdown-content h1 { font-size: 1.5rem; }
-        .markdown-content h2 { font-size: 1.3rem; }
-        .markdown-content h3 { font-size: 1.1rem; }
-        
-        .markdown-content p {
-            margin-bottom: 12px;
-            line-height: 1.6;
-        }
-        
-        .markdown-content strong {
-            color: #0b2e6b;
-            font-weight: 700;
-        }
-        
-        .markdown-content ul,
-        .markdown-content ol {
-            margin: 10px 0;
-            padding-right: 25px;
-            direction: rtl;
-        }
-        
-        .markdown-content li {
-            margin-bottom: 8px;
-            line-height: 1.6;
-        }
-        
-        .markdown-content code {
-            background: rgba(11, 46, 107, 0.1);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-        }
-        
-        .markdown-content pre {
-            background: rgba(11, 46, 107, 0.1);
-            padding: 15px;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
             border-radius: 8px;
-            overflow-x: auto;
-            margin: 15px 0;
-        }
-        
-        .markdown-content blockquote {
-            border-right: 4px solid #0b2e6b;
-            padding-right: 15px;
-            margin: 15px 0;
-            color: #4b5563;
-            font-style: italic;
-        }
-
-        .remove-btn {
-            background: #0b2e6b;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: background 0.3s ease;
-        }
-
-        .remove-btn:hover {
-            background: #0a2a5f;
-        }
-
-        .add-product-btn {
-            background: #0b2e6b;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 6px;
-            cursor: pointer;
             font-size: 1rem;
-            transition: background 0.3s ease;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            direction: rtl;
+            text-align: right;
         }
 
-        .add-product-btn:hover {
-            background: #0a2a5f;
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(11, 46, 107, 0.1);
         }
 
+        /* ===== VOICE CONTROLS ===== */
         .voice-controls {
             display: flex;
-            gap: 10px;
+            gap: 1rem;
+            align-items: center;
             flex-wrap: wrap;
-            margin-bottom: 20px;
         }
 
-        .voice-btn {
-            padding: 12px 20px;
+        /* ===== BUTTON STYLES ===== */
+        .voice-btn, .action-btn {
+            padding: 0.75rem 1.5rem;
             border: none;
-            border-radius: 16px;
-            cursor: pointer;
+            border-radius: 8px;
             font-size: 1rem;
-            font-weight: 600;
+            font-weight: 500;
+            cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(11, 46, 107, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        .voice-btn.primary {
-            background: #0b2e6b;
+        .voice-btn.primary, .action-btn.primary {
+            background: var(--primary-color);
             color: white;
         }
 
-        .voice-btn.primary:hover {
-            background: #0a2a5f;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(11, 46, 107, 0.4);
-        }
-
-        .voice-btn.secondary {
-            background: #0b2e6b;
+        .voice-btn.secondary, .action-btn.secondary {
+            background: #6b7280;
             color: white;
-        }
-
-        .voice-btn.secondary:hover {
-            background: #0a2a5f;
-            transform: translateY(-2px);
         }
 
         .voice-btn.danger {
-            background: #0b2e6b;
+            background: #ef4444;
             color: white;
         }
 
-        .voice-btn.danger:hover {
-            background: #0a2a5f;
-            transform: translateY(-2px);
-        }
-
         .voice-btn:disabled {
-            opacity: 0.6;
+            opacity: 0.5;
             cursor: not-allowed;
         }
 
+        .voice-btn:hover:not(:disabled), .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        /* ===== AUDIO & TIMER STYLES ===== */
         .timer {
-            font-size: 1.2rem;
+            font-family: 'Courier New', monospace;
+            font-size: 1.25rem;
             font-weight: 600;
-            color: #0b2e6b;
-            margin-left: 10px;
+            color: var(--primary-color);
         }
 
         .audio-preview {
-            margin-top: 15px;
+            margin-top: 1rem;
+            text-align: center;
         }
 
         .audio-preview audio {
             width: 100%;
+            max-width: 400px;
         }
 
-        .actions {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-top: 30px;
-            padding-top: 30px;
-            border-top: 2px solid #e1e5e9;
-        }
-
-        .action-btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 16px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
+        /* ===== PRODUCT STYLES ===== */
+        .product-item {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
             transition: all 0.3s ease;
+        }
+
+        .product-item:hover {
+            box-shadow: var(--shadow);
+        }
+
+        .product-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .product-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .product-body {
+            padding-right: 2rem;
+        }
+
+        .product-field {
+            margin-bottom: 0.75rem;
+        }
+
+        .product-label {
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+            display: block;
+        }
+
+        .product-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin: 0;
+            text-align: justify;
+        }
+
+        .url-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .url-link:hover {
+            text-decoration: underline;
+        }
+        
+        /* ===== DEMO SAMPLE STYLES ===== */
+        .demo-sample-btn {
+            background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+            border: 2px solid #cbd5e1;
+            color: #475569;
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .demo-sample-btn:hover {
+            background: linear-gradient(135deg, #0b2e6b, #1e40af);
+            color: white;
+            border-color: #0b2e6b;
+            transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(11, 46, 107, 0.3);
         }
 
-        .action-btn.primary {
-            background: #0b2e6b;
+        .demo-sample-btn.active {
+            background: linear-gradient(135deg, #0b2e6b, #1e40af);
             color: white;
+            border-color: #0b2e6b;
+            box-shadow: 0 2px 8px rgba(11, 46, 107, 0.4);
         }
-
-        .action-btn.primary:hover {
-            background: #0a2a5f;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(11, 46, 107, 0.4);
+        
+        [data-theme="dark"] .demo-samples {
+            background: rgba(31, 41, 55, 0.9);
+            border-color: rgba(11, 46, 107, 0.3);
         }
-
-        .action-btn.secondary {
-            background: #0b2e6b;
+        
+        [data-theme="dark"] .demo-sample-btn {
+            background: linear-gradient(135deg, #374151, #4b5563);
+            border-color: #6b7280;
+            color: #d1d5db;
+        }
+        
+        [data-theme="dark"] .demo-sample-btn:hover {
+            background: linear-gradient(135deg, #0b2e6b, #1e40af);
             color: white;
+            border-color: #0b2e6b;
+        }
+        
+        /* ===== MARKDOWN CONTENT STYLES ===== */
+        .markdown-content {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 1rem;
         }
 
-        .action-btn.secondary:hover {
-            background: #0a2a5f;
-            transform: translateY(-2px);
+        .markdown-content h4 {
+            color: var(--primary-color);
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            font-size: 1.125rem;
+            font-weight: 600;
         }
 
-        .action-btn.danger {
-            background: #0b2e6b;
-            color: white;
+        .markdown-content h4:first-child {
+            margin-top: 0;
         }
 
-        .action-btn.danger:hover {
-            background: #0a2a5f;
-            transform: translateY(-2px);
+        .markdown-content p {
+            margin-bottom: 1rem;
+            line-height: 1.6;
+            color: var(--text-primary);
         }
 
-        .action-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
+        .markdown-content ul, .markdown-content ol {
+            margin-bottom: 1rem;
+            padding-right: 1.5rem;
         }
 
+        .markdown-content li {
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
+        }
+
+        /* ===== ALERT & NOTIFICATION STYLES ===== */
         .warning-banner {
-            background: #f39c12;
-            color: white;
-            padding: 15px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            text-align: center;
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            color: #92400e;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
         }
 
         .restore-prompt {
-            background: #3498db;
-            color: white;
-            padding: 20px;
-            border-radius: 6px;
-            margin-bottom: 20px;
+            background: #dbeafe;
+            border: 1px solid #3b82f6;
+            color: #1e40af;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
             text-align: center;
         }
 
         .restore-prompt button {
-            background: #0b2e6b;
-            color: white;
+            margin: 0 0.5rem;
+            padding: 0.5rem 1rem;
             border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
-            margin: 0 10px;
-            transition: background 0.3s ease;
-        }
-        
-        .restore-prompt button:hover {
-            background: #0a2a5f;
         }
 
+        /* ===== MODERN ALERT SYSTEM ===== */
+        .modern-alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            min-width: 300px;
+            max-width: 500px;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-weight: 500;
+            transform: translateX(100%);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            opacity: 0;
+        }
+
+        .modern-alert.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .modern-alert.success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border-left: 4px solid #047857;
+        }
+
+        .modern-alert.warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            border-left: 4px solid #b45309;
+        }
+
+        .modern-alert.error {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border-left: 4px solid #b91c1c;
+        }
+
+        .modern-alert.info {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            border-left: 4px solid #1d4ed8;
+        }
+
+        .modern-alert-icon {
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .modern-alert-content {
+            flex: 1;
+            line-height: 1.5;
+        }
+
+        .modern-alert-close {
+            background: none;
+            border: none;
+            color: inherit;
+            font-size: 1.25rem;
+            cursor: pointer;
+            padding: 0;
+            margin-left: 0.5rem;
+            opacity: 0.8;
+            transition: opacity 0.2s ease;
+        }
+
+        .modern-alert-close:hover {
+            opacity: 1;
+        }
+
+        /* ===== RESPONSIVE DESIGN ===== */
         @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
             .main-container {
-                margin: 20px;
-                padding: 20px;
-                border-radius: 16px;
-            }
-
-            .header-content {
-                flex-direction: column;
-                gap: 16px;
-                text-align: center;
-            }
-
-            .header-left {
-                flex-direction: column;
-                gap: 12px;
-            }
-
-            .header-text {
-                text-align: center;
-            }
-
-            .product-row {
-                flex-direction: column;
-                gap: 10px;
-            }
-
-            .product-row .form-group:last-child {
-                width: 100%;
+                padding: 1rem;
             }
             
-            .product-item {
-                padding: 15px;
-            }
-            
-            .product-title {
-                font-size: 1.1rem;
-            }
-            
-            .product-description {
-                font-size: 0.9rem;
+            .header {
+                padding: 1rem;
             }
 
             .voice-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .voice-btn {
                 justify-content: center;
             }
 
@@ -683,6 +533,7 @@
             }
         }
 
+        /* ===== RTL/LTR SUPPORT ===== */
         [dir="ltr"] {
             text-align: left;
         }
@@ -696,7 +547,7 @@
             margin-right: 0;
         }
 
-        /* Animations */
+        /* ===== ANIMATIONS ===== */
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -719,14 +570,13 @@
             }
         }
 
-        /* Accessibility improvements */
+        /* ===== ACCESSIBILITY ===== */
         .form-group input:focus,
         .form-group textarea:focus {
             outline: 2px solid var(--primary-color);
             outline-offset: 2px;
         }
 
-        /* High contrast mode support */
         @media (prefers-contrast: high) {
             .main-container {
                 border: 2px solid #000;
@@ -738,7 +588,6 @@
             }
         }
 
-        /* Reduced motion support */
         @media (prefers-reduced-motion: reduce) {
             .main-container, .voice-btn, .action-btn {
                 animation: none;
@@ -748,56 +597,110 @@
     </style>
 </head>
 <body>
-<!-- Header with improved layout -->
-<header class="header-gradient">
-    <div class="header-content" style="justify-content: space-between;">
-        <!-- Logout button -->
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <div class="header-text">
+                <h1>Neo</h1>
+                <p>PDN Center</p>
+            </div>
+            <a href="https://www.pdn.co.il" target="_blank">
+                <img src="/static/images/pdn_logo.png" alt="PDN Logo" class="logo"/>
+            </a>
+        </div>
         <div class="header-right">
             <a href="{{ url_for('neo.logout') }}" class="logout-btn">
                 <i class="fas fa-sign-out-alt"></i>
                 התנתק
             </a>
-        </div>
-        
-        <!-- Logo and title section -->
-        <div class="header-left">
-            <div class="header-text text-right">
-                <h1 class="text-2xl font-bold mb-2 text-white" style="text-align: right;">Neo</h1>
-                <p class="text-2xl opacity-90 text-white">PDN Center</p>
-            </div>
-            <a href="https://www.pdn.co.il" target="_blank" class="logo-link">
-                <img src="/static/images/pdn_logo.png" alt="PDN Logo" class="header-logo"/>
-            </a>
-        </div>
     </div>
 </header>
 
-<!-- Main container -->
-<div class="container mx-auto p-6 max-w-4xl">
+    <!-- Modern Alert Container -->
+    <div id="alertContainer"></div>
+
+    <!-- Main Container -->
+    <div class="container">
     <div class="main-container">
+            <!-- Restore Prompt -->
             <div id="restorePrompt" class="restore-prompt" style="display: none;">
                 <p>Found saved data. Would you like to restore it?</p>
                 <button onclick="restoreData()">Yes, Restore</button>
                 <button onclick="clearRestorePrompt()">No, Start Fresh</button>
             </div>
 
+            <!-- Media Warning -->
             <div id="mediaWarning" class="warning-banner" style="display: none;">
                 <strong>Warning:</strong> Your browser doesn't support voice recording. Please use a modern browser like Chrome, Firefox, or Edge.
             </div>
 
+            <!-- Voice Recording Section -->
+            <div class="section">
+                <h2>
+                    הקלטת קול הלקוח טרם שליחתה לאנליזה
+                    <span id="voiceBadge" class="badge">לא הוקלט</span>
+                </h2>
+                
+                <!-- Demo Samples Section -->
+                <div class="demo-samples" style="margin-bottom: 25px; padding: 20px; background: #f8fafc; border-radius: 12px; border: 2px dashed #e2e8f0;">
+                    <h3 style="margin: 0 0 15px 0; color: #475569; font-size: 18px; text-align: center;">
+                        <i  style="margin-left: 8px;"></i>
+                        דגימות לדמו ובדיקה
+                    </h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                        <button class="demo-sample-btn" onclick="loadDemoSample('sample1')" data-sample="sample1">
+                            <i class="fas fa-crown" style="margin-left: 5px;"></i>
+                            Empire - אדנות ומנהיגות
+                        </button>
+                        <button class="demo-sample-btn" onclick="loadDemoSample('sample2')" data-sample="sample2">
+                            <i class="fas fa-star" style="margin-left: 5px;"></i>
+                            Pleasure - הנאה ושפע
+                        </button>
+                        <button class="demo-sample-btn" onclick="loadDemoSample('sample3')" data-sample="sample3">
+                            <i class="fas fa-trophy" style="margin-left: 5px;"></i>
+                            Achievement - הישגיות והצלחה
+                        </button>
+                        <button class="demo-sample-btn" onclick="loadDemoSample('sample4')" data-sample="sample4">
+                            <i class="fas fa-shield-alt" style="margin-left: 5px;"></i>
+                            Trust - בטחון והרמוניה
+                        </button>
+                    </div>
+                </div>
+
+                <div class="voice-controls">
+                    <button class="voice-btn primary" id="startBtn" onclick="startRecording()">התחל הקלטה</button>
+                    <button class="voice-btn secondary" id="stopBtn" onclick="stopRecording()" disabled>סיים</button>
+                    <button class="voice-btn secondary" id="playBtn" onclick="playRecording()" disabled>השמע</button>
+                    <button class="voice-btn danger" id="rerecordBtn" onclick="rerecord()" disabled>הקלט מחדש</button>
+                    <span id="timer" class="timer" style="display: none;">00:00</span>
+                </div>
+
+                <div id="audioPreview" class="audio-preview" style="display: none;">
+                    <audio id="audioPlayer" controls></audio>
+                </div>
+                
+                <div id="analyzeBtnContainer" style="margin-top: 20px; text-align: center; display: none;">
+                    <button class="action-btn primary" id="analyzeBtn" onclick="sendForAnalysis()">
+                        <i class="fas fa-brain" style="margin-left: 8px;"></i>
+                        שלח לאנליזה
+                    </button>
+                </div>
+            </div>
+
+            <!-- Company Details Section -->
             <div class="section">
                 <h2>פרטי החברה</h2>
                 
                 <div class="form-group">
                     <label for="companySelector">בחר חברה *</label>
-                    <select id="companySelector" class="form-input" onchange="loadCompanyData()" style="direction: rtl; text-align: right;">
+                    <select id="companySelector" class="form-input" onchange="loadCompanyData()">
                         <option value="">-- בחר חברה --</option>
                         {% for company in insurance_data.companies %}
                         <option value="{{ loop.index0 }}">{{ company['Company Name'] }}</option>
                         {% endfor %}
                     </select>
                 </div>
-
+                
                 <div id="companyInfoContainer" style="display: none;">
                     <div class="product-item">
                         <div class="product-body">
@@ -807,7 +710,7 @@
                             </div>
                             <div class="product-field">
                                 <label class="product-label">אתר החברה:</label>
-                                <a id="companyUrlLink" href="#" target="_blank" class="url-link product-url">
+                                <a id="companyUrlLink" href="#" target="_blank" class="url-link">
                                     <span id="companyUrlText"></span>
                                 </a>
                             </div>
@@ -816,41 +719,68 @@
                 </div>
             </div>
 
+            <!-- Products Section -->
             <div class="section">
-                <h2 onclick="toggleProducts()" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between;">
-                    <span>מוצרים</span>
-                    <i id="productsToggleIcon" class="fas fa-chevron-down" style="transition: transform 0.3s ease;"></i>
-                </h2>
+                <h2>מוצרים</h2>
                 
-                <div id="productsContainer" style="display: none; overflow: hidden; transition: all 0.3s ease;">
-                    <p style="text-align: center; color: #6b7280; font-style: italic;">בחר חברה כדי לצפות במוצרים</p>
+                <div class="form-group">
+                    <label for="productSelector">בחר מוצר</label>
+                    <select id="productSelector" class="form-input" onchange="showProductDetails()" style="direction: rtl; text-align: right;">
+                        <option value="">-- בחר מוצר --</option>
+                    </select>
+                </div>
+                
+                <div id="productDetailsContainer" style="display: none; margin-top: 1rem;">
+                    <div class="product-item">
+                        <div class="product-body">
+                            <div class="product-field">
+                                <label class="product-label">תיאור המוצר:</label>
+                                <p class="product-description" id="productDescription"></p>
+                            </div>
+                            <div class="product-field">
+                                <label class="product-label">אתר המוצר:</label>
+                                <a id="productUrlLink" href="#" target="_blank" class="url-link">
+                                    <span id="productUrlText"></span>
+                                </a>
+                            </div>
                 </div>
             </div>
 
-            <div class="section">
-                <h2>
-                    הקלטה קולית
-                    <span id="voiceBadge" class="badge">לא הוקלט</span>
-                </h2>
-                
-                <div class="voice-controls">
-                    <button class="voice-btn primary" id="startBtn" onclick="startRecording()">התחל הקלטה</button>
-                    <button class="voice-btn secondary" id="stopBtn" onclick="stopRecording()" disabled>סיים</button>
-                    <button class="voice-btn secondary" id="playBtn" onclick="playRecording()" disabled>השמע</button>
-                    <button class="voice-btn danger" id="rerecordBtn" onclick="rerecord()" disabled>הקלט מחדש</button>
-                    <span id="timer" class="timer" style="display: none;">00:00</span>
-                </div>
-                
-                <div id="audioPreview" class="audio-preview" style="display: none;">
-                    <audio id="audioPlayer" controls></audio>
-                </div>
+                    <div style="margin-top: 20px; text-align: center;">
+                        <button class="action-btn primary" onclick="selectProduct()">
+                            <i class="fas fa-check" style="margin-left: 8px;"></i>
+                            בחר מוצר זה
+                        </button>
             </div>
-            
-            <div class="actions" style="display: flex; justify-content: center; margin-top: 30px; padding-top: 30px; border-top: 2px solid #e1e5e9;">
-                <button class="action-btn primary" id="analyzeBtn" onclick="sendForAnalysis()">
-                    <i class="fas fa-brain" style="margin-left: 8px;"></i>
-                    שלח לאנליזה
-                </button>
+        </div>
+                
+                <div id="selectedProductContainer" style="display: none; margin-top: 1rem;">
+                    <div class="product-item" style="background: #f0f9ff; border-color: #0b2e6b;">
+                        <div class="product-body">
+                            <div class="product-field">
+                                <label class="product-label">המוצר הנבחר:</label>
+                                <p class="product-description" id="selectedProductName" style="font-weight: 600; color: #0b2e6b;"></p>
+                            </div>
+                            <div class="product-field">
+                                <label class="product-label">תיאור:</label>
+                                <p class="product-description" id="selectedProductDescription"></p>
+                            </div>
+                            <div class="product-field">
+                                <label class="product-label">אתר המוצר:</label>
+                                <a id="selectedProductUrlLink" href="#" target="_blank" class="url-link">
+                                    <span id="selectedProductUrlText"></span>
+                                </a>
+                            </div>
+    </div>
+</div>
+
+                    <div style="margin-top: 15px; text-align: center;">
+                        <button class="action-btn secondary" onclick="changeProduct()">
+                            <i class="fas fa-edit" style="margin-left: 8px;"></i>
+                            שנה מוצר
+                        </button>
+                    </div>
+                </div>
             </div>
             
             <!-- Analysis Results Section -->
@@ -860,340 +790,161 @@
                 <div class="product-item">
                     <div class="product-body">
                         <div class="product-field">
-                            <label class="product-label">תמלול ההקלטה:</label>
+                            <label class="product-label">תמלול הקלטה:</label>
                             <p class="product-description" id="transcriptionText"></p>
-                        </div>
-                        <div class="product-field" style="margin-top: 20px;">
+            </div>
+                        <div class="product-field">
                             <label class="product-label">אנליזה:</label>
-                            <div class="product-description markdown-content" id="analysisText" style="direction: rtl; text-align: right;"></div>
-                        </div>
-                    </div>
-                </div>
+                            <div class="markdown-content" id="analysisText"></div>
+            </div>
+            </div>
+            </div>
             </div>
         </div>
     </div>
-</div>
 
-<script>
-    // Insurance data from JSON
-    const insuranceData = {{ insurance_data|tojson|safe }};
-    
-    // Global variables
-    let mediaRecorder;
-    let audioChunks = [];
-    let audioBlob = null;
-    let recordingStartTime = null;
-    let timerInterval = null;
-    let isRecording = false;
-    let isPlaying = false;
-    
-    // Load company data when company is selected
-    function loadCompanyData() {
-        const selector = document.getElementById('companySelector');
-        const companyIndex = selector.value;
-        
-        if (companyIndex === '') {
-            // Hide company info
-            document.getElementById('companyInfoContainer').style.display = 'none';
-            document.getElementById('productsContainer').innerHTML = '<p style="text-align: center; color: #6b7280; font-style: italic;">בחר חברה כדי לצפות במוצרים</p>';
+    <script>
+        /* ===== GLOBAL VARIABLES ===== */
+        let mediaRecorder;
+        let audioBlob;
+        let isRecording = false;
+        let isPlaying = false;
+        let recordingStartTime;
+        let timerInterval;
+        let insuranceData = {{ insurance_data | tojson }};
+
+        /* ===== ALERT SYSTEM ===== */
+        function showAlert(message, type = 'info', duration = 5000) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertId = 'alert-' + Date.now();
             
-            // Collapse products section
-            document.getElementById('productsContainer').style.display = 'none';
-            document.getElementById('productsToggleIcon').style.transform = 'rotate(0deg)';
+            const icons = {
+                success: 'fas fa-check-circle',
+                warning: 'fas fa-exclamation-triangle',
+                error: 'fas fa-times-circle',
+                info: 'fas fa-info-circle'
+            };
             
-            updateBadges();
-            return;
-        }
-        
-        const company = insuranceData.companies[companyIndex];
-        
-        // Show and populate company info
-        document.getElementById('companyInfoContainer').style.display = 'block';
-        document.getElementById('companyAbout').textContent = company['About the Company'];
-        
-        // Set company URL as clickable link
-        const companyUrl = company['Company URL'];
-        document.getElementById('companyUrlLink').href = companyUrl;
-        document.getElementById('companyUrlText').textContent = companyUrl;
-        
-        // Populate products
-        const productsContainer = document.getElementById('productsContainer');
-        productsContainer.innerHTML = '';
-        
-        company.insurances.forEach((insurance, index) => {
-            const productDiv = document.createElement('div');
-            productDiv.className = 'product-item';
-            productDiv.innerHTML = `
-                <div class="product-header">
-                    <h2>${insurance['Product Name']}</h2>
-                </div>
-                <div class="product-body">
-                    <div class="product-field">
-                        <p class="product-description">${insurance['Description']}</p>
-                    </div>
-                    <div class="product-field">
-                        <label class="product-label">אתר המוצר:</label>
-                        <a href="${insurance['Product URL']}" target="_blank" class="url-link product-url">
-                            ${insurance['Product URL']}
-                        </a>
-                    </div>
-                </div>
+            const alertElement = document.createElement('div');
+            alertElement.id = alertId;
+            alertElement.className = `modern-alert ${type}`;
+            alertElement.innerHTML = `
+                <i class="modern-alert-icon ${icons[type]}"></i>
+                <div class="modern-alert-content">${message}</div>
+                <button class="modern-alert-close" onclick="hideAlert('${alertId}')">
+                    <i class="fas fa-times"></i>
+                </button>
             `;
-            productsContainer.appendChild(productDiv);
-        });
-        
-        // Auto-expand products section when company is selected
-        document.getElementById('productsContainer').style.display = 'block';
-        document.getElementById('productsToggleIcon').style.transform = 'rotate(180deg)';
-        
-        // Update badges after products are added to DOM
-        setTimeout(() => updateBadges(), 0);
-    }
-    
-    // Toggle products section visibility
-    function toggleProducts() {
-        const container = document.getElementById('productsContainer');
-        const icon = document.getElementById('productsToggleIcon');
-        
-        if (container.style.display === 'none') {
-            container.style.display = 'block';
-            icon.style.transform = 'rotate(180deg)';
-        } else {
-            container.style.display = 'none';
-            icon.style.transform = 'rotate(0deg)';
-        }
-    }
-
-    // Initialize the application
-    function init() {
-        bindUI();
-        checkMediaSupport();
-        checkForSavedData();
-        updateBadges();
-    }
-
-    // Bind UI event listeners
-    function bindUI() {
-        // Form change detection
-        document.querySelectorAll('input, textarea').forEach(input => {
-            input.addEventListener('input', updateBadges);
-        });
-        
-        // Audio player event listeners
-        const audioPlayer = document.getElementById('audioPlayer');
-        if (audioPlayer) {
-            // When audio ends, reset play button
-            audioPlayer.addEventListener('ended', () => {
-                const playBtn = document.getElementById('playBtn');
-                if (playBtn) {
-                    playBtn.textContent = 'השמע';
-                    isPlaying = false;
-                }
-            });
             
-            // When audio is paused
-            audioPlayer.addEventListener('pause', () => {
-                const playBtn = document.getElementById('playBtn');
-                if (playBtn && !audioPlayer.ended) {
-                    playBtn.textContent = 'השמע';
-                    isPlaying = false;
-                }
-            });
+            alertContainer.appendChild(alertElement);
             
-            // When audio starts playing
-            audioPlayer.addEventListener('play', () => {
-                const playBtn = document.getElementById('playBtn');
-                if (playBtn) {
-                    playBtn.textContent = 'השהה';
-                    isPlaying = true;
-                }
-            });
-        }
-    }
-
-    // Check if MediaRecorder is supported
-    function checkMediaSupport() {
-        if (!navigator.mediaDevices || !window.MediaRecorder) {
-            document.getElementById('mediaWarning').style.display = 'block';
-        }
-    }
-
-    // Check for saved data on load
-    function checkForSavedData() {
-        const savedData = localStorage.getItem('neo_pdn_company_form');
-        if (savedData) {
-            document.getElementById('restorePrompt').style.display = 'block';
-        }
-    }
-
-    // Add a new product row
-    function addProductRow() {
-        const container = document.getElementById('productsContainer');
-        const rowId = 'product-' + Date.now();
-        
-        const row = document.createElement('div');
-        row.className = 'product-row';
-        row.id = rowId;
-        
-        row.innerHTML = `
-            <div class="form-group">
-                <label for="${rowId}-name">Product Name *</label>
-                <input type="text" id="${rowId}-name" required oninput="validateProductName('${rowId}')">
-                <div class="error-message" id="${rowId}-nameError">Product name is required</div>
-            </div>
-            <div class="form-group">
-                <label for="${rowId}-desc">Description</label>
-                <textarea id="${rowId}-desc" placeholder="Short description..."></textarea>
-            </div>
-            <div class="form-group">
-                <label for="${rowId}-url">Product URL</label>
-                <input type="url" id="${rowId}-url" placeholder="https://example.com" oninput="validateProductUrl('${rowId}')">
-                <div class="error-message" id="${rowId}-urlError">Please enter a valid URL</div>
-            </div>
-            <div class="form-group">
-                <button class="remove-btn" onclick="removeProductRow('${rowId}')">Remove</button>
-            </div>
-        `;
-        
-        container.appendChild(row);
-        updateBadges();
-    }
-
-    // Remove a product row
-    function removeProductRow(rowId) {
-        document.getElementById(rowId).remove();
-        updateBadges();
-    }
-
-
-    // Validate product name
-    function validateProductName(rowId) {
-        const input = document.getElementById(rowId + '-name');
-        const error = document.getElementById(rowId + '-nameError');
-        const isValid = input.value.trim().length > 0;
-        
-        if (isValid) {
-            error.classList.remove('show');
-            input.style.borderColor = '#e1e5e9';
-        } else {
-            error.classList.add('show');
-            input.style.borderColor = '#e74c3c';
+            setTimeout(() => {
+                alertElement.classList.add('show');
+            }, 100);
+            
+            if (duration > 0) {
+                setTimeout(() => {
+                    hideAlert(alertId);
+                }, duration);
+            }
         }
         
-        updateBadges();
-        return isValid;
-    }
-
-    // Validate product URL
-    function validateProductUrl(rowId) {
-        const input = document.getElementById(rowId + '-url');
-        const error = document.getElementById(rowId + '-urlError');
-        const url = input.value.trim();
-        
-        if (url === '') {
-            error.classList.remove('show');
-            input.style.borderColor = '#e1e5e9';
-            return true;
+        function hideAlert(alertId) {
+            const alertElement = document.getElementById(alertId);
+            if (alertElement) {
+                alertElement.classList.remove('show');
+                setTimeout(() => {
+                    if (alertElement.parentNode) {
+                        alertElement.parentNode.removeChild(alertElement);
+                    }
+                }, 300);
+            }
         }
         
-        const isValid = isValidUrl(url);
-        
-        if (isValid) {
-            error.classList.remove('show');
-            input.style.borderColor = '#e1e5e9';
-        } else {
-            error.classList.add('show');
-            input.style.borderColor = '#e74c3c';
+        // Alert convenience functions
+        function showSuccess(message, duration = 5000) {
+            showAlert(message, 'success', duration);
         }
         
-        updateBadges();
-        return isValid;
-    }
+        function showWarning(message, duration = 5000) {
+            showAlert(message, 'warning', duration);
+        }
+        
+        function showError(message, duration = 7000) {
+            showAlert(message, 'error', duration);
+        }
+        
+        function showInfo(message, duration = 5000) {
+            showAlert(message, 'info', duration);
+        }
 
-    // Simple URL validation
-    function isValidUrl(string) {
-        try {
-            const url = new URL(string);
-            return url.protocol === 'http:' || url.protocol === 'https:';
-        } catch (_) {
+        /* ===== VOICE RECORDING FUNCTIONS ===== */
+        function checkMediaSupport() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                document.getElementById('mediaWarning').style.display = 'block';
             return false;
         }
-    }
-
-    // Update progress badges
-    function updateBadges() {
-        // Company badge
-        const companySelector = document.getElementById('companySelector');
-        const companyValid = companySelector ? companySelector.value !== '' : false;
-        
-        const companyBadge = document.getElementById('companyBadge');
-        if (companyBadge) {
-            if (companyValid) {
-                companyBadge.textContent = 'הושלם';
-                companyBadge.className = 'badge success';
-            } else {
-                companyBadge.textContent = 'לא הושלם';
-                companyBadge.className = 'badge';
-            }
+            return true;
         }
 
-        // Voice badge
-        const voiceBadge = document.getElementById('voiceBadge');
-        if (voiceBadge) {
-            if (audioBlob) {
-                voiceBadge.textContent = 'הוקלט ✓';
-                voiceBadge.className = 'badge success';
-            } else {
-                voiceBadge.textContent = 'לא הוקלט';
-                voiceBadge.className = 'badge';
-            }
-        }
-    }
+        function startRecording() {
+            if (!checkMediaSupport()) return;
 
-    // Start voice recording
-    async function startRecording() {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
-            audioChunks = [];
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioBlob = null;
+                    isRecording = true;
+                    recordingStartTime = Date.now();
 
+                    // Update UI
+                    document.getElementById('startBtn').disabled = true;
+                    document.getElementById('stopBtn').disabled = false;
+                    document.getElementById('playBtn').disabled = true;
+                    document.getElementById('rerecordBtn').disabled = true;
+                    document.getElementById('timer').style.display = 'inline';
+                    document.getElementById('audioPreview').style.display = 'none';
+                    document.getElementById('analyzeBtnContainer').style.display = 'none';
+
+                    // Start timer
+                    timerInterval = setInterval(updateTimer, 100);
+
+                    // Handle data available
             mediaRecorder.ondataavailable = event => {
-                audioChunks.push(event.data);
+                        if (event.data.size > 0) {
+                            audioBlob = event.data;
+                        }
             };
 
+                    // Handle stop
             mediaRecorder.onstop = () => {
-                audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                        if (audioBlob) {
                 const audioUrl = URL.createObjectURL(audioBlob);
                 document.getElementById('audioPlayer').src = audioUrl;
                 document.getElementById('audioPreview').style.display = 'block';
+                            document.getElementById('playBtn').disabled = false;
+                            document.getElementById('rerecordBtn').disabled = false;
+                            document.getElementById('analyzeBtnContainer').style.display = 'block';
                 updateBadges();
+                            
+                            // Show success message
+                            showSuccess('ההקלטה הושלמה בהצלחה!');
+                        }
             };
 
             mediaRecorder.start();
-            isRecording = true;
-            recordingStartTime = Date.now();
-            
-            // Update UI
-            document.getElementById('startBtn').disabled = true;
-            document.getElementById('stopBtn').disabled = false;
-            document.getElementById('timer').style.display = 'inline';
-            
-            // Start timer
-            timerInterval = setInterval(updateTimer, 1000);
-            
-        } catch (error) {
-            console.error('Error starting recording:', error);
-            alert('לא ניתן לגשת למיקרופון. אנא בדוק את ההרשאות.');
+                })
+                .catch(error => {
+                    console.error('Error accessing microphone:', error);
+                    showError('שגיאה בגישה למיקרופון. אנא בדוק את ההרשאות.');
+                });
         }
-    }
 
-    // Stop voice recording
     function stopRecording() {
         if (mediaRecorder && isRecording) {
             mediaRecorder.stop();
             isRecording = false;
             
-            // Stop timer
             clearInterval(timerInterval);
             
             // Update UI
@@ -1208,185 +959,315 @@
         }
     }
 
-    // Play/pause recording
     function playRecording() {
         const audio = document.getElementById('audioPlayer');
         const playBtn = document.getElementById('playBtn');
-        
-        if (!audio || !audio.src) {
-            alert('אין הקלטה זמינה להשמעה');
-            return;
-        }
+            
+            if (!audioBlob) {
+                showWarning('אין הקלטה זמינה');
+                return;
+            }
         
         if (isPlaying) {
             audio.pause();
-            playBtn.textContent = 'השמע';
+                playBtn.textContent = 'השמע';
             isPlaying = false;
         } else {
-            audio.play().then(() => {
-                playBtn.textContent = 'השהה';
-                isPlaying = true;
-            }).catch(error => {
-                console.error('Error playing audio:', error);
-                alert('שגיאה בהשמעת ההקלטה');
-                isPlaying = false;
-            });
+                audio.play().then(() => {
+                    playBtn.textContent = 'עצור';
+            isPlaying = true;
+                }).catch(error => {
+                    console.error('Error playing audio:', error);
+                    showError('שגיאה בהשמעת ההקלטה');
+                });
         }
     }
 
-    // Re-record audio
     function rerecord() {
-        // Stop playback if playing
-        const audio = document.getElementById('audioPlayer');
-        if (audio) {
-            audio.pause();
-            audio.currentTime = 0;
-        }
-        
-        // Reset state
+            const audio = document.getElementById('audioPlayer');
+            if (audio) {
+                audio.pause();
+                audio.currentTime = 0;
+            }
+            
         audioBlob = null;
-        isPlaying = false;
-        
-        // Update UI
+            isPlaying = false;
+            
+            // Clear demo sample
+            window.currentDemoSample = null;
+            document.querySelectorAll('.demo-sample-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
         document.getElementById('audioPreview').style.display = 'none';
         document.getElementById('playBtn').disabled = true;
-        document.getElementById('playBtn').textContent = 'השמע';
+            document.getElementById('playBtn').textContent = 'השמע';
         document.getElementById('rerecordBtn').disabled = true;
-        
+            document.getElementById('analyzeBtnContainer').style.display = 'none';
+            
         updateBadges();
     }
 
-    // Update recording timer
     function updateTimer() {
         if (isRecording && recordingStartTime) {
-            const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
-            const minutes = Math.floor(elapsed / 60);
-            const seconds = elapsed % 60;
+                const elapsed = Date.now() - recordingStartTime;
+                const minutes = Math.floor(elapsed / 60000);
+                const seconds = Math.floor((elapsed % 60000) / 1000);
             document.getElementById('timer').textContent = 
                 `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
     }
 
-    // Convert blob to base64
-    function blobToBase64(blob) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result.split(',')[1]);
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
-        });
-    }
-
-    // Save data locally
-    async function saveLocally() {
-        try {
-            const data = await collectFormData();
-            localStorage.setItem('neo_pdn_company_form', JSON.stringify(data));
-            alert('Data saved locally!');
-        } catch (error) {
-            console.error('Error saving data:', error);
-            alert('Error saving data. Please try again.');
+        /* ===== COMPANY & PRODUCT MANAGEMENT ===== */
+        function loadCompanyData() {
+            const selector = document.getElementById('companySelector');
+            const companyIndex = selector.value;
+            
+            if (companyIndex === '') {
+                document.getElementById('companyInfoContainer').style.display = 'none';
+                document.getElementById('productSelector').innerHTML = '<option value="">-- בחר מוצר --</option>';
+                document.getElementById('productDetailsContainer').style.display = 'none';
+                document.getElementById('selectedProductContainer').style.display = 'none';
+                updateBadges();
+                return;
+            }
+            
+            const company = insuranceData.companies[companyIndex];
+            
+            // Show company info
+            document.getElementById('companyInfoContainer').style.display = 'block';
+            document.getElementById('companyAbout').textContent = company['About the Company'];
+            
+            // Set company URL
+            const companyUrl = company['Company URL'];
+            document.getElementById('companyUrlLink').href = companyUrl;
+            document.getElementById('companyUrlText').textContent = companyUrl;
+            
+            // Populate products dropdown
+            const productSelector = document.getElementById('productSelector');
+            productSelector.innerHTML = '<option value="">-- בחר מוצר --</option>';
+            
+            company.insurances.forEach((insurance, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = insurance['Product Name'];
+                productSelector.appendChild(option);
+            });
+            
+            // Hide product details and selected product
+            document.getElementById('productDetailsContainer').style.display = 'none';
+            document.getElementById('selectedProductContainer').style.display = 'none';
+            
+            // Show success message
+            showSuccess(`נתוני החברה "${company['Company Name']}" נטענו בהצלחה!`);
+            
+            updateBadges();
         }
-    }
 
-    // Export JSON
-    async function exportJSON() {
-        try {
-            const data = await collectFormData();
-            const jsonString = JSON.stringify(data, null, 2);
+        function showProductDetails() {
+            const productSelector = document.getElementById('productSelector');
+            const productIndex = productSelector.value;
             
-            const blob = new Blob([jsonString], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
+            if (productIndex === '') {
+                document.getElementById('productDetailsContainer').style.display = 'none';
+                return;
+            }
             
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'company_profile.json';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            const companySelector = document.getElementById('companySelector');
+            const companyIndex = companySelector.value;
+            const company = insuranceData.companies[companyIndex];
+            const product = company.insurances[productIndex];
             
-        } catch (error) {
-            console.error('Error exporting data:', error);
-            alert('Error exporting data. Please try again.');
+            // Show product details
+            document.getElementById('productDescription').textContent = product['Description'];
+            document.getElementById('productUrlLink').href = product['Product URL'];
+            document.getElementById('productUrlText').textContent = product['Product URL'];
+            document.getElementById('productDetailsContainer').style.display = 'block';
         }
-    }
+        
+        function selectProduct() {
+            const productSelector = document.getElementById('productSelector');
+            const productIndex = productSelector.value;
+            
+            if (productIndex === '') {
+                showWarning('אנא בחר מוצר תחילה');
+                return;
+            }
+            
+            const companySelector = document.getElementById('companySelector');
+            const companyIndex = companySelector.value;
+            const company = insuranceData.companies[companyIndex];
+            const product = company.insurances[productIndex];
+            
+            // Show selected product
+            document.getElementById('selectedProductName').textContent = product['Product Name'];
+            document.getElementById('selectedProductDescription').textContent = product['Description'];
+            document.getElementById('selectedProductUrlLink').href = product['Product URL'];
+            document.getElementById('selectedProductUrlText').textContent = product['Product URL'];
+            document.getElementById('selectedProductContainer').style.display = 'block';
+            
+            // Hide product details
+            document.getElementById('productDetailsContainer').style.display = 'none';
+            
+            // Show success message
+            showSuccess(`המוצר "${product['Product Name']}" נבחר בהצלחה!`);
+            
+            updateBadges();
+        }
+        
+        function changeProduct() {
+            document.getElementById('selectedProductContainer').style.display = 'none';
+            document.getElementById('productDetailsContainer').style.display = 'block';
+            document.getElementById('productSelector').focus();
+        }
 
-    // Clear form
+
+        /* ===== ANALYSIS FUNCTIONS ===== */
+        async function sendForAnalysis() {
+            const companySelector = document.getElementById('companySelector');
+            if (!companySelector.value) {
+                showWarning('אנא בחר חברה תחילה');
+                return;
+            }
+            
+            // Check for audio or demo sample
+            if (!audioBlob && !window.currentDemoSample) {
+                showWarning('אנא הקלט קול או בחר דגימה תחילה');
+                return;
+            }
+            
+            // Check if a product is selected
+            const selectedProductContainer = document.getElementById('selectedProductContainer');
+            if (selectedProductContainer.style.display === 'none') {
+                showWarning('אנא בחר מוצר תחילה');
+                return;
+            }
+            
+            // Show loading state
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const originalText = analyzeBtn.innerHTML;
+            analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-left: 8px;"></i> מעבד...';
+            analyzeBtn.disabled = true;
+            
+            try {
+                let voiceRecordingData;
+                
+                // Handle demo sample or real recording
+                if (window.currentDemoSample) {
+                    // Use demo sample text directly
+                    voiceRecordingData = {
+                        isDemoSample: true,
+                        sampleId: window.currentDemoSample.id,
+                        transcribedText: window.currentDemoSample.text,
+                        duration: window.currentDemoSample.duration
+                    };
+                } else {
+                    // Convert real audio to base64
+                    const arrayBuffer = await audioBlob.arrayBuffer();
+                    const base64Audio = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+                    voiceRecordingData = {
+                        isDemoSample: false,
+                        base64: base64Audio,
+                        mimeType: audioBlob.type
+                    };
+                }
+                
+                // Prepare data
+                const selectedProductName = document.getElementById('selectedProductName').textContent;
+                const selectedProductDescription = document.getElementById('selectedProductDescription').textContent;
+                const selectedProductUrl = document.getElementById('selectedProductUrlLink').href;
+                
+                const formData = {
+                    company: {
+                        name: companySelector.options[companySelector.selectedIndex].text,
+                        url: document.getElementById('companyUrlLink').href
+                    },
+                    selectedProduct: {
+                        name: selectedProductName,
+                        description: selectedProductDescription,
+                        url: selectedProductUrl
+                    },
+                    voiceRecording: voiceRecordingData
+                };
+                
+                // Send to server
+                const response = await fetch('/neo/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Show results
+                    document.getElementById('transcriptionText').textContent = result.transcription;
+                    document.getElementById('analysisText').innerHTML = marked.parse(result.analysis);
+                    document.getElementById('analysisResults').style.display = 'block';
+                    
+                    // Show success message
+                    showSuccess('האנליזה הושלמה בהצלחה!');
+                    
+                    // Scroll to results
+                    document.getElementById('analysisResults').scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    showError('שגיאה באנליזה: ' + result.error);
+                }
+        } catch (error) {
+                console.error('Error:', error);
+                showError('שגיאה בשליחת הנתונים לשרת');
+            } finally {
+                // Restore button
+                analyzeBtn.innerHTML = originalText;
+                analyzeBtn.disabled = false;
+            }
+        }
+
+        /* ===== UTILITY FUNCTIONS ===== */
+        function updateBadges() {
+            const companySelector = document.getElementById('companySelector');
+            const voiceBadge = document.getElementById('voiceBadge');
+            
+            if (companySelector && voiceBadge) {
+                if (audioBlob) {
+                    voiceBadge.textContent = 'הוקלט';
+                    voiceBadge.className = 'badge success';
+                } else {
+                    voiceBadge.textContent = 'לא הוקלט';
+                    voiceBadge.className = 'badge';
+                }
+            }
+        }
+
     function clearForm() {
         if (confirm('Are you sure you want to clear all data?')) {
-            // Clear company selector
-            document.getElementById('companySelector').value = '';
-            
-            // Hide company info
-            document.getElementById('companyInfoContainer').style.display = 'none';
-            
-            // Clear products
-            document.getElementById('productsContainer').innerHTML = '<p style="text-align: center; color: #6b7280; font-style: italic;">בחר חברה כדי לצפות במוצרים</p>';
-            document.getElementById('productsContainer').style.display = 'none';
-            document.getElementById('productsToggleIcon').style.transform = 'rotate(0deg)';
-            
-            // Clear audio
+                document.getElementById('companySelector').value = '';
+                document.getElementById('companyInfoContainer').style.display = 'none';
+                document.getElementById('productSelector').innerHTML = '<option value="">-- בחר מוצר --</option>';
+                document.getElementById('productDetailsContainer').style.display = 'none';
+                document.getElementById('selectedProductContainer').style.display = 'none';
+                
             audioBlob = null;
             document.getElementById('audioPreview').style.display = 'none';
             document.getElementById('playBtn').disabled = true;
             document.getElementById('rerecordBtn').disabled = true;
+                document.getElementById('analyzeBtnContainer').style.display = 'none';
             
-            // Clear localStorage
             localStorage.removeItem('neo_pdn_company_form');
-            
-            // Update UI
             updateBadges();
             clearRestorePrompt();
         }
     }
 
-    // Collect all form data
-    async function collectFormData() {
-        const products = [];
-        
-        // Get products from the selected company
-        const companySelector = document.getElementById('companySelector');
-        if (companySelector.value !== '') {
-            const company = insuranceData.companies[companySelector.value];
-            company.insurances.forEach(insurance => {
-                products.push({
-                    name: insurance['Product Name'],
-                    description: insurance['Description'],
-                    url: insurance['Product URL'] || null
-                });
-            });
+        function checkForSavedData() {
+            const savedData = localStorage.getItem('neo_pdn_company_form');
+            if (savedData) {
+                document.getElementById('restorePrompt').style.display = 'block';
+            }
         }
 
-        let voiceRecording = null;
-        if (audioBlob) {
-            const base64 = await blobToBase64(audioBlob);
-            voiceRecording = {
-                mimeType: audioBlob.type,
-                base64,
-                durationSec: Math.floor(audioBlob.size / 16000) // Rough estimate
-            };
-        }
-
-        // Get company details
-        const selectedCompany = companySelector.value !== '' ? insuranceData.companies[companySelector.value]['Company Name'] : '';
-        const companyUrlLink = document.getElementById('companyUrlLink');
-        const companyUrl = companyUrlLink.href && companyUrlLink.href !== '#' ? companyUrlLink.href : '';
-        const companyAboutText = document.getElementById('companyAbout').textContent || '';
-        
-        return {
-            company: {
-                name: selectedCompany,
-                about: companyAboutText.trim(),
-                url: companyUrl
-            },
-            products,
-            voiceRecording,
-            timestamp: new Date().toISOString()
-        };
-    }
-
-    // Restore saved data
     async function restoreData() {
         try {
             const savedData = localStorage.getItem('neo_pdn_company_form');
@@ -1395,13 +1276,12 @@
             const data = JSON.parse(savedData);
             
             // Restore company data
-            // Find company by name and set selector
-            const companyName = data.company.name || '';
-            const companyIndex = insuranceData.companies.findIndex(c => c['Company Name'] === companyName);
-            if (companyIndex !== -1) {
-                document.getElementById('companySelector').value = companyIndex;
-                loadCompanyData(); // This will restore company info and products
-            }
+                const companyName = data.company.name || '';
+                const companyIndex = insuranceData.companies.findIndex(c => c['Company Name'] === companyName);
+                if (companyIndex !== -1) {
+                    document.getElementById('companySelector').value = companyIndex;
+                    loadCompanyData();
+                }
             
             // Restore audio
             if (data.voiceRecording && data.voiceRecording.base64) {
@@ -1410,8 +1290,8 @@
                 document.getElementById('audioPreview').style.display = 'block';
                 document.getElementById('playBtn').disabled = false;
                 document.getElementById('rerecordBtn').disabled = false;
+                    document.getElementById('analyzeBtnContainer').style.display = 'block';
                 
-                // Create blob for validation
                 const response = await fetch(audioData);
                 audioBlob = await response.blob();
             }
@@ -1421,91 +1301,100 @@
             
         } catch (error) {
             console.error('Error restoring data:', error);
-            alert('שגיאה בשחזור הנתונים. אנא נסה שוב.');
+                clearRestorePrompt();
         }
     }
 
-    // Clear restore prompt
     function clearRestorePrompt() {
         document.getElementById('restorePrompt').style.display = 'none';
     }
-    
-    // Send data for analysis
-    async function sendForAnalysis() {
-        try {
-            // Validate that a company is selected
-            const companySelector = document.getElementById('companySelector');
-            if (!companySelector.value) {
-                alert('אנא בחר חברה לפני שליחה לאנליזה');
-                return;
-            }
-            
-            // Validate that voice recording exists
-            if (!audioBlob) {
-                alert('אנא הקלט הקלטה קולית לפני שליחה לאנליזה');
-                return;
-            }
-            
-            const analyzeBtn = document.getElementById('analyzeBtn');
-            analyzeBtn.disabled = true;
-            analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-left: 8px;"></i> מתמלל ומנתח...';
-            
-            // Hide previous results
-            document.getElementById('analysisResults').style.display = 'none';
-            
-            // Collect form data
-            const data = await collectFormData();
-            
-            // Send to backend for analysis
-            const response = await fetch('/neo/analyze', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data)
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                // Display transcription
-                document.getElementById('transcriptionText').textContent = result.transcription;
-                
-                // Render markdown for analysis
-                const analysisDiv = document.getElementById('analysisText');
-                if (typeof marked !== 'undefined') {
-                    // Configure marked for RTL and Hebrew
-                    marked.setOptions({
-                        breaks: true,
-                        gfm: true
-                    });
-                    analysisDiv.innerHTML = marked.parse(result.analysis);
-                } else {
-                    // Fallback to plain text if marked.js not loaded
-                    analysisDiv.textContent = result.analysis;
-                }
-                
-                document.getElementById('analysisResults').style.display = 'block';
-                
-                // Scroll to results
-                document.getElementById('analysisResults').scrollIntoView({ 
-                    behavior: 'smooth', 
-                    block: 'start' 
+
+        function bindUI() {
+            const audio = document.getElementById('audioPlayer');
+            if (audio) {
+                audio.addEventListener('ended', () => {
+                    document.getElementById('playBtn').textContent = 'השמע';
+                    isPlaying = false;
                 });
-                
-            } else {
-                alert('שגיאה בשליחה לאנליזה: ' + (result.error || 'שגיאה לא ידועה'));
             }
-            
-        } catch (error) {
-            console.error('Error sending for analysis:', error);
-            alert('שגיאה בשליחה לאנליזה. אנא נסה שוב.');
-        } finally {
-            const analyzeBtn = document.getElementById('analyzeBtn');
-            analyzeBtn.disabled = false;
-            analyzeBtn.innerHTML = '<i class="fas fa-brain" style="margin-left: 8px;"></i> שלח לאנליזה';
         }
-    }
+        
+        /* ===== DEMO SAMPLE SYSTEM ===== */
+        const demo_samples = {
+            sample1: {
+                text: "שלום, אני מחפש ביטוח רכב אבל אני רוצה לדעת בדיוק מה אני מקבל. אני צריך את הכיסוי הכי מקיף והכי יוקרתי שיש. אני לא מתפשר על איכות ואני מוכן לשלם יותר כדי לקבל את הטוב ביותר. אני רוצה לדבר עם המנהל שלכם ישירות.",
+                duration: "00:22",
+                tape: "Empire - אדנות ומנהיגות"
+            },
+            sample2: {
+                text: "היי! אני מחפש ביטוח רכב ואני רוצה שזה יהיה כיף! אני אוהב דברים יפים ואיכותיים. אני רוצה שהביטוח יהיה פשוט ונוח, עם הרבה הטבות ובונוסים. אני רוצה להרגיש שאני מקבל ערך אמיתי ושהשירות יהיה ממש טוב. איזה הנחות יש לכם?",
+                duration: "00:20",
+                tape: "Pleasure - הנאה ושפע"
+            },
+            sample3: {
+                text: "שלום, אני מחפש ביטוח רכב ואני רוצה לדעת מה המחיר הכי טוב שאתם יכולים לתת לי. אני עובד קשה ואני רוצה לחסוך כסף. אני רוצה לראות מספרים ברורים ותוכניות שונות. אני רוצה לדעת בדיוק מה אני מקבל תמורת הכסף שלי. איזה תוכנית הכי משתלמת?",
+                duration: "00:18",
+                tape: "Achievement - הישגיות והצלחה"
+            },
+            sample4: {
+                text: "שלום, אני מחפש ביטוח רכב ואני רוצה שזה יהיה פשוט ובטוח. אני רוצה לדעת שאני יכול לסמוך עליכם ושהכיסוי יהיה אמין. אני מעדיף דברים יציבים וקבועים. אני רוצה להרגיש שקט שאני מוגן. איזה תוכנית הכי בטוחה ויציבה?",
+                duration: "00:16",
+                tape: "Trust - בטחון והרמוניה"
+            }
+        };
+        
+        function loadDemoSample(sampleId) {
+            const sample = demo_samples[sampleId];
+            if (!sample) return;
+            
+            // Update button states
+            document.querySelectorAll('.demo-sample-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-sample="${sampleId}"]`).classList.add('active');
+            
+            // Create audio blob from text (simulated)
+            const audioText = sample.text;
+            const audioBlob = new Blob([audioText], { type: 'audio/wav' });
+            
+            // Set up audio player
+            const audioPlayer = document.getElementById('audioPlayer');
+            const audioUrl = URL.createObjectURL(audioBlob);
+            audioPlayer.src = audioUrl;
+            
+            // Show audio preview
+            document.getElementById('audioPreview').style.display = 'block';
+            document.getElementById('playBtn').disabled = false;
+            document.getElementById('rerecordBtn').disabled = false;
+            
+            // Update voice badge
+            document.getElementById('voiceBadge').textContent = 'דגימה נטענה';
+            document.getElementById('voiceBadge').className = 'badge success';
+            
+            // Show analyze button
+            document.getElementById('analyzeBtnContainer').style.display = 'block';
+            
+            // Store the sample data for analysis
+            window.currentDemoSample = {
+                id: sampleId,
+                text: sample.text,
+                duration: sample.duration
+            };
+            
+            // Update badges
+            updateBadges();
+            
+            // Show success message
+            showSuccess(`דגימה "${sample.tape}" נטענה בהצלחה!`);
+        }
+
+        /* ===== INITIALIZATION ===== */
+        function init() {
+            bindUI();
+            checkMediaSupport();
+            checkForSavedData();
+            updateBadges();
+        }
 
     // Initialize when page loads
     document.addEventListener('DOMContentLoaded', init);

@@ -11,6 +11,7 @@ from app.pdn_chat_ai import pdn_chat_ai_bp
 from app.pdn_diagnose import pdn_diagnose_bp
 from app.neo import neo_bp
 from flask_session import Session
+from app.utils.memory_monitor import start_memory_monitoring
 
 
 def create_app():
@@ -103,6 +104,10 @@ def create_app():
     app.register_blueprint(audio_bp, url_prefix='/pdn-admin')  # Audio endpoints
     app.register_blueprint(pdn_chat_ai_bp, url_prefix='/pdn-chat-ai')
     app.register_blueprint(neo_bp, url_prefix='/neo')
+    
+    # Start memory monitoring in production
+    if os.environ.get('FLASK_ENV') == 'production':
+        start_memory_monitoring()
 
     # Mount static files
     app.static_folder = 'static'

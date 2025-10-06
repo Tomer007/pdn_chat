@@ -117,36 +117,52 @@ def analyze():
         voice_recording = data.get('voiceRecording')
         
         # Validate voice recording
-        if not voice_recording or not voice_recording.get('base64'):
+        if not voice_recording:
             return jsonify({
                 'success': False,
                 'error': 'חסרה הקלטה קולית'
             }), 400
         
-        # Transcribe voice recording using OpenAI Whisper
-        try:
-            # Decode base64 audio
-            audio_data = base64.b64decode(voice_recording['base64'])
-            audio_file = io.BytesIO(audio_data)
-            audio_file.name = 'recording.wav'
+        # Handle demo sample or real recording
+        if voice_recording.get('isDemoSample'):
+            # Use demo sample text directly
+            transcribed_text = voice_recording.get('transcribedText', '')
+            if not transcribed_text:
+                return jsonify({
+                    'success': False,
+                    'error': 'חסר טקסט בדגימה'
+                }), 400
+        else:
+            # Transcribe real voice recording using OpenAI Whisper
+            if not voice_recording.get('base64'):
+                return jsonify({
+                    'success': False,
+                    'error': 'חסרה הקלטה קולית'
+                }), 400
             
-            # Initialize OpenAI client
-            client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-            
-            # Transcribe using Whisper
-            transcript = client.audio.transcriptions.create(
-                model="whisper-1",
-                file=audio_file,
-                language="he"  # Hebrew
-            )
-            
-            transcribed_text = transcript.text
-            
-        except Exception as e:
-            return jsonify({
-                'success': False,
-                'error': f'שגיאה בתמלול ההקלטה: {str(e)}'
-            }), 500
+            try:
+                # Decode base64 audio
+                audio_data = base64.b64decode(voice_recording['base64'])
+                audio_file = io.BytesIO(audio_data)
+                audio_file.name = 'recording.wav'
+                
+                # Initialize OpenAI client
+                client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+                
+                # Transcribe using Whisper
+                transcript = client.audio.transcriptions.create(
+                    model="whisper-1",
+                    file=audio_file,
+                    language="he"  # Hebrew
+                )
+                
+                transcribed_text = transcript.text
+                
+            except Exception as e:
+                return jsonify({
+                    'success': False,
+                    'error': f'שגיאה בתמלול ההקלטה: {str(e)}'
+                }), 500
         
         # Analyze using NeoAgent
         try:
