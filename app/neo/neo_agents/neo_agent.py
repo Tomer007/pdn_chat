@@ -46,11 +46,15 @@ class NeoAgent:
         self.model_name = model_name
         self.temperature = temperature
         
-        # Initialize LangSmith client
-        self.langsmith_client = Client(
-            api_key=os.getenv("LANGSMITH_API_KEY", ""),
-            api_url=os.getenv("LANGSMITH_ENDPOINT", "https://api.smith.langchain.com")
-        )
+        # Initialize LangSmith client if API key is available
+        langsmith_api_key = os.getenv("LANGSMITH_API_KEY")
+        if langsmith_api_key:
+            self.langsmith_client = Client(
+                api_key=langsmith_api_key,
+                api_url=os.getenv("LANGSMITH_ENDPOINT", "https://api.smith.langchain.com")
+            )
+        else:
+            self.langsmith_client = None
         
         self.llm = ChatOpenAI(
             model=model_name,

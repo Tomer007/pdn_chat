@@ -18,18 +18,25 @@ class LangSmithConfig:
     
     def __init__(self):
         """Initialize LangSmith configuration."""
-        self.api_key = os.getenv("LANGSMITH_API_KEY", "")
-        self.project = os.getenv("LANGSMITH_PROJECT", "PDN_CHAT")
+        self.api_key = os.getenv("LANGSMITH_API_KEY")
+        self.project = os.getenv("LANGSMITH_PROJECT")
         self.endpoint = os.getenv("LANGSMITH_ENDPOINT", "https://api.smith.langchain.com")
         self.tracing_v2 = os.getenv("LANGSMITH_TRACING_V2", "true").lower() == "true"
         
-        # Initialize client
-        self.client = self._create_client()
+        # Initialize client only if API key is available
+        self.client = self._create_client() if self.api_key else None
         
-        logger.info(f"LangSmith configured - Project: {self.project}, Tracing V2: {self.tracing_v2}")
+        if self.api_key:
+            logger.info(f"LangSmith configured - Project: {self.project}, Tracing V2: {self.tracing_v2}")
+        else:
+            logger.info("LangSmith not configured - No API key provided")
     
     def _create_client(self) -> Optional[Client]:
         """Create LangSmith client with error handling."""
+        if not self.api_key:
+            logger.info("LangSmith client not created - No API key provided")
+            return None
+            
         try:
             client = Client(
                 api_key=self.api_key,

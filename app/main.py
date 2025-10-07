@@ -13,13 +13,14 @@ from app.neo import neo_bp
 from flask_session import Session
 from app.utils.memory_monitor import start_memory_monitoring
 
-# Configure LangSmith
-from app.utils.langsmith_config import langsmith_config
-
-# Set environment variables for LangSmith
-os.environ["LANGSMITH_API_KEY"] = langsmith_config.api_key
-os.environ["LANGSMITH_PROJECT"] = langsmith_config.project
-os.environ["LANGSMITH_TRACING_V2"] = str(langsmith_config.tracing_v2).lower()
+# Configure LangSmith if API key is available
+langsmith_api_key = os.getenv("LANGSMITH_API_KEY")
+if langsmith_api_key:
+    from app.utils.langsmith_config import langsmith_config
+    # Set environment variables for LangSmith
+    os.environ["LANGSMITH_API_KEY"] = langsmith_api_key
+    os.environ["LANGSMITH_PROJECT"] = os.getenv("LANGSMITH_PROJECT", "pdn-chat")
+    os.environ["LANGSMITH_TRACING_V2"] = os.getenv("LANGSMITH_TRACING_V2", "true")
 
 
 def create_app():
