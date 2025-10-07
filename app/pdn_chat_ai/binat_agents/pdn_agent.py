@@ -17,6 +17,7 @@ from langchain.prompts import (
     SystemMessagePromptTemplate,
 )
 from langchain_openai import ChatOpenAI
+from langsmith import Client
 import os
 
 # Check if OpenAI API key is set in environment
@@ -74,6 +75,13 @@ class PDNAgent:
     def __init__(self):
         """Initialize the PDN agent with common functionality."""
         self.agent_name = "PDN"
+        
+        # Initialize LangSmith client
+        self.langsmith_client = Client(
+            api_key=os.getenv("LANGSMITH_API_KEY", ""),
+            api_url=os.getenv("LANGSMITH_ENDPOINT", "https://api.smith.langchain.com")
+        )
+        
         self.llm = ChatOpenAI(
             model="gpt-4o-mini",
             temperature=0.7,

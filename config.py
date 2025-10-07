@@ -41,6 +41,12 @@ class Config:
     # AI/LLM configuration
     OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
     
+    # LangSmith configuration
+    LANGSMITH_API_KEY = os.environ.get('LANGSMITH_API_KEY', '')
+    LANGSMITH_PROJECT = os.environ.get('LANGSMITH_PROJECT', 'PDN_CHAT')
+    LANGSMITH_ENDPOINT = os.environ.get('LANGSMITH_ENDPOINT', 'https://api.smith.langchain.com')
+    LANGSMITH_TRACING_V2 = os.environ.get('LANGSMITH_TRACING_V2', 'true')
+    
     # Session configuration
     SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
     SESSION_COOKIE_HTTPONLY = True

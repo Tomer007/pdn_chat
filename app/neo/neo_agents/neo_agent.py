@@ -15,6 +15,7 @@ from langchain.prompts import (
     SystemMessagePromptTemplate,
 )
 from langchain_openai import ChatOpenAI
+from langsmith import Client
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -44,6 +45,13 @@ class NeoAgent:
         """
         self.model_name = model_name
         self.temperature = temperature
+        
+        # Initialize LangSmith client
+        self.langsmith_client = Client(
+            api_key=os.getenv("LANGSMITH_API_KEY", ""),
+            api_url=os.getenv("LANGSMITH_ENDPOINT", "https://api.smith.langchain.com")
+        )
+        
         self.llm = ChatOpenAI(
             model=model_name,
             temperature=temperature,
@@ -54,7 +62,7 @@ class NeoAgent:
         # Load system prompt
         self.system_prompt = self._load_system_prompt()
         
-        logger.info(f"NeoAgent initialized with model: {model_name}")
+        logger.info(f"NeoAgent initialized with model: {model_name} and LangSmith tracing enabled")
     
     def _load_system_prompt(self) -> str:
         """
