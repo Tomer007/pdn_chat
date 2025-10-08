@@ -15,7 +15,6 @@ from langchain.prompts import (
     SystemMessagePromptTemplate,
 )
 from langchain_openai import ChatOpenAI
-from langsmith import Client
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -46,15 +45,8 @@ class NeoAgent:
         self.model_name = model_name
         self.temperature = temperature
         
-        # Initialize LangSmith client if API key is available
-        langsmith_api_key = os.getenv("LANGSMITH_API_KEY")
-        if langsmith_api_key:
-            self.langsmith_client = Client(
-                api_key=langsmith_api_key,
-                api_url=os.getenv("LANGSMITH_ENDPOINT", "https://api.smith.langchain.com")
-            )
-        else:
-            self.langsmith_client = None
+        # LangSmith integration removed - now handled by external MCP framework
+        self.langsmith_client = None
         
         self.llm = ChatOpenAI(
             model=model_name,
