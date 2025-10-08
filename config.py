@@ -23,7 +23,6 @@ class Config:
     # File paths
     CONFIG_FILE = DATA_DIR / "config.yaml"
     QUESTIONS_FILE = DATA_DIR / "questions.json"
-    PDN_REPORTS_FILE = DATA_DIR / "pdn_reports.json"
     
     # Logging
     LOG_FILE = LOGS_DIR / "app.log"
@@ -52,9 +51,6 @@ class Config:
     UPLOAD_FOLDER = SAVED_RESULTS_DIR
     ALLOWED_AUDIO_EXTENSIONS = {'wav', 'mp3', 'm4a', 'ogg'}
 
-    # Voice recording configuration (seconds)
-    VOICE_RECORDING_MIN_DURATION = int(os.environ.get('VOICE_RECORDING_MIN_DURATION', '60'))
-    VOICE_RECORDING_MAX_DURATION = int(os.environ.get('VOICE_RECORDING_MAX_DURATION', '90'))
 
 # Development configuration
 class DevelopmentConfig(Config):

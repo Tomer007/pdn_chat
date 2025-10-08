@@ -411,7 +411,12 @@
         async startRecording() {
             this.audioChunks = [];
             this.recordingValid = false;
-            this.recordStatus.innerHTML = '<span class="recording">מקליט... (00:00 / 01:30)</span>';
+            
+            // Voice recording configuration (in seconds)
+            this.minDuration = 30;  // Minimum recording duration
+            this.maxDuration = 90;  // Maximum recording duration
+            
+            this.recordStatus.innerHTML = `<span class="recording">מקליט... (00:00 / ${this.maxDuration} שניות)</span>`;
             this.startBtn.classList.add('hidden');
             this.stopBtn.classList.remove('hidden');
             this.stopBtn.innerText = 'סיים הקלטה';
@@ -443,12 +448,23 @@
                 this.recordTimer = setInterval(() => {
                     this.recordElapsed++;
                     let sec = this.recordElapsed % 60, min = Math.floor(this.recordElapsed / 60);
-                    let statusText = `מקליט... (${("0" + min).slice(-2)}:${("0" + sec).slice(-2)} / 01:30)`;
+                    const maxMin = Math.floor(this.maxDuration / 60);
+                    const maxSec = this.maxDuration % 60;
+                    let statusText = `מקליט... (${("0" + min).slice(-2)}:${("0" + sec).slice(-2)} / ${("0" + maxMin).slice(-2)}:${("0" + maxSec).slice(-2)})`;
 
-                    this.recordStatus.innerHTML = `<span class="text-orange-600">${statusText}</span>`;
+                    // Change color when minimum duration is reached
+                    let statusClass = this.recordElapsed >= this.minDuration ? 'text-green-600' : 'text-orange-600';
+                    this.recordStatus.innerHTML = `<span class="${statusClass}">${statusText}</span>`;
 
-                    // Auto-stop at 90 seconds (1 minute 30 seconds)
-                    if (this.recordElapsed >= 90) {
+                    // Enable stop button when minimum duration is reached
+                    if (this.recordElapsed >= this.minDuration && this.stopBtn.disabled) {
+                        this.stopBtn.disabled = false;
+                        this.stopBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        this.stopBtn.innerText = 'סיים הקלטה ✓';
+                    }
+
+                    // Auto-stop at maximum duration
+                    if (this.recordElapsed >= this.maxDuration) {
                         this.finishRecording();
                     }
                 }, 1000);
@@ -466,16 +482,44 @@
             this.audioPlayback.classList.remove('hidden');
             this.visualizer.innerHTML = '';
 
-            // Always accept the recording regardless of duration
-            this.recordingValid = true;
-            this.recordStatus.innerHTML = `<span class="text-green-600 font-bold">✓ הקלטה הושלמה (${this.formatTime(this.recordElapsed)})</span>`;
-            this.stopBtn.innerText = this.areaId === '2' ? 'המשך לאיבחון' : 'המשך לשאלה הבאה';
-            this.stopBtn.disabled = false;
-            this.stopBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-
-            // Add visual feedback for valid state
-            this.voiceArea.classList.remove('recording', 'invalid');
-            this.voiceArea.classList.add('valid');
+            // Check duration validation
+            const minDuration = this.minDuration;
+            const maxDuration = this.maxDuration;
+            
+            if (this.recordElapsed < minDuration) {
+                // Recording too short
+                this.recordingValid = false;
+                this.recordStatus.innerHTML = `<span class="text-red-600 font-bold">✗ הקלטה קצרה מדי (${this.formatTime(this.recordElapsed)} / ${this.formatTime(minDuration)} דקות מינימום)</span>`;
+                this.stopBtn.innerText = 'נסה שוב';
+                this.stopBtn.disabled = false;
+                this.stopBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                
+                // Add visual feedback for invalid state
+                this.voiceArea.classList.remove('recording', 'valid');
+                this.voiceArea.classList.add('invalid');
+            } else if (this.recordElapsed > maxDuration) {
+                // Recording too long
+                this.recordingValid = false;
+                this.recordStatus.innerHTML = `<span class="text-red-600 font-bold">✗ הקלטה ארוכה מדי (${this.formatTime(this.recordElapsed)} / ${this.formatTime(maxDuration)} דקות מקסימום)</span>`;
+                this.stopBtn.innerText = 'נסה שוב';
+                this.stopBtn.disabled = false;
+                this.stopBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                
+                // Add visual feedback for invalid state
+                this.voiceArea.classList.remove('recording', 'valid');
+                this.voiceArea.classList.add('invalid');
+            } else {
+                // Recording duration is valid
+                this.recordingValid = true;
+                this.recordStatus.innerHTML = `<span class="text-green-600 font-bold">✓ הקלטה הושלמה (${this.formatTime(this.recordElapsed)})</span>`;
+                this.stopBtn.innerText = this.areaId === '2' ? 'המשך לאיבחון' : 'המשך לשאלה הבאה';
+                this.stopBtn.disabled = false;
+                this.stopBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                
+                // Add visual feedback for valid state
+                this.voiceArea.classList.remove('recording', 'invalid');
+                this.voiceArea.classList.add('valid');
+            }
 
             // Upload audio to backend
             try {

@@ -31,7 +31,6 @@ def send_pdn_code_email(user_answers: Dict[str, Any], pdn_code: str) -> bool:
     Args:
         user_answers (Dict): User's questionnaire answers and metadata
         pdn_code (str): Calculated PDN code
-        report_data (Dict): Report data to be included in the email
     
     Returns:
         bool: True if email sent successfully, False otherwise

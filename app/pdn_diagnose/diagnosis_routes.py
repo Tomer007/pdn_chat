@@ -9,7 +9,6 @@ from .logger import setup_logger
 from ..utils.answer_storage import load_answers, save_user_metadata, save_answer
 from ..utils.pdn_calculator import calculate_pdn_code
 from ..utils.questionnaire import get_question
-from ..utils.report_generator import load_pdn_report
 
 # Setup logger
 logger = setup_logger()
@@ -233,21 +232,7 @@ def get_report_data():
         if not user_answers_data:
             logger.error("No answers found for email: %s", email)
             return jsonify({'error': 'No answers found'}), 400
-
-        # Calculate PDN code
-        pdn_code = calculate_pdn_code(user_answers_data)
-
-        if not pdn_code:
-            logger.error("Could not calculate PDN code for user %s", email)
-            return jsonify({'error': 'Could not calculate PDN code'}), 400
-
-        # Load report data
-        report_data = load_pdn_report(pdn_code)
-
-        if not report_data:
-            logger.error("Could not load PDN report for code %s", pdn_code)
-            return jsonify({'error': 'Could not load PDN report'}), 400
-
+        
         # Get user metadata
         user_data = session.get('user_data', {})
 
@@ -257,9 +242,6 @@ def get_report_data():
                 'first_name': user_data.get('first_name', 'User'),
                 'last_name': user_data.get('last_name', ''),
                 'email': email
-            },
-            'results': {
-                'pdn_code': pdn_code,
             }
         }
 
@@ -282,14 +264,8 @@ def chat():
     user_name = user_data.get('first_name', 'User')
     user_id = email  # Using email as user ID
 
-    # Voice recording config
-    voice_min_duration = current_app.config.get('VOICE_RECORDING_MIN_DURATION', 60)
-    voice_max_duration = current_app.config.get('VOICE_RECORDING_MAX_DURATION', 90)
-
     return render_template("questionnaire.html",
                            include_menu=True,
                            user_name=user_name,
                            user_id=user_id,
-                           email=email,
-                           voice_min_duration=voice_min_duration,
-                           voice_max_duration=voice_max_duration)
+                           email=email)
