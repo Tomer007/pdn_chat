@@ -23,28 +23,34 @@ logger = logging.getLogger(__name__)
 def check_verification_needed(scores: Dict[str, int]) -> bool:
     """
     Check if human verification is needed based on E, P, A, T scores.
-    Verification is needed if there's a gap of less than 2 points between any of the scores.
-    
+    Verification is needed if the gap between the highest and second highest scores is 2 or less.
+
     Args:
         scores (dict): Dictionary containing the trait scores
-        
+
     Returns:
         bool: True if verification is needed, False otherwise
     """
     trait_scores = {k: v for k, v in scores.items() if k in ['A', 'T', 'P', 'E']}
-    
-    # Get all score values
-    score_values = list(trait_scores.values())
-    
-    # Check if any two scores have a gap of less than 2 points
-    for i in range(len(score_values)):
-        for j in range(i + 1, len(score_values)):
-            gap = abs(score_values[i] - score_values[j])
-            logger.debug("Gap between scores %s and %s is %s", score_values[i], score_values[j], gap)
-            if gap < 2:
-                logger.info("Verification needed: gap of %s points between scores %s and %s", gap, score_values[i], score_values[j])
-                return True
-    
+
+    # Get all score values and sort them in descending order
+    score_values = sorted(trait_scores.values(), reverse=True)
+
+    # Need at least 2 scores to compare
+    if len(score_values) < 2:
+        return False
+
+    # Get highest and second highest scores
+    highest = score_values[0]
+    second_highest = score_values[1]
+    gap = highest - second_highest
+
+    logger.debug("Highest score: %s, Second highest: %s, Gap: %s", highest, second_highest, gap)
+
+    if gap <= 2:
+        logger.info("Verification needed: gap of %s points between highest (%s) and second highest (%s)", gap, highest, second_highest)
+        return True
+
     return False
 
 
