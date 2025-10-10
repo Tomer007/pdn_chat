@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 def check_verification_needed(scores: Dict[str, int]) -> bool:
     """
     Check if human verification is needed based on E, P, A, T scores.
-    Verification is needed if there's a gap of less than 5 points between any of the scores.
+    Verification is needed if there's a gap of less than 2 points between any of the scores.
     
     Args:
         scores (dict): Dictionary containing the trait scores
@@ -36,12 +36,13 @@ def check_verification_needed(scores: Dict[str, int]) -> bool:
     # Get all score values
     score_values = list(trait_scores.values())
     
-    # Check if any two scores have a gap of less than 5 points
+    # Check if any two scores have a gap of less than 2 points
     for i in range(len(score_values)):
         for j in range(i + 1, len(score_values)):
             gap = abs(score_values[i] - score_values[j])
-            if gap < 5:
-                logger.info(f"Verification needed: gap of {gap} points between scores {score_values[i]} and {score_values[j]}")
+            logger.debug("Gap between scores %s and %s is %s", score_values[i], score_values[j], gap)
+            if gap < 2:
+                logger.info("Verification needed: gap of %s points between scores %s and %s", gap, score_values[i], score_values[j])
                 return True
     
     return False
