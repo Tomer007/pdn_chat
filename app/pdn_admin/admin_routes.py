@@ -107,17 +107,33 @@ def get_user_metadata():
 
 
 def verify_session(session_token: str):
-    """Verify admin session"""
+    """Verify admin session with better error handling"""
+    if not session_token:
+        logger.warning("No session token provided")
+        abort(401, description="No session token provided")
+
     if session_token not in admin_sessions:
-        logger.warning("Invalid session token: %s", session_token)
-        abort(401, description="Invalid session")
+        logger.warning("Invalid or expired session token: %s", session_token[:10] + "...")
+        # Clear any stale sessions (optional cleanup)
+        if len(admin_sessions) > 100:  # Prevent memory leaks
+            admin_sessions.clear()
+        abort(401, description="Session expired or invalid")
+
     return True
 
 
+
+
 def get_session_user_info(session_token: str):
+
+    if not session_token:
+        logger.warning("No session token provided for user info")
+        abort(401, description="No session token provided")
+
     """Get user info from session token"""
     if session_token in admin_sessions:
         return admin_sessions[session_token]
+
     logger.warning("Invalid session token: %s", session_token)
     abort(401, description="Invalid session")
 
