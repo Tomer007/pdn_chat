@@ -1069,7 +1069,7 @@
             </td>
             <td class="px-4 py-4">
                 ${user.needs_verification ? 
-                    '<span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium" title="נדרש אימות אנושי - הפער בין הציונים קטן מ-5 נקודות">⚠️ אימות</span>' : 
+                    '<span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium" title="נדרש אימות אנושי - הפער בין הציונים קטן מ-2 נקודות">⚠️ אימות</span>' :
                     '<span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">✓ תקין</span>'
                 }
             </td>
@@ -1974,7 +1974,7 @@ ${leftText}: ${leftValue} | ${rightText}: ${rightValue}
                     
                     // Show appropriate notification based on verification status
                     if (data.needs_verification) {
-                        showNotification(`קוד פדן חושב מחדש: ${data.pdn_code} - ⚠️ נדרש אימות אנושי (הפער בין הציונים קטן מ-5 נקודות)`, 'warning');
+                        showNotification(`קוד פדן חושב מחדש: ${data.pdn_code} - ⚠️ נדרש אימות אנושי (הפער בין הציונים קטן מ-2 נקודות)`, 'warning');
                     } else {
                         showNotification(`קוד פדן חושב מחדש בהצלחה: ${data.pdn_code} על ידי ${data.updated_by}`, 'success');
                     }
