@@ -7,14 +7,10 @@ from pathlib import Path
 
 from app.pdn_admin import pdn_admin_bp, audio_bp
 from app.pdn_chat_ai import pdn_chat_ai_bp
-# Import blueprints
 from app.pdn_diagnose import pdn_diagnose_bp
 from app.neo import neo_bp
 from flask_session import Session
 from app.utils.memory_monitor import start_memory_monitoring
-
-# LangSmith configuration removed - now handled by external MCP framework
-
 
 def create_app():
     """Application factory pattern for Flask app creation"""

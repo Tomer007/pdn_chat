@@ -45,7 +45,6 @@ class NeoAgent:
         self.model_name = model_name
         self.temperature = temperature
         
-        # LangSmith integration removed - now handled by external MCP framework
         self.langsmith_client = None
         
         self.llm = ChatOpenAI(
