@@ -142,8 +142,7 @@ def get_session_user_info(session_token: str):
 def admin_login_page():
     """Admin login page"""
     logger.debug("GET /pdn-admin/ called")
-    logger.info("Request: %s %s", request.method, request.url)
-    logger.info("Response: %s", 200)
+    logger.debug("Request: %s %s", request.method, request.url)
     return render_template("admin_login.html")
 
 
@@ -151,8 +150,7 @@ def admin_login_page():
 def admin_dashboard_page():
     """Admin dashboard page"""
     logger.debug("GET /pdn-admin/dashboard called")
-    logger.info("Request: %s %s", request.method, request.url)
-    logger.info("Response: %s", 200)
+    logger.debug("Request: %s %s", request.method, request.url)
     return render_template("admin_dashboard.html")
 
 
@@ -160,8 +158,7 @@ def admin_dashboard_page():
 def admin_login():
     """Admin login endpoint"""
     logger.debug("POST /pdn-admin/login called")
-    logger.info("Request: %s %s", request.method, request.url)
-    logger.info("Response: %s", 200)
+    logger.debug("Request: %s %s", request.method, request.url)
 
     try:
         login_data = request.get_json()
@@ -196,8 +193,7 @@ def admin_login():
 def admin_logout():
     """Admin logout endpoint"""
     logger.debug("GET /pdn-admin/logout called")
-    logger.info("Request: %s %s", request.method, request.url)
-    logger.info("Response: %s", 200)
+    logger.debug("Request: %s %s", request.method, request.url)
 
     session_token = request.args.get('session_token')
     if session_token and session_token in admin_sessions:
@@ -209,8 +205,7 @@ def admin_logout():
 def get_metadata_csv():
     """Get metadata as CSV download"""
     logger.debug("GET /pdn-admin/metadata/csv called")
-    logger.info("Request: %s %s", request.method, request.url)
-    logger.info("Response: %s", 200)
+    logger.debug("Request: %s %s", request.method, request.url)
 
     session_token = request.args.get('session_token')
 
@@ -225,7 +220,7 @@ def get_metadata_csv():
 def download_csv_file():
     """Download the actual CSV file"""
     logger.debug("GET /pdn-admin/download/csv called")
-    logger.info("Request: %s %s", request.method, request.url)
+    logger.debug("Request: %s %s", request.method, request.url)
 
     session_token = request.args.get('session_token')
     verify_session(session_token)
@@ -261,8 +256,7 @@ def remove_none_keys(obj):
 def get_user_questionnaire(email):
     """Get user questionnaire data"""
     logger.debug("GET /pdn-admin/user/questionnaire/%s called", email)
-    logger.info("Request: %s %s", request.method, request.url)
-    logger.info("Response: %s", 200)
+    logger.debug("Request: %s %s", request.method, request.url)
 
     session_token = request.args.get('session_token')
     verify_session(session_token)
@@ -318,8 +312,7 @@ def get_user_questionnaire(email):
 def get_user_voice(email):
     """Get user voice recording URL"""
     logger.debug(f"GET /pdn-admin/user/voice/{email} called")
-    logger.info("Request: %s %s", request.method, request.url)
-    logger.info("Response: %s", 200)
+    logger.debug("Request: %s %s", request.method, request.url)
 
     session_token = request.args.get('session_token')
     verify_session(session_token)
@@ -389,8 +382,7 @@ def get_user_voice(email):
 def update_user_diagnose(email):
     """Update user diagnose information"""
     logger.debug(f"PUT /pdn-admin/user/diagnose/{email} called")
-    logger.info("Request: %s %s", request.method, request.url)
-    logger.info("Response: %s", 200)
+    logger.debug("Request: %s %s", request.method, request.url)
 
     session_token = request.args.get('session_token')
     verify_session(session_token)
@@ -443,8 +435,7 @@ def update_user_diagnose(email):
 def send_user_email(email):
     """Send PDN report email to user"""
     logger.debug(f"POST /pdn-admin/user/send_email/{email} called")
-    logger.info("Request: %s %s", request.method, request.url)
-    logger.info("Response: %s", 200)
+    logger.debug("Request: %s %s", request.method, request.url)
 
     session_token = request.args.get('session_token')
     verify_session(session_token)
@@ -492,8 +483,7 @@ def send_user_email(email):
 def recalculate_user_pdn(email):
     """Recalculate PDN code for a user"""
     logger.debug(f"POST /pdn-admin/user/recalculate_pdn/{email} called")
-    logger.info("Request: %s %s", request.method, request.url)
-    logger.info("Response: %s", 200)
+    logger.debug("Request: %s %s", request.method, request.url)
 
     session_token = request.args.get('session_token')
     verify_session(session_token)
@@ -576,8 +566,7 @@ def recalculate_user_pdn(email):
 def serve_audio(file_path):
     """Serve audio files with authentication."""
     logger.debug(f"GET /pdn-admin/audio/{file_path} called")
-    logger.info("Request: %s %s", request.method, request.url)
-    logger.info("Response: %s", 200)
+    logger.debug("Request: %s %s", request.method, request.url)
 
     # Extract session token from query parameters
     session_token = request.args.get('session_token')
@@ -643,7 +632,7 @@ def serve_audio(file_path):
 def save_audio():
     """Save uploaded audio file."""
     logger.debug("POST /pdn-admin/api/save-audio called")
-    logger.info("Request: %s %s", request.method, request.url)
+    logger.debug("Request: %s %s", request.method, request.url)
     
     try:
         # Check if audio file is present
@@ -688,7 +677,7 @@ def save_audio():
 def download_user_json():
     """Download user's JSON answers file."""
     logger.debug("GET /pdn-admin/download-json called")
-    logger.info("Request: %s %s", request.method, request.url)
+    logger.debug("Request: %s %s", request.method, request.url)
 
     # Extract session token from query parameters
     session_token = request.args.get('session_token')
