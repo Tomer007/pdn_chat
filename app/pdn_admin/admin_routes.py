@@ -2,7 +2,8 @@ import csv
 import logging
 import os
 import secrets
-from datetime import datetime
+from datetime import datetime, timedelta
+
 from flask import Blueprint, request, render_template, jsonify, current_app, send_file, abort
 from pathlib import Path
 
@@ -12,8 +13,14 @@ from ..utils.email_sender import send_pdn_code_email
 from ..utils.pdn_calculator import calculate_pdn_code
 from ..utils.pdn_file_path import PDNFilePath
 
+
 # Configure logging
 logger = logging.getLogger(__name__)
+
+# Add expiration tracking
+SESSION_TIMEOUT = timedelta(hours=2)
+
+
 
 # Create blueprint
 pdn_admin_bp = Blueprint('pdn_admin', __name__,
@@ -23,6 +30,39 @@ pdn_admin_bp = Blueprint('pdn_admin', __name__,
 # Admin sessions storage (in production, use Redis or database)
 admin_sessions = {}  # session_token -> user_info
 
+# Use secure random tokens
+def generate_session_token():
+    return secrets.token_urlsafe(32)
+
+def create_session(email):
+    token = generate_session_token()
+    admin_sessions[token] = {
+        "email": email,
+        "username": email,  # Add username for consistency
+        "login_time": datetime.now(),
+        "expires_at": datetime.now() + SESSION_TIMEOUT
+    }
+    return token
+
+def verify_session(session_token: str):
+
+    if not session_token or session_token not in admin_sessions:
+        abort(401, description="Invalid or expired session")
+
+    session = admin_sessions[session_token]
+    if datetime.now() > session["expires_at"]:
+        del admin_sessions[session_token]
+        abort(401, description="Session expired")
+
+    return session  # Return session info to avoid redundant lookups
+
+# Clean up expired sessions periodically
+def cleanup_expired_sessions():
+    now = datetime.now()
+    expired = [token for token, session in admin_sessions.items()
+               if now > session["expires_at"]]
+    for token in expired:
+        del admin_sessions[token]
 
 def load_user_metadata():
     """
@@ -95,7 +135,6 @@ def load_user_metadata():
         logger.error("Error loading user metadata from CSV: %s", e)
         return []
 
-
 def get_user_metadata():
     """
     Get user metadata, loading from CSV if needed.
@@ -104,25 +143,6 @@ def get_user_metadata():
         List of dictionaries containing user metadata
     """
     return load_user_metadata()
-
-
-def verify_session(session_token: str):
-    """Verify admin session with better error handling"""
-    if not session_token:
-        logger.warning("No session token provided")
-        abort(401, description="No session token provided")
-
-    if session_token not in admin_sessions:
-        logger.warning("Invalid or expired session token: %s", session_token[:10] + "...")
-        # Clear any stale sessions (optional cleanup)
-        if len(admin_sessions) > 100:  # Prevent memory leaks
-            admin_sessions.clear()
-        abort(401, description="Session expired or invalid")
-
-    return True
-
-
-
 
 def get_session_user_info(session_token: str):
 
@@ -165,14 +185,8 @@ def admin_login():
         email = login_data.get('email', '')
         password = login_data.get('password', '')
 
-        # Simple password check (you can make this more secure)
         if password.lower() == current_app.config.get('ADMIN_PASSWORD', 'pdn').lower():
-            session_token = secrets.token_urlsafe(32)
-            # Store user info with session token
-            admin_sessions[session_token] = {
-                "email": email,
-                "login_time": datetime.now().strftime("%d/%m/%Y %H:%M")
-            }
+            session_token = create_session(email)
             return jsonify({
                 "success": True,
                 "message": "Login successful",
@@ -195,6 +209,8 @@ def admin_logout():
     logger.debug("GET /pdn-admin/logout called")
     logger.debug("Request: %s %s", request.method, request.url)
 
+    cleanup_expired_sessions()
+    
     session_token = request.args.get('session_token')
     if session_token and session_token in admin_sessions:
         del admin_sessions[session_token]
