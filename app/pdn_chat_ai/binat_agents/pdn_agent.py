@@ -26,48 +26,6 @@ if not os.getenv("OPENAI_API_KEY"):
         "Please set it before running the application."
     )
 
-
-def retry_on_failure(max_retries: int = 3, delay: float = 1.0, backoff: float = 2.0):
-    """
-    Decorator to retry function calls on failure with exponential backoff.
-    
-    Args:
-        max_retries: Maximum number of retry attempts
-        delay: Initial delay between retries in seconds
-        backoff: Multiplier for delay after each retry
-    """
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            current_delay = delay
-            last_exception = None
-            
-            for attempt in range(max_retries + 1):
-                try:
-                    return func(*args, **kwargs)
-                except Exception as e:
-                    last_exception = e
-                    if attempt < max_retries:
-                        logger = logging.getLogger("pdn_agent")
-                        logger.warning(
-                            "Attempt %d failed for %s: %s. Retrying in %.2f seconds...",
-                            attempt + 1, func.__name__, str(e), current_delay
-                        )
-                        time.sleep(current_delay)
-                        current_delay *= backoff
-                    else:
-                        logger = logging.getLogger("pdn_agent")
-                        logger.error(
-                            "All %d attempts failed for %s. Last error: %s",
-                            max_retries + 1, func.__name__, str(e)
-                        )
-            
-            # If all retries failed, raise the last exception
-            raise last_exception
-        return wrapper
-    return decorator
-
-
 class PDNAgent:
     """Single agent for all PDN chat interactions."""
 
@@ -82,7 +40,6 @@ class PDNAgent:
             model="gpt-4o-mini",
             temperature=0.7,
             max_tokens=4000,  # Increased for 21-day plan but still reasonable
-            request_timeout=180  # 3 minute timeout for 21-day plan requests
         )
         
         # Conversation history storage
@@ -151,7 +108,7 @@ class PDNAgent:
     def _load_system_prompt(self, pdn_code: str) -> ChatPromptTemplate:
         """Load the system prompt from file based on PDN code."""
         
-        base_prompt_path = Path(__file__).parent / "prompts/base_agent.prompt"
+        base_prompt_path = Path(__file__).parent / "prompts/base_agent_21.prompt"
 
         prompt_filename = self._get_prompt_filename(pdn_code)
         prompt_path = Path(__file__).parent / "prompts" / prompt_filename
@@ -228,7 +185,6 @@ class PDNAgent:
 
         return "\n".join(formatted_lines).strip()
 
-    @retry_on_failure(max_retries=2, delay=1.0, backoff=2.0)
     def chat_with_user(self, user_query: str, user_name: str = None, pdn_code: str = None) -> str:
         """Generate a response for the user query using the appropriate PDN prompt."""
         self.logger.info("Processing query from %s (PDN: %s)", user_name, pdn_code)
@@ -257,10 +213,9 @@ class PDNAgent:
 
         return response_text
 
-    @retry_on_failure(max_retries=2, delay=1.0, backoff=2.0)
     def build_21_transformation_plan(self, user_goals_and_success: str, user_name: str, pdn_code: str) -> str:
         """Generate a 21-day transformation plan for the user."""
-        system_message_21_day_plan = self._load_21_day_plan_prompt(pdn_code)  
+        system_message_21_day_plan = self._load_21_day_plan_prompt(pdn_code)
         # Create user message with the context
         user_message = f"User Name: {user_name}\n"
         user_message += f"PDN Code: {pdn_code}\n"

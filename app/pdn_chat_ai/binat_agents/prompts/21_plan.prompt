@@ -1,84 +1,101 @@
+21-Day Transformative Challenge Based on the PDN (Purpose-Driven Navigation) Model
+Objective
 
-## מטרת הפרומפט
+Design a personalized 21-day transformative challenge for the user, structured around the PDN model: a fixed weekly framework (Backbone) and a dynamic daily layer (Dynamic Layer) tailored to the user’s goals, vision of success, and emotional state.
 
-הפק תוכנית **ממוקדת בת 21 ימים** עבור המשתמש בהתבסס על הקלטים האישיים שלו.
-הצג את התוצאה בפורמט **Markdown** מוכן להורדה או העתקה, כולל:
+Required Inputs
+Variable	Description
+$user_name	User’s first name
+$goals	User’s general life goals (e.g., career growth, emotional resilience)
+$success	User’s personal vision of success (e.g., “feeling confident and purposeful”)
+$user_code_name	User’s unique code (e.g., A7, E1)
 
-* פתיח מוטיבציוני מותאם אישית (קצר)
-* 21 מקטעים – יום אחר יום (תמציתי)
-* בכל מקטע: תודעה, תרגול, שיקוף (2-3 משפטים לכל חלק)
-* שימוש בתוכן תמציתי מתוך `$user_code_summary`
-* הנחיה למשתמש להוריד/לשמור את התוכנית
+Fallback Instructions:
+If any required input is missing, return a friendly message asking for it.
+Example:
 
----
+If $goals is missing:
+“To build your personalized plan, could you share one area of life you'd like to improve this month?”
 
-## קלטים נדרשים
+PDN Model Guidelines
+1. Core Principle
 
-| משתנה                | תיאור                       |
-| -------------------- | --------------------------- |
-| `$user_name`         | שם פרטי של המשתמש           |
-| `$goals`             | מטרות כלליות של המשתמש      |
-| `$success`           | חזון ההצלחה האישי           |
-| `$user_code_name`    | קוד (כגון: E5)              |
-| `$user_code_title`   | שם הקוד (כגון: קבלה והנהגה) |
-| `$user_code_summary` | תיאור תמציתי של הקוד האישי  |
+The challenge is based on two layers:
 
----
+Backbone (Weekly Structure): A fixed, five-stage emotional-cognitive journey lasting 21 days.
 
-## מבנה הפלט
+Dynamic Layer (Daily Personalization): Daily tasks aligned with the stage’s theme and adapted to $goals, $success, $user_code_name, and emotional state.
 
-* הצג את התוכנית כקובץ Markdown, כולל כותרות `##`, הדגשות `**`, ורווחים נוחים לקריאה.
-* ההפקה תכלול בדיוק 21 ימים, כאשר כל יום כולל:
+2. Backbone: Five-Stage Structure
+Stage	Days	Focus	Guiding Question	Emotional Deliverable	Practical Deliverable
+1	1–4	Awareness: Connecting to purpose	What do I truly want to achieve?	Connection to vision	Navigation map (intent + goals)
+2	5–9	Confrontation: Identifying fears	What is holding me back?	Awareness of fears	Named obstacle and impact
+3	10–14	Transformation: Turning fears into fuel	How can I use my fears as fuel?	Empowerment	Strategy to leverage fears
+4	15–18	Habits: Building consistency	How can I strengthen what I’ve built?	Stability	Repeatable daily habit
+5	19–21	Fulfillment: Anchoring new identity	What has changed in me?	Fulfillment	Personal inspiration anchor
+3. Dynamic Layer: Daily Task Design
 
-  * **תודעה (Mindset):**
-  * **תרגול (Practice):**
-  * **שיקוף (Reflection):**
+Each day includes:
 
----
+One main task (10–30 min)
 
-## פתיח
+One low-energy alternative task (3–10 min)
 
-פתח את הקובץ בפסקה אחת בעברית הכוללת:
+Tasks must:
 
-* `$user_name`
-* `$goals`
-* `$success`
-* תובנה מתוך `$user_code_summary`
+Align with the stage's focus
 
-ולאחר מכן פסקה קצרה:
+Be actionable and time-bound
 
-```
-באפשרותך לשמור או להוריד תוכנית זו כקובץ עבודה אישי. מומלץ להדפיס ולשלב עם מחברת או יומן רפלקטיבי.
-```
+Incorporate $goals, $success, and $user_code_name
 
----
+Include a personal reflection or inspirational element
 
-## דוגמה לפורמט הרצוי
+Avoid repetition:
+Do not repeat the same task type (e.g., journaling) more than twice per stage.
 
+Example Daily Task (Stage 1, Day 1)
 
-$user_name היקר, זהו הרגע שלך להיכנס לתהליך ממוקד של מימוש אישי. במשך 21 הימים הקרובים, תתחבר ליכולת הייחודית שלך – $user_code_title ($user_code_name) – ותקדם את $goals לעבר $success, דרך עשייה בהירה, מדויקת ואמיצה.
+Inputs:
+$user_name = Sarah
+$goals = "build confidence"
+$success = "feeling purposeful"
+$user_code_name = A7
 
-באפשרותך לשמור או להוריד תוכנית זו כקובץ עבודה אישי. מומלץ להדפיס ולשלב עם מחברת או יומן רפלקטיבי.
+Main Task (10 min)
+“Sarah, as A7, write a 200-word reflection: What does feeling purposeful look like in my daily life? Focus on your goal of building confidence.”
 
-## יום 1
+Alternative Task (5 min)
+“If low on energy, visualize a moment where you felt confident for 5 minutes. Then, write down one word that captures that feeling.”
 
-**תודעה (Mindset):** תובנה מתוך $user_code_summary...
+Program Output Structure
 
-**תרגול (Practice):** משימה ממוקדת ליום הראשון...
+The final output should be formatted in Markdown and include the following:
 
-**שיקוף (Reflection):** שאלה תודעתית...
+Introduction
 
-## יום 2
+Greeting the user by $user_name
 
+Recap of $goals and $success
 
-## הנחיות הפקה נוספות
+Brief explanation of the 21-day journey based on the PDN model
 
-* אין לקצר את מספר הימים.
-* התוכן חייב להיות **יחיד, מקורי, ולא חוזר על עצמו**.
-* אין לנסח הבטחות לתוצאה.
-* אין לכלול תכנים שאינם במסגרת שיטת PDN.
-* כל התוכן חייב להיות **בעברית מלאה** ותקנית.
-* כל שורה תתחיל בתג Markdown מתאים (##, **, וכו').
-* אין להשתמש באימוג'ים כלל.
-* **חשוב: שמור על תמציתיות - כל יום צריך להיות קצר וממוקד (עד 100 מילים לכל יום).**
+Stage Plans (Stages 1–5)
+For each stage:
 
+Stage Title: Stage number and focus (e.g., “Stage 2: Confrontation”)
+
+Days Covered: Specific days (e.g., Days 5–9)
+
+Stage Focus & Question: The guiding principle for the stage
+
+Daily Tasks:
+For each day:
+
+Day number
+
+Main task (personalized)
+
+Alternative task (low energy option)
+
+Optional: Reflection question or inspirational quote
