@@ -1,240 +1,129 @@
-"""
-PDNAgent - Single agent for all PDN chat interactions.
-Dynamically loads prompts based on PDN code.
-"""
+"""PDNAgent - Single agent for all PDN chat interactions."""
 
 import logging
+import os
 import threading
 import time
 from collections import defaultdict
-from functools import wraps
 from pathlib import Path
-from typing import Dict
 
-from langchain.prompts import (
-    ChatPromptTemplate,
-    HumanMessagePromptTemplate,
-    SystemMessagePromptTemplate,
-)
+from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_openai import ChatOpenAI
-import os
 
-# Check if OpenAI API key is set in environment
 if not os.getenv("OPENAI_API_KEY"):
-    raise ValueError(
-        "OPENAI_API_KEY environment variable is not set. "
-        "Please set it before running the application."
-    )
+    raise ValueError("OPENAI_API_KEY not set")
+else:
+    print("OPENAI_API_KEY 1 is set--" + os.getenv("OPENAI_API_KEY")  + "--ttt")
 
 class PDNAgent:
     """Single agent for all PDN chat interactions."""
 
     def __init__(self):
-        """Initialize the PDN agent with common functionality."""
-        self.agent_name = "PDN"
-        
-        # LangSmith integration removed - now handled by external MCP framework
-        self.langsmith_client = None
-        
-        self.llm = ChatOpenAI(
-            model="gpt-4o-mini",
-            temperature=0.7,
-            max_tokens=4000,  # Increased for 21-day plan but still reasonable
-        )
-        
-        # Conversation history storage
+        """Initialize the PDN agent."""
+        self.llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7, max_tokens=4000)
         self.conversation_history = defaultdict(list)
-        self.max_history = 10  # Keep last 10 exchanges per user
+        self.max_history = 10
         self._history_lock = threading.Lock()
-    
-        # Configure logging
         self.logger = logging.getLogger("pdn_agent")
-        self.logger.setLevel(logging.INFO)
-        
-        # Start cleanup thread for conversation history
+        self._prompt_cache = {}
         self._start_cleanup_thread()
 
     def _start_cleanup_thread(self):
-        """Start background thread for conversation history cleanup."""
+        """Start background thread for history cleanup."""
         def cleanup_worker():
             while True:
+                time.sleep(3600)
                 try:
-                    time.sleep(3600)  # Run every hour
                     self._cleanup_old_conversations()
                 except Exception as e:
-                    self.logger.error("Error in cleanup thread: %s", e)
-        
-        cleanup_thread = threading.Thread(target=cleanup_worker, daemon=True)
-        cleanup_thread.start()
-        self.logger.info("Started conversation history cleanup thread")
+                    self.logger.error("Cleanup error: %s", e)
+
+        threading.Thread(target=cleanup_worker, daemon=True).start()
 
     def _cleanup_old_conversations(self):
-        """Clean up old conversation histories to prevent memory leaks."""
+        """Clean up old conversation histories."""
         with self._history_lock:
-            users_to_remove = []
-            
-            for user_name, history in self.conversation_history.items():
-                # Remove users with no recent activity (older than 24 hours)
-                if not history or len(history) == 0:
-                    users_to_remove.append(user_name)
-                    continue
-                
-                # Keep only last 5 exchanges for very old conversations
-                if len(history) > 5:
-                    self.conversation_history[user_name] = history[-5:]
-            
-            # Remove empty user histories
+            users_to_remove = [user for user, hist in self.conversation_history.items() if not hist]
+
             for user_name in users_to_remove:
                 del self.conversation_history[user_name]
-                self.logger.debug("Cleaned up empty history for user: %s", user_name)
-            
-            if users_to_remove:
-                self.logger.info("Cleaned up %d inactive user histories", len(users_to_remove))
 
-    def _get_prompt_filename(self, pdn_code: str) -> str:
-        """Return the filename for the given PDN code's prompt."""
-        pdn_code = pdn_code.upper()
-        if pdn_code == "A7":
-            return "a7_agent.prompt"
-        elif pdn_code == "E5":
-            return "e5_agent.prompt"
-        elif pdn_code == "P6":
-            return "p6_agent.prompt"
-        else:
-            # Default to A7 if unknown PDN code
-            self.logger.warning(f"Unknown PDN code: {pdn_code}, using A7 prompt")
-            return "a7_agent.prompt"
+            for user_name, history in self.conversation_history.items():
+                if len(history) > 5:
+                    self.conversation_history[user_name] = history[-5:]
 
-    def _load_system_prompt(self, pdn_code: str) -> ChatPromptTemplate:
-        """Load the system prompt from file based on PDN code."""
-        
-        base_prompt_path = Path(__file__).parent / "prompts/base_agent_21.prompt"
+    def _load_prompt(self, pdn_code: str, prompt_file: str) -> str:
+        """Load prompt file with caching."""
+        cache_key = f"{pdn_code}_{prompt_file}"
+        if cache_key in self._prompt_cache:
+            return self._prompt_cache[cache_key]
 
-        prompt_filename = self._get_prompt_filename(pdn_code)
-        prompt_path = Path(__file__).parent / "prompts" / prompt_filename
-        
-        self.logger.debug(f"Loading base prompt from {base_prompt_path}")
-        self.logger.debug(f"Loading prompt for PDN code {pdn_code} from {prompt_filename}")
-        
-        with open(base_prompt_path, 'r', encoding='utf-8') as f:
-            base_prompt_text = f.read()
+        prompts_dir = Path(__file__).parent / "prompts"
+        pdn_codes_prompts_dir = Path(__file__).parent / "prompts/pdn_code/"
+        prompt = (prompts_dir / prompt_file).read_text(encoding='utf-8') + \
+                 (pdn_codes_prompts_dir / f"{pdn_code}.prompt").read_text(encoding='utf-8')
 
-        with open(prompt_path, 'r', encoding='utf-8') as f:
-            pdn_code_prompt_text = f.read()
-        
-        system_message = SystemMessagePromptTemplate.from_template(base_prompt_text + pdn_code_prompt_text)
-
-        human_message = HumanMessagePromptTemplate.from_template(
-            "Previous conversation:\n{history}\n\nUser question: {question}"
-        )
-        
-        return ChatPromptTemplate.from_messages([system_message, human_message])
-
-    def _load_21_day_plan_prompt(self, pdn_code: str) -> ChatPromptTemplate:
-        """Load the 21-day plan prompt from file."""
-
-        prompt_code_filename = self._get_prompt_filename(pdn_code)
-        prompt_code_path = Path(__file__).parent / "prompts" / prompt_code_filename
-            
-        prompt_path = Path(__file__).parent / "prompts" / "21_plan.prompt"
-        with open(prompt_path, 'r', encoding='utf-8') as f:
-            prompt_21_text = f.read()
-
-        with open(prompt_code_path, 'r', encoding='utf-8') as f:
-            prompt_code_text = f.read()
-            
-        plan_21_day_prompt =  prompt_21_text + prompt_code_text
-        
-        self.logger.debug(f"Loaded 21-day plan prompt for PDN code {pdn_code} from {plan_21_day_prompt}")
-        
-        return plan_21_day_prompt
+        self._prompt_cache[cache_key] = prompt
+        return prompt
 
     def _add_to_history(self, user_name: str, user_query: str, assistant_response: str):
-        """Add a conversation exchange to the user's history."""
+        """Add conversation exchange to history."""
         with self._history_lock:
-            self.conversation_history[user_name].append({
-                "user": user_query,
-                "assistant": assistant_response
-            })
-            
-            # Keep only the last max_history messages
+            self.conversation_history[user_name].append({"user": user_query, "assistant": assistant_response})
             if len(self.conversation_history[user_name]) > self.max_history:
                 self.conversation_history[user_name] = self.conversation_history[user_name][-self.max_history:]
-            
-            self.logger.debug("Added conversation exchange for user %s. Total exchanges: %d", 
-                            user_name, len(self.conversation_history[user_name]))
 
     def _format_history(self, user_name: str) -> str:
-        """Format conversation history for the prompt."""
-        if not user_name or user_name not in self.conversation_history:
-            self.logger.debug("No conversation history found for user: %s", user_name)
-            return "No previous conversation."
-        
-        history = self.conversation_history[user_name]
-        if not history:
-            self.logger.debug("Empty conversation history for user: %s", user_name)
-            return "No previous conversation."
-        
-        self.logger.debug("Found %d conversation exchanges for user: %s", len(history), user_name)
-        
-        formatted_lines = []
-        for exchange in history:
-            formatted_lines.append(f"User: {exchange['user']}")
-            formatted_lines.append(f"Assistant: {exchange['assistant']}")
-            formatted_lines.append("")
+        """Format conversation history."""
+        history = self.conversation_history.get(user_name)
+        return "No previous conversation." if not history else \
+               "\n\n".join(f"User: {ex['user']}\nAssistant: {ex['assistant']}" for ex in history)
 
-        return "\n".join(formatted_lines).strip()
-
-    def chat_with_user(self, user_query: str, user_name: str = None, pdn_code: str = None) -> str:
-        """Generate a response for the user query using the appropriate PDN prompt."""
-        self.logger.info("Processing query from %s (PDN: %s)", user_name, pdn_code)
-
-        # Load the appropriate prompt for the PDN code
-        prompt = self._load_system_prompt(pdn_code)
-        
-        # Get conversation history for the user
+    def chat_with_binat(self, user_query: str, user_name: str = None, pdn_code: str = None) -> str:
+        """Generate response using PDN prompt."""
+        system_prompt = self._load_prompt(pdn_code, "binat_agent.prompt")
         history_context = self._format_history(user_name)
-        
-        # Add user context
-        user_context = f"User Name is: {user_name}\n"
-        user_context += f"User PDN Code is: {pdn_code}\n"
-        enhanced_question = user_context + user_query
+        enhanced_question = f"User Name is: {user_name}\nUser PDN Code is: {pdn_code}\n{user_query}"
 
-        # Generate response using LLM
-        llm_response = self.llm.invoke(prompt.format_messages(
-            history=history_context,
-            question=enhanced_question
-        ))
-        response_text = llm_response.content
+        user_message = f"Conversation History:\n{history_context}\n\nCurrent Question:\n{enhanced_question}"
 
-        # Add to conversation history
+        response_text = self.llm.invoke([
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=user_message)
+        ]).content
+
         if user_name:
             self._add_to_history(user_name, user_query, response_text)
 
         return response_text
 
-    def build_21_transformation_plan(self, user_goals_and_success: str, user_name: str, pdn_code: str) -> str:
-        """Generate a 21-day transformation plan for the user."""
-        system_message_21_day_plan = self._load_21_day_plan_prompt(pdn_code)
-        # Create user message with the context
-        user_message = f"User Name: {user_name}\n"
-        user_message += f"PDN Code: {pdn_code}\n"
-        user_message += f"Goals and Success: {user_goals_and_success}"
-        # Create messages list for LangChain
-        from langchain_core.messages import SystemMessage, HumanMessage
-        messages = [
-            SystemMessage(content=system_message_21_day_plan),
-            HumanMessage(content=user_message)
-        ]
-        # Generate plan using LLM with messages
-        llm_response = self.llm.invoke(messages)
-        plan_21_day_text = llm_response.content
 
-        return plan_21_day_text
+    def build_21_transformation_plan(self, user_goals_and_success: str, user_name: str, pdn_code: str) -> str:
+        """Generate 21-day transformation plan."""
+        system_prompt = self._load_prompt(pdn_code, "21_plan.prompt")
+        user_message = f"User Name: {user_name}\nPDN Code: {pdn_code}\nGoals and Success: {user_goals_and_success}"
+
+        return self.llm.invoke([
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=user_message)
+        ]).content
+
+    def daily_training(self, user_name: str, pdn_code: str, day_task: str, user_replication: str) -> str:
+        """Generate personalized daily training response."""
+        system_prompt = self._load_prompt(pdn_code, "daily_training.prompt")
+        user_message = f"User name: {user_name}\n User day Task: {day_task}\n User reaction to task::\n{user_replication}\nאנא תן לי משוב אישי על המשימה והתגובה שלי."
+
+        response_text = self.llm.invoke([
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=user_message)
+        ]).content
+
+        if user_name:
+            self._add_to_history(user_name, f"Daily Training - Task: {day_task}, Response: {user_replication}", response_text)
+
+        return response_text
 
     def clear_user_history(self, user_name: str):
-        """Clear conversation history for a specific user."""
+        """Clear conversation history for user."""
         with self._history_lock:
-            if user_name in self.conversation_history:
-                del self.conversation_history[user_name]
-                self.logger.info("PDN Agent cleared conversation history for user: %s", user_name)
+            self.conversation_history.pop(user_name, None)

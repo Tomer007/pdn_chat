@@ -21,7 +21,6 @@ class Config:
     DEBUG = os.environ.get('FLASK_DEBUG', 'True').lower() == 'true'
     
     # File paths
-    CONFIG_FILE = DATA_DIR / "config.yaml"
     QUESTIONS_FILE = DATA_DIR / "questions.json"
     
     # Logging
