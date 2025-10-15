@@ -15,11 +15,11 @@ logger = setup_logger()
 _pdn_agent = None
 
 USERS_DATA = {
-    'tomergur@gmail.com': {'password': 'pdn', 'pdn_code': 'E5', 'name': 'תומר'},
-    'pdncode@gmail.com': {'password': 'pdn', 'pdn_code': 'A7', 'name': 'פנינה'},
-    'orna@84zebras.co.il': {'password': 'pdn', 'pdn_code': 'P10', 'name': 'אורנה'},
+    'tomergur@gmail.com': {'password': 'pdn', 'pdn_code': 'e5', 'name': 'תומר'},
+    'pdncode@gmail.com': {'password': 'pdn', 'pdn_code': 'a7', 'name': 'פנינה'},
+    'orna@84zebras.co.il': {'password': 'pdn', 'pdn_code': 'p10', 'name': 'אורנה'},
     'info.dede.studio@gmail.com': {'password': 'pdn', 'pdn_code': 'A7', 'name': 'דניאל'},
-    'sigal4170@gmail.com': {'password': 'pdn', 'pdn_code': 'P6', 'name': 'סיגל'}
+    'sigal4170@gmail.com': {'password': 'pdn', 'pdn_code': 'p6', 'name': 'סיגל'}
 }
 
 def get_agent_instance():
