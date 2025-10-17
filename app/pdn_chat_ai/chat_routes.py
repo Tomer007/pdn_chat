@@ -130,19 +130,17 @@ def chat_with_binat():
 def build_21_transformation_plan():
     """Handle 21-day transformation plan requests"""
     data = request.get_json()
-    goal = data.get('goals', '').strip()
-    success = data.get('success', '').strip()
-    user_name = data.get('user_name', 'Anonymous')
+    goal = data.get('goal', '').strip()
+    user_name = data.get('user_name', '')
     pdn_code = data.get('pdn_code', '')
 
-    if not goal or not success:
-        return jsonify({"error": "Goals and success definition are required"}), 400
+    if not goal:
+        return jsonify({"error": "Goal is required"}), 400
 
-    user_context = f"User Goals: {goal}\nUser Success Definition: {success}"
     agent = get_agent_instance()
 
     return jsonify({
-        "response": agent.build_21_transformation_plan(user_context, user_name, pdn_code),
+        "response": agent.build_21_transformation_plan(goal, user_name, pdn_code),
         "timestamp": datetime.now().isoformat()
     })
 
