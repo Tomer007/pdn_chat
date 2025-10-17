@@ -1376,9 +1376,6 @@
         </div>
 
         <div class="plan-body">
-            <p class="plan-description">
-                כתוב את המשימה היומית שלך וקבל משוב מותאם אישית:
-            </p>
 
             <form id="dailyTrainingForm" onsubmit="submitDailyTrainingRequest(event)">
                 <div class="form-group">
@@ -1390,28 +1387,13 @@
                         id="trainingTask"
                         name="task"
                         class="form-textarea"
-                        placeholder="כתוב כאן את המשימה היומית שלך (למשל: כתוב רפלקציה של 200 מילים על מה זה אומר עבורך להוריד 5 ק״ג...)"
+                        placeholder="כתוב כאן את המשימה היומית שלך "
                         required
                         rows="4"
                         onkeydown="handleDailyTrainingFormKeyPress(event)"
                     ></textarea>
                 </div>
 
-                <div class="form-group">
-                    <label for="trainingResponse" class="form-label">
-                        <i class="fas fa-edit"></i>
-                        כתוב את התגובה שלך למשימה:
-                    </label>
-                    <textarea
-                        id="trainingResponse"
-                        name="response"
-                        class="form-textarea"
-                        placeholder="כתוב כאן את הרפלקציה, המחשבות או התגובה שלך למשימה..."
-                        required
-                        rows="6"
-                        onkeydown="handleDailyTrainingFormKeyPress(event)"
-                    ></textarea>
-                </div>
 
                 <div class="form-actions">
                     <button type="button" class="plan-btn cancel" onclick="hideDailyTrainingModal()">
@@ -1420,7 +1402,7 @@
                     </button>
                     <button type="submit" class="plan-btn submit" id="submitDailyTrainingBtn">
                         <i class="fas fa-paper-plane"></i>
-                        שלח את המשימה והתגובה שלי
+                        שלח
                     </button>
                 </div>
             </form>
@@ -1638,7 +1620,7 @@
         processedText = processedText.replace(/\$user_code_name/g, PDN_CODE || 'קוד המקור');
         processedText = processedText.replace(/\$user_code_title/g, getPDNCodeTitle(PDN_CODE) || 'הקוד האישי שלך');
 
-       
+
         // First sanitize the input
         const sanitized = sanitizeInput(processedText);
 
@@ -2770,17 +2752,9 @@ ${planText}
         // Fill the task field with a sample
         const taskField = document.getElementById('trainingTask');
         if (taskField) {
-            taskField.value = 'כתוב רפלקציה של 200 מילים על מה זה אומר עבורך להוריד 5 ק"ג. איך זה ישפיע על חייך ואילו תחושות אתה מקווה לחוות?';
+            taskField.value = 'לרוץ 5 ק״מ';
         }
 
-        // Fill the response field with a sample
-        const responseField = document.getElementById('trainingResponse');
-        if (responseField) {
-            responseField.value = 'אני מתחיל את המסע שלי...';
-        }
-
-        // Show a brief success message
-        showSuccess('הטופס מולא אוטומטית!');
     }
 
     async function submitDailyTrainingRequest(event) {
@@ -2797,10 +2771,9 @@ ${planText}
             // Get form data
             const formData = new FormData(event.target);
             const task = formData.get('task').trim();
-            const response = formData.get('response').trim();
 
-            if (!task || !response) {
-                showError('אנא מלא את כל השדות הנדרשים');
+            if (!task) {
+                showError('אנא מלא את השדה הנדרש');
                 return;
             }
 
@@ -2812,7 +2785,6 @@ ${planText}
                 },
                 body: JSON.stringify({
                     task: task,
-                    response: response,
                     user_name: USER_NAME,
                     user_id: USER_ID,
                     pdn_code: PDN_CODE
@@ -2837,7 +2809,7 @@ ${planText}
                 const userBubble = document.createElement("div");
                 userBubble.className = "chat-bubble user animated";
                 const userTime = getCurrentTime();
-                const userContent = safeMarkdownParse(`אימון יומי:\n\n**המשימה שלי:**\n${task}\n\n**התגובה שלי:**\n${response}`);
+                const userContent = safeMarkdownParse(`אימון יומי:\n\n**המשימה שלי:**\n${task}`);
                 userBubble.innerHTML = `
                     <div class="message-header">${USER_NAME}:</div>
                     <div class="message-content">${userContent}</div>

@@ -149,14 +149,20 @@ def build_21_transformation_plan():
 def daily_training():
     """Handle daily training requests"""
     data = request.get_json()
+    task = data.get('task', '').strip()
+    user_name = data.get('user_name', 'Anonymous')
+    pdn_code = data.get('pdn_code', '')
+
+    if not task:
+        return jsonify({"error": "Task is required"}), 400
+
     agent = get_agent_instance()
 
     return jsonify({
         "response": agent.daily_training(
-            data.get('user_name', 'Anonymous'),
-            data.get('pdn_code', ''),
-            data.get('task', '').strip(),
-            data.get('response', '').strip()
+            user_name,
+            pdn_code,
+            task
         ),
         "timestamp": datetime.now().isoformat()
     })

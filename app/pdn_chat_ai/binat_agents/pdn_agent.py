@@ -108,10 +108,10 @@ class PDNAgent:
             HumanMessage(content=user_message)
         ]).content
 
-    def daily_training(self, user_name: str, pdn_code: str, day_task: str, user_replication: str) -> str:
+    def daily_training(self, user_name: str, pdn_code: str, day_task: str) -> str:
         """Generate personalized daily training response."""
         system_prompt = self._load_prompt(pdn_code, "daily_training.prompt")
-        user_message = f"User name: {user_name}\n User day Task: {day_task}\n User reaction to task::\n{user_replication}\nאנא תן לי משוב אישי על המשימה והתגובה שלי."
+        user_message = f"User name: {user_name}\n User day Task: {day_task}\n."
 
         response_text = self.llm.invoke([
             SystemMessage(content=system_prompt),
@@ -119,7 +119,7 @@ class PDNAgent:
         ]).content
 
         if user_name:
-            self._add_to_history(user_name, f"Daily Training - Task: {day_task}, Response: {user_replication}", response_text)
+            self._add_to_history(user_name, day_task, response_text)
 
         return response_text
 
