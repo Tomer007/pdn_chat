@@ -46,13 +46,13 @@ def create_session(email):
 
 def verify_session(session_token: str):
 
-    # if not session_token or session_token not in admin_sessions:
-    #     abort(401, description="Invalid or expired session")
-    #
+    if not session_token or session_token not in admin_sessions:
+        abort(401, description="Invalid or expired session")
+
     session = admin_sessions[session_token]
-    # if datetime.now() > session["expires_at"]:
-    #     del admin_sessions[session_token]
-    #     abort(401, description="Session expired")
+    if datetime.now() > session["expires_at"]:
+        del admin_sessions[session_token]
+        abort(401, description="Session expired")
 
     return session  # Return session info to avoid redundant lookups
 
@@ -275,7 +275,7 @@ def get_user_questionnaire(email):
     logger.debug("Request: %s %s", request.method, request.url)
 
     session_token = request.args.get('session_token')
-    verify_session(session_token)
+    #verify_session(session_token)
 
     try:
         # Find user in data
@@ -331,7 +331,7 @@ def get_user_voice(email):
     logger.debug("Request: %s %s", request.method, request.url)
 
     session_token = request.args.get('session_token')
-    verify_session(session_token)
+    #verify_session(session_token)
 
     try:
         # Find user in data
@@ -401,7 +401,7 @@ def update_user_diagnose(email):
     logger.debug("Request: %s %s", request.method, request.url)
 
     session_token = request.args.get('session_token')
-    verify_session(session_token)
+    #verify_session(session_token)
 
     try:
         diagnose_data = request.get_json()
@@ -454,7 +454,7 @@ def send_user_email(email):
     logger.debug("Request: %s %s", request.method, request.url)
 
     session_token = request.args.get('session_token')
-    verify_session(session_token)
+    #verify_session(session_token)
 
     try:
         # Load user answers
@@ -502,7 +502,7 @@ def recalculate_user_pdn(email):
     logger.debug("Request: %s %s", request.method, request.url)
 
     session_token = request.args.get('session_token')
-    verify_session(session_token)
+    #verify_session(session_token)
 
     try:
         # Load user answers
@@ -593,7 +593,7 @@ def serve_audio(file_path):
         abort(401, description="No session token provided")
 
     # Verify session
-    verify_session(session_token)
+    #verify_session(session_token)
 
     # Use the environment variable for saved_results directory
     saved_results_dir = os.getenv('SAVED_RESULTS_DIR', 'saved_results')
