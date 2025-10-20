@@ -353,6 +353,7 @@
     let nextData = null;
     let questionHistory = []; // Array to store question history
     let currentUsername = '{{ email }}' || 'anonymous'; // Get username from template
+    let isSubmitting = false; // Flag to prevent multiple simultaneous submissions
 
     // Progress logic
     const totalQuestions = 67; // Based on phases A-F (1-67)
@@ -763,8 +764,10 @@
             btn.className = 'w-8 h-8 rounded-full bg-gray-200 transition';
             btn.setAttribute('aria-label', descriptions[idx]);
             btn.onclick = () => {
-                currentStep = idx;
-                updateSelection();
+                if (!isSubmitting) {
+                    currentStep = idx;
+                    updateSelection();
+                }
             };
             stepsRow.appendChild(btn);
             return btn;
@@ -782,13 +785,12 @@
         submitBtn.className = 'text-lg w-full py-3 px-6 bg-gradient-to-r from-blue-900 to-blue-900 text-white rounded-xl opacity-50 cursor-not-allowed';
         submitBtn.disabled = true;
         submitBtn.onclick = async () => {
-            if (currentStep === null) return;
+            if (currentStep === null || isSubmitting) return;
             const leftCode = data.options[0].code;
             const rightCode = data.options[1].code;
             const scaleMap = [[12, 0], [10, 2], [8, 4], [6, 6], [4, 8], [2, 10], [0, 12]];
             const [lp, rp] = scaleMap[currentStep];
             await submitAnswer(questionNumber, null, null, {[leftCode]: lp, [rightCode]: rp});
-
         };
 
         container.append(submitBtn);
@@ -842,14 +844,16 @@
             li.appendChild(textSpan);
 
             li.addEventListener('click', () => {
-                const code = opt.code;
-                const idx = selectedOrder.indexOf(code);
-                if (idx >= 0) {
-                    selectedOrder.splice(idx, 1);
-                } else if (selectedOrder.length < 4) {
-                    selectedOrder.push(code);
+                if (!isSubmitting) {
+                    const code = opt.code;
+                    const idx = selectedOrder.indexOf(code);
+                    if (idx >= 0) {
+                        selectedOrder.splice(idx, 1);
+                    } else if (selectedOrder.length < 4) {
+                        selectedOrder.push(code);
+                    }
+                    renderRanks();
                 }
-                renderRanks();
             });
 
             list.appendChild(li);
@@ -892,8 +896,7 @@
             if (selectedOrder.length < data.options.length) {
                 errorDiv.textContent = 'יש לדרג את כל האפשרויות';
                 errorDiv.style.display = 'block';
-
-            } else {
+            } else if (!isSubmitting) {
                 errorDiv.style.display = 'none';
                 const result = {};
                 selectedOrder.forEach((code, index) => {
@@ -909,8 +912,10 @@
         resetBtn.textContent = 'איפוס';
 
         resetBtn.onclick = () => {
-            selectedOrder.length = 0;
-            renderRanks();
+            if (!isSubmitting) {
+                selectedOrder.length = 0;
+                renderRanks();
+            }
         };
 
         buttons.appendChild(submitBtn);
@@ -920,7 +925,36 @@
         document.getElementById('options').appendChild(container);
     }
 
+    function disableAllButtons() {
+        // Disable all buttons in the options area
+        const optionsDiv = document.getElementById('options');
+        const buttons = optionsDiv.querySelectorAll('button');
+        buttons.forEach(btn => {
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+        });
+    }
+
+    function enableAllButtons() {
+        // Re-enable all buttons in the options area
+        const optionsDiv = document.getElementById('options');
+        const buttons = optionsDiv.querySelectorAll('button');
+        buttons.forEach(btn => {
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        });
+    }
+
     async function submitAnswer(qNum, code, text, ranking = null) {
+        // Prevent multiple simultaneous submissions
+        if (isSubmitting) {
+            console.log('Already submitting, ignoring duplicate request');
+            return;
+        }
+
+        isSubmitting = true;
+        disableAllButtons();
+        
         const questionText = document.getElementById('questionText').innerText;
         const payload = {
             question_number: qNum,
@@ -930,16 +964,33 @@
         };
 
         if (ranking) payload.ranking = ranking;
+        
         try {
-            await fetch('/pdn-diagnose/answer', {
-                method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)
+            const response = await fetch('/pdn-diagnose/answer', {
+                method: 'POST', 
+                headers: {'Content-Type': 'application/json'}, 
+                body: JSON.stringify(payload)
             });
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            // Only proceed to next question if the response was successful
+            console.log(`Answer saved successfully for question ${qNum}`);
+            
             // Store current question in history before moving to next
             questionHistory.push(currentQuestion);
             currentQuestion++;
             loadQuestion(currentQuestion);
-        } catch {
-            alert('שגיאה בשליחת התשובה, אנא נסה שוב.');
+            
+        } catch (error) {
+            console.error('Error submitting answer:', error);
+            alert(`שגיאה בשליחת התשובה: ${error.message}. אנא נסה שוב.`);
+            enableAllButtons(); // Re-enable buttons on error
+        } finally {
+            isSubmitting = false;
         }
     }
 
