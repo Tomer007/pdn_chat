@@ -452,6 +452,7 @@
                 <thead class="table-header sticky top-0">
                 <tr>
                     <th class="px-4 py-4 text-right font-semibold text-gray-700" title="מזהה מערכת">מזהה מערכת</th>
+                    <th class="px-4 py-4 text-right font-semibold text-gray-700" title="פעולות">פעולות</th>
                     <th class="px-4 py-4 text-right font-semibold text-gray-700" title="שם">שם</th>
                     <th class="px-4 py-4 text-right font-semibold text-gray-700" title="אימייל">אימייל</th>
                     <th class="px-4 py-4 text-right font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"
@@ -466,7 +467,6 @@
                     <th class="px-4 py-4 text-right font-semibold text-gray-700" title="הערות עדכון קוד פדן">עדכון קוד
                         פדן
                     </th>
-                    <th class="px-4 py-4 text-right font-semibold text-gray-700" title="פעולות">פעולות</th>
                 </tr>
                 </thead>
                 <tbody id="tableBody">
@@ -1061,26 +1061,6 @@
             <td class="px-4 py-4">
                 <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium font-mono">${user.user_id || 'N/A'}</span>
             </td>
-            <td class="px-4 py-4 font-medium text-gray-900">${((user.first_name || '') + ' ' + (user.last_name || '')).trim() || 'N/A'}</td>
-            <td class="px-4 py-4 font-medium text-gray-900">${user.email}</td>
-            <td class="px-4 py-4 text-gray-700">${user.date}</td>
-            <td class="px-4 py-4">
-                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium"> ${user.pdn_code}</span>
-            </td>
-            <td class="px-4 py-4">
-                ${user.needs_verification ? 
-                    '<span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium" title="נדרש אימות אנושי - הפער בין הציונים קטן מ-2 נקודות">⚠️ אימות</span>' :
-                    '<span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">✓ תקין</span>'
-                }
-            </td>
-            <td class="px-4 py-4">
-                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">${user.pdn_voice_code || 'N/A'}</span>
-            </td>
-            <td class="px-4 py-4">
-                <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">${user.diagnose_pdn_code || 'N/A'}</span>
-            </td>
-            <td class="px-4 py-4 text-gray-700 max-w-xs truncate" title="${user.diagnose_comments || ''}">${user.diagnose_comments || ''}</td>
-            <td class="px-4 py-4 text-gray-700 max-w-xs truncate" title="${user.pdn_update_comments || ''}">${user.pdn_update_comments || ''}</td>
             <td class="px-4 py-4">
                 <div class="relative" x-data="{ open: false, loadingBtn: '', modalText: '', showModal: false }">
                     <button @click="open = !open" 
@@ -1138,6 +1118,26 @@
                     </div>
                 </div>
             </td>
+            <td class="px-4 py-4 font-medium text-gray-900">${((user.first_name || '') + ' ' + (user.last_name || '')).trim() || 'N/A'}</td>
+            <td class="px-4 py-4 font-medium text-gray-900">${user.email}</td>
+            <td class="px-4 py-4 text-gray-700">${user.date}</td>
+            <td class="px-4 py-4">
+                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium"> ${user.pdn_code}</span>
+            </td>
+            <td class="px-4 py-4">
+                ${user.needs_verification ? 
+                    '<span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium" title="נדרש אימות אנושי - הפער בין הציונים קטן מ-2 נקודות">⚠️ אימות</span>' :
+                    '<span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">✓ תקין</span>'
+                }
+            </td>
+            <td class="px-4 py-4">
+                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">${user.pdn_voice_code || 'N/A'}</span>
+            </td>
+            <td class="px-4 py-4">
+                <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">${user.diagnose_pdn_code || 'N/A'}</span>
+            </td>
+            <td class="px-4 py-4 text-gray-700 max-w-xs truncate" title="${user.diagnose_comments || ''}">${user.diagnose_comments || ''}</td>
+            <td class="px-4 py-4 text-gray-700 max-w-xs truncate" title="${user.pdn_update_comments || ''}">${user.pdn_update_comments || ''}</td>
         `;
             tbody.appendChild(row);
         });
