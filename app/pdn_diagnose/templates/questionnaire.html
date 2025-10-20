@@ -270,6 +270,10 @@
                         class="hidden text-lg py-3 px-7 bg-white text-blue-900 rounded-xl shadow border border-blue-900 font-semibold ml-2">
                     הקלט שוב
                 </button>
+                <button id="skipRecordBtn"
+                        class="text-lg py-3 px-7 bg-white text-gray-600 rounded-xl shadow border border-gray-300 font-semibold ml-2">
+                    דלג על ההקלטה
+                </button>
             </div>
             <div id="recordStatus" class="text-lg text-blue-900"></div>
             <div id="visualizer" class="flex justify-center items-end space-x-1 mb-1"
@@ -311,6 +315,10 @@
             <button id="reRecordBtn2"
                     class="hidden text-lg py-3 px-7 bg-white text-blue-900 rounded-xl shadow border border-blue-900 font-semibold ml-2">
                 הקלט שוב
+            </button>
+            <button id="skipRecordBtn2"
+                    class="text-lg py-3 px-7 bg-white text-gray-600 rounded-xl shadow border border-gray-300 font-semibold ml-2">
+                דלג על ההקלטה
             </button>
         </div>
         <div id="recordStatus2" class="text-lg text-blue-900"></div>
@@ -393,6 +401,7 @@
             this.startBtn = document.getElementById(`startRecordBtn${areaId === '2' ? '2' : ''}`);
             this.stopBtn = document.getElementById(`stopRecordBtn${areaId === '2' ? '2' : ''}`);
             this.reRecordBtn = document.getElementById(`reRecordBtn${areaId === '2' ? '2' : ''}`);
+            this.skipBtn = document.getElementById(`skipRecordBtn${areaId === '2' ? '2' : ''}`);
             this.recordStatus = document.getElementById(`recordStatus${areaId === '2' ? '2' : ''}`);
             this.audioPlayback = document.getElementById(`audioPlayback${areaId === '2' ? '2' : ''}`);
             this.visualizer = document.getElementById(`visualizer${areaId === '2' ? '2' : ''}`);
@@ -406,6 +415,7 @@
             this.startBtn.onclick = () => this.startRecording();
             this.stopBtn.onclick = () => this.stopRecording();
             this.reRecordBtn.onclick = () => this.resetUI();
+            this.skipBtn.onclick = () => this.skipRecording();
         }
 
         async startRecording() {
@@ -567,10 +577,50 @@
             return `${("0" + min).slice(-2)}:${("0" + sec).slice(-2)}`;
         }
 
+        skipRecording() {
+            // Show confirmation message
+            this.recordStatus.innerHTML = '<span class="text-orange-600 font-semibold">דילגת על ההקלטה</span>';
+            
+            // Hide all recording buttons and show skip confirmation
+            this.startBtn.classList.add('hidden');
+            this.stopBtn.classList.add('hidden');
+            this.reRecordBtn.classList.add('hidden');
+            this.skipBtn.classList.add('hidden');
+            
+            // Add visual feedback for skipped state
+            this.voiceArea.classList.remove('recording', 'valid', 'invalid');
+            this.voiceArea.classList.add('opacity-75');
+            
+            // Show continue button
+            const continueBtn = document.createElement('button');
+            continueBtn.id = `continueBtn${this.areaId === '2' ? '2' : ''}`;
+            continueBtn.className = 'text-lg py-3 px-7 bg-gradient-to-r from-blue-900 to-blue-900 text-white rounded-xl shadow-lg font-semibold';
+            continueBtn.innerText = this.areaId === '2' ? 'המשך לאיבחון' : 'המשך לשאלה הבאה';
+            continueBtn.onclick = () => this.handleSkipContinue();
+            
+            // Insert continue button after the skip button's parent
+            this.skipBtn.parentNode.appendChild(continueBtn);
+        }
+
+        handleSkipContinue() {
+            if (this.areaId === '2') {
+                document.getElementById('voiceRecordArea2').classList.add('hidden');
+                document.getElementById('questionArea').classList.remove('hidden');
+                updateProgress(2 + currentQuestion, `שאלה ${currentQuestion} מתוך ${totalQuestions}`);
+                loadQuestion(currentQuestion);
+            } else {
+                document.getElementById('voiceRecordArea').classList.add('hidden');
+                document.getElementById('voiceRecordArea2').classList.remove('hidden');
+                voiceRecorder2.resetUI();
+                updateProgress(2, 'הקלטה 2/2');
+            }
+        }
+
         resetUI() {
             this.startBtn.classList.remove('hidden');
             this.stopBtn.classList.add('hidden');
             this.reRecordBtn.classList.add('hidden');
+            this.skipBtn.classList.remove('hidden');
             this.stopBtn.innerText = 'סיים הקלטה';
             this.stopBtn.disabled = false;
             this.stopBtn.classList.remove('opacity-50', 'cursor-not-allowed');
@@ -582,7 +632,13 @@
             this.recordingValid = false;
 
             // Clear visual feedback
-            this.voiceArea.classList.remove('recording', 'valid', 'invalid');
+            this.voiceArea.classList.remove('recording', 'valid', 'invalid', 'opacity-75');
+
+            // Remove continue button if it exists
+            const continueBtn = document.getElementById(`continueBtn${this.areaId === '2' ? '2' : ''}`);
+            if (continueBtn) {
+                continueBtn.remove();
+            }
 
             if (this.mediaRecorder && this.mediaRecorder.state === 'recording') this.mediaRecorder.stop();
             if (this.recordTimer) clearInterval(this.recordTimer);
