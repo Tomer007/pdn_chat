@@ -57,7 +57,8 @@ def save_user_info_api():
 
     try:
         user_data = request.get_json()
-        email = user_data.get('email', 'anonymous')
+        email = user_data.get('email', 'anonymous').lower()
+        user_data['email'] = email  # UPDATE the email in user_data
         save_user_metadata(user_data, email)
         session["user_data"] = user_data
         return jsonify({"message": "User information saved successfully."})
@@ -76,7 +77,7 @@ def login_user():
     try:
         login_data = request.get_json()
         if login_data.get('password') == current_app.config.get('ADMIN_PASSWORD', 'pdn'):
-            session["email"] = login_data.get('email')
+            session["email"] = login_data.get('email').lower()
             return jsonify({"message": "Login successful"})
         else:
             return jsonify({"error": "Invalid credentials"}), 401
