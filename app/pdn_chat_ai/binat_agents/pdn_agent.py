@@ -12,8 +12,6 @@ from langchain_openai import ChatOpenAI
 
 if not os.getenv("OPENAI_API_KEY"):
     raise ValueError("OPENAI_API_KEY not set")
-else:
-    print("OPENAI_API_KEY 1 is set--" + os.getenv("OPENAI_API_KEY")  + "--ttt")
 
 class PDNAgent:
     """Single agent for all PDN chat interactions."""
