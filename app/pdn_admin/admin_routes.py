@@ -140,20 +140,6 @@ def load_user_metadata():
         logger.error("Error loading user metadata from CSV: %s", e)
         return []
 
-def get_session_user_info(session_token: str):
-
-    if not session_token:
-        logger.warning("No session token provided for user info")
-        abort(401, description="No session token provided")
-
-    """Get user info from session token"""
-    if session_token in admin_sessions:
-        return admin_sessions[session_token]
-
-    logger.warning("Invalid session token: %s, active sessions: %s", session_token, list(admin_sessions.keys()))
-    abort(401, description="Invalid session")
-
-
 @pdn_admin_bp.route('/')
 def admin_login_page():
     """Admin login page"""
@@ -241,53 +227,29 @@ def get_user_questionnaire(email):
     logger.debug("GET /pdn-admin/user/questionnaire/%s called", email)
     logger.debug("Request: %s %s", request.method, request.url)
 
-    session_token = request.args.get('session_token')
-    #verify_session(session_token)
+    verify_session(request.args.get('session_token'))
 
     try:
-        # Find user in data
         csv_metadata_handler = UserMetadataHandler()
-        logger.info("Loading questionnaire data for %s", email)
-
         questionnaire_data = csv_metadata_handler.get_user_files(email, "answers")
-        logger.info("Questionnaire data loaded: %s", questionnaire_data is not None)
 
         if not questionnaire_data:
             logger.warning("No questionnaire data found for user: %s", email)
             return jsonify({"error": "User questionnaire not found"}), 404
 
-        # Get user metadata from CSV (including User ID)
-        logger.info("Loading CSV metadata for %s", email)
         user_metadata = csv_metadata_handler.get_user_by_email(email)
-        logger.info("CSV metadata loaded: %s", user_metadata is not None)
 
         if user_metadata:
-            # Merge CSV metadata with existing JSON metadata
-            if 'metadata' in questionnaire_data:
-                # Preserve JSON metadata and add CSV metadata
-                questionnaire_data['metadata'].update(user_metadata)
-            else:
-                questionnaire_data['metadata'] = user_metadata
-            logger.info(
-                f"Successfully loaded questionnaire data for {email} with User ID: {user_metadata.get('User ID', 'N/A')}")
+            questionnaire_data.setdefault('metadata', {}).update(user_metadata)
+            logger.info(f"Loaded questionnaire for {email} with User ID: {user_metadata.get('User ID', 'N/A')}")
         else:
+            questionnaire_data.setdefault('metadata', {'email': email, 'User ID': 'N/A'})
             logger.warning(f"No CSV metadata found for user: {email}")
-            # Create a minimal metadata structure
-            if 'metadata' not in questionnaire_data:
-                questionnaire_data['metadata'] = {
-                    'email': email,
-                    'User ID': 'N/A'
-                }
 
-        logger.info(f"Returning questionnaire data with {len(questionnaire_data)} keys")
-        # Clean None keys before returning
-        clean_data = remove_none_keys(questionnaire_data)
-        return jsonify(clean_data)
+        return jsonify(remove_none_keys(questionnaire_data))
 
     except Exception as e:
-        logger.error(f"Error loading questionnaire for {email}: {e}")
-        import traceback
-        logger.error(f"Full traceback: {traceback.format_exc()}")
+        logger.error(f"Error loading questionnaire for {email}: {e}", exc_info=True)
         return jsonify({"error": f"Failed to load questionnaire: {str(e)}"}), 500
 
 
@@ -297,60 +259,28 @@ def get_user_voice(email):
     logger.debug(f"GET /pdn-admin/user/voice/{email} called")
     logger.debug("Request: %s %s", request.method, request.url)
 
-    session_token = request.args.get('session_token')
-    #verify_session(session_token)
+    verify_session(request.args.get('session_token'))
 
     try:
-        # Find user in data
         pdn_file_path = PDNFilePath()
-        question1_filename = pdn_file_path.find_user_file(email, "question1.wav")
-        question2_filename = pdn_file_path.find_user_file(email, "question2.wav")
-
         voice_recordings = {}
 
-        if question1_filename is not None and question1_filename.exists():
-            # Double-check that the file actually exists and is readable
-            try:
-                if question1_filename.is_file() and question1_filename.stat().st_size > 0:
-                    voice_recordings['question1'] = {
-                        'filename': str(question1_filename),
-                        'path': str(question1_filename),
-                        'exists': True
-                    }
-            except (OSError, IOError) as e:
-                logger.warning(f"Error accessing question1 file {question1_filename}: {e}")
-
-        if question2_filename is not None and question2_filename.exists():
-            # Double-check that the file actually exists and is readable
-            try:
-                if question2_filename.is_file() and question2_filename.stat().st_size > 0:
-                    voice_recordings['question2'] = {
-                        'filename': str(question2_filename),
-                        'path': str(question2_filename),
-                        'exists': True
-                    }
-            except (OSError, IOError) as e:
-                logger.warning(f"Error accessing question2 file {question2_filename}: {e}")
-
-        # If no new format recordings found, try old format for backward compatibility
-        if not voice_recordings:
-            user_audio_path = pdn_file_path.find_user_file(email, ".wav")
-            if user_audio_path is not None and user_audio_path.exists():
-                # Double-check that the file actually exists and is readable
+        for question_num in ['question1', 'question2']:
+            filename = pdn_file_path.find_user_file(email, f"{question_num}.wav")
+            if filename and filename.exists():
                 try:
-                    if user_audio_path.is_file() and user_audio_path.stat().st_size > 0:
-                        voice_recordings['legacy'] = {
-                            'filename': str(user_audio_path),
-                            'path': str(user_audio_path),
+                    if filename.is_file() and filename.stat().st_size > 0:
+                        voice_recordings[question_num] = {
+                            'filename': str(filename),
+                            'path': str(filename),
                             'exists': True
                         }
                 except (OSError, IOError) as e:
-                    logger.warning(f"Error accessing legacy audio file {user_audio_path}: {e}")
+                    logger.warning(f"Error accessing {question_num} file {filename}: {e}")
 
         if not voice_recordings:
             return jsonify({"error": "User voice recording not found"}), 404
 
-        # Return voice file info
         return jsonify({
             "email": email,
             "voice_recordings": voice_recordings,
@@ -367,42 +297,26 @@ def update_user_diagnose(email):
     logger.debug(f"PUT /pdn-admin/user/diagnose/{email} called")
     logger.debug("Request: %s %s", request.method, request.url)
 
-    session_token = request.args.get('session_token')
-    #verify_session(session_token)
+    verify_session(request.args.get('session_token'))
 
     try:
         diagnose_data = request.get_json()
-
-        # Find and update user in data
         user_data = next((user for user in load_user_metadata() if user["email"] == email), None)
+
         if not user_data:
             return jsonify({"error": "User not found"}), 404
 
-        # Update diagnose fields with safe defaults
-        diagnose_pdn_code = ""
-        diagnose_comments = ""
+        diagnose_pdn_code = diagnose_data.get("diagnose_pdn_code", user_data.get("pdn_code", ""))
+        diagnose_comments = diagnose_data.get("diagnose_comments", "")
 
-        if "diagnose_pdn_code" in diagnose_data:
-            diagnose_pdn_code = diagnose_data["diagnose_pdn_code"]
-            user_data["diagnose_pdn_code"] = diagnose_pdn_code
-        elif "diagnose_pdn_code" not in user_data:
-            diagnose_pdn_code = user_data.get("pdn_code", "")
-            user_data["diagnose_pdn_code"] = diagnose_pdn_code
+        user_data["diagnose_pdn_code"] = diagnose_pdn_code
+        user_data["diagnose_comments"] = diagnose_comments
 
-        if "diagnose_comments" in diagnose_data:
-            diagnose_comments = diagnose_data["diagnose_comments"]
-            user_data["diagnose_comments"] = diagnose_comments
-        elif "diagnose_comments" not in user_data:
-            user_data["diagnose_comments"] = ""
-
-        # Update CSV with the new diagnosis information
         try:
-            csv_handler = UserMetadataHandler()
-            csv_handler.update_diagnose_code(email, diagnose_pdn_code, diagnose_comments)
+            UserMetadataHandler().update_diagnose_code(email, diagnose_pdn_code, diagnose_comments)
             logger.info(f"Successfully updated CSV with diagnose info for {email}")
         except Exception as csv_error:
             logger.warning(f"Failed to update CSV with diagnose info: {csv_error}")
-            # Don't fail the entire request if CSV update fails
 
         return jsonify({
             "success": True,
@@ -413,25 +327,19 @@ def update_user_diagnose(email):
         logger.error(f"Error updating diagnose: {e}")
         return jsonify({"error": "Failed to update diagnose"}), 400
 
-
 @pdn_admin_bp.route('/user/send_email/<email>', methods=['POST'])
 def send_user_email(email):
     """Send PDN report email to user"""
     logger.debug(f"POST /pdn-admin/user/send_email/{email} called")
     logger.debug("Request: %s %s", request.method, request.url)
 
-    session_token = request.args.get('session_token')
-    #verify_session(session_token)
-
     try:
-        # Load user answers
         user_answers = load_answers(email)
         if not user_answers:
             return jsonify({"error": "User answers not found"}), 404
 
-        # Calculate PDN code
         calculation_result = calculate_pdn_code(user_answers)
-        
+
         if isinstance(calculation_result, dict):
             pdn_code = calculation_result['pdn_code']
             needs_verification = calculation_result.get('needs_verification', False)
@@ -439,23 +347,20 @@ def send_user_email(email):
             pdn_code = calculation_result
             needs_verification = False
 
-        logger.info(f"send_email PDN code: {pdn_code} for user {email}, needs_verification: {needs_verification}")
-
         if not pdn_code:
             return jsonify({"error": "Could not calculate PDN code"}), 400
 
-        # Send email
-        email_sent = send_pdn_code_email(user_answers, pdn_code)
+        logger.info(f"send_email PDN code: {pdn_code} for user {email}, needs_verification: {needs_verification}")
 
-        if email_sent:
-            return jsonify({
-                "success": True,
-                "message": f"Email sent successfully to {email}",
-                "pdn_code": pdn_code,
-                "needs_verification": needs_verification
-            })
-        else:
+        if not send_pdn_code_email(user_answers, pdn_code):
             return jsonify({"error": "Failed to send email"}), 500
+
+        return jsonify({
+            "success": True,
+            "message": f"Email sent successfully to {email}",
+            "pdn_code": pdn_code,
+            "needs_verification": needs_verification
+        })
 
     except Exception as e:
         logger.error(f"Error sending email: {e}")
@@ -469,80 +374,58 @@ def recalculate_user_pdn(email):
     logger.debug("Request: %s %s", request.method, request.url)
 
     session_token = request.args.get('session_token')
-    #verify_session(session_token)
 
     try:
-        # Load user answers
         user_answers = load_answers(email)
         if not user_answers:
             return jsonify({"error": "User answers not found"}), 404
 
-        # Calculate PDN code using the calculate_pdn_code function with details
         calculation_result = calculate_pdn_code(user_answers, return_details=True)
-        
+
         if isinstance(calculation_result, dict):
             pdn_code = calculation_result['pdn_code']
-            calculation_details = calculation_result['calculation_details']
+            calculation_details = calculation_result.get('calculation_details')
             needs_verification = calculation_result.get('needs_verification', False)
         else:
             pdn_code = calculation_result
             calculation_details = None
             needs_verification = False
 
-        logger.info(f"recalculate_pdn PDN code: {pdn_code} for user {email}, needs_verification: {needs_verification}")
-
         if not pdn_code:
             return jsonify({"error": "Could not calculate PDN code"}), 400
 
-        # Update CSV with the new PDN code and current date
-        try:
-            csv_handler = UserMetadataHandler()
+        logger.info(f"recalculate_pdn PDN code: {pdn_code} for user {email}, needs_verification: {needs_verification}")
 
-            # Get user info from session
-            user_info = get_session_user_info(session_token)
-            updated_by = user_info.get("username", "Admin") if user_info else "Admin"
+        csv_handler = UserMetadataHandler()
+        updated_by = "Admin"
+        current_date = datetime.now().strftime("%d/%m/%Y")
 
-            # Update PDN code with comment
-            pdn_updated = csv_handler.update_pdn_code_with_comment(email, pdn_code, updated_by)
+        if not (csv_handler.update_pdn_code_with_comment(email, pdn_code, updated_by) and
+                csv_handler._update_user_field(email, "Date", current_date)):
+            return jsonify({"error": "Failed to update CSV with new PDN code"}), 500
 
-            # Update date to current date
-            current_date = datetime.now().strftime("%d/%m/%Y")
-            date_updated = csv_handler._update_user_field(email, "Date", current_date)
+        logger.info(f"Successfully updated CSV with PDN code {pdn_code} and date {current_date} for {email} by {updated_by}")
 
-            if pdn_updated and date_updated:
-                logger.info(
-                    f"Successfully updated CSV with PDN code {pdn_code} and date {current_date} for {email} by {updated_by}")
+        user_data = csv_handler.get_user_by_email(email)
+        response_data = {
+            "success": True,
+            "message": f"PDN code recalculated successfully for {email}",
+            "pdn_code": pdn_code,
+            "date": current_date,
+            "updated_by": updated_by,
+            "pdn_update_comments": user_data.get("PDN Update Comments", "") if user_data else "",
+            "needs_verification": needs_verification
+        }
 
-                # Get the updated comment from CSV
-                user_data = csv_handler.get_user_by_email(email)
-                pdn_update_comments = user_data.get("PDN Update Comments", "") if user_data else ""
+        if calculation_details:
+            response_data["calculation_details"] = calculation_details
 
-                response_data = {
-                    "success": True,
-                    "message": f"PDN code recalculated successfully for {email}",
-                    "pdn_code": pdn_code,
-                    "date": current_date,
-                    "updated_by": updated_by,
-                    "pdn_update_comments": pdn_update_comments,
-                    "needs_verification": needs_verification
-                }
-                
-                # Add calculation details if available
-                if calculation_details:
-                    response_data["calculation_details"] = calculation_details
-                
-                return jsonify(response_data)
-            else:
-                logger.error(f"Failed to update CSV for {email}")
-                return jsonify({"error": "Failed to update CSV with new PDN code"}), 500
-
-        except Exception as csv_error:
-            logger.error(f"Failed to update CSV with PDN code: {csv_error}")
-            return jsonify({"error": f"Failed to update CSV: {str(csv_error)}"}), 500
+        return jsonify(response_data)
 
     except Exception as e:
-        logger.error(f"Error recalculating PDN code: {e}")
+        logger.error(f"Error recalculating PDN code, error: {e}")
         return jsonify({"error": f"Error recalculating PDN code: {str(e)}"}), 500
+
 
 
 @pdn_admin_bp.route('/audio/<path:file_path>')
@@ -555,12 +438,8 @@ def serve_audio(file_path):
     session_token = request.args.get('session_token')
     logger.debug(f"Session token: {session_token}")
 
-    if not session_token:
-        logger.warning("No session token provided")
-        abort(401, description="No session token provided")
-
     # Verify session
-    #verify_session(session_token)
+    verify_session(session_token)
 
     # Use the environment variable for saved_results directory
     saved_results_dir = os.getenv('SAVED_RESULTS_DIR', 'saved_results')
