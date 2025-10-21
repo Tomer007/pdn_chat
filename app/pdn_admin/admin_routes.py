@@ -30,19 +30,24 @@ pdn_admin_bp = Blueprint('pdn_admin', __name__,
 # Admin sessions storage (in production, use Redis or database)
 admin_sessions = {}  # session_token -> user_info
 
-# Use secure random tokens
-def generate_session_token():
-    return secrets.token_urlsafe(32)
-
 def create_session(email):
-    token = generate_session_token()
+    # Remove any existing sessions for this email
+    for token, session in list(admin_sessions.items()):
+        if session.get("email") == email:
+            del admin_sessions[token]
+            logger.info(f"Removed old session for {email}")
+
+    token = secrets.token_urlsafe(32)
+    now = datetime.now()
     admin_sessions[token] = {
         "email": email,
-        "username": email,  # Add username for consistency
-        "login_time": datetime.now(),
-        "expires_at": datetime.now() + SESSION_TIMEOUT
+        "username": email,
+        "login_time": now,
+        "expires_at": now + SESSION_TIMEOUT
     }
+    logger.info(f"Created new session for {email}: {token}")
     return token
+
 
 def verify_session(session_token: str):
 
