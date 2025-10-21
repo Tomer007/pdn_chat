@@ -496,6 +496,7 @@
                 // Store session token in localStorage
                 localStorage.setItem('adminSessionToken', sessionToken);
                 // Redirect to dashboard
+                await new Promise(resolve => setTimeout(resolve, 100));
                 window.location.href = '/pdn-admin/dashboard';
             } else {
                 throw new Error('Invalid credentials');
