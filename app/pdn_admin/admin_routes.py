@@ -140,15 +140,6 @@ def load_user_metadata():
         logger.error("Error loading user metadata from CSV: %s", e)
         return []
 
-def get_user_metadata():
-    """
-    Get user metadata, loading from CSV if needed.
-    
-    Returns:
-        List of dictionaries containing user metadata
-    """
-    return load_user_metadata()
-
 def get_session_user_info(session_token: str):
 
     if not session_token:
@@ -225,11 +216,12 @@ def get_metadata_csv():
 
     session_token = request.args.get('session_token')
 
-    verify_session(session_token)
+    try:
+        verify_session(session_token)
+    except Exception as e:
+        logger.error("Session verification failed: %s", e)
 
-    metadata = get_user_metadata()
-
-    return jsonify({"data": metadata})
+    return jsonify({"data": load_user_metadata()})
 
 
 
@@ -382,7 +374,7 @@ def update_user_diagnose(email):
         diagnose_data = request.get_json()
 
         # Find and update user in data
-        user_data = next((user for user in get_user_metadata() if user["email"] == email), None)
+        user_data = next((user for user in load_user_metadata() if user["email"] == email), None)
         if not user_data:
             return jsonify({"error": "User not found"}), 404
 
