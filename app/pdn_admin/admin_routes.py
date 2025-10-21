@@ -155,7 +155,7 @@ def get_session_user_info(session_token: str):
         return admin_sessions[session_token]
 
     logger.warning("Invalid session token: %s, active sessions: %s", session_token, list(admin_sessions.keys()))
-    abort(401, description="Invalid session" + session_token)
+    abort(401, description="Invalid session")
 
 
 @pdn_admin_bp.route('/')

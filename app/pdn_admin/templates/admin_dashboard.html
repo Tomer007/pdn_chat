@@ -943,7 +943,7 @@
         // Clear session token from localStorage
         localStorage.removeItem('adminSessionToken');
         // Redirect to login page
-        window.location.href = '/pdn-admin/';
+        window.location.replace('/pdn-admin/');
     }
 
     async function loadMetadata() {
