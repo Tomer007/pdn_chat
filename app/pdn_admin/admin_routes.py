@@ -246,13 +246,6 @@ def download_csv_file():
         if not csv_file_path.exists():
             logger.error("CSV file not found: %s", csv_file_path)
             return jsonify({"error": "CSV file not found"}), 404
-
-        return send_file(
-            csv_file_path,
-            as_attachment=True,
-            download_name="user_metadata.csv",
-            mimetype="text/csv"
-        )
     except Exception as e:
         logger.error("Error downloading CSV file: %s", e)
         return jsonify({"error": "Failed to download CSV file"}), 500
@@ -428,7 +421,7 @@ def update_user_diagnose(email):
         elif "diagnose_comments" not in user_data:
             user_data["diagnose_comments"] = ""
 
-        # Update CSV with the new diagnose information
+        # Update CSV with the new diagnosis information
         try:
             csv_handler = UserMetadataHandler()
             csv_handler.update_diagnose_code(email, diagnose_pdn_code, diagnose_comments)

@@ -82,6 +82,7 @@
         .table-header {
             background: linear-gradient(135deg, #e0e7ff 0%, #f1f5f9 100%);
             border-bottom: 2px solid #e2e8f0;
+            z-index: 10;
         }
 
         .table-row:hover {
@@ -534,14 +535,14 @@
                 <label for="diagnosePdnCode" class="block text-sm font-medium text-gray-700 mb-2">
                     <i> קוד PDN אבחון </i>
                 </label>
-                <input type="text" id="diagnosePdnCode" name="diagnose_pdn_code" required
+                <input type="text" id="diagnosePdnCode" name="diagnose_pdn_code" 
                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
             </div>
             <div>
                 <label for="diagnoseComments" class="block text-sm font-medium text-gray-700 mb-2">
                     <i class="fas fa-comment mr-2"> הערות אבחון </i>
                 </label>
-                <textarea id="diagnoseComments" name="diagnose_comments" rows="4" required
+                <textarea id="diagnoseComments" name="diagnose_comments" rows="4"
                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"></textarea>
             </div>
             <div class="flex space-x-4 space-x-reverse">
@@ -1800,11 +1801,20 @@ ${leftText}: ${leftValue} | ${rightText}: ${rightValue}
                 return;
             }
 
+            const pdnCode = document.getElementById('diagnosePdnCode').value.trim();
+            const comments = document.getElementById('diagnoseComments').value.trim();
+
+            // Check if both fields are empty
+            if (!pdnCode && !comments) {
+                alert('אנא מלא לפחות אחד מהשדות: קוד PDN אבחון או הערות אבחון');
+                return;
+            }
+
             showLoading();
             try {
                 const formData = {
-                    diagnose_pdn_code: document.getElementById('diagnosePdnCode').value,
-                    diagnose_comments: document.getElementById('diagnoseComments').value
+                    diagnose_pdn_code: pdnCode,
+                    diagnose_comments: comments
                 };
 
                 const response = await fetch(`/pdn-admin/user/diagnose/${currentEditEmail}?session_token=${sessionToken}`, {
