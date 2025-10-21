@@ -214,17 +214,12 @@ def admin_logout():
     logger.debug("GET /pdn-admin/logout called")
     logger.debug("Request: %s %s", request.method, request.url)
 
+    admin_sessions.pop(request.args.get('session_token'), None)
     cleanup_expired_sessions()
-    
-    session_token = request.args.get('session_token')
-    if session_token and session_token in admin_sessions:
-        del admin_sessions[session_token]
     return jsonify({"success": True, "message": "Logout successful"})
-
 
 @pdn_admin_bp.route('/metadata/csv')
 def get_metadata_csv():
-    """Get metadata as CSV download"""
     logger.debug("GET /pdn-admin/metadata/csv called")
     logger.debug("Request: %s %s", request.method, request.url)
 
@@ -236,24 +231,6 @@ def get_metadata_csv():
 
     return jsonify({"data": metadata})
 
-
-@pdn_admin_bp.route('/download/csv')
-def download_csv_file():
-    """Download the actual CSV file"""
-    logger.debug("GET /pdn-admin/download/csv called")
-    logger.debug("Request: %s %s", request.method, request.url)
-
-    session_token = request.args.get('session_token')
-    verify_session(session_token)
-
-    try:
-        csv_file_path = Path("saved_results/user_metadata.csv")
-        if not csv_file_path.exists():
-            logger.error("CSV file not found: %s", csv_file_path)
-            return jsonify({"error": "CSV file not found"}), 404
-    except Exception as e:
-        logger.error("Error downloading CSV file: %s", e)
-        return jsonify({"error": "Failed to download CSV file"}), 500
 
 
 def remove_none_keys(obj):

@@ -370,19 +370,6 @@
             box-shadow: 0 10px 25px rgba(234, 179, 8, 0.2), 0 0 0 1px rgba(234, 179, 8, 0.3);
         }
 
-        .download-csv-btn {
-            box-shadow: 0 4px 16px 0 rgba(11, 46, 107, 0.10), 0 1.5px 4px 0 rgba(11, 46, 107, 0.10);
-            border: 1.5px solid #a5b4fc;
-            letter-spacing: 0.02em;
-            background: linear-gradient(90deg, #0b2e6b 0%, #0a2a5f 60%, #092a5a 100%);
-        }
-
-        .download-csv-btn:hover, .download-csv-btn:focus {
-            box-shadow: 0 6px 20px 0 rgba(11, 46, 107, 0.18), 0 2px 8px 0 rgba(11, 46, 107, 0.15);
-            border-color: #0b2e6b;
-            outline: none;
-            background: linear-gradient(90deg, #0a2a5f 0%, #092a5a 60%, #082a55 100%);
-        }
 
     </style>
 </head>
@@ -452,7 +439,6 @@
             </h3>
             <div class="flex items-center justify-between">
                 <span id="rowCount" class="text-base text-gray-600 font-bold">סה"כ מאובחנים:</span>
-                <button id="downloadCsvBtn"/>
             </div>
         </div>
         <div class="table-container">
@@ -932,10 +918,6 @@
         // Edit diagnose form
         document.getElementById('editDiagnoseForm').addEventListener('submit', handleEditDiagnose);
 
-        // CSV download button
-        document.getElementById('downloadCsvBtn').addEventListener('click', function () {
-            downloadCsvFile();
-        });
     }
 
     async function handleLogout() {
@@ -956,8 +938,23 @@
     async function loadMetadata() {
         const refreshBtn = document.getElementById('refreshBtn');
         
+        // Check if button is already disabled (prevent multiple calls)
+        if (refreshBtn.disabled) {
+            console.log('Refresh button already disabled, ignoring request');
+            return;
+        }
+        
         // Disable refresh button
         refreshBtn.disabled = true;
+        console.log('Refresh button disabled');
+        
+        // Safety timeout to re-enable button after 30 seconds
+        const safetyTimeout = setTimeout(() => {
+            if (refreshBtn.disabled) {
+                refreshBtn.disabled = false;
+                console.log('Refresh button re-enabled by safety timeout');
+            }
+        }, 30000);
         
         showLoading();
         console.log('loadMetadata sessionToken', sessionToken);
@@ -1039,8 +1036,11 @@
             alert('שגיאה בטעינת הנתונים');
         } finally {
             hideLoading();
+            // Clear safety timeout
+            clearTimeout(safetyTimeout);
             // Re-enable refresh button
             refreshBtn.disabled = false;
+            console.log('Refresh button re-enabled');
         }
     }
 
@@ -2292,69 +2292,6 @@ ${leftText}: ${leftValue} | ${rightText}: ${rightValue}
             });
         }
 
-        async function downloadCsvFile() {
-            try {
-                showLoading();
-                const response = await fetch(`/pdn-admin/download/csv?session_token=${sessionToken}`);
-
-                if (response.ok) {
-                    // Get the blob from the response
-                    const blob = await response.blob();
-
-                    // Create a download link
-                    const url = window.URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = 'user_metadata.csv';
-
-                    // Trigger download
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-
-                    // Clean up the URL object
-                    window.URL.revokeObjectURL(url);
-
-                    showNotification('הקובץ הורד בהצלחה!', 'success');
-                } else if (response.status === 404) {
-                    showNotification('קובץ CSV לא נמצא', 'error');
-                } else {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-            } catch (error) {
-                console.error('Error downloading CSV:', error);
-                showNotification('שגיאה בהורדת הקובץ', 'error');
-            } finally {
-                hideLoading();
-            }
-        }
-
-        function downloadTableAsCsv(data) {
-            if (!data || data.length === 0) {
-                alert('אין נתונים להורדה');
-                return;
-            }
-            // Define the columns to export
-            const columns = [
-                {key: 'email', label: 'אימייל'},
-                {key: 'date', label: 'תאריך איבחון'},
-                {key: 'pdn_code', label: 'פדן קוד'},
-                {key: 'pdn_voice_code', label: 'ניתוח קול קוד'},
-                {key: 'diagnose_pdn_code', label: 'קוד מאבחן'},
-                {key: 'diagnose_comments', label: 'הערות המאבחן'}
-            ];
-            let csvContent = columns.map(col => col.label).join(',') + '\n';
-            data.forEach(row => {
-                csvContent += columns.map(col => '"' + (row[col.key] || '').replace(/"/g, '""') + '"').join(',') + '\n';
-            });
-            const blob = new Blob([csvContent], {type: 'text/csv;charset=utf-8;'});
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.setAttribute('download', 'user_metadata.csv');
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
 </script>
 </body>
 </html> 
