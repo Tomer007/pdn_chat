@@ -127,6 +127,13 @@
             opacity: 0.7;
         }
 
+        /* Refresh button disabled state */
+        #refreshBtn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
         .action-btn.loading::after {
             content: '';
             position: absolute;
@@ -947,6 +954,11 @@
     }
 
     async function loadMetadata() {
+        const refreshBtn = document.getElementById('refreshBtn');
+        
+        // Disable refresh button
+        refreshBtn.disabled = true;
+        
         showLoading();
         console.log('loadMetadata sessionToken', sessionToken);
         try {
@@ -1027,6 +1039,8 @@
             alert('שגיאה בטעינת הנתונים');
         } finally {
             hideLoading();
+            // Re-enable refresh button
+            refreshBtn.disabled = false;
         }
     }
 
