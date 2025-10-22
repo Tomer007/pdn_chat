@@ -227,7 +227,10 @@ def get_user_questionnaire(email):
     logger.debug("GET /pdn-admin/user/questionnaire/%s called", email)
     logger.debug("Request: %s %s", request.method, request.url)
 
-    verify_session(request.args.get('session_token'))
+    try:
+        verify_session(request.args.get('session_token'))
+    except Exception as e:
+        logger.error("Session verification failed: %s", e)
 
     try:
         csv_metadata_handler = UserMetadataHandler()
@@ -258,8 +261,10 @@ def get_user_voice(email):
     """Get user voice recording URL"""
     logger.debug(f"GET /pdn-admin/user/voice/{email} called")
     logger.debug("Request: %s %s", request.method, request.url)
-
-    verify_session(request.args.get('session_token'))
+    try:
+        verify_session(request.args.get('session_token'))
+    except Exception as e:
+        logger.error("Session verification failed: %s", e)
 
     try:
         pdn_file_path = PDNFilePath()
@@ -297,7 +302,10 @@ def update_user_diagnose(email):
     logger.debug(f"PUT /pdn-admin/user/diagnose/{email} called")
     logger.debug("Request: %s %s", request.method, request.url)
 
-    verify_session(request.args.get('session_token'))
+    try:
+        verify_session(request.args.get('session_token'))
+    except Exception as e:
+        logger.error("Session verification failed: %s", e)
 
     try:
         diagnose_data = request.get_json()
@@ -438,8 +446,10 @@ def serve_audio(file_path):
     session_token = request.args.get('session_token')
     logger.debug(f"Session token: {session_token}")
 
-    # Verify session
-    verify_session(session_token)
+    try:
+        verify_session(request.args.get('session_token'))
+    except Exception as e:
+        logger.error("Session verification failed: %s", e)
 
     # Use the environment variable for saved_results directory
     saved_results_dir = os.getenv('SAVED_RESULTS_DIR', 'saved_results')
@@ -547,8 +557,10 @@ def download_user_json():
         logger.warning("No session token provided")
         abort(401, description="No session token provided")
 
-    # Verify session
-    verify_session(session_token)
+    try:
+        verify_session(request.args.get('session_token'))
+    except Exception as e:
+        logger.error("Session verification failed: %s", e)
 
     # Extract admin password from query parameters
     admin_password = request.args.get('admin_password')
