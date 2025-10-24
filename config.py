@@ -37,7 +37,13 @@ class Config:
     SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD', '')
     
     # AI/LLM configuration
+    LLM_PROVIDER = os.environ.get('LLM_PROVIDER', 'openai')  # 'openai' or 'anthropic'
     OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
+    ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY', '')
+    
+    # Model configurations
+    OPENAI_MODEL = os.environ.get('OPENAI_MODEL', 'gpt-4o-mini')
+    ANTHROPIC_MODEL = os.environ.get('ANTHROPIC_MODEL', 'claude-sonnet-4-20250514')
     
     
     # Session configuration
