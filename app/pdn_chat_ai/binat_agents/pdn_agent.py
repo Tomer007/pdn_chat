@@ -131,7 +131,7 @@ class PDNAgent:
     def build_21_transformation_plan(self, user_goal: str, user_name: str, pdn_code: str) -> str:
         """Generate 21-day transformation plan."""
         system_prompt = self._load_prompt(pdn_code, "21_plan.prompt")
-        user_message = f"user_name: {user_name}\nuser_pdn_code: {pdn_code}\nGoal: {user_goal}"
+        user_message = f"user_name: {user_name}\nuser_pdn_code: {pdn_code}\nuser_goal: {user_goal}"
 
         response_text =  self.llm.invoke([
             SystemMessage(content=system_prompt),
