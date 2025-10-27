@@ -1,558 +1,156 @@
 """
-Email Sender Module
+PDN Report Email Sender
 
-This module provides functionality for sending PDN (Personality Development Number)
-reports via email to users. It includes HTML email generation with modern styling,
-PDF attachment handling, and comprehensive error management.
-
-Key features:
-- HTML email generation with Hebrew RTL support
-- PDF report attachment with fallback handling
-- Modern responsive email design
-- SMTP integration with Gmail
-- Comprehensive error logging and recovery
 """
 
 import logging
-import os
 import smtplib
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from typing import Dict, Any
+from typing import Dict, Any, Optional
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
+# Configuration
+class EmailConfig:
+    SMTP_SERVER = 'smtp.gmail.com'
+    SMTP_PORT = 587
+    FROM_EMAIL = 'tomergur@gmail.com'
+    APP_PASSWORD = 'jlzd ytwd dpat hcsi'  # Move to environment variable
+    REPORTS_DIR = Path("app/static/reports")
+
+def get_html_template(pdn_code: str, first_name: str) -> str:
+    """Generate HTML email template with minimal inline CSS for better email client support."""
+    return f"""
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מפת קוד המקור - {pdn_code}</title>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; direction: rtl;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <tr>
+            <td style="background: linear-gradient(135deg, #0b2e6b, #0a2a5f); color: white; padding: 30px; text-align: center;">
+                <h1 style="margin: 0 0 10px 0; font-size: 24px; font-weight: bold;">מפת קוד המקור</h1>
+                <h2 style="margin: 0; font-size: 16px; font-weight: normal; opacity: 0.9;">קוד המקור - הנווט הראשי שלך להצלחה</h2>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 30px;">
+                <div style="font-size: 20px; font-weight: bold; color: #0b2e6b; margin-bottom: 20px; text-align: right; line-height: 1.4;">
+                   {first_name} ברוך הבא למסע שלך<br>
+                    זהו הרגע שבו הקוד שלך מתחיל להתגלות
+                </div>
+                <div style="background: rgba(11, 46, 107, 0.05); border: 1px solid rgba(11, 46, 107, 0.1); border-radius: 8px; padding: 20px; margin: 20px 0;">
+                    <p style="font-size: 16px; line-height: 1.6; color: #1f2937; margin: 0;">שיטת PDN מאבחנת את "קוד המקור" – הצופן האישי שלך.<br>
+זהו כלי אבחוני פורץ דרך בתחום התפתחות אישית תודעתית מוגן בפטנט, המהווה תבנית לניווט חייך. כפי ש־Waze מוביל אותך בדרכים הפיזיות, כך מפת קוד המקור משמשת מצפן, נווט פנימי המכוון אותך לבחור נכון, לנווט בביטחון ולצעוד בבירור לעבר הגשמת מטרותיך ויעודך.</p>
+                </div>
+                <div style="background: linear-gradient(135deg, rgba(11, 46, 107, 0.1), rgba(10, 42, 95, 0.08)); border: 2px solid #0b2e6b; border-radius: 12px; padding: 25px; margin: 25px 0; text-align: center;">
+                    <div style="font-size: 14px; font-weight: 600; color: #6b7280; margin-bottom: 10px;">עפ“י תוצאות האבחון הצופן שלך</div>
+                    <div style="font-size: 36px; font-weight: bold; color: #0b2e6b; margin: 15px 0;">{pdn_code}</div>
+                </div>
+                <div style="background: rgba(11, 46, 107, 0.05); border: 1px solid rgba(11, 46, 107, 0.1); border-radius: 8px; padding: 20px; margin: 20px 0;">
+                    <p style="font-size: 16px; line-height: 1.6; color: #1f2937; margin: 0;"><br>
+מפת קוד המקור חושפת את שלושת מנועי היסוד הייחודיים, את הדומיננטי, המייצב והמתמיר, המגלמים בתוכם את היכולות הכישורים המתנות ואף את הפחדים הסמויים המעצבים את בחירותיך ואת אופן התנהלותך בעולם.<br>
+כאשר שלושת המנועים פועלים בהרמוניה, מתגלה הייעוד שלך, ביטוי חי של הערך, המתנה והחותם הייחודי שאתה מביא לעולם. מפת הצופן מעניקה לך בהירות, השראה וכלים מעשיים לנווט את חייך מתוך עוצמה, חיבור ומשמעות, כדי לממש את מלוא הפוטנציאל הטמון בך</p>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td style="background: rgba(255, 255, 255, 0.95); padding: 20px; text-align: center; border-top: 1px solid rgba(11, 46, 107, 0.1);">
+                <div style="font-size: 12px; color: #6b7280; line-height: 1.4;">האבחון, הייעוץ, הכלים וכל ידע הניתן – אינם מהווים תחליף לטיפול רפואי, פסיכולוגי ,כלכלי או אחר. השימוש בהם איש בלבד ואינו מסחרי.<br>כל הזכויות שמורות למרכז CENTER PDN ובעליו.</div>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+    """
+
+def find_pdf_attachment(pdn_code: str) -> Optional[Path]:
+    """Find PDF attachment for the given PDN code."""
+    pdf_filename = f"{pdn_code.upper()}.pdf"
+    pdf_path = EmailConfig.REPORTS_DIR / pdf_filename
+
+    if pdf_path.exists():
+        return pdf_path
+
+    logger.warning(f"PDF file not found: {pdf_path}")
+    return None
+
+def attach_pdf(msg: MIMEMultipart, pdf_path: Path, pdn_code: str) -> bool:
+    """Attach PDF file to email message."""
+    try:
+        with open(pdf_path, "rb") as file:
+            attach = MIMEApplication(file.read(), _subtype="pdf")
+            attach.add_header('Content-Disposition', 'attachment',
+                              filename=f"{pdn_code.lower()}.pdf")
+            msg.attach(attach)
+        logger.info(f"PDF attachment added: {pdf_path.name}")
+        return True
+    except Exception as e:
+        logger.error(f"Error attaching PDF {pdf_path}: {e}")
+        return False
+
+def send_email_via_smtp(msg: MIMEMultipart) -> bool:
+    """Send email via SMTP."""
+    try:
+        with smtplib.SMTP(EmailConfig.SMTP_SERVER, EmailConfig.SMTP_PORT) as server:
+            server.starttls()
+            server.login(EmailConfig.FROM_EMAIL, EmailConfig.APP_PASSWORD)
+            server.send_message(msg)
+        return True
+    except Exception as e:
+        logger.error(f"SMTP error: {e}")
+        return False
 
 def send_pdn_code_email(user_answers: Dict[str, Any], pdn_code: str) -> bool:
     """
     Send comprehensive PDN report via email to the user.
-    
+
     Args:
         user_answers (Dict): User's questionnaire answers and metadata
         pdn_code (str): Calculated PDN code
-    
+
     Returns:
         bool: True if email sent successfully, False otherwise
     """
     try:
-        # Get user email from answers
+        # Validate input
         user_email = user_answers.get('metadata', {}).get('email')
+        first_name = user_answers.get('metadata', {}).get('first_name')
         if not user_email:
             logger.error("No email address found in user answers")
             return False
 
-        # Create message
+        if not pdn_code:
+            logger.error("PDN code is required")
+            return False
+
+        # Create email message
         msg = MIMEMultipart()
-        msg['From'] = 'tomergur@gmail.com'
+        msg['From'] = EmailConfig.FROM_EMAIL
         msg['To'] = user_email
-        msg['Subject'] = f'ברוך הבא למסע – קוד המקור שלך מחכה להתגלות'
+        msg['Subject'] = 'ברוך הבא למסע – קוד המקור שלך מחכה להתגלות'
 
-        # Create HTML content with modern PDN design
-        html_content = f"""
-        <!DOCTYPE html>
-        <html dir="rtl" lang="he">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>מפת הדרכים האישית שלך - {pdn_code}</title>
-            <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap" 
-                  rel="stylesheet">
-            <style>
-                * {{
-                    margin: 0;
-                    padding: 0;
-                    box-sizing: border-box;
-                }}
-                
-                /* Hebrew text support */
-                html {{
-                    direction: rtl;
-                    unicode-bidi: bidi-override;
-                }}
-                
-                body {{
-                    font-family: 'Rubik', 'Segoe UI', Arial, sans-serif;
-                    line-height: 1.6;
-                    color: #1f2937;
-                    background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 25%, #c084fc 50%, #d946ef 75%, #ec4899 100%);
-                    min-height: 100vh;
-                    direction: rtl;
-                    text-align: right;
-                    unicode-bidi: bidi-override;
-                    position: relative;
-                    overflow-x: hidden;
-                }}
-                
-                body::before {{
-                    content: '';
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: 
-                        radial-gradient(circle at 20% 80%, rgba(139, 92, 246, 0.3) 0%, transparent 50%),
-                        radial-gradient(circle at 80% 20%, rgba(168, 85, 247, 0.3) 0%, transparent 50%),
-                        radial-gradient(circle at 40% 40%, rgba(192, 132, 252, 0.2) 0%, transparent 50%);
-                    pointer-events: none;
-                    z-index: -1;
-                }}
-                
-                .email-container {{
-                    max-width: 600px;
-                    margin: 0 auto;
-                    background: rgba(255, 255, 255, 0.95);
-                    backdrop-filter: blur(30px);
-                    border-radius: 32px;
-                    box-shadow: 
-                        0 25px 50px rgba(139, 92, 246, 0.3),
-                        0 0 0 1px rgba(255, 255, 255, 0.1),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.2);
-                    overflow: hidden;
-                    position: relative;
-                    border: 2px solid rgba(139, 92, 246, 0.2);
-                }}
-                
-                .email-container::before {{
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
-                    pointer-events: none;
-                }}
-                
-                .header {{
-                    background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 25%, #a855f7 50%, #c084fc 75%, #d946ef 100%);
-                    color: white;
-                    padding: 50px 30px;
-                    text-align: center;
-                    position: relative;
-                    overflow: hidden;
-                    border-bottom: 3px solid rgba(255, 255, 255, 0.2);
-                }}
-                
-                .header::before {{
-                    content: '';
-                    position: absolute;
-                    top: -50%;
-                    left: -50%;
-                    width: 200%;
-                    height: 200%;
-                    background: 
-                        radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 50%),
-                        radial-gradient(circle, rgba(192, 132, 252, 0.1) 0%, transparent 60%);
-                    animation: float 8s ease-in-out infinite;
-                    filter: blur(1px);
-                }}
-                
-                @keyframes float {{
-                    0%, 100% {{ transform: translateY(0px) rotate(0deg); }}
-                    50% {{ transform: translateY(-20px) rotate(5deg); }}
-                }}
-                
-                .header h1 {{
-                    font-size: 32px;
-                    font-weight: 800;
-                    margin-bottom: 12px;
-                    position: relative;
-                    z-index: 1;
-                    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-                    background: linear-gradient(45deg, #ffffff, #f3e8ff);
-                    -webkit-background-clip: text;
-                    -webkit-text-fill-color: transparent;
-                    background-clip: text;
-                }}
-                
-                .header h2 {{
-                    font-size: 18px;
-                    font-weight: 400;
-                    opacity: 0.9;
-                    position: relative;
-                    z-index: 1;
-                }}
-                
-                .content {{
-                    padding: 40px 30px;
-                    position: relative;
-                    z-index: 1;
-                }}
-                
-                .greeting {{
-                    font-size: 28px;
-                    font-weight: 700;
-                    color: #1f2937;
-                    margin-bottom: 32px;
-                    text-align: right;
-                    direction: rtl;
-                    unicode-bidi: bidi-override;
-                    line-height: 1.4;
-                }}
-                
-                .message-box {{
-                    background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(168, 85, 247, 0.05) 50%, rgba(192, 132, 252, 0.03) 100%);
-                    border: 2px solid rgba(139, 92, 246, 0.15);
-                    border-radius: 20px;
-                    padding: 28px;
-                    margin: 28px 0;
-                    position: relative;
-                    overflow: hidden;
-                    box-shadow: 
-                        0 8px 32px rgba(139, 92, 246, 0.1),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.2);
-                }}
-                
-                .message-box::before {{
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: -100%;
-                    width: 100%;
-                    height: 100%;
-                    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-                    animation: shimmer 4s infinite;
-                }}
-                
-                @keyframes shimmer {{
-                    0% {{ left: -100%; }}
-                    100% {{ left: 100%; }}
-                }}
-                
-                .message-text {{
-                    font-size: 20px;
-                    line-height: 1.8;
-                    color: #1f2937;
-                    margin-bottom: 20px;
-                    position: relative;
-                    z-index: 1;
-                    text-align: right;
-                    direction: rtl;
-                    unicode-bidi: bidi-override;
-                    font-weight: 400;
-                }}
-                
-                .pdn-code-section {{
-                    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(168, 85, 247, 0.08) 50%, rgba(192, 132, 252, 0.05) 100%);
-                    border: 3px solid transparent;
-                    background-clip: padding-box;
-                    border-radius: 24px;
-                    padding: 32px;
-                    margin: 32px 0;
-                    text-align: center;
-                    position: relative;
-                    box-shadow: 
-                        0 12px 40px rgba(139, 92, 246, 0.2),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.3);
-                }}
-                
-                .pdn-code-section::before {{
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background: linear-gradient(135deg, #7c3aed, #8b5cf6, #a855f7, #c084fc);
-                    border-radius: inherit;
-                    margin: -3px;
-                    z-index: -1;
-                    animation: gradientShift 4s ease-in-out infinite;
-                }}
-                
-                @keyframes gradientShift {{
-                    0%, 100% {{ background-position: 0% 50%; }}
-                    50% {{ background-position: 100% 50%; }}
-                }}
-                
-                .pdn-code-label {{
-                    font-size: 18px;
-                    font-weight: 600;
-                    color: #4b5563;
-                    margin-bottom: 12px;
-                    text-transform: uppercase;
-                    letter-spacing: 0.5px;
-                    direction: rtl;
-                    unicode-bidi: bidi-override;
-                }}
-                
-                .pdn-code {{
-                    font-size: 56px;
-                    font-weight: 900;
-                    background: linear-gradient(135deg, #7c3aed, #8b5cf6, #a855f7, #c084fc, #d946ef);
-                    background-size: 300% 300%;
-                    -webkit-background-clip: text;
-                    -webkit-text-fill-color: transparent;
-                    background-clip: text;
-                    margin: 16px 0;
-                    direction: ltr;
-                    unicode-bidi: bidi-override;
-                    animation: gradientFlow 3s ease-in-out infinite;
-                    text-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
-                }}
-                
-                @keyframes gradientFlow {{
-                    0%, 100% {{ background-position: 0% 50%; }}
-                    50% {{ background-position: 100% 50%; }}
-                }}
-                
-                .cta-section {{
-                    background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(168, 85, 247, 0.1) 50%, rgba(192, 132, 252, 0.08) 100%);
-                    border: 3px solid transparent;
-                    background-clip: padding-box;
-                    border-radius: 24px;
-                    padding: 32px;
-                    margin: 32px 0;
-                    text-align: center;
-                    position: relative;
-                    box-shadow: 
-                        0 15px 45px rgba(139, 92, 246, 0.25),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.3);
-                }}
-                
-                .cta-section::before {{
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background: linear-gradient(135deg, #7c3aed, #8b5cf6, #a855f7, #c084fc);
-                    border-radius: inherit;
-                    margin: -3px;
-                    z-index: -1;
-                    animation: gradientShift 4s ease-in-out infinite;
-                }}
-                
-                .cta-button {{
-                    display: inline-block;
-                    background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 25%, #a855f7 50%, #c084fc 75%, #d946ef 100%);
-                    color: white;
-                    text-decoration: none;
-                    padding: 24px 48px;
-                    border-radius: 16px;
-                    font-weight: 700;
-                    font-size: 22px;
-                    margin: 24px 0;
-                    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-                    box-shadow: 
-                        0 8px 25px rgba(139, 92, 246, 0.4),
-                        0 4px 10px rgba(139, 92, 246, 0.2);
-                    direction: rtl;
-                    unicode-bidi: bidi-override;
-                    position: relative;
-                    overflow: hidden;
-                }}
-                
-                .cta-button::before {{
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: -100%;
-                    width: 100%;
-                    height: 100%;
-                    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-                    transition: left 0.5s;
-                }}
-                
-                .cta-button:hover::before {{
-                    left: 100%;
-                }}
-                
-                .cta-button:hover {{
-                    transform: translateY(-4px) scale(1.05);
-                    box-shadow: 
-                        0 15px 35px rgba(139, 92, 246, 0.5),
-                        0 8px 15px rgba(139, 92, 246, 0.3);
-                    background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 25%, #8b5cf6 50%, #a855f7 75%, #c084fc 100%);
-                }}
-                
-                .footer {{
-                    background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
-                    padding: 30px;
-                    text-align: center;
-                    border-top: 1px solid rgba(139, 92, 246, 0.1);
-                }}
-                
-                .footer-text {{
-                    font-size: 16px;
-                    color: #4b5563;
-                    margin-bottom: 16px;
-                }}
-                
-                .footer-signature {{
-                    font-size: 20px;
-                    font-weight: 700;
-                    color: #1f2937;
-                    margin-bottom: 12px;
-                    direction: rtl;
-                    unicode-bidi: bidi-override;
-                }}
-                
-                .footer-tagline {{
-                    font-size: 16px;
-                    color: #6b7280;
-                    font-style: italic;
-                    direction: rtl;
-                    unicode-bidi: bidi-override;
-                }}
-                
-                .heart-emoji {{
-                    font-size: 32px;
-                    margin: 0 12px;
-                    filter: drop-shadow(0 4px 12px rgba(139, 92, 246, 0.5));
-                    animation: heartPulse 2s ease-in-out infinite;
-                    background: linear-gradient(45deg, #8b5cf6, #a855f7, #c084fc, #d946ef);
-                    background-size: 300% 300%;
-                    -webkit-background-clip: text;
-                    -webkit-text-fill-color: transparent;
-                    background-clip: text;
-                }}
-                
-                @keyframes heartPulse {{
-                    0%, 100% {{ transform: scale(1); filter: drop-shadow(0 4px 12px rgba(139, 92, 246, 0.5)); }}
-                    50% {{ transform: scale(1.2); filter: drop-shadow(0 6px 20px rgba(139, 92, 246, 0.8)); }}
-                }}
-                
-                @media (max-width: 600px) {{
-                    .email-container {{
-                        margin: 10px;
-                        border-radius: 16px;
-                    }}
-                    
-                    .header {{
-                        padding: 30px 20px;
-                    }}
-                    
-                    .header h1 {{
-                        font-size: 28px;
-                    }}
-                    
-                    .content {{
-                        padding: 30px 20px;
-                    }}
-                    
-                    .pdn-code {{
-                        font-size: 36px;
-                    }}
-                }}
-            </style>
-        </head>
-        <body>
-            <div class="email-container">
-                <div class="header">
-                    <h1>מפת הדרכים האישית שלך</h1>
-                    <h2>קוד המקור" - הנווט הראשי שלך להצלחה"</h2>
-                </div>
-                
-                <div class="content">
-                    <div class="greeting">
-                       ברוך הבא למסע שלך
-זהו הרגע שבו הקוד שלך מתחיל להתגלות 
-                    </div>
-                    
-                    <div class="message-box">
-                        <p class="message-text">
-                            בשמחה ובהתרגשות, אנו משתפים אותך בתוצאה של תהליך ההקשבה והעיבוד שעבר האבחון שביצעת.
-                        </p>
-                        <p class="message-text">
-                            לאחר ניתוח מעמיק של הנתונים – יצרנו עבורך את מפת הדרכים האישית שלך: מבט ממוקד ואותנטי על הכוחות שמניעים אותך, על החיבורים שבין רגש, משמעות ופעולה, ועל הכיוון שבו הנשמה שלך מבקשת לצעוד.
-                        </p>
-                    </div>
-                    
-                    <div class="pdn-code-section">
-                        <div class="pdn-code-label">קוד PDN שלך</div>
-                        <div class="pdn-code">{pdn_code}</div>
-                        <div class="pdn-code-label">הצופן האישי שלך</div>
-                    </div>
-                    
-                    <div class="message-box">
-                        <p class="message-text">
-                            מצורפת מפת הדרכים האישית המלאה עם כל הפרטים וההמלצות המותאמות במיוחד עבורך.
-                        </p>
-                        <p class="message-text">
-                            הקורס הבא הותאם עבורך בהתאם לשלב שלך לפי קוד המקור       
-                 </p>
-                    </div>
-                    
-                    <div class="cta-section">
-                        <a href="https://www.pdn.co.il" class="cta-button">
-                                רגע האמת הגיע – קורס המנוע הראשי שלך נפתח
-                        </a>
-                    </div>
-                    
-                    <div class="message-box">
-                        <p class="message-text">
-                        כי בתוך כל אחד ואחת מאיתנו טמון צופן ייחודי – שמחכה להתגלות, ולכוון את החיים בדיוק אל המקום שבו הלב מהדהד, והצליל הפנימי מתחיל סוף־סוף להתנגן. זה הזמן ולהתחיל לנגן את המנגינה שלך לעולם.
-                        </p>
-                    </div>
-                </div>
-                
-                <div class="footer">
-                    <div class="footer-signature">קוד המקור</div>
-                    <div class="footer-text">PDN Team – Your Personal Source Code</div>
-                    <div class="footer-tagline">הצופן האישי שלך</div>
-                </div>
-            </div>
-        </body>
-        </html>
-        """
-
-        # Attach HTML version only
+        # Attach HTML content
+        html_content = get_html_template(pdn_code, first_name)
         msg.attach(MIMEText(html_content, 'html', 'utf-8'))
 
         # Attach PDF if available
-        # Try different filename formats for the PDF
-        pdf_filenames = [
-            f"{pdn_code}.pdf",  # T8.pdf, P10.pdf
-            f"P-{pdn_code[1:]}.pdf",  # P-8.pdf (if pdn_code is T8), P-10.pdf (if pdn_code is P10)
-            f"{pdn_code.replace('P', 'P-')}.pdf",  # P-10.pdf (alternative)
-            f"{pdn_code.lower()}.pdf",  # t8.pdf, p10.pdf
-        ]
-        
-        # Add fallback PDFs for common patterns
-        fallback_pdfs = [
-            "P-10.pdf",  # General fallback
-            "P10.pdf",
-            "p-10.pdf",
-            "p10.pdf"
-        ]
-        
-        # Combine specific and fallback PDFs
-        all_pdf_filenames = pdf_filenames + fallback_pdfs
-
-        pdf_attached = False
-        for pdf_filename in all_pdf_filenames:
-            pdf_path = os.path.join("app", "static", "reports", pdf_filename)
-
-            if os.path.exists(pdf_path):
-                try:
-                    with open(pdf_path, "rb") as file:
-                        attach = MIMEApplication(file.read(), _subtype="pdf")
-                        attach.add_header('Content-Disposition', 'attachment', filename=f"{pdn_code.lower()}.pdf")
-                        msg.attach(attach)
-                    logger.info(f"PDF attachment added: {pdf_filename}")
-                    pdf_attached = True
-                    break
-                except Exception as e:
-                    logger.error(f"Error reading PDF file {pdf_path}: {e}")
-                    continue
-
-        if not pdf_attached:
-            logger.warning(
-                f"PDF not found for code: {pdn_code}. Tried paths: {[os.path.join('app', 'static', 'reports', f) for f in all_pdf_filenames]}")
-            logger.info("Email sent without PDF attachment")
+        pdf_path = find_pdf_attachment(pdn_code)
+        if pdf_path:
+            attach_pdf(msg, pdf_path, pdn_code)
 
         # Send email
-        with smtplib.SMTP('smtp.gmail.com', 587) as server:
-            server.starttls()
-            server.login('tomergur@gmail.com', 'jlzd ytwd dpat hcsi')
-            server.send_message(msg)
-
-        logger.info(f"Successfully sent PDN report to {user_email}")
-        return True
+        if send_email_via_smtp(msg):
+            logger.info(f"Successfully sent PDN report to {user_email}")
+            return True
+        else:
+            return False
 
     except Exception as e:
         logger.error(f"Failed to send email: {str(e)}")
