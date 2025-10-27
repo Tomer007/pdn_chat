@@ -35,15 +35,15 @@ def get_html_template(pdn_code: str, first_name: str) -> str:
     <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
         <tr>
             <td style="background: linear-gradient(135deg, #0b2e6b, #0a2a5f); color: white; padding: 30px; text-align: center;">
-                <h1 style="margin: 0 0 10px 0; font-size: 24px; font-weight: bold;">מפת קוד המקור</h1>
+                <h1 style="margin: 0 0 10px 0; font-size: 24px; font-weight: bold;"> מפת קוד המקור</h1>
                 <h2 style="margin: 0; font-size: 16px; font-weight: normal; opacity: 0.9;">קוד המקור - הנווט הראשי שלך להצלחה</h2>
             </td>
         </tr>
         <tr>
             <td style="padding: 30px;">
                 <div style="font-size: 20px; font-weight: bold; color: #0b2e6b; margin-bottom: 20px; text-align: right; line-height: 1.4;">
-                   {first_name} ברוך הבא למסע שלך<br>
-                    זהו הרגע שבו הקוד שלך מתחיל להתגלות
+                   {first_name}, ברוך הבא למסע שלך
+                        מצ״ב מפת קוד המקור שלך.
                 </div>
                 <div style="background: rgba(11, 46, 107, 0.05); border: 1px solid rgba(11, 46, 107, 0.1); border-radius: 8px; padding: 20px; margin: 20px 0;">
                     <p style="font-size: 16px; line-height: 1.6; color: #1f2937; margin: 0;">שיטת PDN מאבחנת את "קוד המקור" – הצופן האישי שלך.<br>
