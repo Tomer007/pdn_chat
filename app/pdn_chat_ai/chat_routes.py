@@ -18,9 +18,16 @@ USERS_DATA = {
     'tomergur@gmail.com': {'password': 'pdn', 'pdn_code': 'e5', 'name': 'תומר'},
     'pdncode@gmail.com': {'password': 'pdn', 'pdn_code': 'a7', 'name': 'פנינה'},
     'orna@84zebras.co.il': {'password': 'pdn', 'pdn_code': 'p10', 'name': 'אורנה'},
-    'info.dede.studio@gmail.com': {'password': 'pdn', 'pdn_code': 'A7', 'name': 'דניאל'},
+    'info.dede.studio@gmail.com': {'password': 'pdn', 'pdn_code': 'a7', 'name': 'דניאל'},
     'sigal4170@gmail.com': {'password': 'pdn', 'pdn_code': 'p6', 'name': 'סיגל'},
-    'kerens@bluewin.ch': {'password': 'pdn', 'pdn_code': 'a7', 'name': 'מאיה'}
+    'kerens@bluewin.ch': {'password': 'pdn', 'pdn_code': 'a7', 'name': 'מאיה'},
+    'izhar77@gmail.com': {'password': 'pdn', 'pdn_code': 'p6', 'name': 'יזהר'},
+    'office@hagitashur.co.il': {'password': 'pdn', 'pdn_code': 'p10', 'name': 'חגית'},
+    'osnat.rabin@gmail.com': {'password': 'pdn', 'pdn_code': 'p10', 'name': 'אסנת'},
+    'mf8406@gmail.com': {'password': 'pdn', 'pdn_code': 'p6', 'name': 'שלמה'},
+    'haninitzan13@gmail.com': {'password': 'pdn', 'pdn_code': 'a7', 'name': 'חני'},
+    'canaandani@gmail.com': {'password': 'pdn', 'pdn_code': 'e5', 'name': 'דני'},
+    'pigimaya@gmail.com': {'password': 'pdn', 'pdn_code': 'a7', 'name': 'מאיה'}
 }
 
 def get_agent_instance():
