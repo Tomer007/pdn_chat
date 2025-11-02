@@ -27,7 +27,9 @@ USERS_DATA = {
     'mf8406@gmail.com': {'password': 'pdn', 'pdn_code': 'p6', 'name': 'שלמה'},
     'haninitzan13@gmail.com': {'password': 'pdn', 'pdn_code': 'a7', 'name': 'חני'},
     'canaandani@gmail.com': {'password': 'pdn', 'pdn_code': 'e5', 'name': 'דני'},
-    'pigimaya@gmail.com': {'password': 'pdn', 'pdn_code': 'a7', 'name': 'מאיה'}
+    'pigimaya@gmail.com': {'password': 'pdn', 'pdn_code': 'a7', 'name': 'מאיה'},
+    'einatilani7@gmail.com': {'password': 'pdn', 'pdn_code': 't8', 'name': 'עינת'}
+
 }
 
 def get_agent_instance():

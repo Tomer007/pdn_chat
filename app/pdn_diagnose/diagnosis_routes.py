@@ -151,16 +151,20 @@ def submit_answer_route():
 
         # Save answer with question text
         try:
+            logger.info("Saving answer for user %s, question %s", email, question_number)
             save_answer(email, question_number, answer_data, question_text)
-            logger.info("Answer saved successfully for question %s", question_number)
+            logger.info("Answer saved successfully for user %s, question %s", email, question_number)
         except Exception as save_error:
-            logger.error("Error saving answer: %s", save_error)
+            logger.error("Error saving answer for user %s, question %s: %s", email, question_number, save_error, exc_info=True)
             return jsonify({"error": f"Failed to save answer: {str(save_error)}"}), 500
 
-        return jsonify({"message": "Answer saved successfully"})
+        return jsonify({"message": "Answer saved successfully", "question_number": question_number})
     except (ValueError, KeyError, FileNotFoundError) as e:
-        logger.error("Error submitting answer: %s", e)
+        logger.error("Error submitting answer: %s", e, exc_info=True)
         return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        logger.error("Unexpected error submitting answer: %s", e, exc_info=True)
+        return jsonify({"error": "An unexpected error occurred"}), 500
 
 
 @pdn_diagnose_bp.route('/complete_questionnaire', methods=['POST'])
