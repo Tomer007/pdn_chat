@@ -979,7 +979,10 @@
             
             // Only proceed to next question if the response was successful
             console.log(`Answer saved successfully for question ${qNum}`);
-            
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+
             // Store current question in history before moving to next
             questionHistory.push(currentQuestion);
             currentQuestion++;
