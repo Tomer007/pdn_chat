@@ -29,7 +29,7 @@ USERS_DATA = {
     'canaandani@gmail.com': {'password': 'pdn', 'pdn_code': 'e5', 'name': 'דני'},
     'pigimaya@gmail.com': {'password': 'pdn', 'pdn_code': 'a7', 'name': 'מאיה'},
     'einatilani7@gmail.com': {'password': 'pdn', 'pdn_code': 't8', 'name': 'עינת'},
-    'miich2072@gmail.com': {'password': 'pdn', 'pdn_code': 't8', 'name': 'מיכל'},
+    'milch2072@gmail.com': {'password': 'pdn', 'pdn_code': 't8', 'name': 'מיכל'},
     'youchy0@gmail.com': {'password': 'pdn', 'pdn_code': 'e1', 'name': 'יוחנן'},
     'yairmichl@gmail.com': {'password': 'pdn', 'pdn_code': 'e9', 'name': 'יאיר'}
 }
