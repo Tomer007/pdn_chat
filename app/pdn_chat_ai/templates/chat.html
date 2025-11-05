@@ -123,7 +123,7 @@
         }
 
 
-        .input-area input {
+        .input-area textarea {
             flex: 1;
             border: none;
             outline: none;
@@ -133,9 +133,15 @@
             border-radius: 16px;
             color: var(--text-primary);
             direction: rtl;
+            resize: none;
+            min-height: 48px;
+            max-height: 150px;
+            overflow-y: auto;
+            font-family: inherit;
+            line-height: 1.5;
         }
 
-        .input-area input::placeholder {
+        .input-area textarea::placeholder {
             color: var(--text-secondary);
             font-style: italic;
         }
@@ -172,6 +178,7 @@
             border-radius: 12px;
             cursor: pointer;
             transition: all 0.3s ease;
+            font-weight: 600;
         }
 
 
@@ -1244,15 +1251,17 @@
 
     <!-- Enhanced input area -->
     <div class="input-area">
-        <input type="text" id="userInput"
-               placeholder="כתוב לי עכשיו..."
+        <textarea id="userInput"
+               placeholder="כתוב לי עכשיו... (Shift+Enter לשורה חדשה)"
                lang="he-IL"
                onkeydown="handleKeyPress(event)"
-               aria-label="הודעת טקסט"/>
+               oninput="autoResizeTextarea(this)"
+               rows="1"
+               aria-label="הודעת טקסט"></textarea>
 
         <button class="action-button" onclick="toggleMicrophone()" title="הקלטה קולית" id="micBtn"
                 aria-label="הקלטה קולית">
-            <i class="fas fa-microphone"></i>
+            <i class="fas fa-microphone"></i> <span id="micBtnText">הקלטה</span>
         </button>
 
         <button class="send-button" onclick="sendMessage()" id="sendBtn" aria-label="שלח הודעה">
@@ -1422,6 +1431,7 @@
     // Voice recording variables
     let speechRecognition = null;
     let isListening = false;
+    let existingTextBeforeRecording = '';
 
     // Utility functions
     function getCurrentTime() {
@@ -1443,15 +1453,17 @@
         const recognition = new SpeechRecognition();
         recognition.continuous = true;
         recognition.interimResults = true;
-        recognition.lang = 'he-IL'; // Hebrew language
+        recognition.lang = 'he-IL';
         recognition.maxAlternatives = 1;
 
         recognition.onstart = () => {
             isListening = true;
             finalTranscript = '';
             interimTranscript = '';
+            // Store existing text before recording
+            const userInput = document.getElementById('userInput');
+            existingTextBeforeRecording = userInput.value;
             updateMicrophoneUI(true);
-            showTranscriptionFeedback('🎤 מקשיב...');
         };
 
         recognition.onresult = (event) => {
@@ -1467,16 +1479,10 @@
                 }
             }
 
-            // Update the input field with real-time transcription
+            // Append new transcription to existing text
             const userInput = document.getElementById('userInput');
-            userInput.value = finalTranscript + interimTranscript;
-
-            // Show real-time feedback
-            if (interimTranscript) {
-                showTranscriptionFeedback(`🎤 מקשיב... "${interimTranscript}"`);
-            } else if (finalTranscript) {
-                showTranscriptionFeedback(`✅ הושלם: "${finalTranscript}"`);
-            }
+            const separator = existingTextBeforeRecording ? ' ' : '';
+            userInput.value = existingTextBeforeRecording + separator + finalTranscript + interimTranscript;
         };
 
         recognition.onerror = (event) => {
@@ -1508,19 +1514,11 @@
             updateMicrophoneUI(false);
             hideTranscriptionFeedback();
 
-            // If we have final transcript, send the message
+            // Focus on input for potential editing
             const userInput = document.getElementById('userInput');
             if (userInput.value.trim()) {
-                // Auto-focus on input for potential editing
                 userInput.focus();
                 userInput.setSelectionRange(userInput.value.length, userInput.value.length);
-
-                // Auto-send after a short delay
-                setTimeout(() => {
-                    if (userInput.value.trim() && !isListening) {
-                        sendMessage();
-                    }
-                }, 1000);
             }
         };
 
@@ -1531,15 +1529,18 @@
     function updateMicrophoneUI(isActive) {
         const micBtn = document.getElementById('micBtn');
         const micIcon = micBtn.querySelector('i');
+        const micText = document.getElementById('micBtnText');
 
         if (isActive) {
             micBtn.classList.add('recording');
             micIcon.className = 'fas fa-stop';
+            micText.textContent = 'סיים';
             micBtn.title = 'עצור הקלטה';
             micBtn.setAttribute('aria-label', 'עצור הקלטה');
         } else {
             micBtn.classList.remove('recording');
             micIcon.className = 'fas fa-microphone';
+            micText.textContent = 'הקלטה';
             micBtn.title = 'הקלטה קולית';
             micBtn.setAttribute('aria-label', 'הקלטה קולית');
         }
@@ -1949,12 +1950,18 @@
 
 
     function handleKeyPress(event) {
-        if (event.key === 'Enter' && !event.shiftKey) {
-            event.preventDefault();
-            if (!isProcessing) {
-                sendMessage();
+        if (event.key === 'Enter') {
+            if (event.shiftKey) {
+                // Allow new line on Shift+Enter
+                return;
             } else {
-                showError('אנא המתן עד שההודעה הנוכחית תסיים עיבוד');
+                // Send message on Enter
+                event.preventDefault();
+                if (!isProcessing) {
+                    sendMessage();
+                } else {
+                    showError('אנא המתן עד שההודעה הנוכחית תסיים עיבוד');
+                }
             }
         } else if (event.key === 'Tab') {
             event.preventDefault();
@@ -1964,6 +1971,12 @@
             const nextIndex = (currentIndex + 1) % controls.length;
             document.getElementById(controls[nextIndex]).focus();
         }
+    }
+
+    // Auto-resize textarea based on content
+    function autoResizeTextarea(textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = Math.min(textarea.scrollHeight, 150) + 'px';
     }
 
 
