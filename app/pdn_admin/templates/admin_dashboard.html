@@ -397,7 +397,10 @@
                 <button id="refreshBtn"
                         class="btn-success text-white px-6 py-3 rounded-lg font-semibold text-base transition-all duration-300 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-1">
                     <i class="fas fa-sync-alt mr-2"> רענן נתונים </i>
-
+                </button>
+                <button id="loggedInUsersBtn"
+                        class="btn-secondary text-white px-6 py-3 rounded-lg font-semibold text-base transition-all duration-300 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                    <i class="fas fa-users mr-2"> משתמשים מחוברים </i>
                 </button>
                 <button id="logoutBtn"
                         class="btn-danger text-white px-6 py-3 rounded-lg font-semibold text-base transition-all duration-300 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-1">
@@ -550,6 +553,23 @@
                 </button>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- Logged In Users Modal -->
+<div id="loggedInUsersModal" class="modal-backdrop">
+    <div class="card p-8 max-w-2xl w-full mx-4 rounded-2xl">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800 flex items-center">
+                <i class="fas fa-users mr-2 text-blue-900"> משתמשים מחוברים </i>
+            </h2>
+            <button onclick="closeModal('loggedInUsersModal')"
+                    class="text-gray-500 hover:text-gray-700 text-2xl transition-colors">
+                <i class="fas fa-times mr-2"></i>
+            </button>
+        </div>
+        <div id="loggedInUsersContent" class="space-y-4">
+        </div>
     </div>
 </div>
 
@@ -915,6 +935,9 @@
         // Logout button
         document.getElementById('logoutBtn').addEventListener('click', handleLogout);
 
+        // Logged in users button
+        document.getElementById('loggedInUsersBtn').addEventListener('click', showLoggedInUsers);
+
         // Edit diagnose form
         document.getElementById('editDiagnoseForm').addEventListener('submit', handleEditDiagnose);
 
@@ -933,6 +956,50 @@
         localStorage.removeItem('adminSessionToken');
         // Redirect to login page
         window.location.replace('/pdn-admin/');
+    }
+
+    async function showLoggedInUsers() {
+        try {
+            const response = await fetch(`/pdn-admin/logged-in-users?session_token=${sessionToken}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch logged-in users');
+            }
+            
+            const data = await response.json();
+            const content = document.getElementById('loggedInUsersContent');
+            
+            if (data.count === 0) {
+                content.innerHTML = '<p class="text-gray-600 text-center py-4">אין משתמשים מחוברים כרגע</p>';
+            } else {
+                let html = `<div class="mb-4 text-sm text-gray-600">סה"כ: ${data.count} משתמשים</div>`;
+                html += '<div class="space-y-3">';
+                
+                data.users.forEach(user => {
+                    html += `
+                        <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3 space-x-reverse">
+                                    <i class="fas fa-user-circle text-blue-900 text-2xl"></i>
+                                    <div>
+                                        <p class="font-semibold text-gray-800">${user.email}</p>
+                                        <p class="text-sm text-gray-600">התחבר: ${user.login_time}</p>
+                                        <p class="text-xs text-gray-500">תוקף עד: ${user.expires_at}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+                content.innerHTML = html;
+            }
+            
+            document.getElementById('loggedInUsersModal').style.display = 'flex';
+        } catch (error) {
+            console.error('Error fetching logged-in users:', error);
+            alert('שגיאה בטעינת משתמשים מחוברים');
+        }
     }
 
     async function loadMetadata() {

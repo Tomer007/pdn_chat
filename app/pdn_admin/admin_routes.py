@@ -195,15 +195,32 @@ def admin_logout():
     cleanup_expired_sessions()
     return jsonify({"success": True, "message": "Logout successful"})
 
+@pdn_admin_bp.route('/logged-in-users')
+def get_logged_in_users():
+    """Get list of currently logged-in admin users"""
+    logger.debug("GET /pdn-admin//logged-in-users called")
+    logger.debug("Request: %s %s", request.method, request.url)
+    try:
+        verify_session(request.args.get('session_token'))
+        
+        users = [{
+            "email": s["email"],
+            "login_time": s["login_time"].strftime("%d/%m/%Y %H:%M:%S"),
+            "expires_at": s["expires_at"].strftime("%d/%m/%Y %H:%M:%S")
+        } for s in admin_sessions.values()]
+        
+        return jsonify({"users": users, "count": len(users)})
+
+    except:
+        return jsonify({"error": "Unauthorized"}), 401
+
 @pdn_admin_bp.route('/metadata/csv')
 def get_metadata_csv():
     logger.debug("GET /pdn-admin/metadata/csv called")
     logger.debug("Request: %s %s", request.method, request.url)
 
-    session_token = request.args.get('session_token')
-
     try:
-        verify_session(session_token)
+        verify_session(request.args.get('session_token'))
     except Exception as e:
         logger.error("Session verification failed: %s", e)
 
