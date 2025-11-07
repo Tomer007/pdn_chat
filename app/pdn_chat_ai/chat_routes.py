@@ -14,6 +14,9 @@ from .logger import setup_logger
 logger = setup_logger()
 _pdn_agent = None
 
+# Track active chat sessions
+chat_sessions = {}  # session_id -> {email, user_id, login_time}
+
 USERS_DATA = {
     'tomergur@gmail.com': {'password': 'pdn', 'pdn_code': 'e5', 'name': 'תומר'},
     'pdncode@gmail.com': {'password': 'pdn', 'pdn_code': 'a7', 'name': 'פנינה'},
@@ -84,6 +87,12 @@ def login():
             'user_name': user_data['name'],
             'pdn_code': user_data['pdn_code']
         })
+        # Track active session
+        chat_sessions[session.sid] = {
+            "email": email,
+            "user_id": user_id,
+            "login_time": datetime.now()
+        }
         logger.info("User %s logged in successfully", email)
         return jsonify({
             "success": True,
@@ -103,7 +112,10 @@ def logout():
     if user_name := session.get('user_name'):
         get_agent_instance().clear_user_history(user_name)
         logger.info("Cleared conversation history for user: %s", user_name)
-
+    
+    # Remove from active sessions
+    chat_sessions.pop(session.sid, None)
+    
     session.clear()
     logger.info("User logged out successfully")
     return jsonify({"success": True, "message": "Logout successful"})

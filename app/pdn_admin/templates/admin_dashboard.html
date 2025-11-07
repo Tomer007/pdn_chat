@@ -975,15 +975,20 @@
                 html += '<div class="space-y-3">';
                 
                 data.users.forEach(user => {
+                    const appName = user.type === 'admin' ? 'מנהל' : user.type === 'diagnosis' ? 'אבחון' : 'צ׳אט';
+                    const appColor = user.type === 'admin' ? 'bg-blue-100 text-blue-800' : user.type === 'diagnosis' ? 'bg-green-100 text-green-800' : 'bg-purple-100 text-purple-800';
                     html += `
                         <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center space-x-3 space-x-reverse">
                                     <i class="fas fa-user-circle text-blue-900 text-2xl"></i>
                                     <div>
-                                        <p class="font-semibold text-gray-800">${user.email}</p>
+                                        <div class="flex items-center gap-2">
+                                            <p class="font-semibold text-gray-800">${user.email}</p>
+                                            <span class="px-2 py-1 text-xs font-semibold rounded ${appColor}">${appName}</span>
+                                        </div>
                                         <p class="text-sm text-gray-600">התחבר: ${user.login_time}</p>
-                                        <p class="text-xs text-gray-500">תוקף עד: ${user.expires_at}</p>
+                                        ${user.expires_at ? `<p class="text-xs text-gray-500">תוקף עד: ${user.expires_at}</p>` : ''}
                                     </div>
                                 </div>
                             </div>

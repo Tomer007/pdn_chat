@@ -4,6 +4,7 @@ Handles user registration, questionnaire management, PDN code calculation, and r
 """
 
 from flask import Blueprint, request, render_template, jsonify, session, current_app
+from datetime import datetime
 
 from .logger import setup_logger
 from ..utils.answer_storage import load_answers, save_user_metadata, save_answer
@@ -17,6 +18,9 @@ logger = setup_logger()
 pdn_diagnose_bp = Blueprint('pdn_diagnose', __name__,
                             template_folder='templates',
                             static_folder='static')
+
+# Track active sessions
+active_sessions = {}  # session_id -> {email, login_time}
 
 
 @pdn_diagnose_bp.route('/')
@@ -77,7 +81,13 @@ def login_user():
     try:
         login_data = request.get_json()
         if login_data.get('password') == current_app.config.get('ADMIN_PASSWORD', 'pdn'):
-            session["email"] = login_data.get('email').lower()
+            email = login_data.get('email').lower()
+            session["email"] = email
+            # Track active session
+            active_sessions[session.sid] = {
+                "email": email,
+                "login_time": datetime.now()
+            }
             return jsonify({"message": "Login successful"})
         else:
             return jsonify({"error": "Invalid credentials"}), 401

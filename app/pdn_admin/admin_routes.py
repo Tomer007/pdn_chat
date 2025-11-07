@@ -195,22 +195,82 @@ def admin_logout():
     cleanup_expired_sessions()
     return jsonify({"success": True, "message": "Logout successful"})
 
+def _format_user(s, user_type):
+    """Helper to format user session data"""
+    fmt = "%d/%m/%Y %H:%M:%S"
+    user = {
+        "email": s.get("email", s.get("user_id", "unknown")),
+        "login_time": s["login_time"].strftime(fmt) if "login_time" in s else "N/A",
+        "type": user_type
+    }
+    if "expires_at" in s:
+        user["expires_at"] = s["expires_at"].strftime(fmt)
+    return user
+
 @pdn_admin_bp.route('/logged-in-users')
 def get_logged_in_users():
-    """Get list of currently logged-in admin users"""
-    logger.debug("GET /pdn-admin//logged-in-users called")
+    """Get list of all logged-in users from all apps"""
+    try:
+        verify_session(request.args.get('session_token'))
+        
+        users = [_format_user(s, "admin") for s in admin_sessions.values()]
+        
+        # Diagnosis users
+        try:
+            from ..pdn_diagnose.diagnosis_routes import active_sessions
+            users.extend(_format_user(s, "diagnosis") for s in active_sessions.values())
+            logger.debug(f"Loaded {len(active_sessions)} diagnosis sessions")
+        except (ImportError, AttributeError) as e:
+            logger.debug(f"Could not load diagnosis sessions: {e}")
+        
+        # Chat AI users
+        try:
+            from ..pdn_chat_ai.chat_routes import chat_sessions
+            users.extend(_format_user(s, "chat_ai") for s in chat_sessions.values())
+            logger.debug(f"Loaded {len(chat_sessions)} chat sessions")
+        except (ImportError, AttributeError) as e:
+            logger.debug(f"Could not load chat sessions: {e}")
+        
+        return jsonify({"users": users, "count": len(users)})
+    except:
+        return jsonify({"error": "Unauthorized"}), 401
+
+
+@pdn_admin_bp.route('/all-logged-in-users')
+def get_all_logged_in_users():
+    """Get list of all logged-in users (admin + diagnosis)"""
+    logger.debug("GET /pdn-admin/all-logged-in-users called")
     logger.debug("Request: %s %s", request.method, request.url)
     try:
         verify_session(request.args.get('session_token'))
         
-        users = [{
+        # Get admin users
+        admin_users = [{
             "email": s["email"],
             "login_time": s["login_time"].strftime("%d/%m/%Y %H:%M:%S"),
-            "expires_at": s["expires_at"].strftime("%d/%m/%Y %H:%M:%S")
+            "expires_at": s["expires_at"].strftime("%d/%m/%Y %H:%M:%S"),
+            "type": "admin"
         } for s in admin_sessions.values()]
         
-        return jsonify({"users": users, "count": len(users)})
-
+        # Get diagnosis users
+        try:
+            from ..pdn_diagnose.diagnosis_routes import active_sessions as diagnosis_sessions
+            diagnosis_users = [{
+                "email": s["email"],
+                "login_time": s["login_time"].strftime("%d/%m/%Y %H:%M:%S"),
+                "type": "diagnosis"
+            } for s in diagnosis_sessions.values()]
+        except ImportError:
+            diagnosis_users = []
+        
+        all_users = admin_users + diagnosis_users
+        
+        return jsonify({
+            "users": all_users,
+            "count": len(all_users),
+            "admin_count": len(admin_users),
+            "diagnosis_count": len(diagnosis_users)
+        })
     except:
         return jsonify({"error": "Unauthorized"}), 401
 
