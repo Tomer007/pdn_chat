@@ -1530,6 +1530,7 @@
         const micBtn = document.getElementById('micBtn');
         const micIcon = micBtn.querySelector('i');
         const micText = document.getElementById('micBtnText');
+        const sendBtn = document.getElementById('sendBtn');
 
         if (isActive) {
             micBtn.classList.add('recording');
@@ -1537,12 +1538,14 @@
             micText.textContent = 'סיים';
             micBtn.title = 'עצור הקלטה';
             micBtn.setAttribute('aria-label', 'עצור הקלטה');
+            sendBtn.disabled = true;
         } else {
             micBtn.classList.remove('recording');
             micIcon.className = 'fas fa-microphone';
             micText.textContent = 'הקלטה';
             micBtn.title = 'הקלטה קולית';
             micBtn.setAttribute('aria-label', 'הקלטה קולית');
+            sendBtn.disabled = false;
         }
     }
 
@@ -2082,6 +2085,9 @@
         // Add to queue
         messageQueue.push(message);
         input.value = "";
+        
+        // Reset textarea height
+        autoResizeTextarea(input);
 
         // Process queue
         if (!isProcessing) {
