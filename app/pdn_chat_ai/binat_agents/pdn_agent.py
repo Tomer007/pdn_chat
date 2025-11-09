@@ -8,6 +8,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List
+from datetime import datetime
 
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_openai import ChatOpenAI
@@ -27,6 +28,7 @@ class PDNAgent:
     MAX_CONTEXT_TOKENS = 3500
     MAX_TURNS_BEFORE_SUMMARY = 5
     RAW_TURNS_TO_KEEP = 5
+    MAX_CONVERSATIONS_PER_DAY = 15
 
     def __init__(self, llm_provider=None, model_name=None):
         """Initialize the PDN agent.
@@ -43,6 +45,7 @@ class PDNAgent:
         self.summary_llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.3, api_key=config.OPENAI_API_KEY)
         
         self.conversation_history = defaultdict(UserHistory)
+        self.user_conversations = defaultdict(lambda: {'count': 0, 'last_reset': datetime.now()})
         self._history_lock = threading.Lock()
         self.logger = logging.getLogger("pdn_agent")
         self._prompt_cache = {}
@@ -64,6 +67,28 @@ class PDNAgent:
             raise ValueError(f"{key_name} not set")
         
         return llm_class(model=self.model_name, temperature=0.7, max_tokens=4000, api_key=api_key, timeout=180)
+
+    def _reset_daily_count(self, user_name: str):
+        """Reset the daily conversation count at midnight."""
+        now = datetime.now()
+        user_data = self.user_conversations[user_name]
+        # Reset count if a new day has started
+        if now.date() > user_data['last_reset'].date():
+            user_data['count'] = 0
+            user_data['last_reset'] = now
+            self.logger.info(f"Daily count for {user_name} has been reset.")
+
+    def _check_conversation_limit(self, user_name: str) -> bool:
+        """Check if the user has exceeded the daily conversation limit."""
+        self._reset_daily_count(user_name)
+        if self.user_conversations[user_name]['count'] >= self.MAX_CONVERSATIONS_PER_DAY:
+            return False
+        return True
+
+    def _increment_conversation_count(self, user_name: str):
+        """Increment the conversation count for the user."""
+        self.user_conversations[user_name]['count'] += 1
+        self.logger.info(f"Incremented conversation count for {user_name}. Current count: {self.user_conversations[user_name]['count']}")
 
     def _load_prompt(self, pdn_code: str, prompt_file: str) -> str:
         """Load prompt file with caching."""
@@ -146,6 +171,9 @@ class PDNAgent:
 
     def chat_with_binat(self, user_query: str, user_name: str = None, pdn_code: str = None) -> str:
         """Generate response using PDN prompt."""
+        if not self._check_conversation_limit(user_name):
+            return "הגעת למגבלת השיחות להיום, אנא חזור אלינו מחר."
+
         system_prompt = self._load_prompt(pdn_code, "binat_agent.prompt")
         history_context = self._format_history(user_name)
         enhanced_question = f"User Name is: {user_name}\nUser PDN Code is: {pdn_code}\n{user_query}"
@@ -159,12 +187,15 @@ class PDNAgent:
 
         if user_name:
             self._add_to_history(user_name, user_query, response_text)
+            self._increment_conversation_count(user_name)
 
         return response_text
 
-
     def build_21_transformation_plan(self, user_goal: str, user_name: str, pdn_code: str) -> str:
         """Generate 21-day transformation plan."""
+        if not self._check_conversation_limit(user_name):
+            return "הגעת למגבלת השיחות להיום, אנא חזור אלינו מחר."
+
         system_prompt = self._load_prompt(pdn_code, "21_plan.prompt")
         user_message = f"user_name: {user_name}\nuser_pdn_code: {pdn_code}\nuser_goal: {user_goal}"
 
@@ -175,11 +206,15 @@ class PDNAgent:
 
         if user_name:
             self._add_to_history(user_name, user_goal, response_text)
+            self._increment_conversation_count(user_name)
 
         return response_text
 
     def daily_training(self, user_name: str, pdn_code: str, day_task: str) -> str:
         """Generate personalized daily training response."""
+        if not self._check_conversation_limit(user_name):
+            return "הגעת למגבלת השיחות להיום, אנא חזור אלינו מחר."
+
         system_prompt = self._load_prompt(pdn_code, "daily_training.prompt")
         user_message = f"User name: {user_name}\n User day Task: {day_task}\n."
 
@@ -190,6 +225,6 @@ class PDNAgent:
 
         if user_name:
             self._add_to_history(user_name, day_task, response_text)
+            self._increment_conversation_count(user_name)
 
         return response_text
-
