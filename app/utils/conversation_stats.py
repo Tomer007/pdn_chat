@@ -2,11 +2,11 @@
 
 import json
 import logging
-import os
 from datetime import datetime, timedelta
-from pathlib import Path
 from collections import defaultdict
 import threading
+
+from app.utils.pdn_file_path import PDNFilePath
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +14,11 @@ class ConversationStats:
     """Track daily conversation counts per user."""
     
     def __init__(self):
-        self.stats_file = Path(os.getenv('SAVED_RESULTS_DIR', 'saved_results')) / 'conversation_stats.json'
+        pdn_file_path = PDNFilePath()
+        user_dir = pdn_file_path.get_base_dir()
+        self.stats_file = user_dir / "conversation_stats.json"
+        logger.info("conversation stats file path: %s", self.stats_file)
+
         self.stats = defaultdict(lambda: defaultdict(int))
         self._lock = threading.Lock()
         self._dirty = False

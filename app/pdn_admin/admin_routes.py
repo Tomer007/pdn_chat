@@ -12,6 +12,7 @@ from ..utils.csv_metadata_handler import UserMetadataHandler
 from ..utils.email_sender import send_pdn_code_email
 from ..utils.pdn_calculator import calculate_pdn_code
 from ..utils.pdn_file_path import PDNFilePath
+from ..utils.conversation_stats import conversation_stats
 
 
 # Configure logging
@@ -621,6 +622,18 @@ def save_audio():
         logger.error(f"Error saving audio file: {str(e)}")
         return jsonify({"error": f"Failed to save audio: {str(e)}"}), 500
 
+
+@pdn_admin_bp.route('/conversation-stats')
+def get_conversation_stats():
+    """Get conversation statistics for all users"""
+    try:
+        days = int(request.args.get('days', 7))
+        return jsonify({
+            "stats": conversation_stats.get_all_stats(days),
+            "days": days
+        })
+    except:
+        return jsonify({"error": "Unauthorized"}), 401
 
 @pdn_admin_bp.route('/download-json')
 def download_user_json():
