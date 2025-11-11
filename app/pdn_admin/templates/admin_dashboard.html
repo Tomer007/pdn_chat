@@ -314,7 +314,7 @@
             font-weight: 500;
         }
 
-        /* Enhanced notification animations */
+        /* Enhanced notification animations */ notification animations */
         .notification-item {
             animation: notificationSlideIn 0.5s ease-out;
         }
@@ -434,6 +434,18 @@
         </div>
     </div>
 
+    <!-- Conversation Stats -->
+    <div class="card p-8 rounded-2xl">
+        <div class="mb-6">
+            <h3 class="text-xl font-semibold text-gray-800 flex items-center mb-2">
+                <i class="fas fa-comments mr-2"> סטטיסטיקות שיחות </i>
+            </h3>
+        </div>
+        <div id="conversationStats" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Stats will be populated here -->
+        </div>
+    </div>
+
     <!-- Data Table -->
     <div class="card p-8 rounded-2xl">
         <div class="mb-6">
@@ -531,7 +543,7 @@
                 <label for="diagnosePdnCode" class="block text-sm font-medium text-gray-700 mb-2">
                     <i> קוד PDN אבחון </i>
                 </label>
-                <input type="text" id="diagnosePdnCode" name="diagnose_pdn_code" 
+                <input type="text" id="diagnosePdnCode" name="diagnose_pdn_code"
                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
             </div>
             <div>
@@ -911,6 +923,7 @@
 
         setupEventListeners();
         loadMetadata();
+        loadConversationStats();
 
         // Add global error handler for 401 responses
         window.addEventListener('unhandledrejection', function (event) {
@@ -930,7 +943,10 @@
         document.getElementById('redUsersFilter').addEventListener('change', handleFilter);
 
         // Refresh button
-        document.getElementById('refreshBtn').addEventListener('click', loadMetadata);
+        document.getElementById('refreshBtn').addEventListener('click', () => {
+            loadMetadata();
+            loadConversationStats();
+        });
 
         // Logout button
         document.getElementById('logoutBtn').addEventListener('click', handleLogout);
@@ -964,16 +980,16 @@
             if (!response.ok) {
                 throw new Error('Failed to fetch logged-in users');
             }
-            
+
             const data = await response.json();
             const content = document.getElementById('loggedInUsersContent');
-            
+
             if (data.count === 0) {
                 content.innerHTML = '<p class="text-gray-600 text-center py-4">אין משתמשים מחוברים כרגע</p>';
             } else {
                 let html = `<div class="mb-4 text-sm text-gray-600">סה"כ: ${data.count} משתמשים</div>`;
                 html += '<div class="space-y-3">';
-                
+
                 data.users.forEach(user => {
                     const appName = user.type === 'admin' ? 'מנהל' : user.type === 'diagnosis' ? 'אבחון' : 'צ׳אט';
                     const appColor = user.type === 'admin' ? 'bg-blue-100 text-blue-800' : user.type === 'diagnosis' ? 'bg-green-100 text-green-800' : 'bg-purple-100 text-purple-800';
@@ -995,11 +1011,11 @@
                         </div>
                     `;
                 });
-                
+
                 html += '</div>';
                 content.innerHTML = html;
             }
-            
+
             document.getElementById('loggedInUsersModal').style.display = 'flex';
         } catch (error) {
             console.error('Error fetching logged-in users:', error);
@@ -1009,17 +1025,17 @@
 
     async function loadMetadata() {
         const refreshBtn = document.getElementById('refreshBtn');
-        
+
         // Check if button is already disabled (prevent multiple calls)
         if (refreshBtn.disabled) {
             console.log('Refresh button already disabled, ignoring request');
             return;
         }
-        
+
         // Disable refresh button
         refreshBtn.disabled = true;
         console.log('Refresh button disabled');
-        
+
         // Safety timeout to re-enable button after 30 seconds
         const safetyTimeout = setTimeout(() => {
             if (refreshBtn.disabled) {
@@ -1027,7 +1043,7 @@
                 console.log('Refresh button re-enabled by safety timeout');
             }
         }, 30000);
-        
+
         showLoading();
         console.log('loadMetadata sessionToken', sessionToken);
         try {
@@ -1061,42 +1077,14 @@
                         }
                     }
 
-                    // If still invalid, return epoch date
-                    if (isNaN(date.getTime())) {
-                        console.warn(`Could not parse date: ${dateStr}`);
-                        return new Date(0);
-                    }
-
                     return date;
                 };
 
-                // Sort data by date from newest to oldest (תאריך)
-                currentData.sort((a, b) => {
-                    const dateA = parseDate(a.date);
-                    const dateB = parseDate(b.date);
+                // Sort by date (newest first)
+                currentData.sort((a, b) => parseDate(b.date) - parseDate(a.date));
 
-                    // Sort by date (newest first)
-                    return dateB - dateA;
-                });
-
-                // Debug: Log the sorted dates and any parsing issues
-                const dateDebug = currentData.map(u => ({
-                    email: u.email,
-                    date: u.date,
-                    parsed: parseDate(u.date),
-                    isValid: !isNaN(parseDate(u.date).getTime())
-                }));
-                console.log('Initial date sorting:', dateDebug);
-
-                // Log any dates that couldn't be parsed
-                const invalidDates = dateDebug.filter(d => !d.isValid);
-                if (invalidDates.length > 0) {
-                    console.warn('Dates that could not be parsed:', invalidDates);
-                }
-
-                renderTable(currentData);
+                displayData(currentData);
             } else if (response.status === 401) {
-                // Session expired or invalid, redirect to login
                 console.log('Session expired, redirecting to login');
                 localStorage.removeItem('adminSessionToken');
                 window.location.href = '/pdn-admin/';
@@ -1105,15 +1093,117 @@
             }
         } catch (error) {
             console.error('Error loading metadata:', error);
-            alert('שגיאה בטעינת הנתונים');
+            alert('שגיאה בטעינת נתונים');
         } finally {
             hideLoading();
-            // Clear safety timeout
+            // Clear safety timeout and re-enable refresh button
             clearTimeout(safetyTimeout);
-            // Re-enable refresh button
             refreshBtn.disabled = false;
             console.log('Refresh button re-enabled');
         }
+    }
+
+    async function loadConversationStats() {
+        try {
+            const response = await fetch(`/pdn-admin/conversation-stats?session_token=${sessionToken}&days=7`);
+
+            if (response.ok) {
+                const data = await response.json();
+                displayConversationStats(data.stats);
+            }
+        } catch (error) {
+            console.error('Error loading conversation stats:', error);
+        }
+    }
+
+    function displayConversationStats(stats) {
+        const container = document.getElementById('conversationStats');
+        
+        const allUsers = new Set();
+        const dates = Object.keys(stats).sort().reverse();
+        
+        dates.forEach(date => {
+            Object.keys(stats[date]).forEach(email => allUsers.add(email));
+        });
+        
+        const users = Array.from(allUsers).sort();
+        const weeklyTotals = {};
+        users.forEach(user => {
+            weeklyTotals[user] = dates.reduce((sum, date) => sum + (stats[date][user] || 0), 0);
+        });
+        
+        let html = `
+            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm" style="grid-column: 1 / -1; width: 100%;">
+                <style>
+                    .stats-table { 
+                        width: 100%;
+                        min-width: 1200px;
+                        border-collapse: collapse;
+                        font-family: 'Inter', sans-serif;
+                    }
+                    .stats-table th, .stats-table td { 
+                        padding: 12px;
+                        text-align: center;
+                        border: 1px solid #e5e7eb;
+                    }
+                    .stats-table th { 
+                        background: linear-gradient(135deg, #e0e7ff 0%, #f1f5f9 100%);
+                        font-weight: 600;
+                        color: #374151;
+                    }
+                    .stats-table tbody tr:hover { 
+                        background: #f9fafb;
+                    }
+                    .stats-table .total-col { 
+                        background: #f3f4f6;
+                        font-weight: 600;
+                    }
+                    .stats-table .user-col { 
+                        text-align: right;
+                        font-weight: 500;
+                    }
+                    .stats-table .total-row {
+                        background: #f3f4f6;
+                        font-weight: 600;
+                    }
+                </style>
+                
+                <div style="overflow-x: auto; width: 100%;">
+                    <table class="stats-table">
+                        <thead>
+                            <tr>
+                                <th class="user-col">משתמש</th>
+                                ${dates.map(date => `<th>${date}</th>`).join('')}
+                                <th class="total-col">סה"כ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${users.map(user => `
+                                <tr>
+                                    <td class="user-col">${user}</td>
+                                    ${dates.map(date => `<td>${stats[date][user] || 0}</td>`).join('')}
+                                    <td class="total-col">${weeklyTotals[user]}</td>
+                                </tr>
+                            `).join('')}
+                            <tr class="total-row">
+                                <td class="user-col">סה"כ</td>
+                                ${dates.map(date => {
+                                    const dayTotal = Object.values(stats[date]).reduce((sum, count) => sum + count, 0);
+                                    return `<td>${dayTotal}</td>`;
+                                }).join('')}
+                                <td class="total-col">${Object.values(weeklyTotals).reduce((sum, count) => sum + count, 0)}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+        
+        container.innerHTML = html;
+    }
+
+    function displayData(data) {
+        renderTable(data);
     }
 
     function renderTable(data) {
@@ -1150,13 +1240,13 @@
             </td>
             <td class="px-4 py-4">
                 <div class="relative" x-data="{ open: false, loadingBtn: '', modalText: '', showModal: false }">
-                    <button @click="open = !open" 
+                    <button @click="open = !open"
                             class="action-btn bg-blue-900 hover:bg-blue-900 text-white px-4 py-2 rounded-lg transition-all duration-300 flex items-center">
                         <i > פעולות </i>
                         <i class="fas fa-chevron-down mr-2 transition-transform" :class="{ 'rotate-180': open }"></i>
                     </button>
-                    
-                    <div x-show="open" 
+
+                    <div x-show="open"
                          @click.away="open = false"
                          x-transition:enter="transition ease-out duration-100"
                          x-transition:enter-start="transform opacity-0 scale-95"
@@ -1165,37 +1255,37 @@
                          x-transition:leave-start="transform opacity-100 scale-100"
                          x-transition:leave-end="transform opacity-0 scale-95"
                          class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-blue-200 z-50">
-                        
+
                         <div class="py-1">
-                            <button @click="loadingBtn = 'questionnaire'; modalText = 'טוען נתוני שאלון...'; showModal = true; viewQuestionnaire('${user.email}'); open = false" 
+                            <button @click="loadingBtn = 'questionnaire'; modalText = 'טוען נתוני שאלון...'; showModal = true; viewQuestionnaire('${user.email}'); open = false"
                                     class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center"
                                     :disabled="loadingBtn === 'questionnaire'">
                                 <i class="fas fa-clipboard-list ml-2"></i>
                                 צפה בשאלון
                             </button>
-                            
-                            <button @click="loadingBtn = 'voice'; modalText = 'טוען הקלטה קולית...'; showModal = true; playVoice('${user.email}'); open = false" 
+
+                            <button @click="loadingBtn = 'voice'; modalText = 'טוען הקלטה קולית...'; showModal = true; playVoice('${user.email}'); open = false"
                                     class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center"
                                     :disabled="loadingBtn === 'voice'">
                                 <i class="fas fa-microphone ml-2"></i>
                                 האזן להקלטה
                             </button>
-                            
-                            <button @click="loadingBtn = 'edit'; modalText = 'ערוך איבחון...'; showModal = true; editDiagnose('${user.email}'); open = false" 
+
+                            <button @click="loadingBtn = 'edit'; modalText = 'ערוך איבחון...'; showModal = true; editDiagnose('${user.email}'); open = false"
                                     class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center"
                                     :disabled="loadingBtn === 'edit'">
                                 <i class="fas fa-edit ml-2"></i>
                                 ערוך אבחון
                             </button>
-                            
-                            <button @click="loadingBtn = 'email'; modalText = 'שולח אימייל...'; showModal = true; sendEmail('${user.email}'); open = false" 
+
+                            <button @click="loadingBtn = 'email'; modalText = 'שולח אימייל...'; showModal = true; sendEmail('${user.email}'); open = false"
                                     class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center"
                                     :disabled="loadingBtn === 'email'">
                                 <i class="fas fa-envelope ml-2"></i>
                                 שלח אימייל
                             </button>
-                            
-                            <button @click="loadingBtn = 'recalculate'; modalText = 'מחשב מחדש קוד פדן...'; showModal = true; recalculatePdnCode('${user.email}'); open = false" 
+
+                            <button @click="loadingBtn = 'recalculate'; modalText = 'מחשב מחדש קוד פדן...'; showModal = true; recalculatePdnCode('${user.email}'); open = false"
                                     class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center"
                                     :disabled="loadingBtn === 'recalculate'">
                                 <i class="fas fa-calculator ml-2"></i>
@@ -1212,7 +1302,7 @@
                 <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium"> ${user.pdn_code}</span>
             </td>
             <td class="px-4 py-4">
-                ${user.needs_verification ? 
+                ${user.needs_verification ?
                     '<span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium" title="נדרש אימות אנושי - הפער בין הציונים קטן מ-2 נקודות">⚠️ אימות</span>' :
                     '<span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">✓ תקין</span>'
                 }
@@ -1403,8 +1493,8 @@
                         הורד דוח
                         <i class="fas fa-chevron-down mr-2 transition-transform" :class="{ 'rotate-180': open }"></i>
                     </button>
-                    
-                    <div x-show="open" 
+
+                    <div x-show="open"
                          @click.away="open = false"
                          x-transition:enter="transition ease-out duration-100"
                          x-transition:enter-start="transform opacity-0 scale-95"
@@ -1413,15 +1503,15 @@
                          x-transition:leave-start="transform opacity-100 scale-100"
                          x-transition:leave-end="transform opacity-0 scale-95"
                          class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-blue-200 z-50">
-                        
+
                         <div class="py-1">
-                            <button @click="open = false; downloadReport('pdf')" 
+                            <button @click="open = false; downloadReport('pdf')"
                                     class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center">
                                 <i class="fas fa-file-pdf ml-2 text-red-500"></i>
                                 הורד PDF
                             </button>
-                            
-                            <button @click="open = false; promptAdminPassword()" 
+
+                            <button @click="open = false; promptAdminPassword()"
                                     class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center">
                                 <i class="fas fa-file-code ml-2 text-green-500"></i>
                                 הורד JSON
@@ -1430,7 +1520,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
                 <!-- Personal Information Section -->
         <div class="space-y-4">
@@ -1989,21 +2079,21 @@ ${leftText}: ${leftValue} | ${rightText}: ${rightValue}
 
                 if (response.ok) {
                     const data = await response.json();
-                    
+
                     // Show appropriate notification based on verification status
                     if (data.needs_verification) {
                         showNotification(`אימייל נשלח ל-${email} - ⚠️ נדרש אימות אנושי (הפער בין הציונים קטן מ-2 נקודות)`, 'warning');
                     } else {
                         showNotification(`אימייל נשלח בהצלחה ל-${email}`, 'success');
                     }
-                    
+
                     // Update local data with verification status
                     const userIndex = currentData.findIndex(u => u.email === email);
                     if (userIndex !== -1) {
                         currentData[userIndex].needs_verification = data.needs_verification || false;
                         renderTable(currentData);
                     }
-                    
+
                     // Reset loading state for this specific row
                     resetRowLoadingState(email, 'email');
                 } else if (response.status === 401) {
@@ -2071,7 +2161,7 @@ ${leftText}: ${leftValue} | ${rightText}: ${rightValue}
                 if (response.ok) {
                     const data = await response.json();
                     console.log('Full response data:', data); // Debug log
-                    
+
                     // Show appropriate notification based on verification status
                     if (data.needs_verification) {
                         showNotification(`קוד פדן חושב מחדש: ${data.pdn_code} - ⚠️ נדרש אימות אנושי (הפער בין הציונים קטן מ-2 נקודות)`, 'warning');
@@ -2370,4 +2460,4 @@ ${leftText}: ${leftValue} | ${rightText}: ${rightValue}
 
 </script>
 </body>
-</html> 
+</html>

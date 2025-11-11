@@ -8,6 +8,7 @@ from datetime import datetime
 from functools import wraps
 from flask import Blueprint, request, render_template, jsonify, session
 from .binat_agents.pdn_agent import PDNAgent
+from ..utils.conversation_stats import conversation_stats
 
 from .logger import setup_logger
 
@@ -35,7 +36,9 @@ USERS_DATA = {
     'milch2072@gmail.com': {'password': 'pdn', 'pdn_code': 't8', 'name': 'מיכל'},
     'youchy0@gmail.com': {'password': 'pdn', 'pdn_code': 'e1', 'name': 'יוחנן'},
     'yairmichl@gmail.com': {'password': 'pdn', 'pdn_code': 'e9', 'name': 'יאיר'},
-    'gotoalma@gmail.com': {'password': 'pdn', 'pdn_code': 'a3', 'name': 'עלמה'}
+    'gotoalma@gmail.com': {'password': 'pdn', 'pdn_code': 'a3', 'name': 'עלמה'},
+    'uri44shilat@gmail.com': {'password': 'pdn', 'pdn_code': 't8', 'name': 'אורי'},
+    'am58lb@gmail.com': {'password': 'pdn', 'pdn_code': 't12', 'name': 'עלמה'}
 }
 
 def get_agent_instance():
@@ -109,15 +112,13 @@ def login():
 @handle_errors
 def logout():
     """Handle user logout"""
-    if user_name := session.get('user_name'):
-        get_agent_instance().clear_user_history(user_name)
-        logger.info("Cleared conversation history for user: %s", user_name)
+    user_email = session.get('user_email')
     
     # Remove from active sessions
     chat_sessions.pop(session.sid, None)
     
     session.clear()
-    logger.info("User logged out successfully")
+    logger.info("User %s logged out successfully (history preserved)", user_email)
     return jsonify({"success": True, "message": "Logout successful"})
 
 @pdn_chat_ai_bp.route('/chat-ai')
@@ -139,6 +140,11 @@ def chat_with_binat():
     data = request.get_json()
     if not data:
         return jsonify({"error": "No data provided"}), 400
+
+    # Track conversation
+    user_email = session.get('user_email')
+    if user_email:
+        conversation_stats.increment_conversation(user_email)
 
     agent = get_agent_instance()
     return jsonify({
