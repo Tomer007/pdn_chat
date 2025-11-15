@@ -3,7 +3,7 @@
 import logging
 import os
 import sys
-import threading
+
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -46,7 +46,7 @@ class PDNAgent:
         
         self.conversation_history = defaultdict(UserHistory)
         self.user_conversations = defaultdict(lambda: {'count': 0, 'last_reset': datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)})
-        self._history_lock = threading.Lock()
+
         self.logger = logging.getLogger("pdn_agent")
         self._prompt_cache = {}
         self._prompts_dir = Path(__file__).parent / "prompts"
@@ -70,27 +70,24 @@ class PDNAgent:
 
     def _reset_daily_count(self, user_name: str):
         """Reset the daily conversation count at midnight."""
-        with self._history_lock:
-            now = datetime.now()
-            user_data = self.user_conversations[user_name]
-            # Reset count if a new day has started
-            if now.date() > user_data['last_reset'].date():
-                old_date = user_data['last_reset'].date()
-                user_data['count'] = 0
-                user_data['last_reset'] = now
-                self.logger.info(f"Daily count for {user_name} has been reset. Previous: {old_date}, Current: {now.date()}")
+        now = datetime.now()
+        user_data = self.user_conversations[user_name]
+        # Reset count if a new day has started
+        if now.date() > user_data['last_reset'].date():
+            old_date = user_data['last_reset'].date()
+            user_data['count'] = 0
+            user_data['last_reset'] = now
+            self.logger.info(f"Daily count for {user_name} has been reset. Previous: {old_date}, Current: {now.date()}")
 
     def _check_conversation_limit(self, user_name: str) -> bool:
         """Check if the user has exceeded the daily conversation limit."""
-        with self._history_lock:
-            self._reset_daily_count(user_name)
-            return self.user_conversations[user_name]['count'] < self.MAX_CONVERSATIONS_PER_DAY
+        self._reset_daily_count(user_name)
+        return self.user_conversations[user_name]['count'] < self.MAX_CONVERSATIONS_PER_DAY
 
     def _increment_conversation_count(self, user_name: str):
         """Increment the conversation count for the user."""
-        with self._history_lock:
-            self.user_conversations[user_name]['count'] += 1
-            self.logger.info(f"Incremented conversation count for {user_name}. Current count: {self.user_conversations[user_name]['count']}")
+        self.user_conversations[user_name]['count'] += 1
+        self.logger.info(f"Incremented conversation count for {user_name}. Current count: {self.user_conversations[user_name]['count']}")
 
     def _load_prompt(self, pdn_code: str, prompt_file: str) -> str:
         """Load prompt file with caching."""
@@ -129,25 +126,24 @@ class PDNAgent:
 
     def _add_to_history(self, user_name: str, user_query: str, assistant_response: str):
         """Add conversation exchange to history with hybrid summarization."""
-        with self._history_lock:
-            hist = self.conversation_history[user_name]
-            hist.raw.append({"user": user_query, "assistant": assistant_response})
-            
-            # Calculate total tokens
-            total_tokens = sum(
-                self._estimate_tokens(ex['user']) + self._estimate_tokens(ex['assistant'])
-                for ex in hist.raw
-            )
-            
-            # Check both conditions
-            turn_limit_reached = len(hist.raw) >= self.MAX_TURNS_BEFORE_SUMMARY
-            token_limit_reached = total_tokens > self.MAX_CONTEXT_TOKENS
-            
-            # Summarize if either condition is met
-            if turn_limit_reached or token_limit_reached:
-                reason = "turn limit" if turn_limit_reached else "token limit"
-                self.logger.info(f"Summarizing for {user_name}: {reason} reached (turns={len(hist.raw)}, tokens={total_tokens})")
-                self._summarize_old_turns(user_name)
+        hist = self.conversation_history[user_name]
+        hist.raw.append({"user": user_query, "assistant": assistant_response})
+        
+        # Calculate total tokens
+        total_tokens = sum(
+            self._estimate_tokens(ex['user']) + self._estimate_tokens(ex['assistant'])
+            for ex in hist.raw
+        )
+        
+        # Check both conditions
+        turn_limit_reached = len(hist.raw) >= self.MAX_TURNS_BEFORE_SUMMARY
+        token_limit_reached = total_tokens > self.MAX_CONTEXT_TOKENS
+        
+        # Summarize if either condition is met
+        if turn_limit_reached or token_limit_reached:
+            reason = "turn limit" if turn_limit_reached else "token limit"
+            self.logger.info(f"Summarizing for {user_name}: {reason} reached (turns={len(hist.raw)}, tokens={total_tokens})")
+            self._summarize_old_turns(user_name)
 
     def _format_history(self, user_name: str) -> str:
         """Format conversation history with summary + recent exchanges."""
@@ -167,9 +163,8 @@ class PDNAgent:
 
     def clear_user_history(self, user_name: str):
         """Clear conversation history for user."""
-        with self._history_lock:
-            if user_name in self.conversation_history:
-                self.conversation_history[user_name] = UserHistory()
+        if user_name in self.conversation_history:
+            self.conversation_history[user_name] = UserHistory()
 
     def chat_with_binat(self, user_query: str, user_name: str = None, pdn_code: str = None) -> str:
         """Generate response using PDN prompt."""
