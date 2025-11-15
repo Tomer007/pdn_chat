@@ -1264,7 +1264,7 @@
             <i class="fas fa-microphone"></i> <span id="micBtnText">הקלטה</span>
         </button>
 
-        <button class="send-button" onclick="sendMessage()" id="sendBtn" aria-label="שלח הודעה">
+        <button class="send-button" onclick="toggleSendStop()" id="sendBtn" aria-label="שלח הודעה">
             <i class="fas fa-paper-plane"></i> שלח
         </button>
     </div>
@@ -1426,6 +1426,7 @@
     const PDN_CODE = "{{ pdn_code }}";
     let messageQueue = [];
     let isProcessing = false;
+    let currentController = null;
 
 
     // Voice recording variables
@@ -1648,13 +1649,7 @@
 
             // Parse with marked
             const parsed = marked.parse(sanitized);
-
-            // Debug logging
-            console.log('Original text:', text.substring(0, 200) + '...');
-            console.log('Processed text:', processedText.substring(0, 200) + '...');
-            console.log('Parsed result:', parsed.substring(0, 200) + '...');
-
-            // Check if markdown was actually parsed (not just returned as-is)
+           // Check if markdown was actually parsed (not just returned as-is)
             if (parsed === sanitized || parsed.includes('##') || parsed.includes('**')) {
                 console.warn('Marked library may not be working properly, using fallback parser');
                 const fallbackParsed = parseMarkdownFallback(sanitized);
@@ -1868,11 +1863,6 @@
             userInput.placeholder = 'מעבד הודעה...';
         }
 
-        if (sendBtn) {
-            sendBtn.disabled = true;
-            sendBtn.innerHTML = '<span class="loading-spinner"></span> מעבד...';
-        }
-
         if (micBtn) {
             micBtn.disabled = true;
             micBtn.style.opacity = '0.5';
@@ -1899,7 +1889,6 @@
 
         if (sendBtn) {
             sendBtn.disabled = false;
-            sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> שלח';
         }
 
         if (micBtn) {
@@ -1988,7 +1977,7 @@
         try {
             const chatContainer = document.getElementById('chatContainer');
             if (!chatContainer) {
-                alert('לא נמצא מיכל השיחה');
+                showError('לא נמצא השיחה');
                 return;
             }
 
@@ -1996,7 +1985,7 @@
             const messages = chatContainer.querySelectorAll('.chat-bubble');
 
             if (messages.length === 0) {
-                alert('אין הודעות לייצוא');
+                showError('אין הודעות לייצוא');
                 return;
             }
 
@@ -2054,16 +2043,64 @@
             document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
 
-            alert('השיחה יוצאה בהצלחה!');
+            showSuccess('השיחה יוצאה בהצלחה!');
 
         } catch (error) {
             console.error('Export error:', error);
-            alert('שגיאה בייצוא השיחה: ' + error.message);
+            showError('שגיאה בייצוא השיחה: ' + error.message);
         }
     }
 
 
     // Enhanced send message function with queue and error handling
+    function toggleSendStop() {
+        if (isProcessing) {
+            stopMessage();
+        } else {
+            sendMessage();
+        }
+    }
+
+    function stopMessage() {
+        if (currentController) {
+            currentController.abort();
+        }
+        isProcessing = false;
+        enableUI();
+        updateSendButton();
+        
+        // Add cancellation message
+        const chatContainer = document.getElementById("chatContainer");
+        const cancelBubble = document.createElement("div");
+        cancelBubble.className = "chat-bubble bot animated";
+        const currentTime = getCurrentTime();
+        cancelBubble.innerHTML = `
+            <div class="message-header">בינת:</div>
+            <div class="message-content">השליחה בוטלה על ידי המשתמש</div>
+            <div class="message-time">${currentTime}</div>
+        `;
+        chatContainer.appendChild(cancelBubble);
+        
+        // Remove typing indicator if exists
+        const typing = document.querySelector('.typing-indicator');
+        if (typing) {
+            typing.remove();
+        }
+        
+        scrollToBottom();
+    }
+
+    function updateSendButton() {
+        const sendBtn = document.getElementById('sendBtn');
+        if (isProcessing) {
+            sendBtn.innerHTML = '<i class="fas fa-stop"></i> עצור';
+            sendBtn.setAttribute('aria-label', 'עצור שליחה');
+        } else {
+            sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> שלח';
+            sendBtn.setAttribute('aria-label', 'שלח הודעה');
+        }
+    }
+
     async function sendMessage() {
         const input = document.getElementById("userInput");
         const message = input.value.trim();
@@ -2099,6 +2136,7 @@
         if (messageQueue.length === 0) return;
 
         isProcessing = true;
+        updateSendButton();
         const message = messageQueue.shift();
 
         const chatContainer = document.getElementById("chatContainer");
@@ -2141,6 +2179,7 @@
         scrollToBottom(true); // Force scroll for typing indicator
 
         try {
+            currentController = new AbortController();
             const res = await fetch("/pdn-chat-ai/chat", {
                 method: "POST",
                 headers: {
@@ -2152,7 +2191,8 @@
                     user_name: USER_NAME,
                     user_id: USER_ID,
                     pdn_code: PDN_CODE
-                })
+                }),
+                signal: currentController.signal
             });
 
             if (!res.ok) {
@@ -2204,11 +2244,17 @@
         } catch (error) {
             console.error('Error sending message:', error);
             typing.remove();
-            showError('שגיאה בשליחת ההודעה לשרת');
+            if (error.name === 'AbortError') {
+                console.log('Request was aborted by user');
+            } else {
+                showError('שגיאה בשליחת ההודעה לשרת');
+            }
         } finally {
             // Re-enable UI elements
             enableUI();
             isProcessing = false;
+            currentController = null;
+            updateSendButton();
 
             // Process next message in queue
             if (messageQueue.length > 0) {
