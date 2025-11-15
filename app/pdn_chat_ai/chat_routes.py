@@ -6,11 +6,12 @@ Handles user authentication, chat messaging, and 21-day plan generation.
 import uuid
 from datetime import datetime
 from functools import wraps
-from flask import Blueprint, request, render_template, jsonify, session
-from .binat_agents.pdn_agent import PDNAgent
-from ..utils.conversation_stats import conversation_stats
 
+from flask import Blueprint, request, render_template, jsonify, session
+
+from .binat_agents.pdn_agent import PDNAgent
 from .logger import setup_logger
+from ..utils.conversation_stats import conversation_stats
 
 logger = setup_logger()
 _pdn_agent = None
@@ -38,7 +39,7 @@ USERS_DATA = {
     'yairmichl@gmail.com': {'password': 'pdn', 'pdn_code': 'e9', 'name': 'יאיר'},
     'gotoalma@gmail.com': {'password': 'pdn', 'pdn_code': 'a3', 'name': 'עלמה'},
     'uri44shilat@gmail.com': {'password': 'pdn', 'pdn_code': 't8', 'name': 'אורי'},
-    'am58lb@gmail.com': {'password': 'pdn', 'pdn_code': 't12', 'name': 'עלמה'}
+    'am58lb@gmail.com': {'password': 'pdn', 'pdn_code': 't12', 'name': 'אמיתי'}
 }
 
 def get_agent_instance():
