@@ -2188,7 +2188,7 @@
 
         try {
             currentController = new AbortController();
-            const res = await fetch("/pdn-chat-ai/chat", {
+            const res = await fetch("/pdn-binat/chat", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -2340,7 +2340,7 @@
 
         try {
             // Call logout endpoint to clear server session
-            const response = await fetch('/pdn-chat-ai/logout', {
+            const response = await fetch('/pdn-binat/logout', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -2363,7 +2363,6 @@
         clearConversationHistory();
 
         // Clear server-side chat history
-        clearServerChatHistory();
 
         // Clear all chat messages visually
         const chatContainer = document.getElementById("chatContainer");
@@ -2400,35 +2399,10 @@
 
         // Redirect after a short delay to show the goodbye message
         setTimeout(() => {
-            window.location.href = '/pdn-chat-ai/';
+            window.location.href = '/pdn-binat/';
         }, 2000);
     }
 
-    // Function to clear server-side chat history
-    async function clearServerChatHistory() {
-        try {
-            const user_id = '{{ user_id }}' || 'anonymous';
-
-            const response = await fetch('/pdn-chat-ai/clear_history', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    user_id: user_id
-                })
-            });
-
-            if (response.ok) {
-                console.log('Chat history cleared successfully');
-            } else {
-                console.warn('Failed to clear chat history on server');
-            }
-        } catch (error) {
-            console.error('Error clearing chat history:', error);
-            // Don't show error to user, just log it
-        }
-    }
 
     // Handle escape key to close modal
     document.addEventListener('keydown', function (e) {
@@ -2560,7 +2534,7 @@
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 150000);
 
-            const response = await fetch('/pdn-chat-ai/21-day-plan', {
+            const response = await fetch('/pdn-binat/21-day-plan', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -2851,7 +2825,7 @@ ${planText}
             }
 
             // Send request to backend
-            const response_data = await fetch('/pdn-chat-ai/daily-training', {
+            const response_data = await fetch('/pdn-binat/daily-training', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

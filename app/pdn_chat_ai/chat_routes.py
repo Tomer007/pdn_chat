@@ -107,7 +107,7 @@ def logout():
     logger.info("User %s logged out successfully (history preserved)", user_email)
     return jsonify({"success": True, "message": "Logout successful"})
 
-@pdn_chat_ai_bp.route('/chat-ai')
+@pdn_chat_ai_bp.route('/binat')
 def chat_interface():
     """Chat interface endpoint - accessed after login"""
     return render_template(

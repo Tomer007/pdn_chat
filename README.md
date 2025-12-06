@@ -100,7 +100,7 @@ gunicorn -w 4 -b 0.0.0.0:8001 app:app
 ### Main Endpoints
 - **Home**: `http://127.0.0.1:8001/`
 - **User Assessment**: `http://127.0.0.1:8001/pdn-diagnose/`
-- **AI Chat Interface**: `http://127.0.0.1:8001/pdn-chat-ai/`
+- **AI Chat Interface**: `http://127.0.0.1:8001/pdn-binat/`
 - **Admin Login**: `http://127.0.0.1:8001/pdn-admin/`
 - **Admin Dashboard**: `http://127.0.0.1:8001/pdn-admin/dashboard`
 
@@ -123,18 +123,14 @@ gunicorn -w 4 -b 0.0.0.0:8001 app:app
 - `GET /pdn-diagnose/get_report_data` - Get report data (JSON)
 - `POST /pdn-diagnose/send_email` - Send report via email
 
-### PDN Chat AI Module (`/pdn-chat-ai`)
+### PDN Binat Module (`/pdn-binat`)
 **Chat Interface:**
-- `GET /pdn-chat-ai/` - Chat interface page
-- `POST /pdn-chat-ai/chat` - Send chat message
-- `GET /pdn-chat-ai/context` - Get user context
-- `GET /pdn-chat-ai/history` - Get chat history
-- `POST /pdn-chat-ai/clear_history` - Clear chat history
-- `GET /pdn-chat-ai/settings` - Get chat settings
-- `PUT /pdn-chat-ai/settings` - Update chat settings
-
-**45-Day Transformation Plans:**
-- `POST /pdn-chat-ai/45-day-plan` - Generate personalized 45-day transformation plan
+- `GET /pdn-binat/` - Chat interface page
+- `POST /pdn-binat/chat` - Send chat message
+- `POST /pdn-binat/21-day-plan` - Generate 21-day transformation plan
+- `POST /pdn-binat/daily-training` - Daily training requests
+- `POST /pdn-binat/login` - User authentication
+- `POST /pdn-binat/logout` - User logout
 
 ### PDN Admin Module (`/pdn-admin`)
 **Authentication:**

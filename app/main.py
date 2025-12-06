@@ -47,7 +47,7 @@ def create_app():
         (pdn_diagnose_bp, '/pdn-diagnose'),
         (pdn_admin_bp, '/pdn-admin'),
         (audio_bp, '/pdn-admin'),
-        (pdn_chat_ai_bp, '/pdn-chat-ai'),
+        (pdn_chat_ai_bp, '/pdn-binat'),
         (neo_bp, '/neo')
     ]:
         app.register_blueprint(bp, url_prefix=prefix)
@@ -64,7 +64,7 @@ def create_app():
             "modules": [
                 "/pdn-diagnose - Personal development interaction",
                 "/pdn-admin - Admin dashboard and monitoring",
-                "/pdn-chat-ai - AI chat assistance",
+                "/pdn-binat - AI chat assistance",
                 "/neo - Neo P.D.N Center"
             ]
         }

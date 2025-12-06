@@ -579,7 +579,7 @@
 
         if (storedUsername && storedUserId && storedPdnCode) {
             // User is already logged in, redirect to chat
-            window.location.href = `/pdn-chat-ai/chat-ai?user_name=${encodeURIComponent(storedUsername)}&user_id=${encodeURIComponent(storedUserId)}&pdn_code=${encodeURIComponent(storedPdnCode)}`;
+            window.location.href = `/pdn-binat/binat?user_name=${encodeURIComponent(storedUsername)}&user_id=${encodeURIComponent(storedUserId)}&pdn_code=${encodeURIComponent(storedPdnCode)}`;
             return;
         }
 
@@ -611,7 +611,7 @@
 
         try {
             // Make API call to login endpoint
-            const response = await fetch('/pdn-chat-ai/login', {
+            const response = await fetch('/pdn-binat/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -631,7 +631,7 @@
                 localStorage.setItem('binat_pdn_code', data.pdn_code);
 
                 // Redirect to chat-ai with user data including PDN code
-                window.location.href = `/pdn-chat-ai/chat-ai?user_name=${encodeURIComponent(data.user_name)}&user_id=${encodeURIComponent(data.user_id)}&pdn_code=${encodeURIComponent(data.pdn_code)}`;
+                window.location.href = `/pdn-binat/binat?user_name=${encodeURIComponent(data.user_name)}&user_id=${encodeURIComponent(data.user_id)}&pdn_code=${encodeURIComponent(data.pdn_code)}`;
             } else {
                 showError(data.error || 'שגיאה בהתחברות');
                 submitButton.classList.remove('loading');
