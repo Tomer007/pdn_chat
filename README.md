@@ -1,7 +1,7 @@
-# PDN Chat Application
+# PDN Center Application
 
 ## Overview
-PDN Chat is a comprehensive Flask application designed for psychological assessment and diagnosis through structured questionnaires, AI-powered chat interactions, and administrative management. The application is organized into three main modules that work together to provide a complete assessment platform.
+PDN Center is a comprehensive Flask application designed for psychological assessment and diagnosis through structured questionnaires, AI-powered chat interactions, and administrative management. The application is organized into three main modules that work together to provide a complete assessment platform.
 
 ## Key Features
 - **Structured Questionnaire System**: 65-question psychological assessment with voice recording capabilities
@@ -23,7 +23,7 @@ PDN Chat is a comprehensive Flask application designed for psychological assessm
 ### Technology Stack
 - **Backend**: Python 3.9+, Flask 3.1.1, FastAPI 0.115.6
 - **Frontend**: HTML5, JavaScript (ES6+), Tailwind CSS 3.4.0
-- **AI/ML**: OpenAI GPT, LangChain for AI-powered conversations
+- **AI/ML**: OpenAI GPT-4, Anthropic Claude, LangChain 0.3+ for AI-powered conversations
 - **Database**: File-based session storage
 - **PDF Generation**: HTML2PDF.js
 - **Audio Processing**: Web Audio API, WAV format support
@@ -275,30 +275,53 @@ LOG_LEVEL=INFO
 
 ### Common Issues
 
-**1. Import Errors**
+**1. LangChain Import Errors**
+```bash
+# If you encounter ImportError with langchain packages
+python3 -m pip install --upgrade langchain-core langchain-anthropic langchain-openai langchain langchain-community
+```
+
+**2. Import Errors**
 ```bash
 # Ensure virtual environment is activated
 source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-**2. Static File Issues**
+**3. Static File Issues**
 ```bash
 # Rebuild CSS
 npm run build:css:prod
 ```
 
-**3. Database Issues**
+**4. Database Issues**
 ```bash
 # Clear session data if corrupted
 rm -rf flask_session/
 # Restart application
 ```
 
-**4. Audio Upload Issues**
+**5. Audio Upload Issues**
 - Check file permissions in `saved_results/`
 - Verify audio format (WAV supported)
 - Check browser console for JavaScript errors
+
+### Dependency Compatibility
+
+The application requires compatible versions of LangChain packages:
+- `langchain>=0.3.27`
+- `langchain-core>=0.3.80`
+- `langchain-openai>=0.3.35`
+- `langchain-anthropic>=0.3.22`
+- `langsmith>=0.4.37`
+
+If you encounter version conflicts, upgrade all LangChain packages together:
+```bash
+python3 -m pip install --upgrade langchain langchain-core langchain-openai langchain-anthropic langchain-community langsmithSS
+npm run build:css:prod
+```
+
+
 
 ### Log Analysis
 ```bash
