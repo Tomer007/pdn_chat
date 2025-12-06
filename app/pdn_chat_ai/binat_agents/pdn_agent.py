@@ -32,9 +32,9 @@ class PDNAgent:
 
     def __init__(self, llm_provider=None, model_name=None):
         """Initialize the PDN agent.
-        
+
         Args:
-            llm_provider (str, optional): LLM provider ('openai' or 'anthropic'). 
+            llm_provider (str, optional): LLM provider ('openai' or 'anthropic').
                                         Defaults to config value.
             model_name (str, optional): Model name to use. Defaults to config value.
         """
@@ -43,14 +43,14 @@ class PDNAgent:
         self.model_name = model_name or (config.ANTHROPIC_MODEL if self.llm_provider.lower() == 'anthropic' else config.OPENAI_MODEL)
         self.llm = self._initialize_llm(config)
         self.summary_llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.3, api_key=config.OPENAI_API_KEY)
-        
+
         self.conversation_history = defaultdict(UserHistory)
         self.user_conversations = defaultdict(lambda: {'count': 0, 'last_reset': datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)})
 
         self.logger = logging.getLogger("pdn_agent")
         self._prompt_cache = {}
         self._prompts_dir = Path(__file__).parent / "prompts"
-        
+
         self.logger.info(f"Initialized PDNAgent with {self.llm_provider} using model {self.model_name}")
 
     def _initialize_llm(self, config):
@@ -59,13 +59,13 @@ class PDNAgent:
             'anthropic': (ChatAnthropic, config.ANTHROPIC_API_KEY, "ANTHROPIC_API_KEY"),
             'openai': (ChatOpenAI, config.OPENAI_API_KEY, "OPENAI_API_KEY")
         }
-        
+
         provider_key = self.llm_provider.lower() if self.llm_provider.lower() in providers else 'openai'
         llm_class, api_key, key_name = providers[provider_key]
-        
+
         if not api_key:
             raise ValueError(f"{key_name} not set")
-        
+
         return llm_class(model=self.model_name, temperature=0.7, max_tokens=4000, api_key=api_key, timeout=180)
 
     def _reset_daily_count(self, user_name: str):
@@ -79,10 +79,15 @@ class PDNAgent:
             user_data['last_reset'] = now
             self.logger.info(f"Daily count for {user_name} has been reset. Previous: {old_date}, Current: {now.date()}")
 
-    def _check_conversation_limit(self, user_name: str) -> bool:
+    def _is_user_exceed_limit(self, user_name: str) -> bool:
         """Check if the user has exceeded the daily conversation limit."""
         self._reset_daily_count(user_name)
-        return self.user_conversations[user_name]['count'] < self.MAX_CONVERSATIONS_PER_DAY
+        exempt_users = ['פנינה']
+
+        if user_name not in exempt_users:
+            return self.user_conversations[user_name]['count'] > self.MAX_CONVERSATIONS_PER_DAY
+        else:
+            return False
 
     def _increment_conversation_count(self, user_name: str):
         """Increment the conversation count for the user."""
@@ -168,7 +173,7 @@ class PDNAgent:
 
     def chat_with_binat(self, user_query: str, user_name: str = None, pdn_code: str = None) -> str:
         """Generate response using PDN prompt."""
-        if not self._check_conversation_limit(user_name):
+        if self._is_user_exceed_limit(user_name):
             return "הגעת למגבלת השיחות להיום, אנא חזור אלינו מחר."
 
         # Increment count immediately after limit check to prevent race conditions
@@ -193,7 +198,7 @@ class PDNAgent:
 
     def build_21_transformation_plan(self, user_goal: str, user_name: str, pdn_code: str) -> str:
         """Generate 21-day transformation plan."""
-        if not self._check_conversation_limit(user_name):
+        if self._is_user_exceed_limit(user_name):
             return "הגעת למגבלת השיחות להיום, אנא חזור אלינו מחר."
 
         # Increment count immediately after limit check to prevent race conditions
@@ -215,7 +220,7 @@ class PDNAgent:
 
     def daily_training(self, user_name: str, pdn_code: str, day_task: str) -> str:
         """Generate personalized daily training response."""
-        if not self._check_conversation_limit(user_name):
+        if self._is_user_exceed_limit(user_name):
             return "הגעת למגבלת השיחות להיום, אנא חזור אלינו מחר."
 
         # Increment count immediately after limit check to prevent race conditions

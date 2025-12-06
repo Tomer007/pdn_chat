@@ -22,23 +22,6 @@ chat_sessions = {}  # session_id -> {email, user_id, login_time}
 USERS_DATA = {
     'tomergur@gmail.com': {'password': 'pdn', 'pdn_code': 'e5', 'name': 'תומר'},
     'pdncode@gmail.com': {'password': 'pdn', 'pdn_code': 'a7', 'name': 'פנינה'},
-    'orna@84zebras.co.il': {'password': 'pdn', 'pdn_code': 'p10', 'name': 'אורנה'},
-    'info.dede.studio@gmail.com': {'password': 'pdn', 'pdn_code': 'a7', 'name': 'דניאל'},
-    'sigal4170@gmail.com': {'password': 'pdn', 'pdn_code': 'p6', 'name': 'סיגל'},
-    'kerens@bluewin.ch': {'password': 'pdn', 'pdn_code': 'a7', 'name': 'מאיה'},
-    'izhar77@gmail.com': {'password': 'pdn', 'pdn_code': 'p6', 'name': 'יזהר'},
-    'office@hagitashur.co.il': {'password': 'pdn', 'pdn_code': 'p10', 'name': 'חגית'},
-    'osnat.rabin@gmail.com': {'password': 'pdn', 'pdn_code': 'p10', 'name': 'אסנת'},
-    'mf8406@gmail.com': {'password': 'pdn', 'pdn_code': 'p6', 'name': 'שלמה'},
-    'haninitzan13@gmail.com': {'password': 'pdn', 'pdn_code': 'a7', 'name': 'חני'},
-    'canaandani@gmail.com': {'password': 'pdn', 'pdn_code': 'e5', 'name': 'דני'},
-    'pigimaya@gmail.com': {'password': 'pdn', 'pdn_code': 'a7', 'name': 'מאיה'},
-    'einatilani7@gmail.com': {'password': 'pdn', 'pdn_code': 't8', 'name': 'עינת'},
-    'milch2072@gmail.com': {'password': 'pdn', 'pdn_code': 't8', 'name': 'מיכל'},
-    'youchy0@gmail.com': {'password': 'pdn', 'pdn_code': 'e1', 'name': 'יוחנן'},
-    'yairmichl@gmail.com': {'password': 'pdn', 'pdn_code': 'e9', 'name': 'יאיר'},
-    'gotoalma@gmail.com': {'password': 'pdn', 'pdn_code': 'a3', 'name': 'עלמה'},
-    'uri44shilat@gmail.com': {'password': 'pdn', 'pdn_code': 't8', 'name': 'אורי'},
     'am58lb@gmail.com': {'password': 'pdn', 'pdn_code': 't12', 'name': 'אמיתי'},
     '8414745@GMAIL.COM': {'password': 'pdn', 'pdn_code': 'p10', 'name': 'יוכי'}
 

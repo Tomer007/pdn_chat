@@ -112,7 +112,7 @@
         /* Enhanced input area */
         .input-area {
             display: flex;
-            align-items: center;
+            flex-direction: column;
             gap: 12px;
             padding: 16px;
             background: rgba(255, 255, 255, 0.9);
@@ -120,6 +120,12 @@
             box-shadow: 0 4px 16px var(--shadow-color);
             border: 1px solid rgba(255, 255, 255, 0.3);
             margin-top: 20px;
+        }
+
+        .input-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
         }
 
 
@@ -1256,17 +1262,19 @@
                lang="he-IL"
                onkeydown="handleKeyPress(event)"
                oninput="autoResizeTextarea(this)"
-               rows="1"
+               rows="3"
                aria-label="הודעת טקסט"></textarea>
 
-        <button class="action-button" onclick="toggleMicrophone()" title="הקלטה קולית" id="micBtn"
-                aria-label="הקלטה קולית">
-            <i class="fas fa-microphone"></i> <span id="micBtnText">הקלטה</span>
-        </button>
-
-        <button class="send-button" onclick="toggleSendStop()" id="sendBtn" aria-label="שלח הודעה">
-            <i class="fas fa-paper-plane"></i> שלח
-        </button>
+        <div class="input-buttons">
+            <button class="send-button" onclick="toggleSendStop()" id="sendBtn" aria-label="שלח הודעה">
+                <i class="fas fa-paper-plane"></i> שלח
+            </button>
+            
+            <button class="action-button" onclick="toggleMicrophone()" title="הקלטה קולית" id="micBtn"
+                    aria-label="הקלטה קולית">
+                <i class="fas fa-microphone"></i> <span id="micBtnText">הקלטה</span>
+            </button>
+        </div>
     </div>
 </div>
 
