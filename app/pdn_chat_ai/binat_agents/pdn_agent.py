@@ -79,13 +79,14 @@ class PDNAgent:
             user_data['last_reset'] = now
             self.logger.info(f"Daily count for {user_name} has been reset. Previous: {old_date}, Current: {now.date()}")
 
-    def _is_user_exceed_limit(self, user_name: str) -> bool:
+    def _has_exceeded_daily_limit(self, user_name: str, max_conversations_per_day: int = None) -> bool:
         """Check if the user has exceeded the daily conversation limit."""
         self._reset_daily_count(user_name)
         exempt_users = ['פנינה']
 
         if user_name not in exempt_users:
-            return self.user_conversations[user_name]['count'] > self.MAX_CONVERSATIONS_PER_DAY
+            # Use provided limit or fall back to default
+            return self.user_conversations[user_name]['count'] >= max_conversations_per_day
         else:
             return False
 
@@ -171,9 +172,9 @@ class PDNAgent:
         if user_name in self.conversation_history:
             self.conversation_history[user_name] = UserHistory()
 
-    def chat_with_binat(self, user_query: str, user_name: str = None, pdn_code: str = None) -> str:
+    def chat_with_binat(self, user_query: str, user_name: str = None, pdn_code: str = None, daily_conversation_limit: int = None) -> str:
         """Generate response using PDN prompt."""
-        if self._is_user_exceed_limit(user_name):
+        if self._has_exceeded_daily_limit(user_name, daily_conversation_limit):
             return "הגעת למגבלת השיחות להיום, אנא חזור אלינו מחר."
 
         # Increment count immediately after limit check to prevent race conditions
@@ -196,9 +197,9 @@ class PDNAgent:
 
         return response_text
 
-    def build_21_transformation_plan(self, user_goal: str, user_name: str, pdn_code: str) -> str:
+    def build_21_transformation_plan(self, user_goal: str, user_name: str, pdn_code: str, daily_conversation_limit: int = None) -> str:
         """Generate 21-day transformation plan."""
-        if self._is_user_exceed_limit(user_name):
+        if self._has_exceeded_daily_limit(user_name, daily_conversation_limit):
             return "הגעת למגבלת השיחות להיום, אנא חזור אלינו מחר."
 
         # Increment count immediately after limit check to prevent race conditions
@@ -218,9 +219,9 @@ class PDNAgent:
 
         return response_text
 
-    def daily_training(self, user_name: str, pdn_code: str, day_task: str) -> str:
+    def daily_training(self, user_name: str, pdn_code: str, day_task: str, daily_conversation_limit: int = None) -> str:
         """Generate personalized daily training response."""
-        if self._is_user_exceed_limit(user_name):
+        if self._has_exceeded_daily_limit(user_name, daily_conversation_limit):
             return "הגעת למגבלת השיחות להיום, אנא חזור אלינו מחר."
 
         # Increment count immediately after limit check to prevent race conditions

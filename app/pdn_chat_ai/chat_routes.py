@@ -20,8 +20,8 @@ _pdn_agent = None
 chat_sessions = {}  # session_id -> {email, user_id, login_time}
 
 USERS_DATA = {
-    'tomergur@gmail.com': {'password': 'pdn', 'pdn_code': 'e5', 'name': 'תומר'},
-    'pdncode@gmail.com': {'password': 'pdn', 'pdn_code': 'a7', 'name': 'פנינה'}
+    'tomergur@gmail.com': {'password': 'pdn', 'pdn_code': 'e5', 'name': 'תומר', 'daily_conversation_limit': 1},
+    'pdncode@gmail.com': {'password': 'pdn', 'pdn_code': 'a7', 'name': 'פנינה', 'daily_conversation_limit': 1}
 }
 
 def get_agent_instance():
@@ -67,11 +67,14 @@ def login():
     user_data = USERS_DATA.get(email)
     if user_data and user_data['password'] == password:
         user_id = str(uuid.uuid4())
+        # Get daily_conversation_limit with default value of 15
+        daily_conversation_limit = user_data.get('daily_conversation_limit', 15)
         session.update({
             'user_id': user_id,
             'user_email': email,
             'user_name': user_data['name'],
-            'pdn_code': user_data['pdn_code']
+            'pdn_code': user_data['pdn_code'],
+            'daily_conversation_limit': daily_conversation_limit
         })
         # Track active session
         chat_sessions[session.sid] = {
@@ -85,7 +88,8 @@ def login():
             "message": "Login successful",
             "user_id": user_id,
             "user_name": user_data['name'],
-            "pdn_code": user_data['pdn_code']
+            "pdn_code": user_data['pdn_code'],
+            "daily_conversation_limit": daily_conversation_limit
         })
 
     logger.warning("Failed login attempt for email: %s", email)
@@ -113,6 +117,7 @@ def chat_interface():
         user_name=session.get('user_name') or request.args.get('user_name', 'Anonymous'),
         user_id=session.get('user_id') or request.args.get('user_id', ''),
         pdn_code=session.get('pdn_code') or request.args.get('pdn_code', ''),
+        daily_conversation_limit=session.get('daily_conversation_limit', 15),
         include_menu=True
     )
 
@@ -129,12 +134,16 @@ def chat_with_binat():
     if user_email:
         conversation_stats.increment_conversation(user_email)
 
+    # Get daily_conversation_limit from session or use default
+    daily_conversation_limit = session.get('daily_conversation_limit', 15)
+
     agent = get_agent_instance()
     return jsonify({
         "response": agent.chat_with_binat(
             data.get('message', '').strip(),
             data.get('user_name', 'Anonymous'),
-            data.get('pdn_code', '')
+            data.get('pdn_code', ''),
+            daily_conversation_limit=daily_conversation_limit
         ),
         "timestamp": datetime.now().isoformat()
     })
@@ -151,10 +160,13 @@ def build_21_transformation_plan():
     if not goal:
         return jsonify({"error": "Goal is required"}), 400
 
+    # Get daily_conversation_limit from session or use default
+    daily_conversation_limit = session.get('daily_conversation_limit', 15)
+
     agent = get_agent_instance()
 
     return jsonify({
-        "response": agent.build_21_transformation_plan(goal, user_name, pdn_code),
+        "response": agent.build_21_transformation_plan(goal, user_name, pdn_code, daily_conversation_limit),
         "timestamp": datetime.now().isoformat()
     })
 
@@ -170,13 +182,17 @@ def daily_training():
     if not task:
         return jsonify({"error": "Task is required"}), 400
 
+    # Get daily_conversation_limit from session or use default
+    daily_conversation_limit = session.get('daily_conversation_limit', 15)
+
     agent = get_agent_instance()
 
     return jsonify({
         "response": agent.daily_training(
             user_name,
             pdn_code,
-            task
+            task,
+            daily_conversation_limit
         ),
         "timestamp": datetime.now().isoformat()
     })
