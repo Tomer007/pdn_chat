@@ -22,7 +22,8 @@ chat_sessions = {}  # session_id -> {email, user_id, login_time}
 USERS_DATA = {
     'tomergur@gmail.com': {'password': 'pdn', 'pdn_code': 'e5', 'name': 'תומר', 'daily_conversation_limit': 100},
     'pdncode@gmail.com': {'password': 'pdn', 'pdn_code': 'a7', 'name': 'פנינה', 'daily_conversation_limit': 10},
-    'anna123benyehuda@gmail.com': {'password': 'pdn', 'pdn_code': 'a3', 'name': 'אנה', 'daily_conversation_limit': 100}
+    'anna123benyehuda@gmail.com': {'password': 'pdn', 'pdn_code': 'a3', 'name': 'אנה', 'daily_conversation_limit': 100},
+    'yaelrapoport2@gmail.com': {'password': 'pdn', 'pdn_code': 'a3', 'name': 'יעל', 'daily_conversation_limit': 100}
 }
 
 def get_agent_instance():
