@@ -26,7 +26,7 @@ class PDNAgent:
     """Single agent for all PDN chat interactions."""
     
     MAX_CONTEXT_TOKENS = 3500
-    MAX_TURNS_BEFORE_SUMMARY = 5
+    MAX_TURNS_BEFORE_SUMMARY = 10
     RAW_TURNS_TO_KEEP = 5
     MAX_CONVERSATIONS_PER_DAY = 15
 
