@@ -226,7 +226,9 @@ class TestPromptCaching:
     """Tests for Anthropic prompt caching via cache_control on system messages."""
 
     def test_anthropic_system_message_has_cache_control(self):
-        """When using Anthropic, _build_system_message should add cache_control."""
+        """When using Anthropic, _build_system_message should use content blocks
+        with cache_control (not additional_kwargs) since langchain-anthropic
+        only reads cache_control from content block dicts."""
         with patch("app.pdn_chat_ai.binat_agents.pdn_agent.ChatOpenAI"), \
              patch("app.pdn_chat_ai.binat_agents.pdn_agent.ChatAnthropic") as mock_anthropic, \
              patch("app.pdn_chat_ai.binat_agents.pdn_agent.Config") as mock_config:
@@ -242,7 +244,13 @@ class TestPromptCaching:
             agent = PDNAgent()
 
             msg = agent._build_system_message("You are a helpful assistant.")
-            assert msg.additional_kwargs.get("cache_control") == {"type": "ephemeral"}
+            # Content should be a list with a single content block dict
+            assert isinstance(msg.content, list)
+            assert len(msg.content) == 1
+            block = msg.content[0]
+            assert block["type"] == "text"
+            assert block["text"] == "You are a helpful assistant."
+            assert block["cache_control"] == {"type": "ephemeral"}
 
     def test_openai_system_message_no_cache_control(self):
         """When using OpenAI, _build_system_message should NOT add cache_control."""

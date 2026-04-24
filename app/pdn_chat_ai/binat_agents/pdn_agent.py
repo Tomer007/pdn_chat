@@ -128,11 +128,17 @@ class PDNAgent:
 
         Anthropic caches the system prompt server-side for 5 minutes.
         Subsequent calls with the same prompt pay only 10% of the input token cost.
+        
+        Note: cache_control must be on a content block (dict), not on additional_kwargs,
+        because langchain-anthropic only reads cache_control from content blocks.
         """
         if self._is_anthropic:
             return SystemMessage(
-                content=system_prompt,
-                additional_kwargs={"cache_control": {"type": "ephemeral"}}
+                content=[{
+                    "type": "text",
+                    "text": system_prompt,
+                    "cache_control": {"type": "ephemeral"}
+                }]
             )
         return SystemMessage(content=system_prompt)
 
