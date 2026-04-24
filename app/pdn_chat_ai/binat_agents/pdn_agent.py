@@ -42,7 +42,18 @@ class PDNAgent:
         self.llm_provider = llm_provider or config.LLM_PROVIDER
         self.model_name = model_name or (config.ANTHROPIC_MODEL if self.llm_provider.lower() == 'anthropic' else config.OPENAI_MODEL)
         self.llm = self._initialize_llm(config)
-        self.summary_llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.3, api_key=config.OPENAI_API_KEY)
+        self._is_anthropic = self.llm_provider.lower() == 'anthropic'
+
+        # Use the cheaper model from the same provider for summarization
+        if self._is_anthropic:
+            self.summary_llm = ChatAnthropic(
+                model="claude-3-haiku-20240307",
+                temperature=0.3,
+                max_tokens=500,
+                api_key=config.ANTHROPIC_API_KEY
+            )
+        else:
+            self.summary_llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.3, api_key=config.OPENAI_API_KEY)
 
         self.conversation_history = defaultdict(UserHistory)
         self.user_conversations = defaultdict(lambda: {'count': 0, 'last_reset': datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)})
@@ -111,6 +122,19 @@ class PDNAgent:
     def _estimate_tokens(self, text: str) -> int:
         """Estimate token count (rough: 1 token ≈ 4 chars)."""
         return len(text) // 4
+
+    def _build_system_message(self, system_prompt: str) -> SystemMessage:
+        """Build a SystemMessage, adding Anthropic cache_control when applicable.
+
+        Anthropic caches the system prompt server-side for 5 minutes.
+        Subsequent calls with the same prompt pay only 10% of the input token cost.
+        """
+        if self._is_anthropic:
+            return SystemMessage(
+                content=system_prompt,
+                additional_kwargs={"cache_control": {"type": "ephemeral"}}
+            )
+        return SystemMessage(content=system_prompt)
 
     def _summarize_old_turns(self, user_name: str):
         """Summarize old exchanges when raw list exceeds threshold."""
@@ -188,7 +212,7 @@ class PDNAgent:
         user_message = f"Conversation History:\n{history_context}\n\nCurrent Question:\n{enhanced_question}"
 
         response_text = self.llm.invoke([
-            SystemMessage(content=system_prompt),
+            self._build_system_message(system_prompt),
             HumanMessage(content=user_message)
         ]).content
 
@@ -210,7 +234,7 @@ class PDNAgent:
         user_message = f"user_name: {user_name}\nuser_pdn_code: {pdn_code}\nuser_goal: {user_goal}"
 
         response_text =  self.llm.invoke([
-            SystemMessage(content=system_prompt),
+            self._build_system_message(system_prompt),
             HumanMessage(content=user_message)
         ]).content
 
@@ -232,7 +256,7 @@ class PDNAgent:
         user_message = f"User name: {user_name}\n User day Task: {day_task}\n."
 
         response_text = self.llm.invoke([
-            SystemMessage(content=system_prompt),
+            self._build_system_message(system_prompt),
             HumanMessage(content=user_message)
         ]).content
 
