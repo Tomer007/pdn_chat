@@ -20,6 +20,44 @@ from typing import Dict, Any, Tuple
 logger = logging.getLogger(__name__)
 
 
+def calculate_confidence_score(scores: Dict[str, int]) -> int:
+    """
+    Calculate a confidence score (0-100) for the PDN code diagnosis.
+    Based on how decisive the trait and energy scores are.
+    
+    Higher score = more confident diagnosis (clear dominant trait/energy).
+    Lower score = ambiguous diagnosis (close scores between traits/energies).
+    
+    Args:
+        scores (dict): Dictionary containing all scores (A, T, P, E, D, S, F)
+    
+    Returns:
+        int: Confidence score from 0 to 100
+    """
+    # Trait confidence (0-50 points)
+    trait_scores = sorted([scores.get(k, 0) for k in ['A', 'T', 'P', 'E']], reverse=True)
+    total_trait = sum(trait_scores) or 1
+    
+    # Gap between 1st and 2nd highest as percentage of total
+    trait_gap = trait_scores[0] - trait_scores[1] if len(trait_scores) >= 2 else 0
+    trait_dominance = (trait_gap / total_trait) * 100
+    trait_confidence = min(50, trait_dominance * 2.5)  # Scale to 0-50
+    
+    # Energy confidence (0-50 points)
+    energy_scores = sorted([scores.get(k, 0) for k in ['D', 'S', 'F']], reverse=True)
+    total_energy = sum(energy_scores) or 1
+    
+    energy_gap = energy_scores[0] - energy_scores[1] if len(energy_scores) >= 2 else 0
+    energy_dominance = (energy_gap / total_energy) * 100
+    energy_confidence = min(50, energy_dominance * 2.5)  # Scale to 0-50
+    
+    confidence = int(trait_confidence + energy_confidence)
+    confidence = max(0, min(100, confidence))
+    
+    logger.info("Confidence score: %d (trait: %.1f, energy: %.1f)", confidence, trait_confidence, energy_confidence)
+    return confidence
+
+
 def check_verification_needed(scores: Dict[str, int]) -> bool:
     """
     Check if human verification is needed based on E, P, A, T scores.
@@ -320,6 +358,10 @@ def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) ->
     if result['needs_verification']:
         logger.warning("PDN calculation requires human verification due to close scores")
     
+    # Calculate confidence score
+    confidence_score = calculate_confidence_score(result['scores'])
+    result['confidence_score'] = confidence_score
+    
     # Finalizing the PDN code
     pdn_matrix: Dict[Tuple[str, str], str] = {
         ('P', 'D'): 'P10', ('P', 'S'): 'P2', ('P', 'F'): 'P6',
@@ -342,7 +384,8 @@ def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) ->
             'trait': result['trait'],
             'energy': result['energy'],
             'scores': result['scores'].copy(),
-            'needs_verification': result['needs_verification']
+            'needs_verification': result['needs_verification'],
+            'confidence_score': confidence_score
         })
         return {
             'pdn_code': pdn_code,
@@ -355,7 +398,8 @@ def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) ->
         return {
             'pdn_code': pdn_code,
             'needs_verification': True,
-            'scores': result['scores']
+            'scores': result['scores'],
+            'confidence_score': confidence_score
         }
     
     return pdn_code

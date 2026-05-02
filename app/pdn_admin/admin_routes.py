@@ -505,10 +505,12 @@ def recalculate_user_pdn(email):
             pdn_code = calculation_result['pdn_code']
             calculation_details = calculation_result.get('calculation_details')
             needs_verification = calculation_result.get('needs_verification', False)
+            confidence_score = calculation_result.get('confidence_score', 0)
         else:
             pdn_code = calculation_result
             calculation_details = None
             needs_verification = False
+            confidence_score = 0
 
         if not pdn_code:
             return jsonify({"error": "Could not calculate PDN code"}), 400
@@ -533,7 +535,8 @@ def recalculate_user_pdn(email):
             "date": current_date,
             "updated_by": updated_by,
             "pdn_update_comments": user_data.get("PDN Update Comments", "") if user_data else "",
-            "needs_verification": needs_verification
+            "needs_verification": needs_verification,
+            "confidence_score": confidence_score
         }
 
         if calculation_details:
@@ -694,6 +697,109 @@ def get_token_usage():
         return jsonify({"stats": usage_stats})
     except Exception as e:
         logger.error(f"Error getting token usage: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@pdn_admin_bp.route('/user/journey/<email>')
+def get_user_journey(email):
+    """Get user journey timeline data"""
+    try:
+        verify_session(request.args.get('session_token'))
+    except Exception as e:
+        logger.error("Session verification failed: %s", e)
+
+    try:
+        # Get user metadata
+        csv_handler = UserMetadataHandler()
+        user_data = csv_handler.get_user_by_email(email)
+        
+        # Get conversation stats
+        stats = conversation_stats._load_stats()
+        
+        # Get token usage
+        token_data = {}
+        try:
+            from ..pdn_chat_ai.chat_routes import get_agent_instance
+            agent = get_agent_instance()
+            token_data = agent.token_usage.get(email, {})
+            # Also check by user name
+            if not token_data and user_data:
+                first_name = user_data.get('First Name', '')
+                if first_name:
+                    token_data = agent.token_usage.get(first_name, {})
+        except Exception as e:
+            logger.debug(f"Could not load token usage for journey: {e}")
+        
+        # Build timeline events
+        events = []
+        
+        # Diagnosis event
+        if user_data:
+            diagnosis_date = user_data.get('Date', '')
+            if diagnosis_date and diagnosis_date != 'N/A':
+                events.append({
+                    'type': 'diagnosis',
+                    'date': diagnosis_date,
+                    'label': 'אבחון PDN',
+                    'detail': f"קוד: {user_data.get('PDN Code', 'N/A')}"
+                })
+        
+        # Conversation events from stats (aggregate per day)
+        user_conversations = {}
+        for date_str, day_data in stats.items():
+            count = day_data.get(email, 0)
+            if count > 0:
+                user_conversations[date_str] = count
+                events.append({
+                    'type': 'conversation',
+                    'date': date_str,
+                    'label': f'{count} שיחות בינת',
+                    'detail': f"תאריך: {date_str}"
+                })
+        
+        # Token usage events
+        for date_str, day_data in token_data.items():
+            if isinstance(day_data, dict) and day_data.get('calls', 0) > 0:
+                events.append({
+                    'type': 'binat_usage',
+                    'date': date_str,
+                    'label': f"{day_data['calls']} קריאות AI",
+                    'detail': f"טוקנים: {day_data.get('input_tokens', 0) + day_data.get('output_tokens', 0)}"
+                })
+        
+        # Sort events by date
+        events.sort(key=lambda e: e['date'], reverse=True)
+        
+        # Calculate engagement metrics
+        total_conversations = sum(user_conversations.values())
+        active_days = len(user_conversations)
+        
+        # Days since diagnosis
+        days_since_diagnosis = None
+        if user_data and user_data.get('Date'):
+            try:
+                from datetime import datetime as dt
+                parts = user_data['Date'].split('/')
+                if len(parts) == 3:
+                    diag_date = dt(int(parts[2]), int(parts[1]), int(parts[0]))
+                    days_since_diagnosis = (dt.now() - diag_date).days
+            except Exception:
+                pass
+        
+        return jsonify({
+            'email': email,
+            'user_name': f"{user_data.get('First Name', '')} {user_data.get('Last Name', '')}".strip() if user_data else email,
+            'pdn_code': user_data.get('PDN Code', 'N/A') if user_data else 'N/A',
+            'events': events,
+            'metrics': {
+                'total_conversations': total_conversations,
+                'active_days': active_days,
+                'days_since_diagnosis': days_since_diagnosis,
+                'avg_conversations_per_active_day': round(total_conversations / active_days, 1) if active_days > 0 else 0
+            }
+        })
+    except Exception as e:
+        logger.error(f"Error getting user journey: {e}")
         return jsonify({"error": str(e)}), 500
 
 @pdn_admin_bp.route('/download-json')

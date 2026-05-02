@@ -338,6 +338,21 @@
     </div>
 </div>
 
+<!-- User Journey Modal -->
+<div id="journeyModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="מסע משתמש">
+    <div class="card p-8 max-w-3xl w-full mx-4 max-h-[80vh] overflow-y-auto rounded-2xl">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800">מסע משתמש</h2>
+            <button onclick="closeModal('journeyModal')" aria-label="סגור"
+                    class="text-gray-500 hover:text-gray-700 text-2xl transition-colors">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div id="journeyContent" class="space-y-4">
+        </div>
+    </div>
+</div>
+
 <!-- Admin Password Modal -->
 <div id="adminPasswordModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="אימות מנהל">
     <div class="card p-6 max-w-sm w-full mx-4 rounded-2xl shadow-2xl">

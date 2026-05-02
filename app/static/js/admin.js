@@ -718,6 +718,12 @@
                          class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-blue-200 z-50">
 
                         <div class="py-1">
+                            <button @click="viewJourney('${user.email}'); open = false"
+                                    class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center">
+                                <i class="fas fa-route ml-2"></i>
+                                מסע משתמש
+                            </button>
+
                             <button @click="loadingBtn = 'questionnaire'; modalText = 'טוען נתוני שאלון...'; showModal = true; viewQuestionnaire('${user.email}'); open = false"
                                     class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center"
                                     :disabled="loadingBtn === 'questionnaire'">
@@ -784,9 +790,16 @@
                 <span class="px-2 py-1 rounded-full text-xs font-medium ${getPdnBadgeColor(user.pdn_code)}">${user.pdn_code}</span>
             </td>
             <td class="px-4 py-4">
-                ${user.needs_verification ?
-                    '<span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium" title="נדרש אימות אנושי - הפער בין הציונים קטן מ-2 נקודות">⚠️ אימות</span>' :
-                    '<span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">✓ תקין</span>'
+                ${user.confidence_score !== undefined && user.confidence_score !== null ?
+                    `<div class="flex items-center gap-2">
+                        <div class="w-12 bg-gray-200 rounded-full h-2 overflow-hidden">
+                            <div class="h-2 rounded-full ${user.confidence_score >= 80 ? 'bg-green-500' : user.confidence_score >= 60 ? 'bg-yellow-500' : 'bg-red-500'}" style="width: ${user.confidence_score}%"></div>
+                        </div>
+                        <span class="text-xs font-mono ${user.confidence_score >= 80 ? 'text-green-700' : user.confidence_score >= 60 ? 'text-yellow-700' : 'text-red-700'}">${user.confidence_score}%</span>
+                    </div>` :
+                    (user.needs_verification ?
+                        '<span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium" title="נדרש אימות אנושי">⚠️ אימות</span>' :
+                        '<span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">✓ תקין</span>')
                 }
             </td>
             <td class="px-4 py-4">
@@ -1605,6 +1618,9 @@
                         currentData[userIndex].pdn_code = data.pdn_code;
                         currentData[userIndex].date = data.date;
                         currentData[userIndex].needs_verification = data.needs_verification || false;
+                        if (data.confidence_score !== undefined) {
+                            currentData[userIndex].confidence_score = data.confidence_score;
+                        }
                         // Update the PDN update comments if available
                         if (data.pdn_update_comments) {
                             currentData[userIndex].pdn_update_comments = data.pdn_update_comments;
@@ -1718,6 +1734,14 @@
                         </div>
                     </div>
                     ${verifyBadge}
+                    ${finalStage.confidence_score !== undefined ? `
+                    <div class="mt-3 flex items-center justify-center gap-3">
+                        <span class="text-xs opacity-70">רמת ביטחון:</span>
+                        <div class="w-24 bg-white/20 rounded-full h-3 overflow-hidden">
+                            <div class="h-3 rounded-full ${finalStage.confidence_score >= 80 ? 'bg-green-400' : finalStage.confidence_score >= 60 ? 'bg-yellow-400' : 'bg-red-400'}" style="width: ${finalStage.confidence_score}%"></div>
+                        </div>
+                        <span class="text-sm font-bold">${finalStage.confidence_score}%</span>
+                    </div>` : ''}
                 </div>`;
             }
 
@@ -1836,7 +1860,7 @@
         // Add keyboard event listeners for all modals
         document.addEventListener('keydown', function (event) {
             if (event.key === 'Escape') {
-                const modals = ['questionnaireModal', 'voiceModal', 'editDiagnoseModal', 'loggedInUsersModal', 'pdnCalculationModal', 'releaseNotesModal', 'adminPasswordModal'];
+                const modals = ['questionnaireModal', 'voiceModal', 'editDiagnoseModal', 'loggedInUsersModal', 'pdnCalculationModal', 'releaseNotesModal', 'adminPasswordModal', 'journeyModal'];
                 modals.forEach(id => {
                     const modal = document.getElementById(id);
                     if (modal && modal.style.display === 'flex') {
@@ -1925,6 +1949,85 @@
             link.click();
             URL.revokeObjectURL(url);
             showNotification('קובץ CSV יוצא בהצלחה', 'success');
+        }
+
+        async function viewJourney(email) {
+            try {
+                const response = await fetch(`/pdn-admin/user/journey/${email}?session_token=${sessionToken}`);
+                if (!response.ok) throw new Error('Failed to load journey');
+                const data = await response.json();
+                displayJourney(data);
+            } catch (error) {
+                logError('loadJourney', error);
+                showNotification('שגיאה בטעינת מסע משתמש', 'error');
+            }
+        }
+
+        function displayJourney(data) {
+            const container = document.getElementById('journeyContent');
+            const m = data.metrics;
+
+            let html = `
+            <div class="p-5 bg-gradient-to-br from-blue-900 to-blue-800 rounded-2xl text-white text-center mb-6">
+                <div class="text-lg font-bold mb-1">${data.user_name}</div>
+                <div class="text-sm opacity-80">${data.email}</div>
+                <div class="mt-2 inline-block px-3 py-1 rounded-full text-sm font-bold bg-white/20">${data.pdn_code}</div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                <div class="bg-blue-50 rounded-xl p-3 text-center border border-blue-100">
+                    <div class="text-xl font-bold text-blue-900">${m.days_since_diagnosis !== null ? m.days_since_diagnosis : '—'}</div>
+                    <div class="text-[10px] text-gray-600 mt-1">ימים מאז אבחון</div>
+                </div>
+                <div class="bg-green-50 rounded-xl p-3 text-center border border-green-100">
+                    <div class="text-xl font-bold text-green-700">${m.total_conversations}</div>
+                    <div class="text-[10px] text-gray-600 mt-1">סה"כ שיחות</div>
+                </div>
+                <div class="bg-purple-50 rounded-xl p-3 text-center border border-purple-100">
+                    <div class="text-xl font-bold text-purple-700">${m.active_days}</div>
+                    <div class="text-[10px] text-gray-600 mt-1">ימים פעילים</div>
+                </div>
+                <div class="bg-amber-50 rounded-xl p-3 text-center border border-amber-100">
+                    <div class="text-xl font-bold text-amber-700">${m.avg_conversations_per_active_day}</div>
+                    <div class="text-[10px] text-gray-600 mt-1">ממוצע שיחות/יום</div>
+                </div>
+            </div>`;
+
+            // Timeline
+            if (data.events.length > 0) {
+                html += '<h3 class="text-sm font-semibold text-gray-700 mb-3">ציר זמן</h3>';
+                html += '<div class="relative pr-6 border-r-2 border-blue-200 space-y-4">';
+                data.events.forEach(event => {
+                    const iconMap = { diagnosis: 'fa-stethoscope text-blue-600', conversation: 'fa-comments text-green-600', binat_usage: 'fa-robot text-purple-600' };
+                    const bgMap = { diagnosis: 'bg-blue-50 border-blue-200', conversation: 'bg-green-50 border-green-200', binat_usage: 'bg-purple-50 border-purple-200' };
+                    const icon = iconMap[event.type] || 'fa-circle text-gray-400';
+                    const bg = bgMap[event.type] || 'bg-gray-50 border-gray-200';
+
+                    html += `
+                    <div class="relative">
+                        <div class="absolute -right-[21px] top-2 w-4 h-4 rounded-full bg-white border-2 border-blue-400 flex items-center justify-center">
+                            <div class="w-2 h-2 rounded-full bg-blue-400"></div>
+                        </div>
+                        <div class="p-3 rounded-lg border ${bg}">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas ${icon} text-sm"></i>
+                                    <span class="text-sm font-medium text-gray-800">${event.label}</span>
+                                </div>
+                                <span class="text-xs text-gray-500">${event.date}</span>
+                            </div>
+                            ${event.detail ? `<div class="text-xs text-gray-500 mt-1">${event.detail}</div>` : ''}
+                        </div>
+                    </div>`;
+                });
+                html += '</div>';
+            } else {
+                html += '<p class="text-sm text-gray-500 text-center py-6">אין אירועים עדיין</p>';
+            }
+
+            container.innerHTML = html;
+            document.getElementById('journeyModal').style.display = 'flex';
+            setTimeout(() => { document.getElementById('journeyModal').querySelector('button, input')?.focus(); }, 100);
         }
 
         function showNotification(message, type = 'info') {
