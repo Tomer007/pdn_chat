@@ -678,6 +678,24 @@ def get_version():
         "release_notes": RELEASE_NOTES
     })
 
+
+@pdn_admin_bp.route('/token-usage')
+def get_token_usage():
+    """Get token usage and cost stats for all Binat chat users"""
+    try:
+        verify_session(request.args.get('session_token'))
+    except Exception as e:
+        logger.error("Session verification failed: %s", e)
+
+    try:
+        from ..pdn_chat_ai.chat_routes import get_agent_instance
+        agent = get_agent_instance()
+        usage_stats = agent.get_usage_stats()
+        return jsonify({"stats": usage_stats})
+    except Exception as e:
+        logger.error(f"Error getting token usage: {e}")
+        return jsonify({"error": str(e)}), 500
+
 @pdn_admin_bp.route('/download-json')
 def download_user_json():
     """Download user's JSON answers file."""

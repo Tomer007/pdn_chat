@@ -5,476 +5,190 @@
     <title>PDN Admin Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
-    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://unpkg.com/@alpinejs/collapse@3.14.9/dist/cdn.min.js" defer></script>
+    <script src="https://unpkg.com/alpinejs@3.14.9/dist/cdn.min.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --primary-color: #0b2e6b;
-            --text-primary: #1f2937;
-            --text-secondary: #6b7280;
-            --shadow-color: rgba(0, 0, 0, 0.1);
-            --gradient-start: #0b2e6b;
-            --gradient-end: #0b2e6b;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
-            min-height: 100vh;
-        }
-
-        .card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-
-        .modal-backdrop {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.5);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 50;
-            backdrop-filter: blur(4px);
-        }
-
-        .table-container {
-            max-height: 65vh;
-            overflow-y: auto;
-            border-radius: 12px;
-            border: 1px solid #e5e7eb;
-        }
-
-        .table-container::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .table-container::-webkit-scrollbar-track {
-            background: #f3f4f6;
-            border-radius: 3px;
-        }
-
-        .table-container::-webkit-scrollbar-thumb {
-            background: #0b2e6b;
-            border-radius: 3px;
-        }
-
-        .table-container::-webkit-scrollbar-thumb:hover {
-            background: #0a2a5f;
-        }
-
-        .btn-success {
-            background: linear-gradient(135deg, #0b2e6b 0%, #0a2a5f 100%);
-        }
-
-        .btn-danger {
-            background: linear-gradient(135deg, #0b2e6b 0%, #0a2a5f 100%);
-        }
-
-        .btn-secondary {
-            background: linear-gradient(135deg, #0b2e6b 0%, #0a2a5f 100%);
-        }
-
-        .table-header {
-            background: linear-gradient(135deg, #e0e7ff 0%, #f1f5f9 100%);
-            border-bottom: 2px solid #e2e8f0;
-            z-index: 10;
-        }
-
-        .table-row:hover {
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-            transform: scale(1.001);
-            transition: all 0.2s ease;
-        }
-
-        .action-btn {
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            border: none;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 80px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .action-btn:focus-visible {
-            outline: 2px solid #0b2e6b;
-            outline-offset: 2px;
-        }
-
-        .action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-
-        .action-btn:active {
-            transform: translateY(0);
-        }
-
-        .action-btn.loading {
-            pointer-events: none;
-            opacity: 0.7;
-        }
-
-        /* Refresh button disabled state */
-        #refreshBtn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            pointer-events: none;
-        }
-
-        .action-btn.loading::after {
-            content: '';
-            position: absolute;
-            width: 16px;
-            height: 16px;
-            border: 2px solid transparent;
-            border-top: 2px solid currentColor;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .action-btn.questionnaire {
-            background: linear-gradient(135deg, #0b2e6b 0%, #0a2a5f 100%);
-            color: white;
-        }
-
-        .action-btn.questionnaire:hover {
-            background: linear-gradient(135deg, #0a2a5f 0%, #092a5a 100%);
-        }
-
-        .action-btn.voice {
-            background: linear-gradient(135deg, #0b2e6b 0%, #0a2a5f 100%);
-            color: white;
-        }
-
-        .action-btn.voice:hover {
-            background: linear-gradient(135deg, #0a2a5f 0%, #092a5a 100%);
-        }
-
-        .action-btn.edit {
-            background: linear-gradient(135deg, #0b2e6b 0%, #0a2a5f 100%);
-            color: white;
-        }
-
-        .action-btn.edit:hover {
-            background: linear-gradient(135deg, #0a2a5f 0%, #092a5a 100%);
-        }
-
-        .action-btn.download {
-            background: linear-gradient(135deg, #0b2e6b 0%, #0a2a5f 100%);
-            color: white;
-        }
-
-        .action-btn.download:hover {
-            background: linear-gradient(135deg, #0a2a5f 0%, #092a5a 100%);
-        }
-
-        .action-btn.delete {
-            background: linear-gradient(135deg, #0b2e6b 0%, #0a2a5f 100%);
-            color: white;
-        }
-
-        .action-btn.delete:hover {
-            background: linear-gradient(135deg, #0a2a5f 0%, #092a5a 100%);
-        }
-
-        .action-btn.email {
-            background: linear-gradient(135deg, #0b2e6b 0%, #0a2a5f 100%);
-            color: white;
-            flex-direction: column;
-            min-height: 60px;
-            padding: 8px 12px;
-        }
-
-        .action-btn.email:hover {
-            background: linear-gradient(135deg, #0a2a5f 0%, #092a5a 100%);
-        }
-
-        .search-input {
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid #d1d5db;
-            transition: all 0.3s ease;
-        }
-
-        .search-input:focus {
-            background: white;
-            border-color: #0b2e6b;
-            box-shadow: 0 0 0 3px rgba(11, 46, 107, 0.1);
-        }
-
-        .animate-fade-in {
-            animation: fadeIn 0.7s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .highlight-difference {
-            background-color: #fef2f2 !important; /* Light red background */
-            border-left: 4px solid #efa5a5; /* Red left border for emphasis */
-        }
-
-        /* Table header improvements to prevent text truncation */
-        .table-header th {
-            min-width: 120px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            padding: 12px 8px;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        /* Specific column widths for better layout */
-        .table-header th:nth-child(1) { /* User ID */
-            min-width: 100px;
-            max-width: 120px;
-        }
-
-        .table-header th:nth-child(2) { /* Name */
-            min-width: 150px;
-            max-width: 200px;
-        }
-
-        .table-header th:nth-child(3) { /* Email */
-            min-width: 180px;
-            max-width: 220px;
-        }
-
-        .table-header th:nth-child(4) { /* Date */
-            min-width: 120px;
-            max-width: 140px;
-        }
-
-        .table-header th:nth-child(5) { /* System Code */
-            min-width: 120px;
-            max-width: 140px;
-        }
-
-        .table-header th:nth-child(6) { /* Voice Analysis */
-            min-width: 140px;
-            max-width: 160px;
-        }
-
-        .table-header th:nth-child(7) { /* Diagnose Code */
-            min-width: 140px;
-            max-width: 160px;
-        }
-
-        .table-header th:nth-child(8) { /* Comments */
-            min-width: 150px;
-            max-width: 200px;
-        }
-
-        .table-header th:nth-child(9) { /* Actions */
-            min-width: 100px;
-            max-width: 120px;
-        }
-
-        /* Ensure table cells don't truncate content */
-        .table-container td {
-            padding: 12px 8px;
-            vertical-align: middle;
-            word-wrap: break-word;
-            max-width: 200px;
-        }
-
-        /* Alternative styling - you can choose which one you prefer */
-        .highlight-difference td {
-            color: #0e0e0d;
-            font-weight: 500;
-        }
-
-        /* Enhanced notification animations */ notification animations */
-        .notification-item {
-            animation: notificationSlideIn 0.5s ease-out;
-        }
-
-        @keyframes notificationSlideIn {
-            from {
-                opacity: 0;
-                transform: translateX(100%) scale(0.8);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0) scale(1);
-            }
-        }
-
-        .notification-item.animate-bounce {
-            animation: notificationBounce 0.6s ease-in-out;
-        }
-
-        @keyframes notificationBounce {
-            0%, 20%, 53%, 80%, 100% {
-                transform: translate3d(0, 0, 0);
-            }
-            40%, 43% {
-                transform: translate3d(0, -8px, 0);
-            }
-            70% {
-                transform: translate3d(0, -4px, 0);
-            }
-            90% {
-                transform: translate3d(0, -2px, 0);
-            }
-        }
-
-        /* Notification glow effect */
-        .notification-item {
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.1);
-        }
-
-        .notification-item[class*="border-red"] {
-            box-shadow: 0 10px 25px rgba(195, 229, 161, 0.2), 0 0 0 1px rgba(239, 68, 68, 0.3);
-        }
-
-        .notification-item[class*="border-green"] {
-            box-shadow: 0 10px 25px rgba(34, 197, 94, 0.2), 0 0 0 1px rgba(34, 197, 94, 0.3);
-        }
-
-        .notification-item[class*="border-blue"] {
-            box-shadow: 0 10px 25px rgba(11, 46, 107, 0.2), 0 0 0 1px rgba(11, 46, 107, 0.3);
-        }
-
-        .notification-item[class*="border-yellow"] {
-            box-shadow: 0 10px 25px rgba(234, 179, 8, 0.2), 0 0 0 1px rgba(234, 179, 8, 0.3);
-        }
-
-
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
 </head>
-<body class="p-6">
+<body class="p-4 md:p-6 lg:p-8">
 
 <!-- Main Dashboard -->
-<div id="dashboard" class="space-y-8">
+<div id="dashboard" class="space-y-6 max-w-[1600px] mx-auto">
     <!-- Header -->
-    <div class="card p-8 rounded-2xl bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200">
-        <div class="flex justify-between items-center">
-            <div class="flex items-center space-x-6 space-x-reverse">
-                <div class="flex-shrink-0">
-                    <img src="static/images/pdn_logo.png"
-                         alt="PDN Logo"
-                         class="h-20 w-auto object-contain drop-shadow-lg"
-                         style="max-width: 250px;">
-                </div>
-                <div class="border-r border-blue-300 pr-6">
-                    <h1 class="text-4xl font-bold bg-gradient-to-r from-blue-900 to-blue-900 bg-clip-text text-transparent">
-                        מערכת שליטה וניהול
-                    </h1>
+    <div class="card p-4 md:p-6 rounded-2xl">
+        <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center space-x-4 md:space-x-6 space-x-reverse">
+                <img src="static/images/pdn_logo.png" alt="PDN Logo"
+                     class="h-10 md:h-14 w-auto object-contain" style="max-width: 120px;">
+                <div class="border-r-2 border-blue-200 pr-4 md:pr-6">
+                    <h1 class="text-xl md:text-3xl font-bold text-gray-900">מערכת שליטה וניהול</h1>
                     <button id="versionBadge" onclick="showReleaseNotes()"
-                            class="mt-1 px-3 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full border border-blue-200 hover:bg-blue-200 transition-colors cursor-pointer"
-                            title="לחץ לצפייה בהערות גרסה">
-                        <i class="fas fa-code-branch ml-1"></i>
+                            class="mt-1 inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full border border-blue-200 hover:bg-blue-100 transition-colors cursor-pointer">
+                        <i class="fas fa-code-branch text-[10px]"></i>
                         <span id="versionText">טוען...</span>
                     </button>
                 </div>
             </div>
-            <div class="flex space-x-4 space-x-reverse">
+            <div class="flex flex-wrap justify-center gap-3 md:gap-4">
                 <button id="refreshBtn"
-                        class="btn-success text-white px-6 py-3 rounded-lg font-semibold text-base transition-all duration-300 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-                    <i class="fas fa-sync-alt mr-2"> רענן נתונים </i>
+                        class="btn-primary text-white px-4 md:px-6 py-2.5 md:py-3 rounded-lg font-semibold text-xs md:text-sm transition-all duration-200 flex items-center space-x-2 space-x-reverse shadow-md hover:shadow-lg">
+                    <i class="fas fa-sync-alt"></i>
+                    <span>רענן נתונים</span>
                 </button>
                 <button id="loggedInUsersBtn"
-                        class="btn-secondary text-white px-6 py-3 rounded-lg font-semibold text-base transition-all duration-300 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-                    <i class="fas fa-users mr-2"> משתמשים מחוברים </i>
+                        class="btn-outline px-4 md:px-6 py-2.5 md:py-3 rounded-lg font-semibold text-xs md:text-sm transition-all duration-200 flex items-center space-x-2 space-x-reverse">
+                    <i class="fas fa-users"></i>
+                    <span>משתמשים מחוברים</span>
                 </button>
                 <button id="logoutBtn"
-                        class="btn-danger text-white px-6 py-3 rounded-lg font-semibold text-base transition-all duration-300 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-                    <i class="fas fa-sign-out-alt mr-2"> התנתק </i>
+                        class="btn-danger text-white px-4 md:px-6 py-2.5 md:py-3 rounded-lg font-semibold text-xs md:text-sm transition-all duration-200 flex items-center space-x-2 space-x-reverse shadow-md hover:shadow-lg">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>התנתק</span>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Search Bar -->
-    <div class="card p-8 rounded-2xl">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-4 space-x-reverse">
-                <label for="searchInput" class="text-lg font-medium text-gray-700 flex items-center">
-                    <i></i>
-                    חיפוש מאובחן לפי שם או אימייל:
-                </label>
-                <input type="text" id="searchInput" placeholder="הקלד שם או אימייל לחיפוש..."
-                       class="px-4 py-3 search-input rounded-lg transition-all duration-300 w-64">
+    <!-- Dashboard Summary -->
+    <div class="card p-4 md:p-5 rounded-2xl">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="dashboardSummary">
+            <div class="bg-blue-50 rounded-xl p-4 text-center border border-blue-100">
+                <div class="text-2xl font-bold text-blue-900" id="summaryTotal">—</div>
+                <div class="text-xs text-gray-600 mt-1">סה"כ מאובחנים</div>
             </div>
-            <div class="flex items-center space-x-4 space-x-reverse">
-                <label class="flex items-center space-x-2 space-x-reverse cursor-pointer">
-                    <input type="checkbox" id="redUsersFilter"
-                           class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2">
-                    <span class="text-lg font-medium text-gray-700 flex items-center">
-                        <i></i>
-                        הצג  חריגים
-                    </span>
-                </label>
+            <div class="bg-green-50 rounded-xl p-4 text-center border border-green-100">
+                <div class="text-2xl font-bold text-green-700" id="summaryToday">—</div>
+                <div class="text-xs text-gray-600 mt-1">אובחנו היום</div>
+            </div>
+            <div class="bg-red-50 rounded-xl p-4 text-center border border-red-100">
+                <div class="text-2xl font-bold text-red-700" id="summaryAnomalies">—</div>
+                <div class="text-xs text-gray-600 mt-1">חריגים</div>
+            </div>
+            <div class="bg-purple-50 rounded-xl p-4 text-center border border-purple-100">
+                <div class="text-2xl font-bold text-purple-700" id="summaryActive">—</div>
+                <div class="text-xs text-gray-600 mt-1">משתמשים מחוברים</div>
             </div>
         </div>
     </div>
 
-    <!-- Conversation Stats -->
-    <div class="card p-8 rounded-2xl">
-        <div class="mb-6">
-            <h3 class="text-xl font-semibold text-gray-800 flex items-center mb-2">
-                <i class="fas fa-comments mr-2"> סטטיסטיקות שיחות </i>
-            </h3>
-        </div>
-        <div id="conversationStats" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <!-- Stats will be populated here -->
+    <!-- Search & Filters -->
+    <div class="card p-4 md:p-5 rounded-2xl">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <div class="relative flex-1">
+                <input type="text" id="searchInput" placeholder="חיפוש לפי שם, אימייל או קוד PDN..."
+                       class="w-full px-4 pl-10 py-2.5 search-input rounded-lg text-sm">
+                <button id="clearSearchBtn" onclick="document.getElementById('searchInput').value=''; handleSearch();"
+                        class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-sm hidden">
+                    <i class="fas fa-times-circle"></i>
+                </button>
+            </div>
+            <span id="searchResultCount" class="text-xs text-gray-500 hidden whitespace-nowrap"></span>
+            <label class="flex items-center gap-2 cursor-pointer select-none flex-shrink-0">
+                <input type="checkbox" id="redUsersFilter"
+                       class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2">
+                <span class="text-sm font-medium text-gray-600 whitespace-nowrap">הצג חריגים בלבד</span>
+            </label>
         </div>
     </div>
 
-    <!-- Data Table -->
-    <div class="card p-8 rounded-2xl">
-        <div class="mb-6">
-            <h3 class="text-xl font-semibold text-gray-800 flex items-center mb-2">
-                <i class="fas fa-users mr-2"> נתוני מאובחנים </i>
+    <!-- Conversation Stats (accordion, closed by default) -->
+    <div class="card rounded-2xl overflow-hidden" x-data="{ open: false }">
+        <button @click="open = !open" class="w-full p-5 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors">
+            <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                סטטיסטיקות שיחות
             </h3>
-            <div class="flex items-center justify-between">
-                <span id="rowCount" class="text-base text-gray-600 font-bold">סה"כ מאובחנים:</span>
+            <i class="fas fa-chevron-down text-gray-400 text-sm transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
+        </button>
+        <div x-show="open" x-collapse>
+            <div class="px-6 pb-6">
+                <div id="conversationStats" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
             </div>
         </div>
-        <div class="table-container">
+    </div>
+
+    <!-- Token Usage / Cost Calculator (accordion, closed by default) -->
+    <div class="card rounded-2xl overflow-hidden" x-data="{ open: false }">
+        <div class="p-5 flex items-center justify-between">
+            <button @click="open = !open; if(open) loadTokenUsage();" class="flex items-center gap-2 cursor-pointer">
+                <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                    מחשבון עלויות בינת
+                </h3>
+                <i class="fas fa-chevron-down text-gray-400 text-sm transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
+            </button>
+            <button onclick="loadTokenUsage()" class="btn-primary text-white px-4 py-2 rounded-lg font-medium text-xs transition-all duration-200 flex items-center space-x-2 space-x-reverse shadow-sm">
+                <i class="fas fa-sync-alt text-xs"></i><span>רענן</span>
+            </button>
+        </div>
+        <div x-show="open" x-collapse>
+            <div class="px-6 pb-6">
+                <div id="tokenUsageContent">
+                    <p class="text-sm text-gray-500 text-center py-6">לחץ על "רענן" לטעינת נתוני עלויות, או שלח הודעה בבינת כדי להתחיל לצבור נתונים.</p>
+                </div>
+                <div class="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                        <i class="fas fa-calculator text-blue-900 text-xs"></i> מחשבון עלות לפי מספר קריאות
+                    </h4>
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-end gap-3">
+                        <div class="flex-1">
+                            <label for="estimateCalls" class="block text-xs text-gray-500 mb-1">מספר קריאות צפוי</label>
+                            <input type="number" id="estimateCalls" min="1" value="100" placeholder="100" class="w-full px-4 py-2.5 search-input rounded-lg text-sm" oninput="updateEstimateFromCalls()">
+                        </div>
+                        <div class="flex-1">
+                            <label for="estimateCost" class="block text-xs text-gray-500 mb-1">עלות משוערת ($)</label>
+                            <input type="number" id="estimateCost" min="0" step="0.01" placeholder="0.00" class="w-full px-4 py-2.5 search-input rounded-lg text-sm font-semibold text-blue-900" oninput="updateEstimateFromCost()">
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-xs text-gray-500 mb-1">עלות חודשית (×30 ימים)</label>
+                            <div id="estimateMonthly" class="px-4 py-2.5 bg-white rounded-lg border border-gray-200 text-sm font-semibold text-amber-700">—</div>
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-gray-400 mt-2">* חישוב מבוסס על עלות ממוצעת בפועל לקריאה מהנתונים שנצברו.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Table (accordion, open by default) -->
+    <div class="card rounded-2xl overflow-hidden" x-data="{ open: true }">
+        <div @click="open = !open" class="w-full p-5 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors select-none">
+            <div class="flex items-center gap-3">
+                <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                    נתוני מאובחנים
+                </h3>
+                <span id="rowCount" class="text-sm text-gray-500 font-medium bg-gray-100 px-3 py-1 rounded-full">סה"כ: 0</span>
+            </div>
+            <i class="fas fa-chevron-down text-gray-400 text-sm transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
+        </div>
+        <div x-show="open" x-collapse @click.stop>
+            <div class="px-4 md:px-6 pb-6">
+        <div class="flex justify-end mb-3">
+            <button onclick="exportTableCSV()" class="btn-outline px-4 py-2 rounded-lg font-medium text-xs flex items-center space-x-2 space-x-reverse">
+                <i class="fas fa-file-csv"></i><span>ייצוא CSV</span>
+            </button>
+        </div>
+        <div class="table-container overflow-x-auto">
             <table class="w-full">
                 <thead class="table-header sticky top-0">
                 <tr>
                     <th class="px-4 py-4 text-right font-semibold text-gray-700" title="מזהה מערכת">מזהה מערכת</th>
                     <th class="px-4 py-4 text-right font-semibold text-gray-700" title="פעולות">פעולות</th>
-                    <th class="px-4 py-4 text-right font-semibold text-gray-700" title="שם">שם</th>
-                    <th class="px-4 py-4 text-right font-semibold text-gray-700" title="אימייל">אימייל</th>
                     <th class="px-4 py-4 text-right font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"
-                        title="תאריך איבחון" onclick="resortByDate()">
-                        תאריך <span class="text-blue-600 text-sm">↓</span>
+                        title="שם" onclick="sortTable('name')">
+                        שם <span class="sort-indicator text-blue-600 text-sm" data-col="name"></span>
                     </th>
-                    <th class="px-4 py-4 text-right font-semibold text-gray-700" title="קוד המערכת">קוד מערכת</th>
+                    <th class="px-4 py-4 text-right font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"
+                        title="אימייל" onclick="sortTable('email')">
+                        אימייל <span class="sort-indicator text-blue-600 text-sm" data-col="email"></span>
+                    </th>
+                    <th class="px-4 py-4 text-right font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"
+                        title="תאריך איבחון" onclick="sortTable('date')">
+                        תאריך <span class="sort-indicator text-blue-600 text-sm" data-col="date">↓</span>
+                    </th>
+                    <th class="px-4 py-4 text-right font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"
+                        title="קוד המערכת" onclick="sortTable('pdn_code')">
+                        קוד מערכת <span class="sort-indicator text-blue-600 text-sm" data-col="pdn_code"></span>
+                    </th>
                     <th class="px-4 py-4 text-right font-semibold text-gray-700" title="סטטוס אימות">אימות</th>
                     <th class="px-4 py-4 text-right font-semibold text-gray-700" title="ניתוח קול">ניתוח קול</th>
                     <th class="px-4 py-4 text-right font-semibold text-gray-700" title="קוד מאבחן">קוד מאבחן</th>
@@ -488,24 +202,22 @@
                 <!-- Data will be populated here -->
                 </tbody>
             </table>
-
-
+        </div>
+            </div>
         </div>
     </div>
-
-
 </div>
 
 <!-- Questionnaire Modal -->
-<div id="questionnaireModal" class="modal-backdrop">
+<div id="questionnaireModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="נתוני שאלון">
     <div class="card p-8 max-w-4xl w-full mx-4 max-h-[80vh] overflow-y-auto rounded-2xl">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold text-gray-800 flex items-center">
-                <i class="fas fa-clipboard-list mr-2 text-blue-900"> נתוני שאלון </i>
+                <i class="fas fa-clipboard-list ml-2 text-blue-900"></i> נתוני שאלון
             </h2>
-            <button onclick="closeModal('questionnaireModal')"
+            <button onclick="closeModal('questionnaireModal')" aria-label="סגור"
                     class="text-gray-500 hover:text-gray-700 text-2xl transition-colors">
-                <i class="fas fa-times mr-2"></i>
+                <i class="fas fa-times"></i>
             </button>
         </div>
         <div id="questionnaireContent" class="space-y-4">
@@ -515,15 +227,15 @@
 </div>
 
 <!-- Voice Modal -->
-<div id="voiceModal" class="modal-backdrop">
+<div id="voiceModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="ניתוח קול">
     <div class="card p-8 max-w-2xl w-full mx-4 rounded-2xl">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold text-gray-800 flex items-center">
-                <i class="fas fa-microphone mr-2 text-blue-900"> ניתוח קול </i>
+                <i class="fas fa-microphone ml-2 text-blue-900"></i> ניתוח קול
             </h2>
-            <button onclick="closeModal('voiceModal')"
+            <button onclick="closeModal('voiceModal')" aria-label="סגור"
                     class="text-gray-500 hover:text-gray-700 text-2xl transition-colors">
-                <i class="fas fa-times mr-2"></i>
+                <i class="fas fa-times"></i>
             </button>
         </div>
         <div id="voiceContent" class="space-y-4">
@@ -533,41 +245,40 @@
 </div>
 
 <!-- Edit Diagnose Modal -->
-<div id="editDiagnoseModal" class="modal-backdrop">
+<div id="editDiagnoseModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="עריכת אבחון">
     <div class="card p-8 max-w-2xl w-full mx-4 rounded-2xl">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold text-gray-800 flex items-center">
-                <i class="fas fa-edit mr-2 text-blue-900">עריכת אבחון</i>
+                <i class="fas fa-edit ml-2 text-blue-900"></i> עריכת אבחון
             </h2>
-            <button onclick="closeModal('editDiagnoseModal')"
+            <button onclick="closeModal('editDiagnoseModal')" aria-label="סגור"
                     class="text-gray-500 hover:text-gray-700 text-2xl transition-colors">
-                <i class="fas fa-times mr-2"></i>
+                <i class="fas fa-times"></i>
             </button>
         </div>
         <form id="editDiagnoseForm" class="space-y-4">
             <div>
                 <label for="diagnosePdnCode" class="block text-sm font-medium text-gray-700 mb-2">
-                    <i> קוד PDN אבחון </i>
+                    קוד PDN אבחון
                 </label>
                 <input type="text" id="diagnosePdnCode" name="diagnose_pdn_code"
                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
             </div>
             <div>
                 <label for="diagnoseComments" class="block text-sm font-medium text-gray-700 mb-2">
-                    <i class="fas fa-comment mr-2"> הערות אבחון </i>
+                    <i class="fas fa-comment ml-2"></i> הערות אבחון
                 </label>
                 <textarea id="diagnoseComments" name="diagnose_comments" rows="4"
                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"></textarea>
             </div>
             <div class="flex space-x-4 space-x-reverse">
                 <button type="submit"
-                        class="flex-1 py-3 px-6 btn-success text-white font-semibold rounded-lg transition-all duration-300 flex items-center justify-center">
-                    <i class="fas fa-save mr-2"> שמור </i>
+                        class="flex-1 py-3 px-6 btn-primary text-white font-semibold rounded-lg transition-all duration-300 flex items-center justify-center">
+                    <i class="fas fa-save ml-2"></i> שמור
                 </button>
                 <button type="button" onclick="closeModal('editDiagnoseModal')"
-                        class="flex-1 py-3 px-6 btn-secondary text-white font-semibold rounded-lg transition-all duration-300 flex items-center justify-center">
-                    <i class="fas fa-times mr-2"> סגור </i>
-
+                        class="flex-1 py-3 px-6 btn-outline font-semibold rounded-lg transition-all duration-300 flex items-center justify-center">
+                    <i class="fas fa-times ml-2"></i> סגור
                 </button>
             </div>
         </form>
@@ -575,51 +286,15 @@
 </div>
 
 <!-- Logged In Users Modal -->
-<div id="loggedInUsersModal" class="modal-backdrop">
-
-<!-- PDN Calculation Details Modal -->
-<div id="pdnCalculationModal" class="modal-backdrop">
-
-<!-- Release Notes Modal -->
-<div id="releaseNotesModal" class="modal-backdrop">
-    <div class="card p-8 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto rounded-2xl">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold text-gray-800 flex items-center">
-                <i class="fas fa-code-branch mr-2 text-blue-900"> הערות גרסה </i>
-            </h2>
-            <button onclick="closeModal('releaseNotesModal')"
-                    class="text-gray-500 hover:text-gray-700 text-2xl transition-colors">
-                <i class="fas fa-times mr-2"></i>
-            </button>
-        </div>
-        <div id="releaseNotesContent" class="space-y-4">
-            <!-- Release notes will be populated here -->
-        </div>
-    </div>
-</div>
-    <div class="card p-8 max-w-3xl w-full mx-4 max-h-[80vh] overflow-y-auto rounded-2xl">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold text-gray-800 flex items-center">
-                <i class="fas fa-calculator mr-2 text-blue-900"> פירוט חישוב קוד PDN </i>
-            </h2>
-            <button onclick="closeModal('pdnCalculationModal')"
-                    class="text-gray-500 hover:text-gray-700 text-2xl transition-colors">
-                <i class="fas fa-times mr-2"></i>
-            </button>
-        </div>
-        <div id="pdnCalculationContent" class="space-y-4">
-            <!-- Calculation details will be populated here -->
-        </div>
-    </div>
-</div>
+<div id="loggedInUsersModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="משתמשים מחוברים">
     <div class="card p-8 max-w-2xl w-full mx-4 rounded-2xl">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold text-gray-800 flex items-center">
-                <i class="fas fa-users mr-2 text-blue-900"> משתמשים מחוברים </i>
+                <i class="fas fa-users ml-2 text-blue-900"></i> משתמשים מחוברים
             </h2>
-            <button onclick="closeModal('loggedInUsersModal')"
+            <button onclick="closeModal('loggedInUsersModal')" aria-label="סגור"
                     class="text-gray-500 hover:text-gray-700 text-2xl transition-colors">
-                <i class="fas fa-times mr-2"></i>
+                <i class="fas fa-times"></i>
             </button>
         </div>
         <div id="loggedInUsersContent" class="space-y-4">
@@ -627,2016 +302,79 @@
     </div>
 </div>
 
-
-<!-- Enhanced Action Modal -->
-<div x-data="{ showActionModal: false, modalText: '', loadingBtn: '' }"
-     x-show="showActionModal"
-     @click.away="showActionModal = false"
-     class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
-     x-transition>
-    <div class="bg-white rounded-lg shadow-lg p-6 w-80 text-center animate-fade-in">
-        <h2 class="text-lg font-semibold mb-4">פעולה מתבצעת</h2>
-        <p x-text="modalText" class="text-gray-700 mb-4"></p>
-        <div class="flex justify-center mb-4">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+<!-- PDN Calculation Details Modal -->
+<div id="pdnCalculationModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="פירוט חישוב קוד PDN">
+    <div class="card p-8 max-w-3xl w-full mx-4 max-h-[80vh] overflow-y-auto rounded-2xl">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800 flex items-center">
+                <i class="fas fa-calculator ml-2 text-blue-900"></i> פירוט חישוב קוד PDN
+            </h2>
+            <button onclick="closeModal('pdnCalculationModal')" aria-label="סגור"
+                    class="text-gray-500 hover:text-gray-700 text-2xl transition-colors">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
-        <button @click="showActionModal = false"
-                class="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
-            סגור
-        </button>
+        <div id="pdnCalculationContent" class="space-y-4">
+            <!-- Calculation details will be populated here -->
+        </div>
+    </div>
+</div>
+
+<!-- Release Notes Modal -->
+<div id="releaseNotesModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="הערות גרסה">
+    <div class="card p-8 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto rounded-2xl">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800 flex items-center">
+                <i class="fas fa-code-branch ml-2 text-blue-900"></i> הערות גרסה
+            </h2>
+            <button onclick="closeModal('releaseNotesModal')" aria-label="סגור"
+                    class="text-gray-500 hover:text-gray-700 text-2xl transition-colors">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div id="releaseNotesContent" class="space-y-4">
+            <!-- Release notes will be populated here -->
+        </div>
+    </div>
+</div>
+
+<!-- Admin Password Modal -->
+<div id="adminPasswordModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="אימות מנהל">
+    <div class="card p-6 max-w-sm w-full mx-4 rounded-2xl shadow-2xl">
+        <div class="text-center mb-4">
+            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i class="fas fa-lock text-blue-900"></i>
+            </div>
+            <p id="passwordModalMessage" class="text-sm text-gray-600"></p>
+        </div>
+        <div class="mb-4">
+            <input type="password" id="adminPasswordInput" placeholder="הזן סיסמת מנהל..."
+                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-center"
+                   onkeydown="if(event.key==='Enter') submitPasswordModal(); if(event.key==='Escape') cancelPasswordModal();">
+        </div>
+        <div class="flex gap-3">
+            <button onclick="submitPasswordModal()"
+                    class="flex-1 py-2.5 btn-primary text-white font-semibold rounded-lg text-sm">
+                אישור
+            </button>
+            <button onclick="cancelPasswordModal()"
+                    class="flex-1 py-2.5 btn-outline font-semibold rounded-lg text-sm">
+                ביטול
+            </button>
+        </div>
     </div>
 </div>
 
 <!-- Loading Spinner -->
 <div id="loadingSpinner"
-     class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 backdrop-blur-sm">
-    <div class="card p-8 text-center rounded-2xl">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p class="text-lg text-gray-700">טוען...</p>
+     class="hidden fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm">
+    <div class="card p-8 text-center rounded-2xl shadow-2xl">
+        <div class="animate-spin rounded-full h-10 w-10 border-[3px] border-gray-200 border-t-blue-900 mx-auto mb-4"></div>
+        <p class="text-sm font-medium text-gray-600">טוען נתונים...</p>
     </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<script>
-    // Utility: Get user email from modal content (assumes email is present in a data attribute or visible field)
-    function getDiagnosisUserEmail() {
-        // Try to find an element with data-email or fallback to text content
-        const emailElem = document.querySelector('#questionnaireContent [data-email]');
-        if (emailElem) return emailElem.getAttribute('data-email');
-        // Fallback: try to find a visible email in the content
-        const match = document.getElementById('questionnaireContent').innerText.match(/[\w.-]+@[\w.-]+/);
-        return match ? match[0] : 'user';
-    }
-
-    // Main download function that handles multiple formats
-    function downloadReport(format = 'pdf') {
-        switch (format) {
-            case 'pdf':
-                downloadDiagnosisAsPDF();
-                break;
-            case 'json':
-                downloadUserJSON();
-                break;
-            default:
-                alert('פורמט לא נתמך');
-        }
-    }
-
-    // Main PDF export function
-    function downloadDiagnosisAsPDF() {
-        const content = document.getElementById('questionnaireContent');
-        if (!content) {
-            alert('לא נמצאו נתונים לייצוא');
-            return;
-        }
-
-        // Create a new container for the complete report
-        const reportContainer = document.createElement('div');
-        reportContainer.style.cssText = `
-        font-family: 'Noto Sans Hebrew', 'Arial', sans-serif !important;
-        direction: rtl !important;
-        text-align: right !important;
-        font-size: 14px !important;
-        line-height: 1.6 !important;
-        color: #000 !important;
-        background: white !important;
-        padding: 20px !important;
-        width: 100% !important;
-        max-width: 800px !important;
-        margin: 0 auto !important;
-    `;
-        reportContainer.setAttribute('dir', 'rtl');
-        reportContainer.setAttribute('lang', 'he');
-
-        // Clone the questionnaire content
-        const questionnaireClone = content.cloneNode(true);
-
-        // Remove the user metadata section from the clone
-        const metadataSection = questionnaireClone.querySelector('.bg-gradient-to-br.from-blue-50.via-blue-50.to-blue-100');
-        if (metadataSection) {
-            metadataSection.remove();
-        }
-
-        // Find the questionnaire section and add user ID before it
-        const questionnaireSection = questionnaireClone.querySelector('.bg-white.p-8.rounded-2xl.border.border-gray-200.shadow-lg.mt-6');
-        if (questionnaireSection) {
-            // Create user ID section
-            const userIdSection = document.createElement('div');
-            userIdSection.style.cssText = `
-            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            border: 1px solid #d1d5db;
-            text-align: center;
-            font-family: 'Noto Sans Hebrew', 'Arial', sans-serif !important;
-            direction: rtl !important;
-        `;
-
-            const userId = getUserMetadata('user_id');
-            userIdSection.innerHTML = `
-            <div style="font-size: 16px; font-weight: bold; color: #374151; margin-bottom: 8px; font-family: 'Noto Sans Hebrew', 'Arial', sans-serif;">
-                מזהה מערכת
-            </div>
-            <div style="font-family: monospace; font-size: 18px; font-weight: bold; color: #1e40af; background: white; padding: 8px 16px; border-radius: 8px; display: inline-block; border: 1px solid #d1d5db;">
-                ${userId}
-            </div>
-        `;
-
-            // Insert the user ID section before the questionnaire section
-            questionnaireSection.parentNode.insertBefore(userIdSection, questionnaireSection);
-        }
-
-        // Apply RTL and font styles to all elements in the clone
-        const allElements = questionnaireClone.querySelectorAll('*');
-        allElements.forEach(element => {
-            element.style.fontFamily = "'Noto Sans Hebrew', 'Arial', sans-serif";
-            element.style.direction = 'rtl';
-            element.style.textAlign = 'right';
-        });
-
-        // Add the modified content to the report container
-        reportContainer.appendChild(questionnaireClone);
-
-        // Generate filename with user ID and date
-        const userId = getUserMetadata('user_id');
-        const date = new Date().toLocaleDateString('he-IL', {year: 'numeric', month: '2-digit', day: '2-digit'});
-
-        // Create filename: user_id_date.pdf
-        const filename = `${userId}_${date}.pdf`;
-
-        // PDF options with better Hebrew support
-        const opt = {
-            margin: [0.5, 0.5, 0.5, 0.5], // inches (top, left, bottom, right)
-            filename: filename,
-            image: {type: 'jpeg', quality: 0.98},
-            html2canvas: {
-                scale: 2,
-                useCORS: true,
-                allowTaint: true,
-                backgroundColor: '#ffffff'
-            },
-            jsPDF: {
-                unit: 'in',
-                format: 'a4',
-                orientation: 'portrait',
-                compress: true
-            },
-            pagebreak: {mode: ['avoid-all', 'css', 'legacy']}
-        };
-
-        // Use html2pdf
-        html2pdf().set(opt).from(reportContainer).save();
-    }
-
-    // Function to prompt for admin password (same logic as email sending)
-    function promptAdminPassword() {
-        // Prompt for admin password using the same logic as email sending
-        const password = prompt('הזן סיסמת מנהל להורדת JSON:');
-        if (!password) {
-            return;
-        }
-
-        if (password !== 'admin') {
-            showNotification('סיסמה שגויה', 'error');
-            return;
-        }
-
-        // Download JSON with admin password
-        downloadUserJSON(password);
-    }
-
-    // JSON export function - downloads existing user JSON file
-    async function downloadUserJSON(adminPassword) {
-        try {
-            // Get user email from the current modal
-            const userEmail = getDiagnosisUserEmail();
-            if (!userEmail) {
-                alert('לא ניתן לזהות את המשתמש');
-                return;
-            }
-
-            // Convert email to folder name format (remove @ and . and convert to lowercase)
-            const folderName = userEmail.replace('@', '').replace('.', '').toLowerCase();
-
-            // Construct the path to the user's JSON file
-            const jsonFilePath = `saved_results/${folderName}/${userEmail}_answers.json`;
-
-            console.log('Attempting to download JSON from:', jsonFilePath);
-
-            // Fetch the JSON file from the server with admin password
-            const response = await fetch(`/pdn-admin/download-json?file_path=${encodeURIComponent(jsonFilePath)}&session_token=${sessionToken}&admin_password=${encodeURIComponent(adminPassword)}`);
-
-            if (response.ok) {
-                // Get the file content
-                const jsonContent = await response.json();
-
-                // Create and download the file
-                const jsonString = JSON.stringify(jsonContent, null, 2);
-                const blob = new Blob([jsonString], {type: 'application/json;charset=utf-8'});
-                const url = URL.createObjectURL(blob);
-
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `${userEmail}_answers.json`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-
-                URL.revokeObjectURL(url);
-
-                console.log('JSON file downloaded successfully');
-
-            } else if (response.status === 401) {
-                if (response.headers.get('X-Error-Type') === 'invalid_password') {
-                    alert('סיסמת מנהל שגויה. אנא נסה שוב.');
-                } else {
-                    // Session expired, redirect to login
-                    console.log('Session expired, redirecting to login');
-                    localStorage.removeItem('adminSessionToken');
-                    window.location.href = '/pdn-admin/';
-                }
-            } else if (response.status === 404) {
-                alert('קובץ ה-JSON לא נמצא. יתכן שהמשתמש לא השלים את השאלון.');
-            } else {
-                throw new Error(`Failed to download JSON: ${response.status}`);
-            }
-
-        } catch (error) {
-            console.error('Error downloading JSON:', error);
-            alert('שגיאה בהורדת קובץ ה-JSON. אנא נסה שוב.');
-        }
-    }
-
-    // Helper function to get user metadata from the current data
-    function getUserMetadata(field) {
-        // Try to get from the current user data
-        const currentUser = getCurrentUserFromModal();
-        if (currentUser && currentUser[field]) {
-            return currentUser[field];
-        }
-
-        // Try to get from the metadata in the modal content
-        const metadataElement = document.querySelector('#questionnaireContent .font-mono.font-bold.text-blue-600.text-lg');
-        if (metadataElement && field === 'user_id') {
-            return metadataElement.textContent.trim();
-        }
-
-        // Try to get from the metadata object in the displayQuestionsWithText function
-        const metadataSection = document.querySelector('#questionnaireContent .bg-gradient-to-br.from-blue-50.via-blue-50.to-blue-100');
-        if (metadataSection) {
-            const userIdElement = metadataSection.querySelector('.font-mono.font-bold.text-blue-600.text-lg');
-            if (userIdElement && field === 'user_id') {
-                return userIdElement.textContent.trim();
-            }
-        }
-
-        // Fallback values
-        const fallbacks = {
-            'user_id': 'לא זמין',
-            'email': getDiagnosisUserEmail(),
-            'date': 'לא זמין',
-            'pdn_code': 'לא זמין',
-            'pdn_voice_code': 'לא זמין',
-            'diagnose_pdn_code': 'לא זמין',
-            'diagnose_comments': 'אין הערות'
-        };
-
-        return fallbacks[field] || 'לא זמין';
-    }
-
-    // Helper function to get current user data from the modal
-    function getCurrentUserFromModal() {
-        const userEmail = getDiagnosisUserEmail();
-        if (userEmail && currentData) {
-            return currentData.find(user => user.email === userEmail);
-        }
-        return null;
-    }
-
-    let sessionToken = null;
-    let currentData = [];
-    let currentEditEmail = null;
-
-    // Function to format timestamp
-    function formatTimestamp(timestamp) {
-        if (!timestamp) return 'לא זמין';
-
-        try {
-            // Handle different timestamp formats
-            let cleanTimestamp = timestamp.replace(/_/g, ' ').trim();
-
-            // If it's already in a readable format, return as is
-            if (cleanTimestamp.includes('-') || cleanTimestamp.includes('/')) {
-                return cleanTimestamp;
-            }
-
-            // Parse timestamp in format "YYYY MM DD HH MM" or "YYYY_MM_DD_HH_MM"
-            const parts = cleanTimestamp.split(/[\s_]+/);
-
-            if (parts.length >= 5) {
-                const [year, month, day, hour, minute] = parts;
-
-                // Validate parts
-                if (year && month && day && hour && minute) {
-                    // Format as Hebrew date: DD/MM/YYYY HH:MM
-                    return `${day}/${month}/${year} ${hour}:${minute}`;
-                }
-            }
-
-            // If parsing fails, return the cleaned timestamp
-            return cleanTimestamp;
-        } catch (error) {
-            console.error('Error formatting timestamp:', error);
-            return timestamp.replace(/_/g, ' ');
-        }
-    }
-
-    // Initialize
-    document.addEventListener('DOMContentLoaded', function () {
-        // Get session token from localStorage
-        sessionToken = localStorage.getItem('adminSessionToken');
-
-        // If no session token, redirect to login
-        if (!sessionToken) {
-            window.location.href = '/pdn-admin/';
-            return;
-        }
-
-        setupEventListeners();
-        loadMetadata();
-        loadConversationStats();
-        loadVersion();
-
-        // Add global error handler for 401 responses
-        window.addEventListener('unhandledrejection', function (event) {
-            if (event.reason && event.reason.status === 401) {
-                console.log('Global 401 error handler: Session expired, redirecting to login');
-                localStorage.removeItem('adminSessionToken');
-                window.location.href = '/pdn-admin/';
-            }
-        });
-    });
-
-    function setupEventListeners() {
-        // Search functionality
-        document.getElementById('searchInput').addEventListener('input', handleSearch);
-
-        // Red users filter
-        document.getElementById('redUsersFilter').addEventListener('change', handleFilter);
-
-        // Refresh button
-        document.getElementById('refreshBtn').addEventListener('click', () => {
-            loadMetadata();
-            loadConversationStats();
-        });
-
-        // Logout button
-        document.getElementById('logoutBtn').addEventListener('click', handleLogout);
-
-        // Logged in users button
-        document.getElementById('loggedInUsersBtn').addEventListener('click', showLoggedInUsers);
-
-        // Edit diagnose form
-        document.getElementById('editDiagnoseForm').addEventListener('submit', handleEditDiagnose);
-
-    }
-
-    async function handleLogout() {
-        if (sessionToken) {
-            try {
-                await fetch(`/pdn-admin/logout?session_token=${sessionToken}`);
-            } catch (error) {
-                console.error('Logout error:', error);
-            }
-        }
-        sessionToken = null;
-        // Clear session token from localStorage
-        localStorage.removeItem('adminSessionToken');
-        // Redirect to login page
-        window.location.replace('/pdn-admin/');
-    }
-
-    async function showLoggedInUsers() {
-        try {
-            const response = await fetch(`/pdn-admin/logged-in-users?session_token=${sessionToken}`);
-            if (!response.ok) {
-                throw new Error('Failed to fetch logged-in users');
-            }
-
-            const data = await response.json();
-            const content = document.getElementById('loggedInUsersContent');
-
-            if (data.count === 0) {
-                content.innerHTML = '<p class="text-gray-600 text-center py-4">אין משתמשים מחוברים כרגע</p>';
-            } else {
-                let html = `<div class="mb-4 text-sm text-gray-600">סה"כ: ${data.count} משתמשים</div>`;
-                html += '<div class="space-y-3">';
-
-                data.users.forEach(user => {
-                    const appName = user.type === 'admin' ? 'מנהל' : user.type === 'diagnosis' ? 'אבחון' : 'צ׳אט';
-                    const appColor = user.type === 'admin' ? 'bg-blue-100 text-blue-800' : user.type === 'diagnosis' ? 'bg-green-100 text-green-800' : 'bg-purple-100 text-purple-800';
-                    html += `
-                        <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-3 space-x-reverse">
-                                    <i class="fas fa-user-circle text-blue-900 text-2xl"></i>
-                                    <div>
-                                        <div class="flex items-center gap-2">
-                                            <p class="font-semibold text-gray-800">${user.email}</p>
-                                            <span class="px-2 py-1 text-xs font-semibold rounded ${appColor}">${appName}</span>
-                                        </div>
-                                        <p class="text-sm text-gray-600">התחבר: ${user.login_time}</p>
-                                        ${user.expires_at ? `<p class="text-xs text-gray-500">תוקף עד: ${user.expires_at}</p>` : ''}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                });
-
-                html += '</div>';
-                content.innerHTML = html;
-            }
-
-            document.getElementById('loggedInUsersModal').style.display = 'flex';
-        } catch (error) {
-            console.error('Error fetching logged-in users:', error);
-            alert('שגיאה בטעינת משתמשים מחוברים');
-        }
-    }
-
-    async function loadMetadata() {
-        const refreshBtn = document.getElementById('refreshBtn');
-
-        // Check if button is already disabled (prevent multiple calls)
-        if (refreshBtn.disabled) {
-            console.log('Refresh button already disabled, ignoring request');
-            return;
-        }
-
-        // Disable refresh button
-        refreshBtn.disabled = true;
-        console.log('Refresh button disabled');
-
-        // Safety timeout to re-enable button after 30 seconds
-        const safetyTimeout = setTimeout(() => {
-            if (refreshBtn.disabled) {
-                refreshBtn.disabled = false;
-                console.log('Refresh button re-enabled by safety timeout');
-            }
-        }, 30000);
-
-        showLoading();
-        console.log('loadMetadata sessionToken', sessionToken);
-        try {
-            const response = await fetch('/pdn-admin/metadata/csv?session_token=' + sessionToken);
-            if (response.ok) {
-                const data = await response.json();
-                currentData = data.data;
-
-                // Calculate verification status for each user
-                currentData.forEach(user => {
-                    // For existing data, we'll set needs_verification to false by default
-                    // The actual verification will be calculated when recalculating PDN codes
-                    user.needs_verification = false;
-                });
-
-                // Helper function to parse dates in different formats
-                const parseDate = (dateStr) => {
-                    if (!dateStr || dateStr === 'N/A' || dateStr === '') {
-                        return new Date(0); // Return epoch date for invalid dates
-                    }
-
-                    // Try to parse different date formats
-                    let date = new Date(dateStr);
-
-                    // If invalid date, try parsing Hebrew date format (DD/MM/YYYY)
-                    if (isNaN(date.getTime())) {
-                        const parts = dateStr.split('/');
-                        if (parts.length === 3) {
-                            // Assume DD/MM/YYYY format
-                            date = new Date(parts[2], parts[1] - 1, parts[0]);
-                        }
-                    }
-
-                    return date;
-                };
-
-                // Sort by date (newest first)
-                currentData.sort((a, b) => parseDate(b.date) - parseDate(a.date));
-
-                displayData(currentData);
-            } else if (response.status === 401) {
-                console.log('Session expired, redirecting to login');
-                localStorage.removeItem('adminSessionToken');
-                window.location.href = '/pdn-admin/';
-            } else {
-                throw new Error('Failed to load metadata');
-            }
-        } catch (error) {
-            console.error('Error loading metadata:', error);
-            alert('שגיאה בטעינת נתונים');
-        } finally {
-            hideLoading();
-            // Clear safety timeout and re-enable refresh button
-            clearTimeout(safetyTimeout);
-            refreshBtn.disabled = false;
-            console.log('Refresh button re-enabled');
-        }
-    }
-
-    async function loadConversationStats() {
-        try {
-            const response = await fetch(`/pdn-admin/conversation-stats?session_token=${sessionToken}&days=7`);
-
-            if (response.ok) {
-                const data = await response.json();
-                displayConversationStats(data.stats);
-            }
-        } catch (error) {
-            console.error('Error loading conversation stats:', error);
-        }
-    }
-
-    function displayConversationStats(stats) {
-        const container = document.getElementById('conversationStats');
-        
-        const allUsers = new Set();
-        const dates = Object.keys(stats).sort().reverse();
-        
-        dates.forEach(date => {
-            Object.keys(stats[date]).forEach(email => allUsers.add(email));
-        });
-        
-        const users = Array.from(allUsers).sort();
-        const weeklyTotals = {};
-        users.forEach(user => {
-            weeklyTotals[user] = dates.reduce((sum, date) => sum + (stats[date][user] || 0), 0);
-        });
-        
-        let html = `
-            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm" style="grid-column: 1 / -1; width: 100%;">
-                <style>
-                    .stats-table { 
-                        width: 100%;
-                        min-width: 1200px;
-                        border-collapse: collapse;
-                        font-family: 'Inter', sans-serif;
-                    }
-                    .stats-table th, .stats-table td { 
-                        padding: 12px;
-                        text-align: center;
-                        border: 1px solid #e5e7eb;
-                    }
-                    .stats-table th { 
-                        background: linear-gradient(135deg, #e0e7ff 0%, #f1f5f9 100%);
-                        font-weight: 600;
-                        color: #374151;
-                    }
-                    .stats-table tbody tr:hover { 
-                        background: #f9fafb;
-                    }
-                    .stats-table .total-col { 
-                        background: #f3f4f6;
-                        font-weight: 600;
-                    }
-                    .stats-table .user-col { 
-                        text-align: right;
-                        font-weight: 500;
-                    }
-                    .stats-table .total-row {
-                        background: #f3f4f6;
-                        font-weight: 600;
-                    }
-                </style>
-                
-                <div style="overflow-x: auto; width: 100%;">
-                    <table class="stats-table">
-                        <thead>
-                            <tr>
-                                <th class="user-col">משתמש</th>
-                                ${dates.map(date => `<th>${date}</th>`).join('')}
-                                <th class="total-col">סה"כ</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${users.map(user => `
-                                <tr>
-                                    <td class="user-col">${user}</td>
-                                    ${dates.map(date => `<td>${stats[date][user] || 0}</td>`).join('')}
-                                    <td class="total-col">${weeklyTotals[user]}</td>
-                                </tr>
-                            `).join('')}
-                            <tr class="total-row">
-                                <td class="user-col">סה"כ</td>
-                                ${dates.map(date => {
-                                    const dayTotal = Object.values(stats[date]).reduce((sum, count) => sum + count, 0);
-                                    return `<td>${dayTotal}</td>`;
-                                }).join('')}
-                                <td class="total-col">${Object.values(weeklyTotals).reduce((sum, count) => sum + count, 0)}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        `;
-        
-        container.innerHTML = html;
-    }
-
-    function displayData(data) {
-        renderTable(data);
-    }
-
-    function renderTable(data) {
-        const tbody = document.getElementById('tableBody');
-        tbody.innerHTML = '';
-
-        // Update row count
-        document.getElementById('rowCount').textContent = `סה"כ שורות: ${data.length}`;
-
-        data.forEach(user => {
-            const row = document.createElement('tr');
-
-            // Check if any of the three codes are different
-            const isDifferent = (user.pdn_code !== user.diagnose_pdn_code &&
-                    user.diagnose_pdn_code !== "N/A" &&
-                    user.diagnose_pdn_code !== "") ||
-                (user.pdn_code !== user.pdn_voice_code &&
-                    user.pdn_voice_code !== "N/A" &&
-                    user.pdn_voice_code !== "") ||
-                (user.pdn_voice_code !== user.diagnose_pdn_code &&
-                    user.diagnose_pdn_code !== "N/A" &&
-                    user.diagnose_pdn_code !== "" &&
-                    user.pdn_voice_code !== "N/A" &&
-                    user.pdn_voice_code !== "");
-
-            // Add red background class if codes are different
-            if (isDifferent) {
-                row.classList.add('highlight-difference');
-            }
-
-            row.innerHTML = `
-            <td class="px-4 py-4">
-                <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium font-mono">${user.user_id || 'N/A'}</span>
-            </td>
-            <td class="px-4 py-4">
-                <div class="relative" x-data="{ open: false, loadingBtn: '', modalText: '', showModal: false }">
-                    <button @click="open = !open"
-                            class="action-btn bg-blue-900 hover:bg-blue-900 text-white px-4 py-2 rounded-lg transition-all duration-300 flex items-center">
-                        <i > פעולות </i>
-                        <i class="fas fa-chevron-down mr-2 transition-transform" :class="{ 'rotate-180': open }"></i>
-                    </button>
-
-                    <div x-show="open"
-                         @click.away="open = false"
-                         x-transition:enter="transition ease-out duration-100"
-                         x-transition:enter-start="transform opacity-0 scale-95"
-                         x-transition:enter-end="transform opacity-100 scale-100"
-                         x-transition:leave="transition ease-in duration-75"
-                         x-transition:leave-start="transform opacity-100 scale-100"
-                         x-transition:leave-end="transform opacity-0 scale-95"
-                         class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-blue-200 z-50">
-
-                        <div class="py-1">
-                            <button @click="loadingBtn = 'questionnaire'; modalText = 'טוען נתוני שאלון...'; showModal = true; viewQuestionnaire('${user.email}'); open = false"
-                                    class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center"
-                                    :disabled="loadingBtn === 'questionnaire'">
-                                <i class="fas fa-clipboard-list ml-2"></i>
-                                צפה בשאלון
-                            </button>
-
-                            <button @click="loadingBtn = 'voice'; modalText = 'טוען הקלטה קולית...'; showModal = true; playVoice('${user.email}'); open = false"
-                                    class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center"
-                                    :disabled="loadingBtn === 'voice'">
-                                <i class="fas fa-microphone ml-2"></i>
-                                האזן להקלטה
-                            </button>
-
-                            <button @click="loadingBtn = 'edit'; modalText = 'ערוך איבחון...'; showModal = true; editDiagnose('${user.email}'); open = false"
-                                    class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center"
-                                    :disabled="loadingBtn === 'edit'">
-                                <i class="fas fa-edit ml-2"></i>
-                                ערוך אבחון
-                            </button>
-
-                            <div class="relative" x-data="{ emailOpen: false }">
-                                <button @click="emailOpen = !emailOpen"
-                                        class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center justify-between"
-                                        :disabled="loadingBtn === 'email'">
-                                    <span class="flex items-center">
-                                        <i class="fas fa-envelope ml-2"></i>
-                                        שלח אימייל
-                                    </span>
-                                    <i class="fas fa-chevron-left text-xs transition-transform" :class="{ 'rotate-90': emailOpen }"></i>
-                                </button>
-                                <div x-show="emailOpen" class="pr-6 border-r border-blue-200 mr-2">
-                                    <button @click="loadingBtn = 'email'; modalText = 'שולח אימייל קוד PDN...'; showModal = true; sendEmail('${user.email}', 'pdn'); open = false; emailOpen = false"
-                                            class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center">
-                                        <i class="fas fa-file-alt ml-2 text-blue-500"></i>
-                                        קוד PDN
-                                    </button>
-                                    <button @click="loadingBtn = 'email'; modalText = 'שולח הזמנה לבינת...'; showModal = true; sendEmail('${user.email}', 'binat'); open = false; emailOpen = false"
-                                            class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center">
-                                        <i class="fas fa-comments ml-2 text-green-500"></i>
-                                        בינת
-                                    </button>
-                                </div>
-                            </div>
-
-                            <button @click="loadingBtn = 'recalculate'; modalText = 'מחשב מחדש קוד פדן...'; showModal = true; recalculatePdnCode('${user.email}'); open = false"
-                                    class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center"
-                                    :disabled="loadingBtn === 'recalculate'">
-                                <i class="fas fa-calculator ml-2"></i>
-                                חשב מחדש קוד פדן
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </td>
-            <td class="px-4 py-4 font-medium text-gray-900">${((user.first_name || '') + ' ' + (user.last_name || '')).trim() || 'N/A'}</td>
-            <td class="px-4 py-4 font-medium text-gray-900">${user.email}</td>
-            <td class="px-4 py-4 text-gray-700">${user.date}</td>
-            <td class="px-4 py-4">
-                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium"> ${user.pdn_code}</span>
-            </td>
-            <td class="px-4 py-4">
-                ${user.needs_verification ?
-                    '<span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium" title="נדרש אימות אנושי - הפער בין הציונים קטן מ-2 נקודות">⚠️ אימות</span>' :
-                    '<span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">✓ תקין</span>'
-                }
-            </td>
-            <td class="px-4 py-4">
-                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">${user.pdn_voice_code || 'N/A'}</span>
-            </td>
-            <td class="px-4 py-4">
-                <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">${user.diagnose_pdn_code || 'N/A'}</span>
-            </td>
-            <td class="px-4 py-4 text-gray-700 max-w-xs truncate" title="${user.diagnose_comments || ''}">${user.diagnose_comments || ''}</td>
-            <td class="px-4 py-4 text-gray-700 max-w-xs truncate" title="${user.pdn_update_comments || ''}">${user.pdn_update_comments || ''}</td>
-        `;
-            tbody.appendChild(row);
-        });
-
-        // Initialize tooltips after rendering
-        initializeTooltips();
-    }
-
-    function initializeTooltips() {
-        // Remove any existing tooltip elements
-        const existingTooltips = document.querySelectorAll('.custom-tooltip');
-        existingTooltips.forEach(tooltip => tooltip.remove());
-
-        // Add event listeners to all tooltip elements
-        const tooltipElements = document.querySelectorAll('[data-tooltip]');
-        tooltipElements.forEach(element => {
-            element.addEventListener('mouseenter', showCustomTooltip);
-            element.addEventListener('mouseleave', hideCustomTooltip);
-        });
-    }
-
-    function showCustomTooltip(event) {
-        const element = event.target;
-        const tooltipText = element.getAttribute('data-tooltip');
-
-        if (!tooltipText) return;
-
-        // Create tooltip element
-        const tooltip = document.createElement('div');
-        tooltip.className = 'custom-tooltip';
-        tooltip.textContent = tooltipText;
-        tooltip.style.cssText = `
-        position: absolute;
-        background: rgba(0, 0, 0, 0.9);
-        color: white;
-        padding: 6px 10px;
-        border-radius: 6px;
-        font-size: 12px;
-        white-space: nowrap;
-        z-index: 99999;
-        pointer-events: none;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    `;
-
-        document.body.appendChild(tooltip);
-
-        // Position tooltip
-        const rect = element.getBoundingClientRect();
-        tooltip.style.left = rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2) + 'px';
-        tooltip.style.top = rect.top - tooltip.offsetHeight - 8 + 'px';
-
-        // Show tooltip
-        setTimeout(() => {
-            tooltip.style.opacity = '1';
-        }, 10);
-    }
-
-    function hideCustomTooltip(event) {
-        const tooltips = document.querySelectorAll('.custom-tooltip');
-        tooltips.forEach(tooltip => {
-            tooltip.style.opacity = '0';
-            setTimeout(() => {
-                if (tooltip.parentElement) {
-                    tooltip.remove();
-                }
-            }, 300);
-        });
-    }
-
-    function handleSearch(e) {
-        applyFilters();
-    }
-
-    function handleFilter(e) {
-        applyFilters();
-    }
-
-    function applyFilters() {
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-        const showRedUsersOnly = document.getElementById('redUsersFilter').checked;
-
-        let filteredData = currentData.filter(user => {
-            // Search filter - check both email and name
-            const fullName = ((user.first_name || '') + ' ' + (user.last_name || '')).trim().toLowerCase();
-            const matchesSearch = user.email.toLowerCase().includes(searchTerm) ||
-                fullName.includes(searchTerm) ||
-                (user.first_name && user.first_name.toLowerCase().includes(searchTerm)) ||
-                (user.last_name && user.last_name.toLowerCase().includes(searchTerm));
-
-            // Red users filter - check if any of the three codes are different
-            const isRedUser = (user.pdn_code !== user.diagnose_pdn_code &&
-                    user.diagnose_pdn_code !== "N/A" &&
-                    user.diagnose_pdn_code !== "") ||
-                (user.pdn_code !== user.pdn_voice_code &&
-                    user.pdn_voice_code !== "N/A" &&
-                    user.pdn_voice_code !== "") ||
-                (user.pdn_voice_code !== user.diagnose_pdn_code &&
-                    user.diagnose_pdn_code !== "N/A" &&
-                    user.diagnose_pdn_code !== "" &&
-                    user.pdn_voice_code !== "N/A" &&
-                    user.pdn_voice_code !== "");
-
-            if (showRedUsersOnly) {
-                return matchesSearch && isRedUser;
-            } else {
-                return matchesSearch;
-            }
-        });
-
-        renderTable(filteredData);
-    }
-
-    async function viewQuestionnaire(email) {
-        if (!sessionToken) {
-            window.location.href = '/pdn-admin/';
-            return;
-        }
-
-        try {
-            const response = await fetch(`/pdn-admin/user/questionnaire/${email}?session_token=${sessionToken}`);
-            if (response.ok) {
-                const data = await response.json();
-                displayQuestionnaire(data);
-                // Reset loading state for this specific row
-                resetRowLoadingState(email, 'questionnaire');
-            } else if (response.status === 401) {
-                // Session expired or invalid, redirect to login
-                console.log('Session expired, redirecting to login');
-                localStorage.removeItem('adminSessionToken');
-                window.location.href = '/pdn-admin/';
-            } else {
-                throw new Error('Failed to load questionnaire');
-            }
-        } catch (error) {
-            console.error('Error loading questionnaire:', error);
-            showNotification('שגיאה בטעינת השאלון', 'error');
-            // Reset loading state for this specific row
-            resetRowLoadingState(email, 'questionnaire');
-        }
-    }
-
-    function displayQuestionnaire(data) {
-
-        const content = document.getElementById('questionnaireContent');
-
-        // Extract metadata and questions
-        const metadata = data.metadata || {};
-        const questions = {};
-        const questionsData = data.questions_data || {};
-
-        // Separate questions from metadata
-        Object.keys(data).forEach(key => {
-            if (key !== 'metadata' && key !== 'questions_data' && !isNaN(key)) {
-                questions[key] = data[key];
-            }
-        });
-        displayQuestionsWithText(questions, metadata, questionsData);
-    }
-
-    function displayQuestionsWithText(questions, metadata, questionsData) {
-        const content = document.getElementById('questionnaireContent');
-
-        content.innerHTML = `
-        <div class="bg-gradient-to-br from-blue-50 via-blue-50 to-blue-100 p-8 rounded-2xl border border-blue-200 shadow-lg">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-2xl font-bold text-gray-800">
-                    פרטי משתמש
-                </h3>
-                <div class="relative" x-data="{ open: false }">
-                    <button id="downloadPdfBtn"
-                        @click="open = !open"
-                        class="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-900 to-blue-900 text-white font-bold rounded-xl shadow-lg hover:from-blue-900 hover:to-blue-900 transition-all duration-300 text-base transform hover:scale-105">
-                        <i class="fas fa-file-arrow-down mr-2 text-lg"></i>
-                        הורד דוח
-                        <i class="fas fa-chevron-down mr-2 transition-transform" :class="{ 'rotate-180': open }"></i>
-                    </button>
-
-                    <div x-show="open"
-                         @click.away="open = false"
-                         x-transition:enter="transition ease-out duration-100"
-                         x-transition:enter-start="transform opacity-0 scale-95"
-                         x-transition:enter-end="transform opacity-100 scale-100"
-                         x-transition:leave="transition ease-in duration-75"
-                         x-transition:leave-start="transform opacity-100 scale-100"
-                         x-transition:leave-end="transform opacity-0 scale-95"
-                         class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-blue-200 z-50">
-
-                        <div class="py-1">
-                            <button @click="open = false; downloadReport('pdf')"
-                                    class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center">
-                                <i class="fas fa-file-pdf ml-2 text-red-500"></i>
-                                הורד PDF
-                            </button>
-
-                            <button @click="open = false; promptAdminPassword()"
-                                    class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center">
-                                <i class="fas fa-file-code ml-2 text-green-500"></i>
-                                הורד JSON
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-                <!-- Personal Information Section -->
-        <div class="space-y-4">
-        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-        <div class="text-sm text-gray-500 mb-1">שם פרטי</div>
-        <div class="font-bold text-gray-900 text-lg">${metadata["first_name"] || 'לא זמין'}</div>
-        </div>
-        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-        <div class="text-sm text-gray-500 mb-1">שם משפחה</div>
-        <div class="font-bold text-gray-900 text-lg">${metadata["last_name"] || 'לא זמין'}</div>
-        </div>
-        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-        <div class="text-sm text-gray-500 mb-1">אימייל</div>
-        <div class="font-bold text-gray-900 text-sm break-all">${metadata["Email"] || 'לא זמין'}</div>
-        </div>
-        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-        <div class="text-sm text-gray-500 mb-1">מספר טלפון</div>
-        <div class="font-bold text-gray-900 text-lg break-all">${metadata["phone"] || 'לא זמין'}</div>
-        </div>
-        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-        <div class="text-sm text-gray-500 mb-1">שם מפנה</div>
-        <div class="font-bold text-gray-900 text-lg break-all">${metadata["referral_source"] || 'לא זמין'}</div>
-        </div>
-        </div>
-
-            <!-- System Information Section -->
-        <div class="space-y-4">
-        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-        <div class="text-sm text-gray-500 mb-1">מזהה מערכת</div>
-        <div  class="font-bold text-gray-900 text-lg break-all">${metadata["User ID"] || 'לא זמין'}</div>
-        </div>
-        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-        <div class="text-sm text-gray-500 mb-1">שנת לידה</div>
-        <div class="font-bold text-gray-900 text-lg break-all">${metadata["birth_year"] || 'לא זמין'}</div>
-        </div>
-        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-        <div class="text-sm text-gray-500 mb-1">שפת אם</div>
-        <div class="font-bold text-gray-900 text-lg break-all">${metadata["mother_language"] || 'לא זמין'}</div>
-        </div>
-        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-        <div class="text-sm text-gray-500 mb-1">מגדר</div>
-        <div class="font-bold text-gray-900 text-lg break-all">${metadata["gender"] || 'לא זמין'}</div>
-        </div>
-        </div>
-
-            <!-- Diagnosis Information Section -->
-        <div class="space-y-4">
-        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-        <div class="text-sm text-gray-500 mb-1">קוד פדן</div>
-        <div >${metadata["Diagnose PDN Code"] || metadata["PDN Code"] || 'לא זמין'}</div>
-        </div>
-        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-        <div class="text-sm text-gray-500 mb-1">תאריך אבחון</div>
-        <div class="font-bold text-gray-900 text-lg">${metadata["Date"] || 'לא זמין'}</div>
-        </div>
-        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-        <div class="text-sm text-gray-500 mb-1">השכלה</div>
-        <div class="font-bold text-gray-900 text-lg break-all">${metadata["education"] || 'לא זמין'}</div>
-        </div>
-        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-        <div class="text-sm text-gray-500 mb-1">תפקיד</div>
-        <div class="font-bold text-gray-900 text-lg break-all">${metadata["job_title"] || 'לא זמין'}</div>
-        </div>
-        </div>
-        </div>
-        </div>
-
-        <div class="bg-white p-8 rounded-2xl border border-gray-200 shadow-lg mt-6">
-        <h3 class="text-2xl font-bold text-gray-800 mb-6">
-        תשובות מאובחן (${Object.keys(questions).length} שאלות)
-        </h3>
-        <div class="space-y-6">
-        ${Object.entries(questions).map(([questionNumber, questionData]) => {
-            // Handle different question types
-            let answerDisplay = '';
-            let codeDisplay = '';
-            let questionText = `שאלה ${questionNumber}`;
-
-            // Get question text from questions data
-            if (questionsData) {
-                // Search for question in all phases
-                for (const phaseKey in questionsData.phases) {
-                    const phase = questionsData.phases[phaseKey];
-                    if (phase.questions && phase.questions[questionNumber]) {
-                        questionText = phase.questions[questionNumber].text;
-                        console.log(questionText);
-                        break;
-                    }
-                }
-            }
-
-            // If question text is not found in questions data, try to get it from the saved answer data
-            if (questionText === `שאלה ${questionNumber}` && questionData.question_text) {
-                questionText = questionData.question_text;
-            }
-
-            if (questionData.ranking) {
-                // Check if this is a scale question (has exactly 2 options with numeric values)
-                const rankingEntries = Object.entries(questionData.ranking);
-
-                if (rankingEntries.length === 2 &&
-                    typeof rankingEntries[0][1] === 'number' &&
-                    typeof rankingEntries[1][1] === 'number') {
-
-                    // This is a scale question - decode it properly
-                    const [leftCode, leftValue] = rankingEntries[0];
-                    const [rightCode, rightValue] = rankingEntries[1];
-
-                    // Get the question options to find the text labels
-                    let leftText = leftCode;
-                    let rightText = rightCode;
-
-                    if (questionData.question_options && questionData.question_options.length >= 2) {
-                        const leftOption = questionData.question_options.find(opt => opt.code === leftCode);
-                        const rightOption = questionData.question_options.find(opt => opt.code === rightCode);
-
-                        if (leftOption) leftText = leftOption.text;
-                        if (rightOption) rightText = rightOption.text;
-                    }
-
-                    // Determine the scale position and create readable description
-                    const scaleMap = [
-                        {position: 0, description: `${leftText} (במידה רבה מאוד)`, leftValue: 12, rightValue: 0},
-                        {position: 1, description: `${leftText} (במידה רבה)`, leftValue: 10, rightValue: 2},
-                        {position: 2, description: `${leftText} (במידה מסוימת)`, leftValue: 8, rightValue: 4},
-                        {position: 3, description: `באמצע (ניטרלי)`, leftValue: 6, rightValue: 6},
-                        {position: 4, description: `${rightText} (במידה מסוימת)`, leftValue: 4, rightValue: 8},
-                        {position: 5, description: `${rightText} (במידה רבה)`, leftValue: 2, rightValue: 10},
-                        {position: 6, description: `${rightText} (במידה רבה מאוד)`, leftValue: 0, rightValue: 12}
-                    ];
-
-                    // Find the matching scale position
-                    const scalePosition = scaleMap.find(pos =>
-                        pos.leftValue === leftValue && pos.rightValue === rightValue
-                    );
-
-                    if (scalePosition) {
-                        // Create visual scale indicator
-                        const filledDots = '●'.repeat(scalePosition.position + 1);
-                        const emptyDots = '○'.repeat(6 - scalePosition.position);
-                        const scaleIndicator = filledDots + emptyDots;
-
-                        answerDisplay = `
-
-                                        <div class="space-y-2">
-                                            <div class="flex items-center justify-between text-xs text-gray-600">
-                                                <span>${leftText}</span>
-                                                <span>${rightText}</span>
-                                            </div>
-                                            <div class="flex items-center justify-center">
-                                                <span class="text-lg tracking-wider">${scaleIndicator}</span>
-                                            </div>
-                                            <div class="text-center text-sm font-medium text-blue-600">
-${scalePosition.description}
-                                            </div>
-                                        </div>
-
-        `;
-                        codeDisplay = 'סולם העדפה';
-                    } else {
-                        // Fallback if exact match not found
-                        answerDisplay = `
-
-                                        <div class="space-y-2">
-                                            <div class="text-sm text-gray-600">
-${leftText}: ${leftValue} | ${rightText}: ${rightValue}
-                                            </div>
-                                            <div class="text-xs text-gray-500">
-                                                (לא ניתן לפענח את המיקום המדויק בסולם)
-                                            </div>
-                                        </div>
-
-        `;
-                        codeDisplay = 'סולם העדפה';
-                    }
-
-                } else {
-                    // This is a regular ranking question - use existing logic
-                    const sortedRanking = rankingEntries.sort((a, b) => a[1] - b[1]);
-
-                    let rankedTexts = [];
-                    if (questionData.question_options && questionData.question_options.length > 0) {
-                        rankedTexts = sortedRanking.map(([code, rank]) => {
-                            const option = questionData.question_options.find(opt => opt.code === code);
-                            return `${rank}. ${option ? option.text : code}`;
-                        });
-                    } else {
-                        rankedTexts = sortedRanking.map(([code, rank]) => `${rank}. ${code}`);
-                    }
-
-                    answerDisplay = rankedTexts.join('<br>');
-                    codeDisplay = 'דירוג';
-                }
-            } else if (questionData.selected_option_code) {
-                // For questions with selected_option_code - find the actual text
-                let selectedText = questionData.selected_option_code; // Default to code if text not found
-
-                // Try to find the selected text from question options
-                if (questionData.question_options && questionData.question_options.length > 0) {
-                    const selectedOption = questionData.question_options.find(option =>
-                        option.code === questionData.selected_option_code
-                    );
-                    if (selectedOption) {
-                        selectedText = selectedOption.text;
-                    }
-                }
-
-                answerDisplay = selectedText;
-                codeDisplay = questionText;
-            } else if (questionData.answer && questionData.code) {
-                // For regular questions with answer and code
-                let cleanAnswer = questionData.answer;
-
-                // Clean up the answer to show only the selected option text
-                if (questionData.question_options && questionData.question_options.length > 0) {
-                    // Try to find the selected option by matching the answer text
-                    const selectedOption = questionData.question_options.find(option =>
-                        questionData.answer.includes(option.text)
-                    );
-                    if (selectedOption) {
-                        cleanAnswer = selectedOption.text;
-                    }
-                }
-
-                // Remove any question text that might be mixed in
-                if (cleanAnswer.includes('?')) {
-                    cleanAnswer = cleanAnswer.split('?').pop()?.trim() || cleanAnswer;
-                }
-
-                // For ranking questions, extract only the selected position
-                const rankingMatch = cleanAnswer.match(/(\d+)\.\s*([^0-9\n]+)/);
-                if (rankingMatch) {
-                    cleanAnswer = `${rankingMatch[1]}. ${rankingMatch[2].trim()}`;
-                }
-
-                answerDisplay = cleanAnswer;
-                codeDisplay = questionText;
-            } else {
-                // Fallback for any other structure
-                answerDisplay = 'לא זמין';
-                codeDisplay = 'לא זמין';
-            }
-
-            return `
-
-                            <div class="border-b border-gray-200 pb-6 last:border-b-0">
-                                <div class="mb-4">
-                                    <p class="text-gray-800 text-lg leading-relaxed">${questionNumber}. ${questionText}</p>
-                                </div>
-                                <div class="bg-gray-50 px-4 py-3 rounded-lg border border-gray-200">
-                                    <p class="text-gray-600 text-sm mb-1">תשובה:</p>
-                                    <p class="text-gray-800 text-sm mb-1">${answerDisplay}</p>
-                                </div>
-                            </div>
-
-        `;
-        }).join('')}
-        </div>
-        </div>
-        `
-        ;
-
-        document.getElementById('questionnaireModal').style.display = 'flex';
-    }
-
-        async function playVoice(email) {
-            if (!sessionToken) {
-                window.location.href = '/pdn-admin/';
-                return;
-            }
-
-            try {
-                console.log('Fetching voice for email:', email); // Debug log
-
-                const response = await fetch(
-                    `/pdn-admin/user/voice/${email}?session_token=${sessionToken}`
-                );
-                console.log('Response status:', response.status); // Debug log
-
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('Voice data received:', data); // Debug log
-                    displayVoice(data);
-                    // Reset loading state for this specific row
-                    resetRowLoadingState(email, 'voice');
-                } else if (response.status === 401) {
-                    // Session expired or invalid, redirect to login
-                    console.log('Session expired, redirecting to login');
-                    localStorage.removeItem('adminSessionToken');
-                    window.location.href = '/pdn-admin/';
-                } else {
-                    const errorText = await response.text();
-                    console.error('Server error:', errorText); // Debug log
-                    throw new Error(
-                        `Failed to load voice: ${response.status} ${errorText}`
-                    );
-                }
-            } catch (error) {
-                console.error('Error loading voice:', error);
-                showNotification('שגיאה בטעינת ההקלטה', 'error');
-                // Reset loading state for this specific row
-                resetRowLoadingState(email, 'voice');
-            }
-        }
-
-        function displayVoice(data) {
-            const content = document.getElementById('voiceContent');
-
-            // Check if we have the required data
-            if (!data || !data.voice_recordings || Object.keys(data.voice_recordings).length === 0) {
-                content.innerHTML =
-                    `
-        <div class="bg-red-50 p-6 rounded-xl border border-red-200">
-        <h3 class="text-lg font-semibold mb-4 text-red-800 flex items-center">
-        <i class="fas fa-exclamation-triangle mr-2"></i>שגיאה
-        </h3>
-        <p class="text-red-700">לא נמצא קובץ הקלטה למשתמש זה</p>
-        </div>
-        `
-                ;
-                document.getElementById('voiceModal').style.display = 'flex';
-                return;
-            }
-
-            // Build HTML for multiple recordings
-            let recordingsHtml = '';
-            const recordings = data.voice_recordings;
-
-            // Helper function to create audio URL
-            function createAudioUrl(filePath) {
-                // Extract just the relative path from the full file path
-                let processedPath = filePath;
-
-                // Remove 'saved_results/' prefix if it exists
-                if (processedPath.startsWith('saved_results/')) {
-                    processedPath = processedPath.substring('saved_results/'.length);
-                }
-
-                // Remove '/pdn/saved_results/' prefix if it exists
-                if (processedPath.startsWith('/pdn/saved_results/')) {
-                    processedPath = processedPath.substring('/pdn/saved_results/'.length);
-                }
-
-                // Remove 'pdn/saved_results/' prefix if it exists
-                if (processedPath.startsWith('pdn/saved_results/')) {
-                    processedPath = processedPath.substring('pdn/saved_results/'.length);
-                }
-
-                return `/pdn-admin/audio/${encodeURIComponent(processedPath)}?session_token=${sessionToken}`;
-            }
-
-            // Add question1 recording if exists
-            if (recordings.question1) {
-                const audioUrl = createAudioUrl(recordings.question1.path);
-                recordingsHtml +=
-                    `
-        <div class="bg-white p-6 rounded-xl border border-gray-200 mb-4">
-        <h4 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
-        <i class="fas fa-microphone mr-2 text-blue-600"></i>שאלה 1 - חוויה חיובית
-        </h4>
-        <audio controls class="w-full" preload="metadata">
-        <source src="${audioUrl}" type="audio/wav">
-        <source src="${audioUrl}" type="audio/mp3">
-        <source src="${audioUrl}" type="audio/mpeg">
-        הדפדפן שלך לא תומך בנגינת אודיו.
-        </audio>
-        </div>
-        `;
-            }
-
-            // Add question2 recording if exists
-            if (recordings.question2) {
-                const audioUrl = createAudioUrl(recordings.question2.path);
-                recordingsHtml += `
-
-                <div class="bg-white p-6 rounded-xl border border-gray-200 mb-4">
-                    <h4 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
-                        <i class="fas fa-microphone mr-2 text-blue-600"></i>שאלה 2 - אתגר משמעותי
-                    </h4>
-                    <audio controls class="w-full" preload="metadata">
-                        <source src="${audioUrl}" type="audio/wav">
-                        <source src="${audioUrl}" type="audio/mp3">
-                        <source src="${audioUrl}" type="audio/mpeg">
-                        הדפדפן שלך לא תומך בנגינת אודיו.
-                    </audio>
-                </div>
-
-        `;
-            }
-
-            // Add legacy recording if exists
-            if (recordings.legacy) {
-                const audioUrl = createAudioUrl(recordings.legacy.path);
-                recordingsHtml += `
-
-                <div class="bg-white p-6 rounded-xl border border-gray-200 mb-4">
-                    <h4 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
-                        <i class="fas fa-microphone mr-2 text-blue-900"> הקלטה קולית </i>
-                    </h4>
-                    <audio controls class="w-full" preload="metadata">
-                        <source src="${audioUrl}" type="audio/wav">
-                        <source src="${audioUrl}" type="audio/mp3">
-                        <source src="${audioUrl}" type="audio/mpeg">
-                        הדפדפן שלך לא תומך בנגינת אודיו.
-                    </audio>
-                </div>
-
-        `;
-            }
-
-            content.innerHTML = `
-        <div class="bg-gradient-to-r from-blue-100 to-blue-100 p-6 rounded-xl border border-blue-200 mb-6">
-        <h3 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
-        <i class="fas fa-info-circle mr-2 text-blue-900"> פרטי הקלטה </i>
-        </h3>
-        <div class="grid grid-cols-2 gap-4">
-        <div><strong>אימייל:</strong> ${data.email || 'לא זמין'}</div>
-        <div><strong>מספר הקלטות:</strong> <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">${Object.keys(recordings).length}</span></div>
-        </div>
-        </div>
-        ${recordingsHtml}
-        `;
-
-            document.getElementById('voiceModal').style.display = 'flex';
-
-            // Add event listeners to all audio elements for debugging
-            const audioElements = content.querySelectorAll('audio');
-            audioElements.forEach((audioElement, index) => {
-                audioElement.addEventListener('loadstart', () => console.log(`Audio ${index + 1} loading started`));
-                audioElement.addEventListener('canplay', () => console.log(`Audio ${index + 1} can play`));
-                audioElement.addEventListener('error', (e) => {
-                    console.error(`Audio ${index + 1} error:`, e);
-                    console.error(`Audio ${index + 1} error details:`, audioElement.error);
-                });
-                audioElement.addEventListener('loadeddata', () => console.log(`Audio ${index + 1} data loaded`));
-            });
-        }
-
-        function editDiagnose(email) {
-            currentEditEmail = email;
-            const user = currentData.find(u => u.email === email);
-
-            if (user) {
-                document.getElementById('diagnosePdnCode').value = user.diagnose_pdn_code;
-                document.getElementById('diagnoseComments').value = user.diagnose_comments;
-                document.getElementById('editDiagnoseModal').style.display = 'flex';
-                // Reset loading state for this specific row
-                resetRowLoadingState(email, 'edit');
-            }
-        }
-
-        async function handleEditDiagnose(e) {
-            e.preventDefault();
-            if (!sessionToken || !currentEditEmail) {
-                if (!sessionToken) {
-                    window.location.href = '/pdn-admin/';
-                }
-                return;
-            }
-
-            const pdnCode = document.getElementById('diagnosePdnCode').value.trim();
-            const comments = document.getElementById('diagnoseComments').value.trim();
-
-            // Check if both fields are empty
-            if (!pdnCode && !comments) {
-                alert('אנא מלא לפחות אחד מהשדות: קוד PDN אבחון או הערות אבחון');
-                return;
-            }
-
-            showLoading();
-            try {
-                const formData = {
-                    diagnose_pdn_code: pdnCode,
-                    diagnose_comments: comments
-                };
-
-                const response = await fetch(`/pdn-admin/user/diagnose/${currentEditEmail}?session_token=${sessionToken}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(formData)
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    // Update local data
-                    const userIndex = currentData.findIndex(u => u.email === currentEditEmail);
-                    if (userIndex !== -1) {
-                        currentData[userIndex] = data.user;
-                        renderTable(currentData);
-                    }
-                    closeModal('editDiagnoseModal');
-                } else if (response.status === 401) {
-                    // Session expired or invalid, redirect to login
-                    console.log('Session expired, redirecting to login');
-                    localStorage.removeItem('adminSessionToken');
-                    window.location.href = '/pdn-admin/';
-                } else {
-                    throw new Error('Failed to update diagnose');
-                }
-            } catch (error) {
-                console.error('Error updating diagnose:', error);
-                alert('שגיאה בעדכון האבחון');
-            } finally {
-                hideLoading();
-            }
-        }
-
-        async function sendEmail(email, emailType = 'pdn') {
-            if (!sessionToken) {
-                window.location.href = '/pdn-admin/';
-                return;
-            }
-
-            // Find user data
-            const user = currentData.find(u => u.email === email);
-            if (!user) {
-                showNotification('משתמש לא נמצא', 'error');
-                resetRowLoadingState(email, 'email');
-                return;
-            }
-
-            // Only check code match for PDN emails, not Binat invites
-            if (emailType === 'pdn') {
-                const codesMatch = user.pdn_code === user.diagnose_pdn_code &&
-                    user.diagnose_pdn_code !== "N/A" &&
-                    user.diagnose_pdn_code !== "";
-
-                if (!codesMatch) {
-                    showNotification('לא ניתן לשלוח אימייל - קוד פדן אינו תואם לקוד המאבחן', 'error');
-                    resetRowLoadingState(email, 'email');
-                    return;
-                }
-            }
-
-            // Prompt for admin password
-            const passwordPrompt = emailType === 'binat' ? 'הזן סיסמת מנהל לשליחת הזמנה לבינת:' : 'הזן סיסמת מנהל לשליחת אימייל:';
-            const password = prompt(passwordPrompt);
-            if (!password) {
-                resetRowLoadingState(email, 'email');
-                return;
-            }
-
-            if (password !== 'admin') {
-                showNotification('סיסמה שגויה', 'error');
-                resetRowLoadingState(email, 'email');
-                return;
-            }
-
-            try {
-                const endpoint = emailType === 'binat'
-                    ? `/pdn-admin/user/send_binat_invite/${email}?session_token=${sessionToken}`
-                    : `/pdn-admin/user/send_email/${email}?session_token=${sessionToken}`;
-
-                const response = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({password: password})
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-
-                    // Show appropriate notification based on verification status
-                    if (data.needs_verification) {
-                        showNotification(`אימייל נשלח ל-${email} - ⚠️ נדרש אימות אנושי (הפער בין הציונים קטן מ-2 נקודות)`, 'warning');
-                    } else {
-                        showNotification(`אימייל נשלח בהצלחה ל-${email}`, 'success');
-                    }
-
-                    // Update local data with verification status
-                    const userIndex = currentData.findIndex(u => u.email === email);
-                    if (userIndex !== -1) {
-                        currentData[userIndex].needs_verification = data.needs_verification || false;
-                        renderTable(currentData);
-                    }
-
-                    // Reset loading state for this specific row
-                    resetRowLoadingState(email, 'email');
-                } else if (response.status === 401) {
-                    // Session expired or invalid, redirect to login
-                    console.log('Session expired, redirecting to login');
-                    localStorage.removeItem('adminSessionToken');
-                    window.location.href = '/pdn-admin/';
-                } else {
-                    let errorMessage = 'Failed to send email';
-                    try {
-                        const errorData = await response.json();
-                        errorMessage = errorData.detail || errorData.error || errorMessage;
-                    } catch (parseError) {
-                        // If response is not JSON (e.g., HTML error page), use status text
-                        errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-                    }
-                    throw new Error(errorMessage);
-                }
-            } catch (error) {
-                console.error('Error sending email:', error);
-                showNotification(`
-    שגיאה בשליחת האימייל: ${error.message}
-        `, 'error');
-                // Reset loading state for this specific row
-                resetRowLoadingState(email, 'email');
-            }
-        }
-
-        async function recalculatePdnCode(email) {
-            if (!sessionToken) {
-                window.location.href = '/pdn-admin/';
-                return;
-            }
-
-            // Find user data
-            const user = currentData.find(u => u.email === email);
-            if (!user) {
-                showNotification('משתמש לא נמצא', 'error');
-                resetRowLoadingState(email, 'recalculate');
-                return;
-            }
-
-            // Prompt for admin password
-            const password = prompt('הזן סיסמת מנהל לחישוב מחדש של קוד פדן:');
-            if (!password) {
-                resetRowLoadingState(email, 'recalculate');
-                return;
-            }
-
-            if (password !== 'admin') {
-                showNotification('סיסמה שגויה', 'error');
-                resetRowLoadingState(email, 'recalculate');
-                return;
-            }
-
-            try {
-                const response = await fetch(`/pdn-admin/user/recalculate_pdn/${email}?session_token=${sessionToken}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({password: password})
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('Full response data:', data); // Debug log
-
-                    // Show appropriate notification based on verification status
-                    if (data.needs_verification) {
-                        showNotification(`קוד פדן חושב מחדש: ${data.pdn_code} - ⚠️ נדרש אימות אנושי (הפער בין הציונים קטן מ-2 נקודות)`, 'warning');
-                    } else {
-                        showNotification(`קוד פדן חושב מחדש בהצלחה: ${data.pdn_code} על ידי ${data.updated_by}`, 'success');
-                    }
-
-                    // Display calculation details in modal if available
-                    if (data.calculation_details) {
-                        showCalculationDetails(email, data);
-                    }
-
-                    // Update local data
-                    const userIndex = currentData.findIndex(u => u.email === email);
-                    if (userIndex !== -1) {
-                        currentData[userIndex].pdn_code = data.pdn_code;
-                        currentData[userIndex].date = data.date;
-                        currentData[userIndex].needs_verification = data.needs_verification || false;
-                        // Update the PDN update comments if available
-                        if (data.pdn_update_comments) {
-                            currentData[userIndex].pdn_update_comments = data.pdn_update_comments;
-                        }
-                        renderTable(currentData);
-                    }
-
-                    // Reset loading state for this specific row
-                    resetRowLoadingState(email, 'recalculate');
-                } else if (response.status === 401) {
-                    // Session expired or invalid, redirect to login
-                    console.log('Session expired, redirecting to login');
-                    localStorage.removeItem('adminSessionToken');
-                    window.location.href = '/pdn-admin/';
-                } else {
-                    let errorMessage = 'Failed to recalculate PDN code';
-                    try {
-                        const errorData = await response.json();
-                        errorMessage = errorData.detail || errorData.error || errorMessage;
-                    } catch (parseError) {
-                        // If response is not JSON (e.g., HTML error page), use status text
-                        errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-                    }
-                    throw new Error(errorMessage);
-                }
-            } catch (error) {
-                console.error('Error recalculating PDN code:', error);
-                showNotification(`שגיאה בחישוב מחדש של קוד פדן: ${error.message}`, 'error');
-                // Reset loading state for this specific row
-                resetRowLoadingState(email, 'recalculate');
-            }
-        }
-
-        let appVersionData = null;
-
-        async function loadVersion() {
-            try {
-                const response = await fetch('/pdn-admin/version');
-                if (response.ok) {
-                    appVersionData = await response.json();
-                    document.getElementById('versionText').textContent = `v${appVersionData.version}`;
-                }
-            } catch (error) {
-                console.error('Error loading version:', error);
-                document.getElementById('versionText').textContent = 'N/A';
-            }
-        }
-
-        function showReleaseNotes() {
-            if (!appVersionData) return;
-
-            const container = document.getElementById('releaseNotesContent');
-            const notesHtml = appVersionData.release_notes.map(note =>
-                `<div class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                    <span class="text-green-500 mt-0.5"><i class="fas fa-check-circle"></i></span>
-                    <span class="text-gray-800 text-sm">${note}</span>
-                </div>`
-            ).join('');
-
-            container.innerHTML = `
-                <div class="p-4 bg-blue-50 rounded-lg border border-blue-200 text-center mb-4">
-                    <div class="text-2xl font-bold text-blue-900 mb-1">v${appVersionData.version}</div>
-                    <div class="text-sm text-gray-600">${appVersionData.release_date}</div>
-                </div>
-                <div class="space-y-2">
-                    ${notesHtml}
-                </div>
-            `;
-
-            document.getElementById('releaseNotesModal').style.display = 'flex';
-        }
-
-        function showCalculationDetails(email, data) {
-            const container = document.getElementById('pdnCalculationContent');
-            const stages = data.calculation_details;
-            const traitLabels = { A: 'הישגיות', T: 'ביטחון', P: 'הנאה', E: 'אדנות' };
-            const energyLabels = { D: 'דינמית', S: 'יציבה', F: 'גמישה' };
-            const stageNames = {
-                A: 'שלב A: חישוב תכונה ראשית',
-                B: 'שלב B: חישוב סוג אנרגיה',
-                C: 'שלב C: אימות ושבירת שוויון (תכונות)',
-                D: 'שלב D: אימות ושבירת שוויון (אנרגיה)',
-                E: 'שלב E: חיזוק תכונה דומיננטית',
-                Final: 'תוצאה סופית'
-            };
-
-            let html = `<div class="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200 text-center">
-                <span class="text-sm text-gray-600">משתמש:</span>
-                <span class="font-semibold text-gray-800 mr-2">${email}</span>
-            </div>`;
-
-            stages.forEach(stage => {
-                if (stage.stage === 'Final') {
-                    const verifyBadge = stage.needs_verification
-                        ? '<span class="inline-block bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-1 rounded mr-2">⚠️ נדרש אימות</span>'
-                        : '<span class="inline-block bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded mr-2">✓ תקין</span>';
-                    html += `<div class="p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border-2 border-blue-300">
-                        <div class="text-lg font-bold text-blue-900 mb-2">${stageNames.Final}</div>
-                        <div class="text-3xl font-bold text-center text-blue-900 my-3">${stage.pdn_code}</div>
-                        <div class="flex justify-center gap-4 text-sm text-gray-700">
-                            <span>תכונה: <strong>${stage.trait} (${traitLabels[stage.trait] || stage.trait})</strong></span>
-                            <span>אנרגיה: <strong>${stage.energy} (${energyLabels[stage.energy] || stage.energy})</strong></span>
-                        </div>
-                        <div class="text-center mt-2">${verifyBadge}</div>
-                    </div>`;
-                    return;
-                }
-
-                const name = stageNames[stage.stage] || `שלב ${stage.stage}`;
-                html += `<div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <div class="font-semibold text-gray-800 mb-3">${name}</div>`;
-
-                if (stage.scores) {
-                    html += '<div class="grid grid-cols-2 gap-2">';
-                    // Show trait scores (A, T, P, E)
-                    ['A', 'T', 'P', 'E'].forEach(key => {
-                        if (stage.scores[key] !== undefined) {
-                            const isDominant = stage.dominant === key;
-                            const barWidth = Math.min(100, (stage.scores[key] / 60) * 100);
-                            const barColor = isDominant ? 'bg-blue-600' : 'bg-gray-300';
-                            const textStyle = isDominant ? 'font-bold text-blue-900' : 'text-gray-600';
-                            html += `<div class="flex items-center gap-2">
-                                <span class="w-20 text-sm ${textStyle}">${key} (${traitLabels[key]})</span>
-                                <div class="flex-1 bg-gray-200 rounded-full h-4 relative">
-                                    <div class="${barColor} h-4 rounded-full transition-all" style="width: ${barWidth}%"></div>
-                                </div>
-                                <span class="w-8 text-sm font-mono ${textStyle} text-left">${stage.scores[key]}</span>
-                                ${isDominant ? '<span class="text-xs text-blue-600 font-bold">◀</span>' : ''}
-                            </div>`;
-                        }
-                    });
-                    // Show energy scores (D, S, F) if present
-                    ['D', 'S', 'F'].forEach(key => {
-                        if (stage.scores[key] !== undefined) {
-                            const isDominant = stage.dominant === key;
-                            const barWidth = Math.min(100, (stage.scores[key] / 40) * 100);
-                            const barColor = isDominant ? 'bg-green-600' : 'bg-gray-300';
-                            const textStyle = isDominant ? 'font-bold text-green-900' : 'text-gray-600';
-                            html += `<div class="flex items-center gap-2">
-                                <span class="w-20 text-sm ${textStyle}">${key} (${energyLabels[key]})</span>
-                                <div class="flex-1 bg-gray-200 rounded-full h-4 relative">
-                                    <div class="${barColor} h-4 rounded-full transition-all" style="width: ${barWidth}%"></div>
-                                </div>
-                                <span class="w-8 text-sm font-mono ${textStyle} text-left">${stage.scores[key]}</span>
-                                ${isDominant ? '<span class="text-xs text-green-600 font-bold">◀</span>' : ''}
-                            </div>`;
-                        }
-                    });
-                    html += '</div>';
-                }
-
-                if (stage.dominant) {
-                    const label = traitLabels[stage.dominant] || energyLabels[stage.dominant] || stage.dominant;
-                    html += `<div class="mt-2 text-sm text-gray-700">דומיננטי: <strong>${stage.dominant} (${label})</strong></div>`;
-                }
-
-                html += '</div>';
-            });
-
-            container.innerHTML = html;
-            document.getElementById('pdnCalculationModal').style.display = 'flex';
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-            if (modalId === 'editDiagnoseModal') {
-                currentEditEmail = null;
-            }
-        }
-
-        function showLoading() {
-            document.getElementById('loadingSpinner').classList.remove('hidden');
-        }
-
-        function hideLoading() {
-            document.getElementById('loadingSpinner').classList.add('hidden');
-        }
-
-        // Close modals when clicking outside
-        document.addEventListener('click', function (e) {
-            if (e.target.classList.contains('modal-backdrop')) {
-                e.target.style.display = 'none';
-            }
-        });
-
-        // Add keyboard event listeners for modal
-        document.addEventListener('keydown', function (event) {
-            const questionnaireModal = document.getElementById('questionnaireModal');
-
-            // Check if questionnaire modal is visible
-            if (questionnaireModal && questionnaireModal.style.display === 'flex') {
-                // Close on Escape key
-                if (event.key === 'Escape') {
-                    closeModal('questionnaireModal');
-                }
-                // Close on Enter key
-                if (event.key === 'Enter') {
-                    closeModal('questionnaireModal');
-                }
-            }
-        });
-
-        // Function to re-sort data by date
-        function resortByDate() {
-            if (!currentData || currentData.length === 0) {
-                console.log('No data to sort');
-                return;
-            }
-
-            // Helper function to parse dates in different formats
-            const parseDate = (dateStr) => {
-                if (!dateStr || dateStr === 'N/A' || dateStr === '') {
-                    return new Date(0);
-                }
-
-                const parts = dateStr.split('/');
-                if (parts.length === 3) {
-                    const day = parseInt(parts[0], 10);
-                    const month = parseInt(parts[1], 10) - 1; // Month is 0-based
-                    const year = parseInt(parts[2], 10);
-                    const date = new Date(year, month, day);
-                    if (!isNaN(date.getTime())) {
-                        return date;
-                    }
-                }
-
-                console.warn(`Could not parse date: ${dateStr}`);
-                return new Date(0);
-            }
-
-            // Toggle sort direction (newest first by default, then oldest first)
-            const dateHeader = document.querySelector('th[onclick="resortByDate()"]');
-            const currentDirection = dateHeader.querySelector('span').textContent;
-
-            if (currentDirection === '↓') {
-                // Sort by date from oldest to newest
-                currentData.sort((a, b) => {
-                    const dateA = parseDate(a.date);
-                    const dateB = parseDate(b.date);
-                    return dateA - dateB; // Oldest first
-                });
-                dateHeader.querySelector('span').textContent = '↑';
-            } else {
-                // Sort by date from newest to oldest
-                currentData.sort((a, b) => {
-                    const dateA = parseDate(a.date);
-                    const dateB = parseDate(b.date);
-                    return dateB - dateA; // Newest first
-                });
-                dateHeader.querySelector('span').textContent = '↓';
-            }
-
-            // Re-render the table with sorted data
-            renderTable(currentData);
-
-            console.log('Data re-sorted by date:', currentData.map(u => ({
-                email: u.email,
-                date: u.date,
-                parsed: parseDate(u.date)
-            })));
-        }
-
-        function showNotification(message, type = 'info') {
-            // Create notification element
-            const notification = document.createElement('div');
-            notification.className = `
-    fixed top-6 right-6 z-[9999] p-6 rounded-xl shadow-2xl transition-all duration-500 transform translate-x-full border-2
-        `;
-
-            // Enhanced styling based on type
-            let bgColor, borderColor, icon, textColor;
-            switch (type) {
-                case 'success':
-                    bgColor = 'bg-green-50';
-                    borderColor = 'border-green-500';
-                    icon = 'fa-check-circle';
-                    textColor = 'text-green-800';
-                    break;
-                case 'error':
-                    bgColor = 'bg-red-50';
-                    borderColor = 'border-red-500';
-                    icon = 'fa-exclamation-triangle';
-                    textColor = 'text-red-800';
-                    break;
-                case 'warning':
-                    bgColor = 'bg-yellow-50';
-                    borderColor = 'border-yellow-500';
-                    icon = 'fa-exclamation-circle';
-                    textColor = 'text-yellow-800';
-                    break;
-                default:
-                    bgColor = 'bg-blue-50';
-                    borderColor = 'border-blue-500';
-                    icon = 'fa-info-circle';
-                    textColor = 'text-blue-800';
-            }
-
-            notification.className += ` ${bgColor} ${borderColor}`;
-            notification.innerHTML = `
-
-            <div class="flex items-start space-x-3 space-x-reverse">
-                <div class="flex-shrink-0">
-                    <i class="fas ${icon} text-xl ${textColor}"></i>
-                </div>
-                <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium ${textColor} leading-5">${message}</p>
-                </div>
-                <div class="flex-shrink-0">
-                    <button onclick="this.closest('.notification-item').remove()"
-                            class="inline-flex text-gray-400 hover:text-gray-600 transition-colors duration-200">
-                        <i class="fas fa-times mr-2 text-lg"></i>
-                    </button>
-                </div>
-            </div>
-
-        `;
-
-            // Add a unique class for easier targeting
-            notification.classList.add('notification-item');
-
-            document.body.appendChild(notification);
-
-            // Animate in with bounce effect
-            setTimeout(() => {
-                notification.classList.remove('translate-x-full');
-                notification.classList.add('animate-bounce');
-                setTimeout(() => {
-                    notification.classList.remove('animate-bounce');
-                }, 1000);
-            }, 100);
-
-            // Auto remove after 8 seconds (increased from 5)
-            setTimeout(() => {
-                notification.classList.add('translate-x-full');
-                setTimeout(() => {
-                    if (notification.parentElement) {
-                        notification.remove();
-                    }
-                }, 500);
-            }, 8000);
-
-            // Add sound for error notifications
-            if (type === 'error') {
-                // Create a simple beep sound
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-
-                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-                oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
-
-                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-
-                oscillator.start(audioContext.currentTime);
-                oscillator.stop(audioContext.currentTime + 0.2);
-            }
-        }
-
-        // Add this new function to reset loading state for a specific row
-        function resetRowLoadingState(email, buttonType) {
-            // Find the row for this email
-            const rows = document.querySelectorAll('#tableBody tr');
-            rows.forEach(row => {
-                const emailCell = row.querySelector('td:first-child');
-                if (emailCell && emailCell.textContent.trim() === email) {
-                    // Find the Alpine component in this row
-                    const alpineComponent = row.querySelector('[x-data]');
-                    if (alpineComponent && alpineComponent._x_dataStack && alpineComponent._x_dataStack[0]) {
-                        alpineComponent._x_dataStack[0].loadingBtn = '';
-                        alpineComponent._x_dataStack[0].showModal = false;
-                    }
-                }
-            });
-        }
-
-        // Update the existing resetAlpineLoadingState function
-        function resetAlpineLoadingState() {
-            // Reset all Alpine components
-            document.querySelectorAll('[x-data]').forEach(element => {
-                if (element._x_dataStack && element._x_dataStack[0]) {
-                    element._x_dataStack[0].loadingBtn = '';
-                    element._x_dataStack[0].showModal = false;
-                }
-            });
-        }
-
-</script>
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 </body>
 </html>

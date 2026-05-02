@@ -8,7 +8,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import List
+from typing import List, Dict, Any
 
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import SystemMessage, HumanMessage
@@ -49,6 +49,10 @@ class PDNAgent:
 
         self.conversation_history = defaultdict(UserHistory)
         self.user_conversations = defaultdict(lambda: {'count': 0, 'last_reset': datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)})
+
+        # Token usage tracking — persisted to file with daily granularity
+        self._usage_file = Path(os.getenv('SAVED_RESULTS_DIR', 'saved_results')) / 'token_usage.json'
+        self.token_usage = self._load_usage_file()
 
         self.logger = logging.getLogger("pdn_agent")
         self._prompt_cache = {}
@@ -134,6 +138,148 @@ class PDNAgent:
             )
         return SystemMessage(content=system_prompt)
 
+    def _load_usage_file(self) -> dict:
+        """Load token usage history from JSON file."""
+        try:
+            if self._usage_file.exists():
+                import json
+                with open(self._usage_file, 'r') as f:
+                    return json.load(f)
+        except Exception as e:
+            self.logger.warning(f"Could not load token usage file: {e}")
+        return {}
+
+    def _save_usage_file(self):
+        """Persist token usage history to JSON file."""
+        try:
+            import json
+            self._usage_file.parent.mkdir(parents=True, exist_ok=True)
+            with open(self._usage_file, 'w') as f:
+                json.dump(self.token_usage, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            self.logger.warning(f"Could not save token usage file: {e}")
+
+    def _track_usage(self, user_name: str, response):
+        """Extract and accumulate token usage from an LLM response, stored per user per day."""
+        if not user_name:
+            return
+        usage = getattr(response, 'usage_metadata', None)
+        if not usage:
+            return
+
+        # Handle both dict (OpenAI) and object (Anthropic) formats
+        def get_val(obj, key, default=0):
+            if isinstance(obj, dict):
+                return obj.get(key, default) or default
+            return getattr(obj, key, default) or default
+
+        today = datetime.now().strftime('%Y-%m-%d')
+
+        if user_name not in self.token_usage:
+            self.token_usage[user_name] = {}
+        if today not in self.token_usage[user_name]:
+            self.token_usage[user_name][today] = {
+                'input_tokens': 0, 'output_tokens': 0,
+                'cache_creation_tokens': 0, 'cache_read_tokens': 0,
+                'calls': 0, 'model': ''
+            }
+
+        day = self.token_usage[user_name][today]
+        day['input_tokens'] += get_val(usage, 'input_tokens')
+        day['output_tokens'] += get_val(usage, 'output_tokens')
+        day['calls'] += 1
+        day['model'] = self.model_name
+
+        # Track cache tokens from input_token_details
+        details = get_val(usage, 'input_token_details', None)
+        if details:
+            day['cache_creation_tokens'] += get_val(details, 'cache_creation')
+            day['cache_read_tokens'] += get_val(details, 'cache_read')
+
+        self._save_usage_file()
+
+    def get_usage_stats(self, days: int = 14) -> Dict[str, Any]:
+        """Return token usage stats with daily history and cost projections."""
+        INPUT_PRICE = 3.0
+        OUTPUT_PRICE = 15.0
+        CACHE_WRITE_PRICE = 3.75
+        CACHE_READ_PRICE = 0.30
+
+        cutoff = (datetime.now() - __import__('datetime').timedelta(days=days)).strftime('%Y-%m-%d')
+
+        def calc_cost(d):
+            uncached = d['input_tokens'] - d['cache_creation_tokens'] - d['cache_read_tokens']
+            return (
+                (max(0, uncached) / 1e6) * INPUT_PRICE +
+                (d['output_tokens'] / 1e6) * OUTPUT_PRICE +
+                (d['cache_creation_tokens'] / 1e6) * CACHE_WRITE_PRICE +
+                (d['cache_read_tokens'] / 1e6) * CACHE_READ_PRICE
+            )
+
+        def calc_savings(d):
+            if d['cache_read_tokens'] <= 0:
+                return 0
+            return (d['cache_read_tokens'] / 1e6) * (INPUT_PRICE - CACHE_READ_PRICE)
+
+        # Build per-user summary + daily breakdown
+        users = {}
+        daily_totals = {}
+
+        for user, date_data in self.token_usage.items():
+            user_total = {'input_tokens': 0, 'output_tokens': 0, 'cache_creation_tokens': 0,
+                          'cache_read_tokens': 0, 'calls': 0, 'model': '', 'daily': {}}
+
+            for date_str, d in sorted(date_data.items()):
+                if date_str < cutoff:
+                    continue
+                user_total['input_tokens'] += d['input_tokens']
+                user_total['output_tokens'] += d['output_tokens']
+                user_total['cache_creation_tokens'] += d['cache_creation_tokens']
+                user_total['cache_read_tokens'] += d['cache_read_tokens']
+                user_total['calls'] += d['calls']
+                user_total['model'] = d.get('model', '')
+                user_total['daily'][date_str] = {**d, 'cost': round(calc_cost(d), 4)}
+
+                if date_str not in daily_totals:
+                    daily_totals[date_str] = {'input_tokens': 0, 'output_tokens': 0,
+                                              'cache_creation_tokens': 0, 'cache_read_tokens': 0,
+                                              'calls': 0, 'cost': 0}
+                dt = daily_totals[date_str]
+                dt['input_tokens'] += d['input_tokens']
+                dt['output_tokens'] += d['output_tokens']
+                dt['cache_creation_tokens'] += d['cache_creation_tokens']
+                dt['cache_read_tokens'] += d['cache_read_tokens']
+                dt['calls'] += d['calls']
+                dt['cost'] += calc_cost(d)
+
+            user_total['total_cost'] = round(calc_cost(user_total), 4)
+            user_total['cache_savings'] = round(calc_savings(user_total), 4)
+            users[user] = user_total
+
+        # Round daily totals
+        for dt in daily_totals.values():
+            dt['cost'] = round(dt['cost'], 4)
+
+        # Projection: average daily cost over active days → project to 30 days
+        sorted_days = sorted(daily_totals.keys())
+        active_days = len(sorted_days)
+        total_cost_period = sum(dt['cost'] for dt in daily_totals.values())
+        avg_daily_cost = total_cost_period / active_days if active_days > 0 else 0
+
+        projection = {
+            'active_days': active_days,
+            'avg_daily_cost': round(avg_daily_cost, 4),
+            'projected_monthly': round(avg_daily_cost * 30, 2),
+            'projected_yearly': round(avg_daily_cost * 365, 2),
+        }
+
+        return {
+            'users': users,
+            'daily_totals': dict(sorted(daily_totals.items())),
+            'projection': projection,
+            'period_days': days
+        }
+
     def _summarize_old_turns(self, user_name: str):
         """Summarize old exchanges when raw list exceeds threshold."""
         hist = self.conversation_history[user_name]
@@ -209,10 +355,12 @@ class PDNAgent:
 
         user_message = f"Conversation History:\n{history_context}\n\nCurrent Question:\n{enhanced_question}"
 
-        response_text = self.llm.invoke([
+        response = self.llm.invoke([
             self._build_system_message(system_prompt),
             HumanMessage(content=user_message)
-        ]).content
+        ])
+        self._track_usage(user_name, response)
+        response_text = response.content
 
         if user_name:
             self._add_to_history(user_name, user_query, response_text)
@@ -231,10 +379,12 @@ class PDNAgent:
         system_prompt = self._load_prompt(pdn_code, "21_plan.prompt")
         user_message = f"user_name: {user_name}\nuser_pdn_code: {pdn_code}\nuser_goal: {user_goal}"
 
-        response_text =  self.llm.invoke([
+        response =  self.llm.invoke([
             self._build_system_message(system_prompt),
             HumanMessage(content=user_message)
-        ]).content
+        ])
+        self._track_usage(user_name, response)
+        response_text = response.content
 
         if user_name:
             self._add_to_history(user_name, user_goal, response_text)
@@ -253,10 +403,12 @@ class PDNAgent:
         system_prompt = self._load_prompt(pdn_code, "daily_training.prompt")
         user_message = f"User name: {user_name}\n User day Task: {day_task}\n."
 
-        response_text = self.llm.invoke([
+        response = self.llm.invoke([
             self._build_system_message(system_prompt),
             HumanMessage(content=user_message)
-        ]).content
+        ])
+        self._track_usage(user_name, response)
+        response_text = response.content
 
         if user_name:
             self._add_to_history(user_name, day_task, response_text)
