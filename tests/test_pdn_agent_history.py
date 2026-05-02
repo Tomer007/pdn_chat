@@ -295,7 +295,7 @@ class TestSummaryLLMProviderSelection:
             # Check that ChatAnthropic was called for the summary LLM (second call)
             haiku_call = [
                 call for call in mock_anthropic.call_args_list
-                if call.kwargs.get("model") == "claude-3-haiku-20240307"
+                if call.kwargs.get("model") == "claude-3-5-haiku-20241022"
             ]
             assert len(haiku_call) == 1, "Expected ChatAnthropic to be called with claude-3-haiku for summary LLM"
 

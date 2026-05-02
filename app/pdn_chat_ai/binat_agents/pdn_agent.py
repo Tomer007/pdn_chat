@@ -47,7 +47,7 @@ class PDNAgent:
         # Use the cheaper model from the same provider for summarization
         if self._is_anthropic:
             self.summary_llm = ChatAnthropic(
-                model="claude-3-haiku-20240307",
+                model="claude-3-5-haiku-20241022",
                 temperature=0.3,
                 max_tokens=500,
                 api_key=config.ANTHROPIC_API_KEY
