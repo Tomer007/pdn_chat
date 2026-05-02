@@ -9,7 +9,7 @@ from pathlib import Path
 
 from ..utils.answer_storage import load_answers
 from ..utils.csv_metadata_handler import UserMetadataHandler
-from ..utils.email_sender import send_pdn_code_email
+from ..utils.email_sender import send_pdn_code_email, send_binat_invite_email
 from ..utils.pdn_calculator import calculate_pdn_code
 from ..utils.pdn_file_path import PDNFilePath
 from ..utils.conversation_stats import conversation_stats
@@ -451,6 +451,38 @@ def send_user_email(email):
     except Exception as e:
         logger.error(f"Error sending email: {e}")
         return jsonify({"error": f"Error sending email: {str(e)}"}), 500
+
+
+@pdn_admin_bp.route('/user/send_binat_invite/<email>', methods=['POST'])
+def send_binat_invite(email):
+    """Send Binat chat invitation email to user"""
+    logger.debug(f"POST /pdn-admin/user/send_binat_invite/{email} called")
+
+    try:
+        # Get user's first name from metadata
+        csv_handler = UserMetadataHandler()
+        questionnaire_data = csv_handler.get_user_files(email, "answers")
+
+        first_name = ''
+        if questionnaire_data and 'metadata' in questionnaire_data:
+            first_name = questionnaire_data['metadata'].get('first_name', '')
+
+        if not first_name:
+            user_data = csv_handler.get_user_by_email(email)
+            if user_data:
+                first_name = user_data.get('First Name', '')
+
+        if not send_binat_invite_email(email, first_name):
+            return jsonify({"error": "Failed to send Binat invite email"}), 500
+
+        return jsonify({
+            "success": True,
+            "message": f"Binat invite sent successfully to {email}"
+        })
+
+    except Exception as e:
+        logger.error(f"Error sending Binat invite: {e}")
+        return jsonify({"error": f"Error sending Binat invite: {str(e)}"}), 500
 
 
 @pdn_admin_bp.route('/user/recalculate_pdn/<email>', methods=['POST'])

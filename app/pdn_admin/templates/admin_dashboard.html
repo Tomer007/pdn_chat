@@ -1296,12 +1296,29 @@
                                 ערוך אבחון
                             </button>
 
-                            <button @click="loadingBtn = 'email'; modalText = 'שולח אימייל...'; showModal = true; sendEmail('${user.email}'); open = false"
-                                    class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center"
-                                    :disabled="loadingBtn === 'email'">
-                                <i class="fas fa-envelope ml-2"></i>
-                                שלח אימייל
-                            </button>
+                            <div class="relative" x-data="{ emailOpen: false }">
+                                <button @click="emailOpen = !emailOpen"
+                                        class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center justify-between"
+                                        :disabled="loadingBtn === 'email'">
+                                    <span class="flex items-center">
+                                        <i class="fas fa-envelope ml-2"></i>
+                                        שלח אימייל
+                                    </span>
+                                    <i class="fas fa-chevron-left text-xs transition-transform" :class="{ 'rotate-90': emailOpen }"></i>
+                                </button>
+                                <div x-show="emailOpen" class="pr-6 border-r border-blue-200 mr-2">
+                                    <button @click="loadingBtn = 'email'; modalText = 'שולח אימייל קוד PDN...'; showModal = true; sendEmail('${user.email}', 'pdn'); open = false; emailOpen = false"
+                                            class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center">
+                                        <i class="fas fa-file-alt ml-2 text-blue-500"></i>
+                                        קוד PDN
+                                    </button>
+                                    <button @click="loadingBtn = 'email'; modalText = 'שולח הזמנה לבינת...'; showModal = true; sendEmail('${user.email}', 'binat'); open = false; emailOpen = false"
+                                            class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center">
+                                        <i class="fas fa-comments ml-2 text-green-500"></i>
+                                        בינת
+                                    </button>
+                                </div>
+                            </div>
 
                             <button @click="loadingBtn = 'recalculate'; modalText = 'מחשב מחדש קוד פדן...'; showModal = true; recalculatePdnCode('${user.email}'); open = false"
                                     class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center"
@@ -2048,7 +2065,7 @@ ${leftText}: ${leftValue} | ${rightText}: ${rightValue}
             }
         }
 
-        async function sendEmail(email) {
+        async function sendEmail(email, emailType = 'pdn') {
             if (!sessionToken) {
                 window.location.href = '/pdn-admin/';
                 return;
@@ -2062,19 +2079,22 @@ ${leftText}: ${leftValue} | ${rightText}: ${rightValue}
                 return;
             }
 
-            // Check if PDN code equals diagnose code (קוד מאבחן)
-            const codesMatch = user.pdn_code === user.diagnose_pdn_code &&
-                user.diagnose_pdn_code !== "N/A" &&
-                user.diagnose_pdn_code !== "";
+            // Only check code match for PDN emails, not Binat invites
+            if (emailType === 'pdn') {
+                const codesMatch = user.pdn_code === user.diagnose_pdn_code &&
+                    user.diagnose_pdn_code !== "N/A" &&
+                    user.diagnose_pdn_code !== "";
 
-            if (!codesMatch) {
-                showNotification('לא ניתן לשלוח אימייל - קוד פדן אינו תואם לקוד המאבחן', 'error');
-                resetRowLoadingState(email, 'email');
-                return;
+                if (!codesMatch) {
+                    showNotification('לא ניתן לשלוח אימייל - קוד פדן אינו תואם לקוד המאבחן', 'error');
+                    resetRowLoadingState(email, 'email');
+                    return;
+                }
             }
 
             // Prompt for admin password
-            const password = prompt('הזן סיסמת מנהל לשליחת אימייל:');
+            const passwordPrompt = emailType === 'binat' ? 'הזן סיסמת מנהל לשליחת הזמנה לבינת:' : 'הזן סיסמת מנהל לשליחת אימייל:';
+            const password = prompt(passwordPrompt);
             if (!password) {
                 resetRowLoadingState(email, 'email');
                 return;
@@ -2087,7 +2107,11 @@ ${leftText}: ${leftValue} | ${rightText}: ${rightValue}
             }
 
             try {
-                const response = await fetch(`/pdn-admin/user/send_email/${email}?session_token=${sessionToken}`, {
+                const endpoint = emailType === 'binat'
+                    ? `/pdn-admin/user/send_binat_invite/${email}?session_token=${sessionToken}`
+                    : `/pdn-admin/user/send_email/${email}?session_token=${sessionToken}`;
+
+                const response = await fetch(endpoint, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

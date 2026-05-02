@@ -155,3 +155,101 @@ def send_pdn_code_email(user_answers: Dict[str, Any], pdn_code: str) -> bool:
     except Exception as e:
         logger.error(f"Failed to send email: {str(e)}")
         return False
+
+
+def get_binat_invite_template(first_name: str, user_email: str) -> str:
+    """Generate HTML email template for Binat chat invitation."""
+    return f"""
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>הזמנה לבינת</title>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; direction: rtl;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <tr>
+            <td style="background: linear-gradient(135deg, #0b2e6b, #0a2a5f); color: white; padding: 30px; text-align: center;">
+                <h1 style="margin: 0 0 10px 0; font-size: 24px; font-weight: bold;">בינת – המלווה האישית שלך</h1>
+                <h2 style="margin: 0; font-size: 16px; font-weight: normal; opacity: 0.9;">גילוי עצמי עם קוד המקור (PDN)</h2>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 30px;">
+                <div style="font-size: 20px; font-weight: bold; color: #0b2e6b; margin-bottom: 20px; text-align: right; line-height: 1.6;">
+                    היי {first_name},
+                </div>
+                <div style="font-size: 16px; line-height: 1.8; color: #1f2937; margin-bottom: 20px;">
+                    יצרתי לך גישה לבינת — המלווה האישית שלך לגילוי עצמי עם קוד המקור (PDN).
+                </div>
+                <div style="background: linear-gradient(135deg, rgba(11, 46, 107, 0.1), rgba(10, 42, 95, 0.08)); border: 2px solid #0b2e6b; border-radius: 12px; padding: 25px; margin: 25px 0;">
+                    <div style="font-size: 14px; font-weight: 600; color: #6b7280; margin-bottom: 15px;">פרטי כניסה:</div>
+                    <div style="font-size: 16px; line-height: 2; color: #1f2937;">
+                        <div style="margin-bottom: 8px;">
+                            <strong>כניסה:</strong>
+                            <a href="https://pdn-chat.onrender.com/pdn-binat/" style="color: #0b2e6b; text-decoration: underline;">https://pdn-chat.onrender.com/pdn-binat/</a>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <strong>אימייל:</strong> {user_email}
+                        </div>
+                        <div>
+                            <strong>סיסמה:</strong> pdn
+                        </div>
+                    </div>
+                </div>
+                <div style="font-size: 16px; line-height: 1.8; color: #1f2937; margin-bottom: 20px;">
+                    פשוט נכנסים, מקלידים את מה שמעסיק אותך ובינת מלווה אותך בשיחה אישית מותאמת לקוד שלכם.
+                </div>
+                <div style="font-size: 18px; font-weight: bold; color: #0b2e6b; text-align: center; margin-top: 20px;">
+                    בהצלחה!
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td style="background: rgba(255, 255, 255, 0.95); padding: 20px; text-align: center; border-top: 1px solid rgba(11, 46, 107, 0.1);">
+                <div style="font-size: 12px; color: #6b7280; line-height: 1.4;">כל הזכויות שמורות למרכז CENTER PDN ובעליו.</div>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+    """
+
+
+def send_binat_invite_email(user_email: str, first_name: str) -> bool:
+    """
+    Send Binat chat invitation email to the user.
+
+    Args:
+        user_email (str): User's email address
+        first_name (str): User's first name
+
+    Returns:
+        bool: True if email sent successfully, False otherwise
+    """
+    try:
+        if not user_email:
+            logger.error("No email address provided for Binat invite")
+            return False
+
+        if not first_name:
+            first_name = user_email.split('@')[0]
+
+        msg = MIMEMultipart()
+        msg['From'] = EmailConfig.FROM_EMAIL
+        msg['To'] = user_email
+        msg['Subject'] = 'הזמנה לבינת – המלווה האישית שלך לגילוי עצמי'
+
+        html_content = get_binat_invite_template(first_name, user_email)
+        msg.attach(MIMEText(html_content, 'html', 'utf-8'))
+
+        if send_email_via_smtp(msg):
+            logger.info(f"Successfully sent Binat invite to {user_email}")
+            return True
+        else:
+            return False
+
+    except Exception as e:
+        logger.error(f"Failed to send Binat invite email: {str(e)}")
+        return False
