@@ -1,0 +1,1670 @@
+// Global variables (USER_NAME, USER_ID, PDN_CODE are set by inline script in the HTML template)
+let messageQueue = [];
+let isProcessing = false;
+let currentController = null;
+
+// Session timer
+let sessionStartTime = Date.now();
+
+// Voice recording variables
+let speechRecognition = null;
+let isListening = false;
+let existingTextBeforeRecording = '';
+
+// Utility functions
+function getCurrentTime() {
+    const now = new Date();
+    const hours = now.getHours().toString().padStart(2, '0');
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
+}
+
+// Initialize Web Speech API
+function initializeSpeechRecognition() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+        console.warn('Speech recognition not supported');
+        return null;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'he-IL';
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+        isListening = true;
+        finalTranscript = '';
+        interimTranscript = '';
+        // Store existing text before recording
+        const userInput = document.getElementById('userInput');
+        existingTextBeforeRecording = userInput.value;
+        updateMicrophoneUI(true);
+    };
+
+    recognition.onresult = (event) => {
+        let interimTranscript = '';
+        let finalTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+                finalTranscript += transcript;
+            } else {
+                interimTranscript += transcript;
+            }
+        }
+
+        // Append new transcription to existing text
+        const userInput = document.getElementById('userInput');
+        const separator = existingTextBeforeRecording ? ' ' : '';
+        userInput.value = existingTextBeforeRecording + separator + finalTranscript + interimTranscript;
+    };
+
+    recognition.onerror = (event) => {
+        isListening = false;
+        updateMicrophoneUI(false);
+        hideTranscriptionFeedback();
+
+        let errorMessage = 'שגיאה בהקלטה';
+        switch (event.error) {
+            case 'no-speech':
+                errorMessage = 'לא זוהתה דיבור';
+                break;
+            case 'audio-capture':
+                errorMessage = 'בעיה במיקרופון';
+                break;
+            case 'not-allowed':
+                errorMessage = 'אין הרשאה למיקרופון';
+                break;
+            case 'network':
+                errorMessage = 'בעיית רשת';
+                break;
+        }
+        showError(errorMessage);
+    };
+
+    recognition.onend = () => {
+        isListening = false;
+        updateMicrophoneUI(false);
+        hideTranscriptionFeedback();
+
+        // Focus on input for potential editing
+        const userInput = document.getElementById('userInput');
+        if (userInput.value.trim()) {
+            userInput.focus();
+            userInput.setSelectionRange(userInput.value.length, userInput.value.length);
+        }
+    };
+
+    return recognition;
+}
+
+// Update microphone button UI
+function updateMicrophoneUI(isActive) {
+    const micBtn = document.getElementById('micBtn');
+    const micIcon = micBtn.querySelector('i');
+    const micText = document.getElementById('micBtnText');
+    const sendBtn = document.getElementById('sendBtn');
+
+    if (isActive) {
+        micBtn.classList.add('recording');
+        micIcon.className = 'fas fa-stop';
+        micText.textContent = 'סיים';
+        micBtn.title = 'עצור הקלטה';
+        micBtn.setAttribute('aria-label', 'עצור הקלטה');
+        sendBtn.disabled = true;
+    } else {
+        micBtn.classList.remove('recording');
+        micIcon.className = 'fas fa-microphone';
+        micText.textContent = 'הקלטה';
+        micBtn.title = 'הקלטה קולית';
+        micBtn.setAttribute('aria-label', 'הקלטה קולית');
+        sendBtn.disabled = false;
+    }
+}
+
+// Show transcription feedback
+function showTranscriptionFeedback(message) {
+    let feedback = document.getElementById('transcriptionFeedback');
+    if (!feedback) {
+        feedback = document.createElement('div');
+        feedback.id = 'transcriptionFeedback';
+        feedback.className = 'transcription-feedback';
+        document.body.appendChild(feedback);
+    }
+
+    feedback.textContent = message;
+    feedback.classList.add('show');
+}
+
+// Hide transcription feedback
+function hideTranscriptionFeedback() {
+    const feedback = document.getElementById('transcriptionFeedback');
+    if (feedback) {
+        feedback.classList.remove('show');
+    }
+}
+
+// Voice recording and speech recognition functionality
+function toggleMicrophone() {
+    // Don't allow voice recording during message processing
+    if (isProcessing) {
+        showError('אנא המתן עד שההודעה הנוכחית תסיים עיבוד');
+        return;
+    }
+
+    if (!speechRecognition) {
+        speechRecognition = initializeSpeechRecognition();
+        if (!speechRecognition) {
+            showError('הדפדפן שלך אינו תומך בהקלטה קולית');
+            return;
+        }
+    }
+
+    if (isListening) {
+        // Stop listening
+        speechRecognition.stop();
+    } else {
+        // Start listening
+        try {
+            speechRecognition.start();
+        } catch (error) {
+            showError('שגיאה בהתחלת ההקלטה');
+        }
+    }
+}
+
+// Security: Input sanitization function
+function sanitizeInput(input) {
+    const div = document.createElement('div');
+    div.textContent = input;
+    return div.innerHTML;
+}
+
+// Security: XSS prevention for markdown with enhanced formatting
+function safeMarkdownParse(text) {
+    if (!text) return '';
+
+    // Replace all placeholders with actual values
+    let processedText = text;
+
+    // Replace user name placeholders
+    processedText = processedText.replace(/\$המשתמש_name/g, USER_NAME || 'המשתמש');
+    processedText = processedText.replace(/\$user_name/g, USER_NAME || 'המשתמש');
+    processedText = processedText.replace(/\$נעים להכיר/g, USER_NAME || 'המשתמש');
+
+    // Replace PDN code placeholders
+    processedText = processedText.replace(/\$user_code_name/g, PDN_CODE || 'קוד המקור');
+    processedText = processedText.replace(/\$user_code_title/g, getPDNCodeTitle(PDN_CODE) || 'הקוד האישי שלך');
+
+
+    // First sanitize the input
+    const sanitized = sanitizeInput(processedText);
+
+    // Check if marked is available
+    if (typeof marked === 'undefined') {
+        console.warn('Marked library not loaded, returning plain text');
+        return `<div class="formatted-content">${sanitized}</div>`;
+    }
+
+    try {
+        // Configure marked options for better formatting
+        marked.setOptions({
+            breaks: true,
+            gfm: true,
+            headerIds: false,
+            mangle: false,
+            sanitize: false, // We handle sanitization manually
+            smartLists: true,
+            smartypants: true
+        });
+
+        // Parse with marked
+        const parsed = marked.parse(sanitized);
+       // Check if markdown was actually parsed (not just returned as-is)
+        if (parsed === sanitized || parsed.includes('##') || parsed.includes('**')) {
+            console.warn('Marked library may not be working properly, using fallback parser');
+            const fallbackParsed = parseMarkdownFallback(sanitized);
+            return `<div class="formatted-content">${fallbackParsed}</div>`;
+        }
+
+        // Wrap in a container with enhanced styling
+        return `<div class="formatted-content">${parsed}</div>`;
+    } catch (error) {
+        const fallbackParsed = parseMarkdownFallback(sanitized);
+        return `<div class="formatted-content">${fallbackParsed}</div>`;
+    }
+}
+
+// Get PDN code title based on code
+function getPDNCodeTitle(pdnCode) {
+    const codeTitles = {
+        'E5': 'קבלה והנהגה',
+        'A7': 'עוצמה ושליטה',
+        'P6': 'פיתוח וצמיחה',
+        'M3': 'מנהיגות ויצירה',
+        'S4': 'שירות ותמיכה',
+        'C2': 'יצירה וחיבור',
+        'L8': 'לימוד והתפתחות',
+        'R1': 'מחקר וחקירה'
+    };
+
+    return codeTitles[pdnCode] || 'הקוד האישי שלך';
+}
+
+// Fallback markdown parser for basic formatting
+function parseMarkdownFallback(text) {
+    if (!text) return '';
+
+    let parsed = text;
+
+    // Convert headers (## Header -> <h2>Header</h2>)
+    parsed = parsed.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+    parsed = parsed.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+    parsed = parsed.replace(/^#### (.+)$/gm, '<h4>$1</h4>');
+
+    // Convert bold text (**text** -> <strong>text</strong>)
+    parsed = parsed.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+    // Convert italic text (*text* -> <em>text</em>)
+    parsed = parsed.replace(/\*(.+?)\*/g, '<em>$1</em>');
+
+    // Convert line breaks
+    parsed = parsed.replace(/\n/g, '<br>');
+
+    // Convert horizontal rules (--- -> <hr>)
+    parsed = parsed.replace(/^---$/gm, '<hr>');
+
+    // Convert lists
+    parsed = parsed.replace(/^[\s]*\* (.+)$/gm, '<li>$1</li>');
+    parsed = parsed.replace(/^[\s]*\- (.+)$/gm, '<li>$1</li>');
+    parsed = parsed.replace(/^[\s]*\d+\. (.+)$/gm, '<li>$1</li>');
+
+    // Wrap consecutive list items in ul/ol
+    parsed = parsed.replace(/(<li>.*<\/li>)/gs, (match) => {
+        const listItems = match.match(/<li>.*?<\/li>/g);
+        if (listItems && listItems.length > 0) {
+            return `<ul>${match}</ul>`;
+        }
+        return match;
+    });
+
+    return parsed;
+}
+
+// Conversation history management
+function saveMessageToHistory(message) {
+    try {
+        const history = getConversationHistory();
+        history.push(message);
+        localStorage.setItem('binat_chat_history', JSON.stringify(history));
+    } catch (error) {
+        // Error saving message to history
+    }
+}
+
+function getConversationHistory() {
+    try {
+        const history = localStorage.getItem('binat_chat_history');
+        return history ? JSON.parse(history) : [];
+    } catch (error) {
+        return [];
+    }
+}
+
+function clearConversationHistory() {
+    try {
+        localStorage.removeItem('binat_chat_history');
+    } catch (error) {
+        // Error clearing conversation history
+    }
+}
+
+function restoreConversationHistory() {
+    try {
+        const history = getConversationHistory();
+        const chatContainer = document.getElementById('chatContainer');
+
+        if (!chatContainer || history.length === 0) {
+            return;
+        }
+
+        // Find the initial welcome message (the last one with "בינת קוד המקור:" header)
+        const existingMessages = Array.from(chatContainer.querySelectorAll('.chat-bubble'));
+        const welcomeMessage = existingMessages.find(msg => {
+            const header = msg.querySelector('.message-header');
+            return header && header.textContent.includes('בינת קוד המקור:') &&
+                   msg.querySelector('.message-content').textContent.includes('שלום');
+        });
+
+        // Remove all messages except the welcome message
+        existingMessages.forEach(msg => {
+            if (msg !== welcomeMessage) {
+                msg.remove();
+            }
+        });
+
+        // Restore messages from history
+        history.forEach(messageData => {
+            const messageElement = createMessageElement(messageData);
+            if (messageElement) {
+                chatContainer.appendChild(messageElement);
+            }
+        });
+
+        // Scroll to bottom after restoring
+        scrollToBottom(true);
+    } catch (error) {
+        // Error restoring conversation history
+    }
+}
+
+function createMessageElement(messageData) {
+    try {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `chat-bubble ${messageData.type} animated`;
+
+        if (messageData.type === 'user') {
+            messageDiv.innerHTML = `
+                <div class="message-content">${messageData.content}</div>
+                <div class="message-time">${messageData.timestamp}</div>
+            `;
+        } else if (messageData.type === 'bot') {
+            messageDiv.innerHTML = `
+                <div class="message-header">${messageData.header || 'בינת קוד המקור:'}</div>
+                <div class="message-content">${messageData.content}</div>
+                <div class="message-time">${messageData.timestamp}</div>
+            `;
+        }
+
+        return messageDiv;
+    } catch (error) {
+        return null;
+    }
+}
+
+// Error handling utility
+function showError(message, duration = 5000) {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${sanitizeInput(message)}`;
+
+    const chatContainer = document.getElementById('chatContainer');
+    chatContainer.appendChild(errorDiv);
+    scrollToBottom();
+
+    setTimeout(() => {
+        if (errorDiv.parentNode) {
+            errorDiv.remove();
+        }
+    }, duration);
+}
+
+// Success handling utility
+function showSuccess(message, duration = 5000) {
+    const successDiv = document.createElement('div');
+    successDiv.className = 'success-message';
+    successDiv.innerHTML = `<i class="fas fa-check-circle"></i> ${sanitizeInput(message)}`;
+
+    const chatContainer = document.getElementById('chatContainer');
+    chatContainer.appendChild(successDiv);
+    scrollToBottom();
+
+    setTimeout(() => {
+        if (successDiv.parentNode) {
+            successDiv.remove();
+        }
+    }, duration);
+}
+
+// Enhanced scroll management
+let userScrolledUp = false;
+let lastScrollTop = 0;
+
+// UI state management
+function disableUI() {
+    const userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const micBtn = document.getElementById('micBtn');
+
+    if (userInput) {
+        userInput.disabled = true;
+        userInput.placeholder = 'מעבד הודעה...';
+    }
+
+    if (micBtn) {
+        micBtn.disabled = true;
+        micBtn.style.opacity = '0.5';
+    }
+
+    // Disable all quick reply buttons
+    const quickReplyBtns = document.querySelectorAll('.quick-reply-btn');
+    quickReplyBtns.forEach(btn => {
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        btn.style.cursor = 'not-allowed';
+    });
+}
+
+function enableUI() {
+    const userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const micBtn = document.getElementById('micBtn');
+
+    if (userInput) {
+        userInput.disabled = false;
+        userInput.placeholder = 'כתוב לי עכשיו...';
+    }
+
+    if (sendBtn) {
+        sendBtn.disabled = false;
+    }
+
+    if (micBtn) {
+        micBtn.disabled = false;
+        micBtn.style.opacity = '1';
+    }
+
+    // Enable all quick reply buttons
+    const quickReplyBtns = document.querySelectorAll('.quick-reply-btn');
+    quickReplyBtns.forEach(btn => {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.style.cursor = 'pointer';
+    });
+}
+
+// Check if user has manually scrolled up
+function checkUserScroll() {
+    const chatContainer = document.getElementById('chatContainer');
+    if (!chatContainer) return;
+
+    const currentScrollTop = chatContainer.scrollTop;
+    const scrollHeight = chatContainer.scrollHeight;
+    const clientHeight = chatContainer.clientHeight;
+
+    // User is considered to have scrolled up if they're not at the bottom
+    const atBottom = currentScrollTop + clientHeight >= scrollHeight - 50;
+    userScrolledUp = !atBottom;
+
+    // Show/hide scroll-to-bottom button
+    const btn = document.getElementById('scrollToBottomBtn');
+    if (btn) {
+        if (userScrolledUp) btn.classList.remove('hidden');
+        else btn.classList.add('hidden');
+    }
+
+    lastScrollTop = currentScrollTop;
+}
+
+// Enhanced scroll to bottom with smart behavior
+function scrollToBottom(force = false) {
+    const chatContainer = document.getElementById('chatContainer');
+    if (!chatContainer) return;
+
+    // Don't auto-scroll if user manually scrolled up (unless forced)
+    if (userScrolledUp && !force) {
+        return;
+    }
+
+    // Use requestAnimationFrame to ensure DOM is updated
+    requestAnimationFrame(() => {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+        userScrolledUp = false; // Reset flag after auto-scrolling
+    });
+}
+
+
+function handleKeyPress(event) {
+    if (event.key === 'Enter') {
+        if (event.shiftKey) {
+            // Allow new line on Shift+Enter
+            return;
+        } else {
+            // Send message on Enter
+            event.preventDefault();
+            if (!isProcessing) {
+                sendMessage();
+            } else {
+                showError('אנא המתן עד שההודעה הנוכחית תסיים עיבוד');
+            }
+        }
+    } else if (event.key === 'Tab') {
+        event.preventDefault();
+        // Navigate between controls
+        const controls = ['userInput', 'micBtn', 'sendBtn'];
+        const currentIndex = controls.indexOf(document.activeElement.id);
+        const nextIndex = (currentIndex + 1) % controls.length;
+        document.getElementById(controls[nextIndex]).focus();
+    }
+}
+
+// Auto-resize textarea based on content
+function autoResizeTextarea(textarea) {
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.min(textarea.scrollHeight, 150) + 'px';
+}
+
+
+// Simple text export function
+function exportAsText() {
+    try {
+        const chatContainer = document.getElementById('chatContainer');
+        if (!chatContainer) {
+            showError('לא נמצא השיחה');
+            return;
+        }
+
+        // Get all chat bubbles
+        const messages = chatContainer.querySelectorAll('.chat-bubble');
+
+        if (messages.length === 0) {
+            showError('אין הודעות לייצוא');
+            return;
+        }
+
+        // Build simple text content
+        let text = 'שיחת בינת קוד המקור\n';
+        text += 'משתמש: ' + USER_NAME + '\n';
+        text += 'תאריך: ' + new Date().toLocaleDateString('he-IL') + '\n';
+        text += '========================================\n\n';
+
+        // Process each message
+        for (let i = 0; i < messages.length; i++) {
+            const msg = messages[i];
+            const isUser = msg.classList.contains('user');
+
+            // Get message content - try different selectors
+            let content = '';
+            let time = '';
+
+            // Try to find content
+            const contentEl = msg.querySelector('.message-content');
+            if (contentEl) {
+                content = contentEl.innerText || contentEl.textContent || '';
+            } else {
+                // Fallback: get all text content
+                content = msg.innerText || msg.textContent || '';
+            }
+
+            // Try to find time
+            const timeEl = msg.querySelector('.message-time');
+            if (timeEl) {
+                time = timeEl.innerText || timeEl.textContent || '';
+            }
+
+            // Clean up content
+            content = content.replace(/\n\s*\n/g, '\n').trim();
+
+            if (content) {
+                const sender = isUser ? USER_NAME : 'בינת קוד המקור';
+                text += '[' + time + '] ' + sender + ':\n';
+                text += content + '\n\n';
+            }
+        }
+
+        text += '========================================\n';
+        text += `© ${new Date().getFullYear()} PDN Center\n`;
+
+        // Create and download file
+        const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'chat-export-' + USER_NAME + '-' + new Date().toISOString().split('T')[0] + '.txt';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        showSuccess('השיחה יוצאה בהצלחה!');
+
+    } catch (error) {
+        showError('שגיאה בייצוא השיחה: ' + error.message);
+    }
+}
+
+
+// Enhanced send message function with queue and error handling
+function toggleSendStop() {
+    if (isProcessing) {
+        stopMessage();
+    } else {
+        sendMessage();
+    }
+}
+
+function stopMessage() {
+    if (currentController) {
+        currentController.abort();
+    }
+    isProcessing = false;
+    enableUI();
+    updateSendButton();
+    
+    // Add cancellation message
+    const chatContainer = document.getElementById("chatContainer");
+    const cancelBubble = document.createElement("div");
+    cancelBubble.className = "chat-bubble bot animated";
+    const currentTime = getCurrentTime();
+    cancelBubble.innerHTML = `
+        <div class="message-header">בינת:</div>
+        <div class="message-content">השליחה בוטלה על ידי המשתמש</div>
+        <div class="message-time">${currentTime}</div>
+    `;
+    chatContainer.appendChild(cancelBubble);
+    
+    // Remove typing indicator if exists
+    const typing = document.querySelector('.typing-indicator');
+    if (typing) {
+        typing.remove();
+    }
+    
+    scrollToBottom();
+}
+
+function updateSendButton() {
+    const sendBtn = document.getElementById('sendBtn');
+    if (isProcessing) {
+        sendBtn.innerHTML = '<i class="fas fa-stop"></i> עצור';
+        sendBtn.setAttribute('aria-label', 'עצור שליחה');
+    } else {
+        sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> שלח';
+        sendBtn.setAttribute('aria-label', 'שלח הודעה');
+    }
+}
+
+async function sendMessage() {
+    const input = document.getElementById("userInput");
+    const message = input.value.trim();
+
+    if (message === "" || isProcessing) {
+        if (isProcessing) {
+            showError('אנא המתן עד שההודעה הנוכחית תסיים עיבוד');
+        }
+        return;
+    }
+
+    // Check if user typed "סיים שיחה" manually
+    if (message.toLowerCase().includes("סיים שיחה") ||
+        message.toLowerCase().includes("סיים") && message.toLowerCase().includes("שיחה")) {
+        handleThankYouClick();
+        return;
+    }
+
+    // Add to queue
+    messageQueue.push(message);
+    input.value = "";
+    
+    // Reset textarea height
+    autoResizeTextarea(input);
+
+    // Process queue
+    if (!isProcessing) {
+        processMessageQueue();
+    }
+}
+
+// Typewriter effect for bot responses
+function typewriterEffect(element, html, speed = 15) {
+    return new Promise(resolve => {
+        element.innerHTML = '';
+        let i = 0;
+        const chars = html.split('');
+        const interval = setInterval(() => {
+            element.innerHTML = chars.slice(0, i + 1).join('');
+            i++;
+            if (i >= chars.length) {
+                clearInterval(interval);
+                resolve();
+            }
+        }, speed);
+    });
+}
+
+// Session timer update
+function updateSessionTimer() {
+    const elapsed = Math.floor((Date.now() - sessionStartTime) / 1000);
+    const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+    const seconds = (elapsed % 60).toString().padStart(2, '0');
+    const el = document.getElementById('sessionTime');
+    if (el) el.textContent = `${minutes}:${seconds}`;
+}
+
+// Bookmark functionality with localStorage persistence
+function getBookmarks() {
+    try {
+        return JSON.parse(localStorage.getItem('binat_bookmarks') || '[]');
+    } catch { return []; }
+}
+
+function saveBookmarks(bookmarks) {
+    localStorage.setItem('binat_bookmarks', JSON.stringify(bookmarks));
+}
+
+function toggleBookmark(btn) {
+    const bubble = btn.closest('.chat-bubble');
+    const content = bubble.querySelector('.message-content');
+    const time = bubble.querySelector('.message-time');
+    const text = content ? (content.innerText || '').trim() : '';
+    const timestamp = time ? (time.innerText || '').trim() : getCurrentTime();
+
+    btn.classList.toggle('bookmarked');
+    const icon = btn.querySelector('i');
+    const bookmarks = getBookmarks();
+
+    if (btn.classList.contains('bookmarked')) {
+        icon.className = 'fas fa-bookmark';
+        btn.title = 'הסר סימנייה';
+        bookmarks.push({ text, timestamp, date: new Date().toISOString() });
+        saveBookmarks(bookmarks);
+    } else {
+        icon.className = 'far fa-bookmark';
+        btn.title = 'שמור הודעה';
+        const filtered = bookmarks.filter(b => b.text !== text);
+        saveBookmarks(filtered);
+    }
+}
+
+function showBookmarks() {
+    const bookmarks = getBookmarks();
+    const modal = document.createElement('div');
+    modal.className = 'confirmation-modal show';
+    modal.style.zIndex = '10000';
+    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+
+    let listHtml = '';
+    if (bookmarks.length === 0) {
+        listHtml = '<p class="bookmarks-empty">אין הודעות שמורות עדיין</p>';
+    } else {
+        listHtml = bookmarks.map((b, i) => `
+            <div class="bookmark-item">
+                <p class="bookmark-item-text">${b.text.substring(0, 200)}${b.text.length > 200 ? '...' : ''}</p>
+                <div class="bookmark-item-footer">
+                    <span class="bookmark-item-time">${b.timestamp}</span>
+                    <button onclick="removeBookmark(${i}, this)" class="bookmark-remove-btn">
+                        <i class="fas fa-trash"></i> הסר
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    modal.innerHTML = `
+        <div class="confirmation-content bookmarks-modal-content">
+            <h3 class="confirmation-title bookmarks-modal-title">הודעות שמורות (${bookmarks.length})</h3>
+            ${listHtml}
+            <div class="bookmarks-actions">
+                ${bookmarks.length > 0 ? '<button onclick="exportBookmarks()" class="confirmation-btn confirm" style="font-size:13px;padding:8px 16px;"><i class="fas fa-download"></i> ייצוא</button>' : ''}
+                <button onclick="this.closest(\'.confirmation-modal\').remove()" class="confirmation-btn cancel" style="font-size:13px;padding:8px 16px;">סגור</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function removeBookmark(index, btn) {
+    const bookmarks = getBookmarks();
+    bookmarks.splice(index, 1);
+    saveBookmarks(bookmarks);
+    btn.closest('.confirmation-modal').remove();
+    showBookmarks();
+}
+
+function exportBookmarks() {
+    const bookmarks = getBookmarks();
+    if (bookmarks.length === 0) return;
+    let text = `הודעות שמורות - ${USER_NAME}\nתאריך: ${new Date().toLocaleDateString('he-IL')}\n${'='.repeat(40)}\n\n`;
+    bookmarks.forEach((b, i) => { text += `${i + 1}. [${b.timestamp}]\n${b.text}\n\n`; });
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `bookmarks-${USER_NAME}-${new Date().toISOString().split('T')[0]}.txt`;
+    link.click();
+    URL.revokeObjectURL(url);
+}
+
+// Dark mode toggle
+function toggleChatTheme() {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+
+    // Update fab menu theme icon and text
+    const fabThemeIcon = document.getElementById('fabThemeIcon');
+    const fabThemeText = document.getElementById('fabThemeText');
+    if (fabThemeIcon) fabThemeIcon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+    if (fabThemeText) fabThemeText.textContent = isDark ? 'מצב בהיר' : 'מצב כהה';
+
+    localStorage.setItem('binat_dark_mode', isDark);
+}
+
+// Floating Action Menu
+function toggleFabMenu() {
+    const toggle = document.getElementById('fabToggle');
+    const dropdown = document.getElementById('fabDropdown');
+    const isOpen = dropdown.classList.contains('open');
+
+    if (isOpen) {
+        closeFabMenu();
+    } else {
+        toggle.classList.add('open');
+        dropdown.classList.add('open');
+    }
+}
+
+function closeFabMenu() {
+    const toggle = document.getElementById('fabToggle');
+    const dropdown = document.getElementById('fabDropdown');
+    if (toggle) toggle.classList.remove('open');
+    if (dropdown) dropdown.classList.remove('open');
+}
+
+async function processMessageQueue() {
+    if (messageQueue.length === 0) return;
+
+    isProcessing = true;
+    updateSendButton();
+    const message = messageQueue.shift();
+
+    const chatContainer = document.getElementById("chatContainer");
+
+    // Disable UI elements
+    disableUI();
+
+    // Create user message bubble
+    const userBubble = document.createElement("div");
+    userBubble.className = "chat-bubble user animated";
+    const currentTime = getCurrentTime();
+    userBubble.innerHTML = `
+            <div class="message-header">${USER_NAME}:</div>
+            <div class="message-content">${safeMarkdownParse(message)}</div>
+            <div class="message-time">${currentTime}</div>
+        `;
+
+    // Save user message to history
+    saveMessageToHistory({
+        type: 'user',
+        content: safeMarkdownParse(message),
+        timestamp: currentTime
+    });
+
+    chatContainer.appendChild(userBubble);
+    scrollToBottom(true); // Force scroll for new user message
+
+    // Show typing indicator
+    const typing = document.createElement("div");
+    typing.className = "typing-indicator";
+    typing.innerHTML = `
+            בינת קוד המקור
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        `;
+    chatContainer.appendChild(typing);
+    scrollToBottom(true); // Force scroll for typing indicator
+
+    try {
+        currentController = new AbortController();
+        const res = await fetch("/pdn-binat/chat", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-Requested-With": "XMLHttpRequest"
+            },
+            body: JSON.stringify({
+                message: sanitizeInput(message),
+                user_name: USER_NAME,
+                user_id: USER_ID,
+                pdn_code: PDN_CODE
+            }),
+            signal: currentController.signal
+        });
+
+        if (!res.ok) {
+            // Handle unauthorized access specifically
+            if (res.status === 403) {
+                const errorData = await res.json();
+                typing.remove();
+                showError(errorData.response || 'אין לך הרשאה לגשת למערכת');
+                return;
+            }
+            throw new Error(`HTTP error! status: ${res.status}`);
+        }
+
+        const data = await res.json();
+        typing.remove();
+
+        // Check if response contains error (unauthorized access)
+        if (data.error === "Unauthorized access") {
+            showError(data.response || 'אין לך הרשאה לגשת למערכת');
+            return;
+        }
+
+        // Create bot message bubble
+        const botBubble = document.createElement("div");
+        botBubble.className = "chat-bubble bot animated";
+        const botTime = getCurrentTime();
+        const botContent = safeMarkdownParse(data.message || data.response || 'מצטער, אירעה שגיאה. אנא נסה שוב.');
+        botBubble.innerHTML = `
+                <div class="message-header">בינת קוד המקור:</div>
+                <div class="message-content"></div>
+                <div class="message-time">${botTime}</div>
+                <div class="message-actions">
+                    <button class="bookmark-btn" onclick="toggleBookmark(this)" title="שמור הודעה">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                </div>
+            `;
+
+        // Save bot message to history
+        saveMessageToHistory({
+            type: 'bot',
+            content: botContent,
+            timestamp: botTime,
+            header: 'בינת קוד המקור:'
+        });
+
+        chatContainer.appendChild(botBubble);
+
+        // Typewriter effect for bot message
+        const contentEl = botBubble.querySelector('.message-content');
+        await typewriterEffect(contentEl, botContent, 10);
+
+        scrollToBottom(true); // Force scroll for bot message
+
+        // Add quick reply buttons for bot messages
+        addQuickReplies(botBubble);
+        scrollToBottom(true); // Force scroll after quick replies
+
+    } catch (error) {
+        typing.remove();
+        if (error.name === 'AbortError') {
+            // Request was aborted by user
+        } else {
+            showError('שגיאה בשליחת ההודעה לשרת');
+        }
+    } finally {
+        // Re-enable UI elements
+        enableUI();
+        isProcessing = false;
+        currentController = null;
+        updateSendButton();
+
+        // Process next message in queue
+        if (messageQueue.length > 0) {
+            setTimeout(processMessageQueue, 100);
+        }
+    }
+}
+
+// Add quick reply buttons
+function addQuickReplies(botBubble) {
+    const quickReplies = [
+       /* "אתגר 21 יום",
+        "אימון יומי",*/
+        "ספר לי על הקוד שלי"
+    ];
+
+    const quickRepliesDiv = document.createElement("div");
+    quickRepliesDiv.className = "quick-replies";
+
+    quickReplies.forEach(reply => {
+        const button = document.createElement("button");
+        button.className = "quick-reply-btn";
+        button.textContent = reply;
+        button.onclick = () => {
+            // Special handling for "אתגר 21 יום" - show modal
+            if (reply === "אתגר 21 יום") {
+                // Show 21-day plan modal
+                show21PlanModal();
+                scrollToBottom(true);
+            } else if (reply === "אימון יומי") {
+                // Show daily training modal
+                showDailyTrainingModal();
+                scrollToBottom(true);
+            } else {
+                // Disable UI before sending message
+                if (!isProcessing) {
+                    document.getElementById("userInput").value = reply;
+                    sendMessage();
+                }
+            }
+        };
+        quickRepliesDiv.appendChild(button);
+    });
+
+    botBubble.appendChild(quickRepliesDiv);
+}
+
+// Handle "תודה על השיחה" click - redirect to login page
+function handleThankYouClick() {
+    // Show custom confirmation modal
+    showConfirmationModal();
+}
+
+// Custom confirmation modal functions
+function showConfirmationModal() {
+    const modal = document.getElementById('confirmationModal');
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+
+    // Focus on the first button for accessibility
+    setTimeout(() => {
+        modal.querySelector('.confirmation-btn.cancel').focus();
+    }, 100);
+}
+
+
+function hideConfirmationModal() {
+    const modal = document.getElementById('confirmationModal');
+    modal.classList.remove('show');
+    document.body.style.overflow = '';
+}
+
+async function confirmLogout() {
+    hideConfirmationModal();
+
+    try {
+        // Call logout endpoint to clear server session
+        const response = await fetch('/pdn-binat/logout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        if (!response.ok) {
+            console.warn('Failed to logout on server');
+        }
+    } catch (error) {
+        // Error during logout
+    }
+
+    // Clear session storage for user credentials
+    sessionStorage.removeItem('binat_username');
+    sessionStorage.removeItem('binat_user_id');
+    sessionStorage.removeItem('binat_pdn_code');
+    clearConversationHistory();
+
+    // Clear server-side chat history
+
+    // Clear all chat messages visually
+    const chatContainer = document.getElementById("chatContainer");
+    if (chatContainer) {
+        // Remove all existing messages except the initial welcome message
+        const existingMessages = Array.from(chatContainer.querySelectorAll('.chat-bubble'));
+        existingMessages.forEach(msg => {
+            const header = msg.querySelector('.message-header');
+            const isWelcomeMessage = header &&
+                header.textContent.includes('בינת קוד המקור:') &&
+                msg.querySelector('.message-content').textContent.includes('שלום');
+
+            if (!isWelcomeMessage) {
+                msg.remove();
+            }
+        });
+    }
+
+    // Show goodbye message before redirecting
+    const goodbyeBubble = document.createElement("div");
+    goodbyeBubble.className = "chat-bubble bot animated";
+    goodbyeBubble.innerHTML = `
+            <div class="message-header">בינת קוד המקור:</div>
+            <div class="message-content">
+                🌿 תודה לך על השיחה היפה!<br>
+                בינת קוד המקור תמיד כאן בשבילך.<br>
+                עד הפעם הבאה... 💜
+            </div>
+            <div class="message-time">${getCurrentTime()}</div>
+        `;
+
+    chatContainer.appendChild(goodbyeBubble);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+
+    // Redirect after a short delay to show the goodbye message
+    setTimeout(() => {
+        window.location.href = '/pdn-binat/';
+    }, 2000);
+}
+
+
+// Handle escape key to close modal
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+        hideConfirmationModal();
+    }
+});
+
+// Handle click outside modal to close
+document.addEventListener('click', function (e) {
+    const modal = document.getElementById('confirmationModal');
+    if (e.target === modal) {
+        hideConfirmationModal();
+    }
+
+    // Close fab menu on outside click
+    const fabMenu = document.getElementById('fabMenu');
+    if (fabMenu && !fabMenu.contains(e.target)) {
+        closeFabMenu();
+    }
+});
+
+// Initialize chat with proper error handling
+document.addEventListener("DOMContentLoaded", function () {
+    try {
+        // Load theme preference
+        if (localStorage.getItem('binat_dark_mode') === 'true') {
+            document.body.classList.add('dark-mode');
+            const fabThemeIcon = document.getElementById('fabThemeIcon');
+            const fabThemeText = document.getElementById('fabThemeText');
+            if (fabThemeIcon) fabThemeIcon.className = 'fas fa-sun';
+            if (fabThemeText) fabThemeText.textContent = 'מצב בהיר';
+        }
+
+        // Start session timer
+        setInterval(updateSessionTimer, 1000);
+
+        // Set up scroll tracking
+        const chatContainer = document.getElementById('chatContainer');
+        if (chatContainer) {
+            chatContainer.addEventListener('scroll', checkUserScroll);
+        }
+
+        // Ensure we have the PDN code
+        let finalPdnCode = PDN_CODE;
+        if (!finalPdnCode || finalPdnCode === 'לא ידוע') {
+            const storedPdnCode = sessionStorage.getItem('binat_pdn_code');
+            if (storedPdnCode) {
+                finalPdnCode = storedPdnCode;
+            }
+        }
+
+        // Add welcome message
+        const initialBot = document.createElement("div");
+        initialBot.className = "chat-bubble bot animated";
+
+        const rawMessage = `🌿 שלום ${USER_NAME.toUpperCase()}, קוד המקור שלך הינו ${finalPdnCode.toUpperCase()}\nבינת קוד המקור ממתינה לך כאן, בקצב שלך.\n\n<span style="font-size: 12px;">הסכמה מודעת וכתב ויתור\nבינת קוד המקור מיועדת לצורכי התפתחות אישית והעשרה עצמית בלבד.\nהשיחות והתובנות המוצעות כאן אינן מהוות תחליף לייעוץ מקצועי, טיפול פסיכולוגי, רפואי או כל שירות מקצועי אחר.\nהשימוש בבינה זו הוא באחריותך המלאה. אם את/ה חווה מצוקה נפשית, קושי רגשי משמעותי או זקוק/ה לתמיכה מקצועית – מומלץ בחום לפנות לגורם מוסמך.\nהבינה מיועדת לשימוש אישי בלבד  ואינה מחליפה ליווי אנושי מקצועי.\nכל הזכויות שמורות למרכז PDN ולבעליו החוקיים.\nבעלי הזכויות רשאים להפסיק את פעילות הבינה  בכל עת ולהשיב יתרה יחסית בגין מנוי פעיל.\nהשימוש בבינה מהווה אישור להסכמה מלאה לכל האמור לעיל.\n\nאנו כאן להזכיר לך – הכוח כבר בתוכך. 💜</span>`;
+        const formattedMessage = rawMessage.replace(/\n/g, '<br>');
+
+        initialBot.innerHTML = `
+                <div class="message-header">בינת קוד המקור:</div>
+                <div class="message-content">${formattedMessage}</div>
+                <div class="message-time">${getCurrentTime()}</div>
+            `;
+
+        chatContainer.appendChild(initialBot);
+        addQuickReplies(initialBot);
+        scrollToBottom(true);
+
+        // Restore conversation history
+        restoreConversationHistory();
+
+        // Focus on input
+        document.getElementById("userInput").focus();
+
+    } catch (error) {
+        showError('שגיאה בטעינת הממשק');
+    }
+});
+
+
+// 21-Day Plan Modal Functions
+function show21PlanModal() {
+    const modal = document.getElementById('planModal');
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+
+    // Focus on the first input for accessibility
+    setTimeout(() => {
+        document.getElementById('planGoal').focus();
+    }, 100);
+}
+
+function hidePlanModal() {
+    const modal = document.getElementById('planModal');
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+
+    // Reset form
+    document.getElementById('planForm').reset();
+}
+
+function autoFillPlanForm() {
+    // Fill the goal field
+    const goalField = document.getElementById('planGoal');
+    if (goalField) {
+        goalField.value = 'אני רוצה לצעוד בסיום האתגר כל יום 1000 צעדים';
+    }
+}
+
+async function submitPlanRequest(event) {
+    event.preventDefault();
+
+    const submitBtn = document.getElementById('submitPlanBtn');
+    const originalText = submitBtn.innerHTML;
+
+    try {
+        // Disable button and show loading
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>בונה  אתגר 21 יום...';
+
+
+        // Get form data
+        const formData = new FormData(event.target);
+        const goal = formData.get('goal').trim();
+
+        if (!goal) {
+            showError('אנא מלא את השדה הנדרש');
+            return;
+        }
+
+        // Send request to backend with timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 150000);
+
+        const response = await fetch('/pdn-binat/21-day-plan', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                goal: goal,
+                user_name: USER_NAME,
+                user_id: USER_ID,
+                pdn_code: PDN_CODE
+            }),
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (response.ok) {
+            let data;
+            try {
+                data = await response.json();
+            } catch (jsonError) {
+                showError('שגיאה בעיבוד התגובה מהשרת');
+                return;
+            }
+
+            // Hide modal
+            hidePlanModal();
+
+            // Add user message to chat
+            const chatContainer = document.getElementById("chatContainer");
+            const userBubble = document.createElement("div");
+            userBubble.className = "chat-bubble user animated";
+            const userTime = getCurrentTime();
+            const userContent = safeMarkdownParse(goal);
+            userBubble.innerHTML = `
+                <div class="message-header">${USER_NAME}:</div>
+                <div class="message-content">${userContent}</div>
+                <div class="message-time">${userTime}</div>
+
+            `;
+
+            // Save user message to history
+            saveMessageToHistory({
+                type: 'user',
+                content: userContent,
+                timestamp: userTime
+            });
+
+            chatContainer.appendChild(userBubble);
+
+            // Add bot response to chat
+            const botBubble = document.createElement("div");
+            botBubble.className = "chat-bubble bot animated";
+            const botTime = getCurrentTime();
+            let botContent = safeMarkdownParse(data.response);
+            botContent = botContent.replace('```markdown', '')
+            botContent = botContent.replace('---', '');
+
+
+            botBubble.innerHTML = `
+                <div class="message-header">בינת קוד המקור:</div>
+                <div class="message-content">${botContent}</div>
+                <div class="message-actions">
+                    <button class="copy-plan-btn" onclick="downloadPlan(this)" title="הורד את התוכנית">
+                        <i class="fas fa-download"></i>
+                        <span>הורד תוכנית</span>
+                    </button>
+                    <button class="bookmark-btn" onclick="toggleBookmark(this)" title="שמור הודעה">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                </div>
+                <div class="message-time">${botTime}</div>
+            `;
+
+            // Save bot message to history
+            saveMessageToHistory({
+                type: 'bot',
+                content: botContent,
+                timestamp: botTime,
+                header: 'בינת קוד המקור:'
+            });
+
+            chatContainer.appendChild(botBubble);
+
+            // Add quick reply buttons
+            addQuickReplies(botBubble);
+            scrollToBottom(true);
+        } else {
+            // Handle unauthorized access specifically
+            if (response.status === 403) {
+                try {
+                    const errorData = await response.json();
+                    showError(errorData.response || 'אין לך הרשאה לגשת למערכת');
+                } catch (jsonError) {
+                    showError('אין לך הרשאה לגשת למערכת');
+                }
+                return;
+            }
+
+            let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.error || errorMessage;
+            } catch (jsonError) {
+                console.warn('Error response is not JSON:', jsonError);
+            }
+            showError(errorMessage);
+        }
+
+    } catch (error) {
+        if (error.name === 'AbortError') {
+            showError('הבקשה ארכה יותר מדי זמן. אנא נסה שוב או פנה לתמיכה אם הבעיה נמשכת.');
+        } else if (error.message && error.message.includes('timeout')) {
+            showError('הבקשה ארכה יותר מדי זמן. זה יכול להיות בגלל עומס על השרת. אנא נסה שוב בעוד כמה רגעים.');
+        } else {
+            showError('שגיאה בשליחת הבקשה לשרת');
+        }
+    } finally {
+        // Restore button
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    }
+}
+
+// Copy plan to clipboard function
+async function copyPlanToClipboard(button) {
+    try {
+        // Find the message content in the same chat bubble
+        const chatBubble = button.closest('.chat-bubble');
+        const messageContent = chatBubble.querySelector('.message-content');
+
+        if (!messageContent) {
+            showError('לא ניתן למצוא את תוכן התוכנית');
+            return;
+        }
+
+        // Get the text content (without HTML tags)
+        const textToCopy = messageContent.innerText || messageContent.textContent;
+
+        // Copy to clipboard
+        await navigator.clipboard.writeText(textToCopy);
+
+        // Show success feedback
+        const originalText = button.querySelector('span').textContent;
+        const originalIcon = button.querySelector('i').className;
+
+        button.querySelector('span').textContent = 'הועתק!';
+        button.querySelector('i').className = 'fas fa-check';
+        button.style.background = '#28a745';
+
+        // Reset after 2 seconds
+        setTimeout(() => {
+            button.querySelector('span').textContent = originalText;
+            button.querySelector('i').className = originalIcon;
+            button.style.background = '';
+        }, 2000);
+
+    } catch (error) {
+        showError('שגיאה בהעתקה ללוח. אנא נסה שוב.');
+    }
+}
+
+// Download plan as file function
+function downloadPlan(button) {
+    try {
+        // Find the message content in the same chat bubble
+        const chatBubble = button.closest('.chat-bubble');
+        const messageContent = chatBubble.querySelector('.message-content');
+
+        if (!messageContent) {
+            showError('לא ניתן למצוא את תוכן התוכנית');
+            return;
+        }
+
+        // Get the text content (without HTML tags)
+        const planText = messageContent.innerText || messageContent.textContent;
+
+        // Create file content with header
+        const fileName = `תוכנית-21-יום-${USER_NAME}-${new Date().toISOString().split('T')[0]}.txt`;
+        const fileContent = `תוכנית 21 יום - ${USER_NAME}
+תאריך: ${new Date().toLocaleDateString('he-IL')}
+קוד המקור: ${PDN_CODE}
+========================================
+
+${planText}
+
+========================================
+© ${new Date().getFullYear()} PDN Center - בינת קוד המקור`;
+
+        // Create and download file
+        const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        // Show success feedback
+        const originalText = button.querySelector('span').textContent;
+        const originalIcon = button.querySelector('i').className;
+
+        button.querySelector('span').textContent = 'הורד!';
+        button.querySelector('i').className = 'fas fa-check';
+        button.style.background = '#28a745';
+
+        // Reset after 2 seconds
+        setTimeout(() => {
+            button.querySelector('span').textContent = originalText;
+            button.querySelector('i').className = originalIcon;
+            button.style.background = '';
+        }, 2000);
+
+    } catch (error) {
+        showError('שגיאה בהורדת התוכנית. אנא נסה שוב.');
+    }
+}
+
+// Handle Enter key press in 21-day plan form
+function handlePlanFormKeyPress(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        const form = document.getElementById('planForm');
+        if (form) {
+            form.requestSubmit();
+        }
+    }
+}
+
+// Daily Training Modal Functions
+function showDailyTrainingModal() {
+    const modal = document.getElementById('dailyTrainingModal');
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+
+    // Focus on the task input for accessibility
+    setTimeout(() => {
+        document.getElementById('trainingTask').focus();
+    }, 100);
+}
+
+function hideDailyTrainingModal() {
+    const modal = document.getElementById('dailyTrainingModal');
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+
+    // Reset form
+    document.getElementById('dailyTrainingForm').reset();
+}
+
+function autoFillDailyTrainingForm() {
+    // Fill the task field with a sample
+    const taskField = document.getElementById('trainingTask');
+    if (taskField) {
+        taskField.value = 'לרוץ 5 ק״מ';
+    }
+
+}
+
+async function submitDailyTrainingRequest(event) {
+    event.preventDefault();
+
+    const submitBtn = document.getElementById('submitDailyTrainingBtn');
+    const originalText = submitBtn.innerHTML;
+
+    try {
+        // Disable button and show loading
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>שולח...';
+
+        // Get form data
+        const formData = new FormData(event.target);
+        const task = formData.get('task').trim();
+
+        if (!task) {
+            showError('אנא מלא את השדה הנדרש');
+            return;
+        }
+
+        // Send request to backend
+        const response_data = await fetch('/pdn-binat/daily-training', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                task: task,
+                user_name: USER_NAME,
+                user_id: USER_ID,
+                pdn_code: PDN_CODE
+            })
+        });
+
+        if (response_data.ok) {
+            let data;
+            try {
+                data = await response_data.json();
+            } catch (jsonError) {
+                showError('שגיאה בעיבוד התגובה מהשרת');
+                return;
+            }
+
+            // Hide modal
+            hideDailyTrainingModal();
+
+            // Add user message to chat
+            const chatContainer = document.getElementById("chatContainer");
+            const userBubble = document.createElement("div");
+            userBubble.className = "chat-bubble user animated";
+            const userTime = getCurrentTime();
+            const userContent = safeMarkdownParse(`אימון יומי:\n\n**המשימה שלי:**\n${task}`);
+            userBubble.innerHTML = `
+                <div class="message-header">${USER_NAME}:</div>
+                <div class="message-content">${userContent}</div>
+                <div class="message-time">${userTime}</div>
+            `;
+
+            // Save user message to history
+            saveMessageToHistory({
+                type: 'user',
+                content: userContent,
+                timestamp: userTime
+            });
+
+            chatContainer.appendChild(userBubble);
+
+            // Add bot response to chat
+            const botBubble = document.createElement("div");
+            botBubble.className = "chat-bubble bot animated";
+            const botTime = getCurrentTime();
+            let botContent = safeMarkdownParse(data.response || 'תודה על השיתוף! המשיכה בדרך שלך.');
+
+            botBubble.innerHTML = `
+                <div class="message-header">בינת קוד המקור:</div>
+                <div class="message-content">${botContent}</div>
+                <div class="message-actions">
+                    <button class="bookmark-btn" onclick="toggleBookmark(this)" title="שמור הודעה">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                </div>
+                <div class="message-time">${botTime}</div>
+            `;
+
+            // Save bot message to history
+            saveMessageToHistory({
+                type: 'bot',
+                content: botContent,
+                timestamp: botTime,
+                header: 'בינת קוד המקור:'
+            });
+
+            chatContainer.appendChild(botBubble);
+
+            // Add quick reply buttons
+            addQuickReplies(botBubble);
+            scrollToBottom(true);
+
+        } else {
+            // Handle unauthorized access specifically
+            if (response_data.status === 403) {
+                try {
+                    const errorData = await response_data.json();
+                    showError(errorData.response || 'אין לך הרשאה לגשת למערכת');
+                } catch (jsonError) {
+                    showError('אין לך הרשאה לגשת למערכת');
+                }
+                return;
+            }
+
+            let errorMessage = `HTTP ${response_data.status}: ${response_data.statusText}`;
+            try {
+                const errorData = await response_data.json();
+                errorMessage = errorData.error || errorMessage;
+            } catch (jsonError) {
+                console.warn('Error response is not JSON:', jsonError);
+            }
+            showError(errorMessage);
+        }
+
+    } catch (error) {
+        showError('שגיאה בשליחת הבקשה לשרת');
+    } finally {
+        // Restore button
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    }
+}
+
+// Handle Enter key press in daily training form
+function handleDailyTrainingFormKeyPress(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        const form = document.getElementById('dailyTrainingForm');
+        if (form) {
+            form.requestSubmit();
+        }
+    }
+}
