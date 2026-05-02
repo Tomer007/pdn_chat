@@ -273,11 +273,11 @@ class TestPromptCaching:
 
 
 class TestSummaryLLMProviderSelection:
-    """Tests that the summary LLM uses the cheaper model from the same provider."""
+    """Tests that the summary LLM always uses gpt-4o-mini regardless of main provider."""
 
-    def test_anthropic_provider_uses_haiku_for_summary(self):
-        """When main provider is Anthropic, summary_llm should be Claude Haiku."""
-        with patch("app.pdn_chat_ai.binat_agents.pdn_agent.ChatOpenAI"), \
+    def test_anthropic_provider_uses_gpt4o_mini_for_summary(self):
+        """Even when main provider is Anthropic, summary_llm should be gpt-4o-mini."""
+        with patch("app.pdn_chat_ai.binat_agents.pdn_agent.ChatOpenAI") as mock_openai, \
              patch("app.pdn_chat_ai.binat_agents.pdn_agent.ChatAnthropic") as mock_anthropic, \
              patch("app.pdn_chat_ai.binat_agents.pdn_agent.Config") as mock_config:
 
@@ -289,15 +289,15 @@ class TestSummaryLLMProviderSelection:
             cfg.ANTHROPIC_MODEL = "claude-3-sonnet-20240229"
 
             mock_anthropic.return_value = MagicMock()
+            mock_openai.return_value = MagicMock()
             agent = PDNAgent()
 
-            # summary_llm should have been created with ChatAnthropic
-            # Check that ChatAnthropic was called for the summary LLM (second call)
-            haiku_call = [
-                call for call in mock_anthropic.call_args_list
-                if call.kwargs.get("model") == "claude-3-5-haiku-20241022"
+            # ChatOpenAI should be called with gpt-4o-mini for summary LLM
+            mini_calls = [
+                call for call in mock_openai.call_args_list
+                if call.kwargs.get("model") == "gpt-4o-mini"
             ]
-            assert len(haiku_call) == 1, "Expected ChatAnthropic to be called with claude-3-haiku for summary LLM"
+            assert len(mini_calls) == 1, "Expected ChatOpenAI to be called with gpt-4o-mini for summary LLM"
 
     def test_openai_provider_uses_gpt4o_mini_for_summary(self):
         """When main provider is OpenAI, summary_llm should be gpt-4o-mini."""

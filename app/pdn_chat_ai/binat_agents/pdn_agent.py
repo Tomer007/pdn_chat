@@ -44,16 +44,8 @@ class PDNAgent:
         self.llm = self._initialize_llm(config)
         self._is_anthropic = self.llm_provider.lower() == 'anthropic'
 
-        # Use the cheaper model from the same provider for summarization
-        if self._is_anthropic:
-            self.summary_llm = ChatAnthropic(
-                model="claude-3-5-haiku-20241022",
-                temperature=0.3,
-                max_tokens=500,
-                api_key=config.ANTHROPIC_API_KEY
-            )
-        else:
-            self.summary_llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.3, api_key=config.OPENAI_API_KEY)
+        # Use gpt-4o-mini for summarization (cheap and reliable across all setups)
+        self.summary_llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.3, api_key=config.OPENAI_API_KEY)
 
         self.conversation_history = defaultdict(UserHistory)
         self.user_conversations = defaultdict(lambda: {'count': 0, 'last_reset': datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)})
