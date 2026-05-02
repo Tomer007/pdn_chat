@@ -570,6 +570,24 @@
 
 <!-- Logged In Users Modal -->
 <div id="loggedInUsersModal" class="modal-backdrop">
+
+<!-- PDN Calculation Details Modal -->
+<div id="pdnCalculationModal" class="modal-backdrop">
+    <div class="card p-8 max-w-3xl w-full mx-4 max-h-[80vh] overflow-y-auto rounded-2xl">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800 flex items-center">
+                <i class="fas fa-calculator mr-2 text-blue-900"> פירוט חישוב קוד PDN </i>
+            </h2>
+            <button onclick="closeModal('pdnCalculationModal')"
+                    class="text-gray-500 hover:text-gray-700 text-2xl transition-colors">
+                <i class="fas fa-times mr-2"></i>
+            </button>
+        </div>
+        <div id="pdnCalculationContent" class="space-y-4">
+            <!-- Calculation details will be populated here -->
+        </div>
+    </div>
+</div>
     <div class="card p-8 max-w-2xl w-full mx-4 rounded-2xl">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold text-gray-800 flex items-center">
@@ -2169,27 +2187,9 @@ ${leftText}: ${leftValue} | ${rightText}: ${rightValue}
                         showNotification(`קוד פדן חושב מחדש בהצלחה: ${data.pdn_code} על ידי ${data.updated_by}`, 'success');
                     }
 
-                    // Display calculation details in console if available
+                    // Display calculation details in modal if available
                     if (data.calculation_details) {
-                        console.log('=== PDN Recalculation Details ===');
-                        console.log('Number of stages:', data.calculation_details.length);
-                        data.calculation_details.forEach((stage, index) => {
-                            console.log(`\n--- Stage ${index + 1}: ${stage.stage} - ${stage.name} ---`);
-                            if (stage.scores) {
-                                console.log('Scores:', stage.scores);
-                            }
-                            if (stage.dominant) {
-                                console.log('Dominant:', stage.dominant);
-                            }
-                            if (stage.pdn_code) {
-                                console.log('Final PDN Code:', stage.pdn_code);
-                                console.log('Trait:', stage.trait);
-                                console.log('Energy:', stage.energy);
-                            }
-                        });
-                        console.log('================================');
-                    } else {
-                        console.log('No calculation details found in response');
+                        showCalculationDetails(email, data);
                     }
 
                     // Update local data
@@ -2229,6 +2229,97 @@ ${leftText}: ${leftValue} | ${rightText}: ${rightValue}
                 // Reset loading state for this specific row
                 resetRowLoadingState(email, 'recalculate');
             }
+        }
+
+        function showCalculationDetails(email, data) {
+            const container = document.getElementById('pdnCalculationContent');
+            const stages = data.calculation_details;
+            const traitLabels = { A: 'הישגיות', T: 'ביטחון', P: 'הנאה', E: 'אדנות' };
+            const energyLabels = { D: 'דינמית', S: 'יציבה', F: 'גמישה' };
+            const stageNames = {
+                A: 'שלב A: חישוב תכונה ראשית',
+                B: 'שלב B: חישוב סוג אנרגיה',
+                C: 'שלב C: אימות ושבירת שוויון (תכונות)',
+                D: 'שלב D: אימות ושבירת שוויון (אנרגיה)',
+                E: 'שלב E: חיזוק תכונה דומיננטית',
+                Final: 'תוצאה סופית'
+            };
+
+            let html = `<div class="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200 text-center">
+                <span class="text-sm text-gray-600">משתמש:</span>
+                <span class="font-semibold text-gray-800 mr-2">${email}</span>
+            </div>`;
+
+            stages.forEach(stage => {
+                if (stage.stage === 'Final') {
+                    const verifyBadge = stage.needs_verification
+                        ? '<span class="inline-block bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-1 rounded mr-2">⚠️ נדרש אימות</span>'
+                        : '<span class="inline-block bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded mr-2">✓ תקין</span>';
+                    html += `<div class="p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border-2 border-blue-300">
+                        <div class="text-lg font-bold text-blue-900 mb-2">${stageNames.Final}</div>
+                        <div class="text-3xl font-bold text-center text-blue-900 my-3">${stage.pdn_code}</div>
+                        <div class="flex justify-center gap-4 text-sm text-gray-700">
+                            <span>תכונה: <strong>${stage.trait} (${traitLabels[stage.trait] || stage.trait})</strong></span>
+                            <span>אנרגיה: <strong>${stage.energy} (${energyLabels[stage.energy] || stage.energy})</strong></span>
+                        </div>
+                        <div class="text-center mt-2">${verifyBadge}</div>
+                    </div>`;
+                    return;
+                }
+
+                const name = stageNames[stage.stage] || `שלב ${stage.stage}`;
+                html += `<div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div class="font-semibold text-gray-800 mb-3">${name}</div>`;
+
+                if (stage.scores) {
+                    html += '<div class="grid grid-cols-2 gap-2">';
+                    // Show trait scores (A, T, P, E)
+                    ['A', 'T', 'P', 'E'].forEach(key => {
+                        if (stage.scores[key] !== undefined) {
+                            const isDominant = stage.dominant === key;
+                            const barWidth = Math.min(100, (stage.scores[key] / 60) * 100);
+                            const barColor = isDominant ? 'bg-blue-600' : 'bg-gray-300';
+                            const textStyle = isDominant ? 'font-bold text-blue-900' : 'text-gray-600';
+                            html += `<div class="flex items-center gap-2">
+                                <span class="w-20 text-sm ${textStyle}">${key} (${traitLabels[key]})</span>
+                                <div class="flex-1 bg-gray-200 rounded-full h-4 relative">
+                                    <div class="${barColor} h-4 rounded-full transition-all" style="width: ${barWidth}%"></div>
+                                </div>
+                                <span class="w-8 text-sm font-mono ${textStyle} text-left">${stage.scores[key]}</span>
+                                ${isDominant ? '<span class="text-xs text-blue-600 font-bold">◀</span>' : ''}
+                            </div>`;
+                        }
+                    });
+                    // Show energy scores (D, S, F) if present
+                    ['D', 'S', 'F'].forEach(key => {
+                        if (stage.scores[key] !== undefined) {
+                            const isDominant = stage.dominant === key;
+                            const barWidth = Math.min(100, (stage.scores[key] / 40) * 100);
+                            const barColor = isDominant ? 'bg-green-600' : 'bg-gray-300';
+                            const textStyle = isDominant ? 'font-bold text-green-900' : 'text-gray-600';
+                            html += `<div class="flex items-center gap-2">
+                                <span class="w-20 text-sm ${textStyle}">${key} (${energyLabels[key]})</span>
+                                <div class="flex-1 bg-gray-200 rounded-full h-4 relative">
+                                    <div class="${barColor} h-4 rounded-full transition-all" style="width: ${barWidth}%"></div>
+                                </div>
+                                <span class="w-8 text-sm font-mono ${textStyle} text-left">${stage.scores[key]}</span>
+                                ${isDominant ? '<span class="text-xs text-green-600 font-bold">◀</span>' : ''}
+                            </div>`;
+                        }
+                    });
+                    html += '</div>';
+                }
+
+                if (stage.dominant) {
+                    const label = traitLabels[stage.dominant] || energyLabels[stage.dominant] || stage.dominant;
+                    html += `<div class="mt-2 text-sm text-gray-700">דומיננטי: <strong>${stage.dominant} (${label})</strong></div>`;
+                }
+
+                html += '</div>';
+            });
+
+            container.innerHTML = html;
+            document.getElementById('pdnCalculationModal').style.display = 'flex';
         }
 
         function closeModal(modalId) {
