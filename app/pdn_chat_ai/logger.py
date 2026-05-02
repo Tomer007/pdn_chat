@@ -19,6 +19,10 @@ def setup_logger(name='pdn_chat_ai'):
     """Setup logger for pdn_chat_ai module"""
     logger = logging.getLogger(name)
 
+    # Prevent duplicate handlers on repeated calls
+    if logger.handlers:
+        return logger
+
     # Create formatter
     formatter = logging.Formatter(
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s'

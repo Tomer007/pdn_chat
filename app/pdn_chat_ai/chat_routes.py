@@ -121,7 +121,6 @@ def chat_interface():
         user_name=session.get('user_name') or request.args.get('user_name', 'Anonymous'),
         user_id=session.get('user_id') or request.args.get('user_id', ''),
         pdn_code=session.get('pdn_code') or request.args.get('pdn_code', ''),
-        daily_conversation_limit=session.get('daily_conversation_limit', 15),
         include_menu=True
     )
 

@@ -24,7 +24,6 @@ function initializeSpeechRecognition() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-        console.warn('Speech recognition not supported');
         return null;
     }
 
@@ -206,7 +205,6 @@ function safeMarkdownParse(text) {
 
     // Check if marked is available
     if (typeof marked === 'undefined') {
-        console.warn('Marked library not loaded, returning plain text');
         return `<div class="formatted-content">${sanitized}</div>`;
     }
 
@@ -226,7 +224,6 @@ function safeMarkdownParse(text) {
         const parsed = marked.parse(sanitized);
        // Check if markdown was actually parsed (not just returned as-is)
         if (parsed === sanitized || parsed.includes('##') || parsed.includes('**')) {
-            console.warn('Marked library may not be working properly, using fallback parser');
             const fallbackParsed = parseMarkdownFallback(sanitized);
             return `<div class="formatted-content">${fallbackParsed}</div>`;
         }
@@ -1080,7 +1077,7 @@ async function confirmLogout() {
         });
 
         if (!response.ok) {
-            console.warn('Failed to logout on server');
+            // Logout failed on server — continue with client cleanup
         }
     } catch (error) {
         // Error during logout
@@ -1372,7 +1369,7 @@ async function submitPlanRequest(event) {
                 const errorData = await response.json();
                 errorMessage = errorData.error || errorMessage;
             } catch (jsonError) {
-                console.warn('Error response is not JSON:', jsonError);
+                // Error response is not JSON — use HTTP status message
             }
             showError(errorMessage);
         }
@@ -1644,7 +1641,7 @@ async function submitDailyTrainingRequest(event) {
                 const errorData = await response_data.json();
                 errorMessage = errorData.error || errorMessage;
             } catch (jsonError) {
-                console.warn('Error response is not JSON:', jsonError);
+                // Error response is not JSON — use HTTP status message
             }
             showError(errorMessage);
         }

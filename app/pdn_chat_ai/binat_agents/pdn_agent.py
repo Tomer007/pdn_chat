@@ -1,12 +1,13 @@
 """PDNAgent - Single agent for all PDN chat interactions."""
 
+import json
 import logging
 import os
-import sys
+import time
 
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Dict, Any
 
@@ -14,7 +15,6 @@ from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 from config import Config
 
 @dataclass
@@ -27,7 +27,7 @@ class PDNAgent:
     
     MAX_CONTEXT_TOKENS = 3500
     MAX_TURNS_BEFORE_SUMMARY = 10
-    RAW_TURNS_TO_KEEP = 5
+    RAW_TURNS_TO_KEEP = 3
     MAX_CONVERSATIONS_PER_DAY = 15
 
     def __init__(self, llm_provider=None, model_name=None):
@@ -44,8 +44,11 @@ class PDNAgent:
         self.llm = self._initialize_llm(config)
         self._is_anthropic = self.llm_provider.lower() == 'anthropic'
 
-        # Use gpt-4o-mini for summarization (cheap and reliable across all setups)
-        self.summary_llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.3, api_key=config.OPENAI_API_KEY)
+        # Use a cheap model for summarization — same provider as main LLM
+        if self._is_anthropic:
+            self.summary_llm = ChatAnthropic(model="claude-3-5-haiku-20241022", temperature=0.3, max_tokens=300, api_key=config.ANTHROPIC_API_KEY)
+        else:
+            self.summary_llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.3, api_key=config.OPENAI_API_KEY)
 
         self.conversation_history = defaultdict(UserHistory)
         self.user_conversations = defaultdict(lambda: {'count': 0, 'last_reset': datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)})
@@ -53,12 +56,14 @@ class PDNAgent:
         # Token usage tracking — persisted to file with daily granularity
         self._usage_file = Path(os.getenv('SAVED_RESULTS_DIR', 'saved_results')) / 'token_usage.json'
         self.token_usage = self._load_usage_file()
+        self._last_usage_save = 0  # timestamp of last disk write
+        self._usage_save_interval = 30  # seconds between disk writes
 
         self.logger = logging.getLogger("pdn_agent")
         self._prompt_cache = {}
         self._prompts_dir = Path(__file__).parent / "prompts"
 
-        self.logger.info(f"Initialized PDNAgent with {self.llm_provider} using model {self.model_name}")
+        self.logger.info("Initialized PDNAgent with %s using model %s", self.llm_provider, self.model_name)
 
     def _initialize_llm(self, config):
         """Initialize the appropriate LLM based on the provider."""
@@ -73,7 +78,7 @@ class PDNAgent:
         if not api_key:
             raise ValueError(f"{key_name} not set")
 
-        return llm_class(model=self.model_name, temperature=0.7, max_tokens=4000, api_key=api_key, timeout=180)
+        return llm_class(model=self.model_name, temperature=0.7, max_tokens=1500, api_key=api_key, timeout=180)
 
     def _reset_daily_count(self, user_name: str):
         """Reset the daily conversation count at midnight."""
@@ -84,7 +89,7 @@ class PDNAgent:
             old_date = user_data['last_reset'].date()
             user_data['count'] = 0
             user_data['last_reset'] = now
-            self.logger.info(f"Daily count for {user_name} has been reset. Previous: {old_date}, Current: {now.date()}")
+            self.logger.info("Daily count for %s has been reset. Previous: %s, Current: %s", user_name, old_date, now.date())
 
     def _has_exceeded_daily_limit(self, user_name: str, max_conversations_per_day: int = None) -> bool:
         """Check if the user has exceeded the daily conversation limit."""
@@ -100,7 +105,7 @@ class PDNAgent:
     def _increment_conversation_count(self, user_name: str):
         """Increment the conversation count for the user."""
         self.user_conversations[user_name]['count'] += 1
-        self.logger.info(f"Incremented conversation count for {user_name}. Current count: {self.user_conversations[user_name]['count']}")
+        self.logger.info("Incremented conversation count for %s. Current count: %d", user_name, self.user_conversations[user_name]['count'])
 
     def _load_prompt(self, pdn_code: str, prompt_file: str) -> str:
         """Load prompt file with caching."""
@@ -116,8 +121,8 @@ class PDNAgent:
         return self._prompt_cache[cache_key]
 
     def _estimate_tokens(self, text: str) -> int:
-        """Estimate token count (rough: 1 token ≈ 4 chars)."""
-        return len(text) // 4
+        """Estimate token count. Hebrew tokenizes at ~1 token per 2-3 chars."""
+        return len(text) // 3
 
     def _build_system_message(self, system_prompt: str) -> SystemMessage:
         """Build a SystemMessage, adding Anthropic cache_control when applicable.
@@ -142,22 +147,24 @@ class PDNAgent:
         """Load token usage history from JSON file."""
         try:
             if self._usage_file.exists():
-                import json
                 with open(self._usage_file, 'r') as f:
                     return json.load(f)
         except Exception as e:
-            self.logger.warning(f"Could not load token usage file: {e}")
+            self.logger.warning("Could not load token usage file: %s", e)
         return {}
 
-    def _save_usage_file(self):
-        """Persist token usage history to JSON file."""
+    def _save_usage_file(self, force: bool = False):
+        """Persist token usage history to JSON file (debounced to avoid excessive I/O)."""
+        now = time.time()
+        if not force and (now - self._last_usage_save) < self._usage_save_interval:
+            return
         try:
-            import json
             self._usage_file.parent.mkdir(parents=True, exist_ok=True)
             with open(self._usage_file, 'w') as f:
                 json.dump(self.token_usage, f, ensure_ascii=False, indent=2)
+            self._last_usage_save = now
         except Exception as e:
-            self.logger.warning(f"Could not save token usage file: {e}")
+            self.logger.warning("Could not save token usage file: %s", e)
 
     def _track_usage(self, user_name: str, response):
         """Extract and accumulate token usage from an LLM response, stored per user per day."""
@@ -205,7 +212,7 @@ class PDNAgent:
         CACHE_WRITE_PRICE = 3.75
         CACHE_READ_PRICE = 0.30
 
-        cutoff = (datetime.now() - __import__('datetime').timedelta(days=days)).strftime('%Y-%m-%d')
+        cutoff = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
 
         def calc_cost(d):
             uncached = d['input_tokens'] - d['cache_creation_tokens'] - d['cache_read_tokens']
@@ -290,13 +297,19 @@ class PDNAgent:
         text = "\n".join(f"User: {ex['user']}\nAssistant: {ex['assistant']}" for ex in old_turns)
         
         new_summary = self.summary_llm.invoke([
-            SystemMessage(content="Summarize this conversation in 2-3 sentences, focusing on key topics and advice given."),
+            SystemMessage(content=(
+                "Summarize this conversation in a structured format. Be extremely concise (max 4 lines):\n"
+                "Topic: [main topic]\n"
+                "Stage: [1=opening, 2=clarification, 3=reflection, 4=summary]\n"
+                "Insight: [key emotional/personal insight revealed]\n"
+                "Action: [action suggested or taken]"
+            )),
             HumanMessage(content=text)
         ]).content
         
         hist.summary = f"{hist.summary}\n{new_summary}".strip() if hist.summary else new_summary
         hist.raw = hist.raw[-self.RAW_TURNS_TO_KEEP:]
-        self.logger.info(f"Summarized {len(old_turns)} turns for {user_name}")
+        self.logger.info("Summarized %d turns for %s", len(old_turns), user_name)
 
     def _add_to_history(self, user_name: str, user_query: str, assistant_response: str):
         """Add conversation exchange to history with hybrid summarization."""
@@ -316,14 +329,14 @@ class PDNAgent:
         # Summarize if either condition is met
         if turn_limit_reached or token_limit_reached:
             reason = "turn limit" if turn_limit_reached else "token limit"
-            self.logger.info(f"Summarizing for {user_name}: {reason} reached (turns={len(hist.raw)}, tokens={total_tokens})")
+            self.logger.info("Summarizing for %s: %s reached (turns=%d, tokens=%d)", user_name, reason, len(hist.raw), total_tokens)
             self._summarize_old_turns(user_name)
 
     def _format_history(self, user_name: str) -> str:
         """Format conversation history with summary + recent exchanges."""
         hist = self.conversation_history.get(user_name)
         if not hist or (not hist.raw and not hist.summary):
-            return "No previous conversation."
+            return ""
         
         parts = []
         if hist.summary:
@@ -353,7 +366,10 @@ class PDNAgent:
         history_context = self._format_history(user_name)
         enhanced_question = f"User Name is: {user_name}\nUser PDN Code is: {pdn_code}\n{user_query}"
 
-        user_message = f"Conversation History:\n{history_context}\n\nCurrent Question:\n{enhanced_question}"
+        if history_context:
+            user_message = f"Conversation History:\n{history_context}\n\nCurrent Question:\n{enhanced_question}"
+        else:
+            user_message = enhanced_question
 
         response = self.llm.invoke([
             self._build_system_message(system_prompt),
@@ -382,7 +398,7 @@ class PDNAgent:
         response =  self.llm.invoke([
             self._build_system_message(system_prompt),
             HumanMessage(content=user_message)
-        ])
+        ], max_tokens=4000)
         self._track_usage(user_name, response)
         response_text = response.content
 
