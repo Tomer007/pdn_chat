@@ -391,6 +391,12 @@
                     <h1 class="text-4xl font-bold bg-gradient-to-r from-blue-900 to-blue-900 bg-clip-text text-transparent">
                         מערכת שליטה וניהול
                     </h1>
+                    <button id="versionBadge" onclick="showReleaseNotes()"
+                            class="mt-1 px-3 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full border border-blue-200 hover:bg-blue-200 transition-colors cursor-pointer"
+                            title="לחץ לצפייה בהערות גרסה">
+                        <i class="fas fa-code-branch ml-1"></i>
+                        <span id="versionText">טוען...</span>
+                    </button>
                 </div>
             </div>
             <div class="flex space-x-4 space-x-reverse">
@@ -573,6 +579,24 @@
 
 <!-- PDN Calculation Details Modal -->
 <div id="pdnCalculationModal" class="modal-backdrop">
+
+<!-- Release Notes Modal -->
+<div id="releaseNotesModal" class="modal-backdrop">
+    <div class="card p-8 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto rounded-2xl">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800 flex items-center">
+                <i class="fas fa-code-branch mr-2 text-blue-900"> הערות גרסה </i>
+            </h2>
+            <button onclick="closeModal('releaseNotesModal')"
+                    class="text-gray-500 hover:text-gray-700 text-2xl transition-colors">
+                <i class="fas fa-times mr-2"></i>
+            </button>
+        </div>
+        <div id="releaseNotesContent" class="space-y-4">
+            <!-- Release notes will be populated here -->
+        </div>
+    </div>
+</div>
     <div class="card p-8 max-w-3xl w-full mx-4 max-h-[80vh] overflow-y-auto rounded-2xl">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold text-gray-800 flex items-center">
@@ -942,6 +966,7 @@
         setupEventListeners();
         loadMetadata();
         loadConversationStats();
+        loadVersion();
 
         // Add global error handler for 401 responses
         window.addEventListener('unhandledrejection', function (event) {
@@ -2253,6 +2278,45 @@ ${leftText}: ${leftValue} | ${rightText}: ${rightValue}
                 // Reset loading state for this specific row
                 resetRowLoadingState(email, 'recalculate');
             }
+        }
+
+        let appVersionData = null;
+
+        async function loadVersion() {
+            try {
+                const response = await fetch('/pdn-admin/version');
+                if (response.ok) {
+                    appVersionData = await response.json();
+                    document.getElementById('versionText').textContent = `v${appVersionData.version}`;
+                }
+            } catch (error) {
+                console.error('Error loading version:', error);
+                document.getElementById('versionText').textContent = 'N/A';
+            }
+        }
+
+        function showReleaseNotes() {
+            if (!appVersionData) return;
+
+            const container = document.getElementById('releaseNotesContent');
+            const notesHtml = appVersionData.release_notes.map(note =>
+                `<div class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                    <span class="text-green-500 mt-0.5"><i class="fas fa-check-circle"></i></span>
+                    <span class="text-gray-800 text-sm">${note}</span>
+                </div>`
+            ).join('');
+
+            container.innerHTML = `
+                <div class="p-4 bg-blue-50 rounded-lg border border-blue-200 text-center mb-4">
+                    <div class="text-2xl font-bold text-blue-900 mb-1">v${appVersionData.version}</div>
+                    <div class="text-sm text-gray-600">${appVersionData.release_date}</div>
+                </div>
+                <div class="space-y-2">
+                    ${notesHtml}
+                </div>
+            `;
+
+            document.getElementById('releaseNotesModal').style.display = 'flex';
         }
 
         function showCalculationDetails(email, data) {

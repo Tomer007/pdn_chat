@@ -13,6 +13,7 @@ from ..utils.email_sender import send_pdn_code_email, send_binat_invite_email
 from ..utils.pdn_calculator import calculate_pdn_code
 from ..utils.pdn_file_path import PDNFilePath
 from ..utils.conversation_stats import conversation_stats
+from ..version import VERSION, RELEASE_DATE, RELEASE_NOTES
 
 
 # Configure logging
@@ -666,6 +667,16 @@ def get_conversation_stats():
         })
     except:
         return jsonify({"error": "Unauthorized"}), 401
+
+
+@pdn_admin_bp.route('/version')
+def get_version():
+    """Get application version and release notes"""
+    return jsonify({
+        "version": VERSION,
+        "release_date": RELEASE_DATE,
+        "release_notes": RELEASE_NOTES
+    })
 
 @pdn_admin_bp.route('/download-json')
 def download_user_json():
