@@ -1661,7 +1661,6 @@
                     const userIndex = currentData.findIndex(u => u.email === email);
                     if (userIndex !== -1) {
                         currentData[userIndex].pdn_code = data.pdn_code;
-                        currentData[userIndex].date = data.date;
                         currentData[userIndex].needs_verification = data.needs_verification || false;
                         if (data.confidence_score !== undefined) {
                             currentData[userIndex].confidence_score = data.confidence_score;

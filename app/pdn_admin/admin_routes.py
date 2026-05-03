@@ -473,20 +473,18 @@ def recalculate_user_pdn(email):
 
         csv_handler = UserMetadataHandler()
         updated_by = "Admin"
-        current_date = datetime.now().strftime("%d/%m/%Y")
 
-        if not (csv_handler.update_pdn_code_with_comment(email, pdn_code, updated_by) and
-                csv_handler._update_user_field(email, "Date", current_date)):
+        if not csv_handler.update_pdn_code_with_comment(email, pdn_code, updated_by):
             return jsonify({"error": "Failed to update CSV with new PDN code"}), 500
 
-        logger.info("Successfully updated CSV with PDN code %s and date %s for %s by %s", pdn_code, current_date, email, updated_by)
+        logger.info("Successfully updated CSV with PDN code %s for %s by %s", pdn_code, email, updated_by)
 
         user_data = csv_handler.get_user_by_email(email)
         response_data = {
             "success": True,
             "message": f"PDN code recalculated successfully for {email}",
             "pdn_code": pdn_code,
-            "date": current_date,
+            "date": user_data.get("Date", "") if user_data else "",
             "updated_by": updated_by,
             "pdn_update_comments": user_data.get("PDN Update Comments", "") if user_data else "",
             "needs_verification": needs_verification,
