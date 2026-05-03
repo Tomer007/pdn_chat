@@ -721,9 +721,12 @@
 
         // Fetch active users count
         fetch(`/pdn-admin/logged-in-users?session_token=${sessionToken}`)
-            .then(r => r.ok ? r.json() : {count: 0})
+            .then(r => {
+                if (r.status === 401) return {count: 0};
+                return r.ok ? r.json() : {count: 0};
+            })
             .then(data => { document.getElementById('summaryActive').textContent = data.count || 0; })
-            .catch(() => { document.getElementById('summaryActive').textContent = '—'; });
+            .catch(() => { document.getElementById('summaryActive').textContent = '0'; });
     }
 
     function renderTable(data) {
