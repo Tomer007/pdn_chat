@@ -1,3 +1,11 @@
+    // XSS sanitization helper
+    function escapeHtml(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
     // Debounce utility
     function debounce(fn, delay) {
         let timer;
@@ -218,10 +226,6 @@
     async function promptAdminPassword() {
         const password = await requestAdminPassword('הזן סיסמת מנהל להורדת JSON:');
         if (!password) return;
-        if (password.toLowerCase() !== 'pdn') {
-            showNotification('סיסמה שגויה', 'error');
-            return;
-        }
         downloadUserJSON(password);
     }
 
@@ -502,9 +506,19 @@
         }
     }
 
-    async function loadConversationStats() {
+    async function loadConversationStats(days) {
+        if (!days) days = window._statsDays || 7;
+        window._statsDays = days;
+        const container = document.getElementById('conversationStats');
+        container.innerHTML = '<div style="text-align:center;padding:24px;"><i class="fas fa-spinner fa-spin" style="color:#94a3b8;font-size:16px;"></i></div>';
+        // Update active button state
+        document.querySelectorAll('.stats-period-btn').forEach(btn => {
+            const isActive = parseInt(btn.dataset.days) === days;
+            btn.style.background = isActive ? '#0b2e6b' : 'transparent';
+            btn.style.color = isActive ? 'white' : '#64748b';
+        });
         try {
-            const response = await fetch(`/pdn-admin/conversation-stats?session_token=${sessionToken}&days=7`);
+            const response = await fetch(`/pdn-admin/conversation-stats?session_token=${sessionToken}&days=${days}`);
 
             if (response.ok) {
                 const data = await response.json();
@@ -515,11 +529,19 @@
         }
     }
 
-    async function loadTokenUsage() {
+    async function loadTokenUsage(days) {
+        if (!days) days = window._tokenDays || 7;
+        window._tokenDays = days;
+        // Update active button state
+        document.querySelectorAll('.token-period-btn').forEach(btn => {
+            const isActive = parseInt(btn.dataset.days) === days;
+            btn.style.background = isActive ? '#0b2e6b' : 'transparent';
+            btn.style.color = isActive ? 'white' : '#64748b';
+        });
         const container = document.getElementById('tokenUsageContent');
         container.innerHTML = '<div style="text-align:center;padding:24px;"><i class="fas fa-spinner fa-spin" style="color:#94a3b8;font-size:20px;"></i><p style="font-size:13px;color:#94a3b8;margin-top:8px;">טוען נתוני עלויות...</p></div>';
         try {
-            const response = await fetch(`/pdn-admin/token-usage?session_token=${sessionToken}`);
+            const response = await fetch(`/pdn-admin/token-usage?session_token=${sessionToken}&days=${days}`);
             if (!response.ok) throw new Error('Failed to load');
             const raw = await response.json();
             const { users: stats, daily_totals, projection, period_days } = raw.stats;
@@ -609,40 +631,72 @@
         
         const users = Array.from(allUsers).sort();
         const weeklyTotals = {};
+        let grandTotal = 0;
         users.forEach(user => {
             weeklyTotals[user] = dates.reduce((sum, date) => sum + (stats[date][user] || 0), 0);
+            grandTotal += weeklyTotals[user];
         });
+
+        // Find max for heat coloring
+        const maxPerCell = Math.max(...dates.flatMap(d => users.map(u => stats[d][u] || 0)), 1);
         
+        function heatColor(val) {
+            if (val === 0) return 'transparent';
+            const intensity = Math.min(val / maxPerCell, 1);
+            return `rgba(11, 46, 107, ${0.08 + intensity * 0.25})`;
+        }
+
         let html = `
-            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm" style="grid-column: 1 / -1; width: 100%;">
-                <div style="overflow-x: auto; width: 100%;">
-                    <table class="stats-table">
+            <div style="grid-column: 1 / -1; width: 100%;">
+                <!-- Summary cards -->
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px;">
+                    <div style="background: #f0f4ff; border-radius: 12px; padding: 16px; text-align: center; border: 1px solid #dbeafe;">
+                        <div style="font-size: 24px; font-weight: 800; color: #0b2e6b;">${grandTotal}</div>
+                        <div style="font-size: 11px; color: #64748b; margin-top: 4px;">סה"כ שיחות (${dates.length} ימים)</div>
+                    </div>
+                    <div style="background: #f0f4ff; border-radius: 12px; padding: 16px; text-align: center; border: 1px solid #dbeafe;">
+                        <div style="font-size: 24px; font-weight: 800; color: #0b2e6b;">${users.length}</div>
+                        <div style="font-size: 11px; color: #64748b; margin-top: 4px;">משתמשים פעילים</div>
+                    </div>
+                    <div style="background: #f0f4ff; border-radius: 12px; padding: 16px; text-align: center; border: 1px solid #dbeafe;">
+                        <div style="font-size: 24px; font-weight: 800; color: #0b2e6b;">${dates.length > 0 ? Math.round(grandTotal / dates.length) : 0}</div>
+                        <div style="font-size: 11px; color: #64748b; margin-top: 4px;">ממוצע יומי</div>
+                    </div>
+                </div>
+
+                <!-- Heat map table -->
+                <div style="overflow-x: auto; border-radius: 12px; border: 1px solid #e2e8f0; background: white;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px; min-width: 600px;">
                         <thead>
-                            <tr>
-                                <th class="user-col">משתמש</th>
-                                ${dates.map(date => `<th>${date}</th>`).join('')}
-                                <th class="total-col">סה"כ</th>
+                            <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                                <th style="padding: 12px 16px; text-align: right; font-weight: 700; color: #1e293b; position: sticky; right: 0; background: #f8fafc; z-index: 1;">משתמש</th>
+                                ${dates.map(date => `<th style="padding: 12px 10px; text-align: center; font-weight: 600; color: #475569; font-size: 11px; white-space: nowrap;">${date.slice(5)}</th>`).join('')}
+                                <th style="padding: 12px 16px; text-align: center; font-weight: 700; color: #0b2e6b; background: #f0f4ff;">סה"כ</th>
                             </tr>
                         </thead>
                         <tbody>
                             ${users.map(user => `
-                                <tr>
-                                    <td class="user-col">${user}</td>
-                                    ${dates.map(date => `<td>${stats[date][user] || 0}</td>`).join('')}
-                                    <td class="total-col">${weeklyTotals[user]}</td>
+                                <tr style="border-bottom: 1px solid #f1f5f9;">
+                                    <td style="padding: 10px 16px; font-weight: 500; color: #1e293b; white-space: nowrap; position: sticky; right: 0; background: white; z-index: 1;">${escapeHtml(user)}</td>
+                                    ${dates.map(date => {
+                                        const val = stats[date][user] || 0;
+                                        return `<td style="padding: 10px; text-align: center; color: ${val > 0 ? '#1e293b' : '#cbd5e1'}; font-weight: ${val > 0 ? '600' : '400'}; background: ${heatColor(val)};">${val}</td>`;
+                                    }).join('')}
+                                    <td style="padding: 10px 16px; text-align: center; font-weight: 700; color: #0b2e6b; background: #f0f4ff;">${weeklyTotals[user]}</td>
                                 </tr>
                             `).join('')}
-                            <tr class="total-row">
-                                <td class="user-col">סה"כ</td>
+                            <tr style="background: #f8fafc; border-top: 2px solid #e2e8f0;">
+                                <td style="padding: 10px 16px; font-weight: 700; color: #1e293b; position: sticky; right: 0; background: #f8fafc; z-index: 1;">סה"כ</td>
                                 ${dates.map(date => {
                                     const dayTotal = Object.values(stats[date]).reduce((sum, count) => sum + count, 0);
-                                    return `<td>${dayTotal}</td>`;
+                                    return `<td style="padding: 10px; text-align: center; font-weight: 700; color: #1e293b;">${dayTotal}</td>`;
                                 }).join('')}
-                                <td class="total-col">${Object.values(weeklyTotals).reduce((sum, count) => sum + count, 0)}</td>
+                                <td style="padding: 10px 16px; text-align: center; font-weight: 800; color: #0b2e6b; background: #f0f4ff; font-size: 15px;">${grandTotal}</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
+                <p style="font-size: 10px; color: #94a3b8; margin-top: 8px; text-align: center;">צבע רקע מציין עוצמת שימוש יחסית</p>
             </div>
         `;
         
@@ -779,15 +833,15 @@
                     </div>
                 </div>
             </td>
-            <td class="px-4 py-4 font-medium text-gray-900">${((user.first_name || '') + ' ' + (user.last_name || '')).trim() || 'N/A'}</td>
+            <td class="px-4 py-4 font-medium text-gray-900">${escapeHtml(((user.first_name || '') + ' ' + (user.last_name || '')).trim()) || 'N/A'}</td>
             <td class="px-4 py-4 font-medium text-gray-900">
-                <span class="cursor-pointer hover:text-blue-700 transition-colors" onclick="navigator.clipboard.writeText('${user.email}').then(() => showNotification('אימייל הועתק', 'success'))" title="לחץ להעתקה">
-                    ${user.email} <i class="fas fa-copy text-gray-300 text-xs mr-1"></i>
+                <span class="cursor-pointer hover:text-blue-700 transition-colors" onclick="navigator.clipboard.writeText('${escapeHtml(user.email)}').then(() => showNotification('אימייל הועתק', 'success'))" title="לחץ להעתקה">
+                    ${escapeHtml(user.email)} <i class="fas fa-copy text-gray-300 text-xs mr-1"></i>
                 </span>
             </td>
-            <td class="px-4 py-4 text-gray-700">${user.date}</td>
+            <td class="px-4 py-4 text-gray-700">${escapeHtml(user.date)}</td>
             <td class="px-4 py-4">
-                <span class="px-2 py-1 rounded-full text-xs font-medium ${getPdnBadgeColor(user.pdn_code)}">${user.pdn_code}</span>
+                <span class="px-2 py-1 rounded-full text-xs font-medium ${getPdnBadgeColor(user.pdn_code)}">${escapeHtml(user.pdn_code)}</span>
             </td>
             <td class="px-4 py-4">
                 ${user.confidence_score !== undefined && user.confidence_score !== null ?
@@ -798,17 +852,17 @@
                         <span class="text-xs font-mono ${user.confidence_score >= 80 ? 'text-green-700' : user.confidence_score >= 60 ? 'text-yellow-700' : 'text-red-700'}">${user.confidence_score}%</span>
                     </div>` :
                     (user.needs_verification ?
-                        '<span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium" title="נדרש אימות אנושי">⚠️ אימות</span>' :
-                        '<span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">✓ תקין</span>')
+                        '<span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium" title="נדרש אימות אנושי">אימות</span>' :
+                        '<span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">תקין</span>')
                 }
             </td>
             <td class="px-4 py-4">
-                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">${user.pdn_voice_code || 'N/A'}</span>
+                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">${escapeHtml(user.pdn_voice_code) || 'N/A'}</span>
             </td>
             <td class="px-4 py-4">
-                <span class="px-2 py-1 rounded-full text-xs font-medium ${getPdnBadgeColor(user.diagnose_pdn_code)}">${user.diagnose_pdn_code || 'N/A'}</span>
+                <span class="px-2 py-1 rounded-full text-xs font-medium ${getPdnBadgeColor(user.diagnose_pdn_code)}">${escapeHtml(user.diagnose_pdn_code) || 'N/A'}</span>
             </td>
-            <td class="px-4 py-4 text-gray-700 max-w-xs truncate" title="${user.diagnose_comments || ''}">${user.diagnose_comments || ''}</td>
+            <td class="px-4 py-4 text-gray-700 max-w-xs truncate" title="${escapeHtml(user.diagnose_comments || '')}">${escapeHtml(user.diagnose_comments || '')}</td>
             <td class="px-4 py-4 text-gray-700 max-w-xs truncate" title="${user.pdn_update_comments || ''}">${user.pdn_update_comments || ''}</td>
         `;
             tbody.appendChild(row);
@@ -1499,12 +1553,6 @@
                 return;
             }
 
-            if (password !== 'admin') {
-                showNotification('סיסמה שגויה', 'error');
-                resetRowLoadingState(email, 'email');
-                return;
-            }
-
             try {
                 const endpoint = emailType === 'binat'
                     ? `/pdn-admin/user/send_binat_invite/${email}?session_token=${sessionToken}`
@@ -1523,7 +1571,7 @@
 
                     // Show appropriate notification based on verification status
                     if (data.needs_verification) {
-                        showNotification(`אימייל נשלח ל-${email} - ⚠️ נדרש אימות אנושי (הפער בין הציונים קטן מ-2 נקודות)`, 'warning');
+                        showNotification(`אימייל נשלח ל-${email} - נדרש אימות אנושי (הפער בין הציונים קטן מ-2 נקודות)`, 'warning');
                     } else {
                         showNotification(`אימייל נשלח בהצלחה ל-${email}`, 'success');
                     }
@@ -1582,12 +1630,6 @@
                 return;
             }
 
-            if (password !== 'admin') {
-                showNotification('סיסמה שגויה', 'error');
-                resetRowLoadingState(email, 'recalculate');
-                return;
-            }
-
             try {
                 const response = await fetch(`/pdn-admin/user/recalculate_pdn/${email}?session_token=${sessionToken}`, {
                     method: 'POST',
@@ -1602,7 +1644,7 @@
 
                     // Show appropriate notification based on verification status
                     if (data.needs_verification) {
-                        showNotification(`קוד פדן חושב מחדש: ${data.pdn_code} - ⚠️ נדרש אימות אנושי (הפער בין הציונים קטן מ-2 נקודות)`, 'warning');
+                        showNotification(`קוד פדן חושב מחדש: ${data.pdn_code} - נדרש אימות אנושי (הפער בין הציונים קטן מ-2 נקודות)`, 'warning');
                     } else {
                         showNotification(`קוד פדן חושב מחדש בהצלחה: ${data.pdn_code} על ידי ${data.updated_by}`, 'success');
                     }
@@ -1925,10 +1967,6 @@
         async function exportTableCSV() {
             const password = await requestAdminPassword('הזן סיסמת מנהל לייצוא CSV:');
             if (!password) return;
-            if (password.toLowerCase() !== 'pdn') {
-                showNotification('סיסמה שגויה', 'error');
-                return;
-            }
 
             const headers = ['מזהה מערכת', 'שם', 'אימייל', 'תאריך', 'קוד מערכת', 'ניתוח קול', 'קוד מאבחן', 'הערות', 'עדכון קוד פדן'];
             const rows = currentData.map(u => [

@@ -641,9 +641,10 @@ def get_token_usage():
         logger.error("Session verification failed: %s", e)
 
     try:
+        days = int(request.args.get('days', 14))
         from ..pdn_chat_ai.chat_routes import get_agent_instance
         agent = get_agent_instance()
-        usage_stats = agent.get_usage_stats()
+        usage_stats = agent.get_usage_stats(days=days)
         return jsonify({"stats": usage_stats})
     except Exception as e:
         logger.error("Error getting token usage: %s", e)
@@ -873,7 +874,7 @@ def download_user_json():
         abort(401, description="Admin password required")
 
     # Verify admin password (same as email sending functionality)
-    if admin_password.lower() != current_app.config.get('ADMIN_PASSWORD', 'admin').lower():
+    if admin_password.lower() != current_app.config.get('ADMIN_PASSWORD', 'pdn').lower():
         logger.warning("Invalid admin password provided")
         response = jsonify({"error": "Invalid admin password"}), 401
         response.headers['X-Error-Type'] = 'invalid_password'

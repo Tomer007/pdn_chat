@@ -317,36 +317,36 @@
             </div>
         </div>
         <div class="header-actions">
-            <button id="refreshBtn" class="header-btn primary">
-                <i class="fas fa-sync-alt"></i>
+            <button id="refreshBtn" class="header-btn primary" aria-label="רענן נתונים">
+                <i class="fas fa-sync-alt" aria-hidden="true"></i>
                 <span>רענן נתונים</span>
             </button>
-            <button id="loggedInUsersBtn" class="header-btn outline">
-                <i class="fas fa-users"></i>
+            <button id="loggedInUsersBtn" class="header-btn outline" aria-label="משתמשים מחוברים">
+                <i class="fas fa-users" aria-hidden="true"></i>
                 <span>משתמשים מחוברים</span>
             </button>
-            <button id="logoutBtn" class="header-btn danger">
-                <i class="fas fa-sign-out-alt"></i>
+            <button id="logoutBtn" class="header-btn danger" aria-label="התנתק">
+                <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
                 <span>התנתק</span>
             </button>
         </div>
     </div>
 
     <!-- Stats Row -->
-    <div class="stats-grid" id="dashboardSummary">
-        <div class="stat-card blue" onclick="handleStatClick('total')" style="cursor: pointer;">
+    <div class="stats-grid" id="dashboardSummary" role="group" aria-label="סיכום נתונים">
+        <div class="stat-card blue" onclick="handleStatClick('total')" style="cursor: pointer;" role="button" tabindex="0" aria-label="סה״כ מאובחנים" onkeydown="if(event.key==='Enter')handleStatClick('total')">
             <div class="stat-value" id="summaryTotal">—</div>
             <div class="stat-label">סה"כ מאובחנים</div>
         </div>
-        <div class="stat-card green" onclick="handleStatClick('today')" style="cursor: pointer;">
+        <div class="stat-card green" onclick="handleStatClick('today')" style="cursor: pointer;" role="button" tabindex="0" aria-label="אובחנו היום" onkeydown="if(event.key==='Enter')handleStatClick('today')">
             <div class="stat-value" id="summaryToday">—</div>
             <div class="stat-label">אובחנו היום</div>
         </div>
-        <div class="stat-card red" onclick="handleStatClick('anomalies')" style="cursor: pointer;">
+        <div class="stat-card red" onclick="handleStatClick('anomalies')" style="cursor: pointer;" role="button" tabindex="0" aria-label="חריגים" onkeydown="if(event.key==='Enter')handleStatClick('anomalies')">
             <div class="stat-value" id="summaryAnomalies">—</div>
             <div class="stat-label">חריגים</div>
         </div>
-        <div class="stat-card purple" onclick="handleStatClick('active')" style="cursor: pointer;">
+        <div class="stat-card purple" onclick="handleStatClick('active')" style="cursor: pointer;" role="button" tabindex="0" aria-label="משתמשים מחוברים" onkeydown="if(event.key==='Enter')handleStatClick('active')">
             <div class="stat-value" id="summaryActive">—</div>
             <div class="stat-label">משתמשים מחוברים</div>
         </div>
@@ -364,7 +364,7 @@
                     <i class="fas fa-times-circle"></i>
                 </button>
             </div>
-            <span id="searchResultCount" class="hidden" style="font-size: 12px; color: #64748b; white-space: nowrap;"></span>
+            <span id="searchResultCount" class="hidden" style="font-size: 12px; color: #64748b; white-space: nowrap;" aria-live="polite"></span>
             <label class="filter-chip" id="redUsersFilterChip" onclick="toggleRedFilter()">
                 <input type="checkbox" id="redUsersFilter" style="display: none;">
                 <i class="fas fa-exclamation-triangle" style="font-size: 11px;"></i>
@@ -378,7 +378,7 @@
         <div class="dash-section-header">
             <div style="display: flex; align-items: center; gap: 12px;">
                 <h3>נתוני מאובחנים</h3>
-                <span id="rowCount" style="font-size: 12px; color: #64748b; background: #f1f5f9; padding: 4px 10px; border-radius: 12px; font-weight: 600;">סה"כ: 0</span>
+                <span id="rowCount" style="font-size: 12px; color: #64748b; background: #f1f5f9; padding: 4px 10px; border-radius: 12px; font-weight: 600;" aria-live="polite">סה"כ: 0</span>
             </div>
             <button onclick="exportTableCSV()" class="header-btn outline" style="padding: 8px 14px; font-size: 12px;">
                 <i class="fas fa-file-csv"></i>
@@ -429,7 +429,7 @@
         <!-- User Management -->
         <div class="dash-section" x-data="{ open: false }" style="grid-column: 1 / -1;">
             <button @click="open = !open; if(open) loadChatUsers();" class="accordion-trigger">
-                <h3>ניהול משתמשים</h3>
+                <h3>ניהול משתמשים בינת קוד המקור</h3>
                 <i class="fas fa-chevron-down accordion-chevron" :class="{ 'rotate-180': open }" style="transition: transform 0.2s;"></i>
             </button>
             <div x-show="open" x-collapse>
@@ -465,10 +465,20 @@
 
         <!-- Conversation Stats -->
         <div class="dash-section" x-data="{ open: false }">
-            <button @click="open = !open" class="accordion-trigger">
-                <h3>סטטיסטיקות שיחות</h3>
-                <i class="fas fa-chevron-down accordion-chevron" :class="{ 'rotate-180': open }" style="transition: transform 0.2s;"></i>
-            </button>
+            <div class="accordion-trigger" style="cursor: default;">
+                <button @click="open = !open" style="display: flex; align-items: center; gap: 8px; border: none; background: none; cursor: pointer; padding: 0;">
+                    <h3 style="font-size: 15px; font-weight: 700; color: #1e293b; margin: 0;">סטטיסטיקות שיחות בינת קוד המקור</h3>
+                    <i class="fas fa-chevron-down accordion-chevron" :class="{ 'rotate-180': open }" style="transition: transform 0.2s;"></i>
+                </button>
+                <div style="display: flex; gap: 4px; background: #f1f5f9; border-radius: 8px; padding: 3px;">
+                    <button class="stats-period-btn" data-days="7" onclick="loadConversationStats(7)"
+                            style="padding: 5px 12px; border-radius: 6px; border: none; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: #0b2e6b; color: white;">7 ימים</button>
+                    <button class="stats-period-btn" data-days="30" onclick="loadConversationStats(30)"
+                            style="padding: 5px 12px; border-radius: 6px; border: none; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: transparent; color: #64748b;">30 ימים</button>
+                    <button class="stats-period-btn" data-days="365" onclick="loadConversationStats(365)"
+                            style="padding: 5px 12px; border-radius: 6px; border: none; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: transparent; color: #64748b;">הכל</button>
+                </div>
+            </div>
             <div x-show="open" x-collapse>
                 <div style="padding: 20px 24px;">
                     <div id="conversationStats" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
@@ -480,12 +490,22 @@
         <div class="dash-section" x-data="{ open: false }">
             <div class="accordion-trigger" style="cursor: default;">
                 <button @click="open = !open; if(open) loadTokenUsage();" style="display: flex; align-items: center; gap: 8px; border: none; background: none; cursor: pointer; padding: 0;">
-                    <h3 style="font-size: 15px; font-weight: 700; color: #1e293b; margin: 0;">מחשבון עלויות בינת</h3>
+                    <h3 style="font-size: 15px; font-weight: 700; color: #1e293b; margin: 0;">מחשבון עלויות בינת קוד המקור</h3>
                     <i class="fas fa-chevron-down accordion-chevron" :class="{ 'rotate-180': open }" style="transition: transform 0.2s;"></i>
                 </button>
-                <button onclick="loadTokenUsage()" class="header-btn primary" style="padding: 6px 12px; font-size: 11px;">
-                    <i class="fas fa-sync-alt"></i><span>רענן</span>
-                </button>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="display: flex; gap: 4px; background: #f1f5f9; border-radius: 8px; padding: 3px;">
+                        <button class="token-period-btn" data-days="7" onclick="loadTokenUsage(7)"
+                                style="padding: 5px 12px; border-radius: 6px; border: none; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: #0b2e6b; color: white;">7 ימים</button>
+                        <button class="token-period-btn" data-days="30" onclick="loadTokenUsage(30)"
+                                style="padding: 5px 12px; border-radius: 6px; border: none; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: transparent; color: #64748b;">30 ימים</button>
+                        <button class="token-period-btn" data-days="365" onclick="loadTokenUsage(365)"
+                                style="padding: 5px 12px; border-radius: 6px; border: none; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: transparent; color: #64748b;">הכל</button>
+                    </div>
+                    <button onclick="loadTokenUsage()" class="header-btn primary" style="padding: 6px 12px; font-size: 11px;">
+                        <i class="fas fa-sync-alt"></i><span>רענן</span>
+                    </button>
+                </div>
             </div>
             <div x-show="open" x-collapse>
                 <div style="padding: 20px 24px;">
@@ -788,6 +808,34 @@
         chip.classList.toggle('active', checkbox.checked);
         handleFilter();
     }
+
+    // Modal focus trap
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const modals = document.querySelectorAll('.modal-backdrop');
+            modals.forEach(modal => {
+                if (modal.style.display === 'flex') {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+        // Trap focus inside open modal
+        if (e.key === 'Tab') {
+            const openModal = document.querySelector('.modal-backdrop[style*="display: flex"]');
+            if (!openModal) return;
+            const focusable = openModal.querySelectorAll('button, input, select, textarea, [tabindex]:not([tabindex="-1"])');
+            if (focusable.length === 0) return;
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            if (e.shiftKey && document.activeElement === first) {
+                e.preventDefault();
+                last.focus();
+            } else if (!e.shiftKey && document.activeElement === last) {
+                e.preventDefault();
+                first.focus();
+            }
+        }
+    });
 
     // Stat card click handler
     function handleStatClick(type) {
