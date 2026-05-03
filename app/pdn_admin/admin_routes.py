@@ -664,7 +664,7 @@ def get_user_journey(email):
         user_data = csv_handler.get_user_by_email(email)
         
         # Get conversation stats
-        stats = conversation_stats._load_stats()
+        stats = conversation_stats._read_locked()
         
         # Get token usage
         token_data = {}
@@ -728,11 +728,10 @@ def get_user_journey(email):
         days_since_diagnosis = None
         if user_data and user_data.get('Date'):
             try:
-                from datetime import datetime as dt
                 parts = user_data['Date'].split('/')
                 if len(parts) == 3:
-                    diag_date = dt(int(parts[2]), int(parts[1]), int(parts[0]))
-                    days_since_diagnosis = (dt.now() - diag_date).days
+                    diag_date = datetime(int(parts[2]), int(parts[1]), int(parts[0]))
+                    days_since_diagnosis = (datetime.now() - diag_date).days
             except Exception:
                 pass
         
