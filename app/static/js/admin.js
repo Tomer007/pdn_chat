@@ -2209,7 +2209,7 @@
         document.getElementById('chatUserCount').textContent = `סה"כ: ${chatUsersData.length}`;
 
         if (chatUsersData.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-400"><i class="fas fa-inbox text-3xl mb-2 block"></i>אין משתמשים</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-400"><i class="fas fa-inbox text-3xl mb-2 block"></i>אין משתמשים</td></tr>';
             return;
         }
 
@@ -2222,6 +2222,7 @@
                     <span class="px-2 py-1 rounded-full text-xs font-medium ${getPdnBadgeColor(user.pdn_code)}">${user.pdn_code}</span>
                 </td>
                 <td class="px-4 py-3 text-center text-gray-700">${user.daily_conversation_limit}</td>
+                <td class="px-4 py-3 text-center text-gray-500 text-xs">${user.created_at || '-'}</td>
                 <td class="px-4 py-3 text-center">
                     <div class="flex items-center justify-center gap-2">
                         <button onclick="openEditUserModal('${user.email}')"

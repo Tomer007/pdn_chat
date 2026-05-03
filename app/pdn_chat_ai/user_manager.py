@@ -4,6 +4,7 @@ import json
 import logging
 import re
 import threading
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
@@ -11,12 +12,12 @@ logger = logging.getLogger("pdn_chat_ai")
 
 # Default seed data — used only on first run when users.json doesn't exist
 _SEED_USERS = {
-    'tomergur@gmail.com': {'password': 'pdn', 'pdn_code': 'e5', 'name': 'תומר', 'daily_conversation_limit': 100},
-    'pdncode@gmail.com': {'password': 'pdn', 'pdn_code': 'a7', 'name': 'פנינה', 'daily_conversation_limit': 10},
-    'anna123benyehuda@gmail.com': {'password': 'pdn', 'pdn_code': 'a3', 'name': 'אנה', 'daily_conversation_limit': 100},
-    'yaelrapoport2@gmail.com': {'password': 'pdn', 'pdn_code': 'a3', 'name': 'יעל', 'daily_conversation_limit': 100},
-    'einavmakover@gmail.com': {'password': 'pdn', 'pdn_code': 'e9', 'name': 'עינב', 'daily_conversation_limit': 100},
-    'ronitamizur@gmail.com': {'password': 'pdn', 'pdn_code': 'p10', 'name': 'רונית', 'daily_conversation_limit': 100},
+    'tomergur@gmail.com': {'password': 'pdn', 'pdn_code': 'e5', 'name': 'תומר', 'gender': '', 'daily_conversation_limit': 100, 'created_at': '2025-01-01 00:00'},
+    'pdncode@gmail.com': {'password': 'pdn', 'pdn_code': 'a7', 'name': 'פנינה', 'gender': '', 'daily_conversation_limit': 10, 'created_at': '2025-01-01 00:00'},
+    'anna123benyehuda@gmail.com': {'password': 'pdn', 'pdn_code': 'a3', 'name': 'אנה', 'gender': '', 'daily_conversation_limit': 100, 'created_at': '2025-01-01 00:00'},
+    'yaelrapoport2@gmail.com': {'password': 'pdn', 'pdn_code': 'a3', 'name': 'יעל', 'gender': '', 'daily_conversation_limit': 100, 'created_at': '2025-01-01 00:00'},
+    'einavmakover@gmail.com': {'password': 'pdn', 'pdn_code': 'e9', 'name': 'עינב', 'gender': '', 'daily_conversation_limit': 100, 'created_at': '2025-01-01 00:00'},
+    'ronitamizur@gmail.com': {'password': 'pdn', 'pdn_code': 'p10', 'name': 'רונית', 'gender': '', 'daily_conversation_limit': 100, 'created_at': '2025-01-01 00:00'},
 }
 
 _EMAIL_PATTERN = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
@@ -74,6 +75,7 @@ class UserManager:
                     'gender': data.get('gender', ''),
                     'pdn_code': data.get('pdn_code', ''),
                     'daily_conversation_limit': data.get('daily_conversation_limit', 15),
+                    'created_at': data.get('created_at', ''),
                 }
                 for email, data in self._users.items()
             ]
@@ -110,12 +112,14 @@ class UserManager:
                 'name': name.strip(),
                 'gender': gender,
                 'daily_conversation_limit': daily_conversation_limit,
+                'created_at': datetime.now().strftime('%Y-%m-%d %H:%M'),
             }
             self._save_to_file()
 
         logger.info("Added user: %s (%s)", email, pdn_code)
         return {'email': email, 'name': name.strip(), 'gender': gender,
-                'pdn_code': pdn_code, 'daily_conversation_limit': daily_conversation_limit}
+                'pdn_code': pdn_code, 'daily_conversation_limit': daily_conversation_limit,
+                'created_at': self._users[email]['created_at']}
 
     def update_user(self, email: str, **updates) -> dict:
         """Update an existing user's fields. Raises KeyError if not found."""
@@ -148,7 +152,8 @@ class UserManager:
         user = self._users[email]
         logger.info("Updated user: %s", email)
         return {'email': email, 'name': user['name'], 'gender': user.get('gender', ''),
-                'pdn_code': user['pdn_code'], 'daily_conversation_limit': user['daily_conversation_limit']}
+                'pdn_code': user['pdn_code'], 'daily_conversation_limit': user['daily_conversation_limit'],
+                'created_at': user.get('created_at', '')}
 
     def delete_user(self, email: str) -> None:
         """Remove a user by email. Raises KeyError if not found."""
