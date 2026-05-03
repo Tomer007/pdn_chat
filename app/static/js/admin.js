@@ -561,16 +561,16 @@
                 <div style="background:#fffbeb;border-radius:12px;padding:16px;text-align:center;border:1px solid #fde68a;"><div style="font-size:24px;font-weight:800;color:#d97706;">$${projection.projected_monthly}</div><div style="font-size:11px;color:#64748b;margin-top:4px;">תחזית חודשית</div></div>
                 <div style="background:#fef2f2;border-radius:12px;padding:16px;text-align:center;border:1px solid #fecaca;"><div style="font-size:24px;font-weight:800;color:#dc2626;">$${projection.projected_yearly}</div><div style="font-size:11px;color:#64748b;margin-top:4px;">תחזית שנתית</div></div>
             </div>`;
-            const days=Object.keys(daily_totals).sort();
-            if(days.length>1){
-                const mx=Math.max(...days.map(d=>daily_totals[d].cost),0.001);
+            const chartDays=Object.keys(daily_totals).sort();
+            if(chartDays.length>1){
+                const mx=Math.max(...chartDays.map(d=>daily_totals[d].cost),0.001);
                 html+=`<div style="margin-bottom:20px;padding:20px;background:white;border-radius:14px;border:1px solid #e2e8f0;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
                         <h4 style="font-size:14px;font-weight:700;color:#1e293b;margin:0;display:flex;align-items:center;gap:8px;"><i class="fas fa-chart-bar" style="color:#0b2e6b;font-size:12px;"></i> עלות יומית</h4>
                         <div style="display:flex;gap:16px;font-size:11px;color:#64748b;"><span>ממוצע: <strong style="color:#0b2e6b;">$${projection.avg_daily_cost.toFixed(4)}</strong></span><span>${projection.active_days} ימים פעילים מתוך ${period_days}</span></div>
                     </div>
                     <div style="display:flex;align-items:flex-end;gap:3px;height:140px;padding:0 4px;">`;
-                days.forEach(day=>{
+                chartDays.forEach(day=>{
                     const d=daily_totals[day];
                     const bh=Math.max(4,(d.cost/mx)*100);
                     const isToday=day===new Date().toISOString().slice(0,10);

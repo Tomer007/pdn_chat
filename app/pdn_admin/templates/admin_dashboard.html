@@ -774,8 +774,9 @@
             <p id="passwordModalMessage" style="font-size: 14px; color: #64748b; margin: 0;"></p>
         </div>
         <div style="margin-bottom: 16px;">
-            <input type="password" id="adminPasswordInput" placeholder="הזן סיסמת מנהל..."
-                   style="width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; text-align: center; outline: none; transition: border-color 0.2s;"
+            <label for="adminPasswordInput" style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 8px; text-align: center;">סיסמת מנהל</label>
+            <input type="password" id="adminPasswordInput" placeholder="הזן סיסמה..." autocomplete="off"
+                   style="width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 16px; text-align: center; outline: none; transition: border-color 0.2s; letter-spacing: 2px;"
                    onfocus="this.style.borderColor='#0b2e6b'" onblur="this.style.borderColor='#e2e8f0'"
                    onkeydown="if(event.key==='Enter') submitPasswordModal(); if(event.key==='Escape') cancelPasswordModal();">
         </div>
@@ -886,6 +887,6 @@
     }
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<script src="{{ url_for('static', filename='js/admin.js') }}?v=250"></script>
+<script src="{{ url_for('static', filename='js/admin.js') }}?v=251"></script>
 </body>
 </html>
