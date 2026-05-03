@@ -64,7 +64,10 @@ def verify_session(session_token: str):
         del admin_sessions[session_token]
         abort(401, description="Session expired")
 
-    return session  # Return session info to avoid redundant lookups
+    # Sliding window: refresh expiry on every successful verification
+    session["expires_at"] = datetime.now() + SESSION_TIMEOUT
+
+    return session
 
 # Clean up expired sessions periodically
 def cleanup_expired_sessions():
