@@ -57,7 +57,7 @@ class PDNAgent:
         self._usage_file = Path(os.getenv('SAVED_RESULTS_DIR', 'saved_results')) / 'token_usage.json'
         self.token_usage = self._load_usage_file()
         self._last_usage_save = 0  # timestamp of last disk write
-        self._usage_save_interval = 30  # seconds between disk writes
+        self._usage_save_interval = 5  # seconds between disk writes
 
         self.logger = logging.getLogger("pdn_agent")
         self._prompt_cache = {}
@@ -97,8 +97,8 @@ class PDNAgent:
         exempt_users = ['פנינה']
 
         if user_name not in exempt_users:
-            # Use provided limit or fall back to default
-            return self.user_conversations[user_name]['count'] >= max_conversations_per_day
+            limit = max_conversations_per_day or self.MAX_CONVERSATIONS_PER_DAY
+            return self.user_conversations[user_name]['count'] >= limit
         else:
             return False
 
@@ -108,12 +108,19 @@ class PDNAgent:
         self.logger.info("Incremented conversation count for %s. Current count: %d", user_name, self.user_conversations[user_name]['count'])
 
     def _load_prompt(self, pdn_code: str, prompt_file: str) -> str:
-        """Load prompt file with caching."""
+        """Load prompt file with caching. Raises FileNotFoundError with clear message if code is invalid."""
+        if not pdn_code:
+            raise ValueError("PDN code is required")
+
+        code_path = self._prompts_dir / "pdn_code" / f"{pdn_code}.prompt"
+        if not code_path.exists():
+            raise ValueError(f"Unknown PDN code: {pdn_code}")
+
         cache_key = f"{pdn_code}_{prompt_file}"
         if cache_key not in self._prompt_cache:
             prompt_content = (
                 (self._prompts_dir / prompt_file).read_text(encoding='utf-8') +
-                (self._prompts_dir / "pdn_code" / f"{pdn_code}.prompt").read_text(encoding='utf-8')
+                code_path.read_text(encoding='utf-8')
             )
             if prompt_file in ["binat_agent.prompt", "daily_training.prompt"]:
                 prompt_content += (self._prompts_dir / "guardrails.prompt").read_text(encoding='utf-8')
@@ -296,20 +303,24 @@ class PDNAgent:
         old_turns = hist.raw[:-self.RAW_TURNS_TO_KEEP]
         text = "\n".join(f"User: {ex['user']}\nAssistant: {ex['assistant']}" for ex in old_turns)
         
-        new_summary = self.summary_llm.invoke([
-            SystemMessage(content=(
-                "Summarize this conversation in a structured format. Be extremely concise (max 4 lines):\n"
-                "Topic: [main topic]\n"
-                "Stage: [1=opening, 2=clarification, 3=reflection, 4=summary]\n"
-                "Insight: [key emotional/personal insight revealed]\n"
-                "Action: [action suggested or taken]"
-            )),
-            HumanMessage(content=text)
-        ]).content
-        
-        hist.summary = f"{hist.summary}\n{new_summary}".strip() if hist.summary else new_summary
-        hist.raw = hist.raw[-self.RAW_TURNS_TO_KEEP:]
-        self.logger.info("Summarized %d turns for %s", len(old_turns), user_name)
+        try:
+            new_summary = self.summary_llm.invoke([
+                SystemMessage(content=(
+                    "Summarize this conversation in a structured format. Be extremely concise (max 4 lines):\n"
+                    "Topic: [main topic]\n"
+                    "Stage: [1=opening, 2=clarification, 3=reflection, 4=summary]\n"
+                    "Insight: [key emotional/personal insight revealed]\n"
+                    "Action: [action suggested or taken]"
+                )),
+                HumanMessage(content=text)
+            ]).content
+            
+            hist.summary = f"{hist.summary}\n{new_summary}".strip() if hist.summary else new_summary
+            hist.raw = hist.raw[-self.RAW_TURNS_TO_KEEP:]
+            self.logger.info("Summarized %d turns for %s", len(old_turns), user_name)
+        except Exception as e:
+            # Summarization failed — keep raw history intact to avoid data loss
+            self.logger.warning("Summarization failed for %s, keeping raw history: %s", user_name, e)
 
     def _add_to_history(self, user_name: str, user_query: str, assistant_response: str):
         """Add conversation exchange to history with hybrid summarization."""
@@ -358,10 +369,6 @@ class PDNAgent:
         if self._has_exceeded_daily_limit(user_name, daily_conversation_limit):
             return "הגעת למגבלת השיחות להיום, אנא חזור אלינו מחר."
 
-        # Increment count immediately after limit check to prevent race conditions
-        if user_name:
-            self._increment_conversation_count(user_name)
-
         system_prompt = self._load_prompt(pdn_code, "binat_agent.prompt")
         history_context = self._format_history(user_name)
         enhanced_question = f"User Name is: {user_name}\nUser PDN Code is: {pdn_code}\n{user_query}"
@@ -378,7 +385,9 @@ class PDNAgent:
         self._track_usage(user_name, response)
         response_text = response.content
 
+        # Increment count AFTER successful LLM call
         if user_name:
+            self._increment_conversation_count(user_name)
             self._add_to_history(user_name, user_query, response_text)
 
         return response_text
@@ -387,10 +396,6 @@ class PDNAgent:
         """Generate 21-day transformation plan."""
         if self._has_exceeded_daily_limit(user_name, daily_conversation_limit):
             return "הגעת למגבלת השיחות להיום, אנא חזור אלינו מחר."
-
-        # Increment count immediately after limit check to prevent race conditions
-        if user_name:
-            self._increment_conversation_count(user_name)
 
         system_prompt = self._load_prompt(pdn_code, "21_plan.prompt")
         user_message = f"user_name: {user_name}\nuser_pdn_code: {pdn_code}\nuser_goal: {user_goal}"
@@ -402,7 +407,9 @@ class PDNAgent:
         self._track_usage(user_name, response)
         response_text = response.content
 
+        # Increment count AFTER successful LLM call
         if user_name:
+            self._increment_conversation_count(user_name)
             self._add_to_history(user_name, user_goal, response_text)
 
         return response_text
@@ -411,10 +418,6 @@ class PDNAgent:
         """Generate personalized daily training response."""
         if self._has_exceeded_daily_limit(user_name, daily_conversation_limit):
             return "הגעת למגבלת השיחות להיום, אנא חזור אלינו מחר."
-
-        # Increment count immediately after limit check to prevent race conditions
-        if user_name:
-            self._increment_conversation_count(user_name)
 
         system_prompt = self._load_prompt(pdn_code, "daily_training.prompt")
         user_message = f"User name: {user_name}\n User day Task: {day_task}\n."
@@ -426,7 +429,9 @@ class PDNAgent:
         self._track_usage(user_name, response)
         response_text = response.content
 
+        # Increment count AFTER successful LLM call
         if user_name:
+            self._increment_conversation_count(user_name)
             self._add_to_history(user_name, day_task, response_text)
 
         return response_text
