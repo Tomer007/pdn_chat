@@ -2164,3 +2164,253 @@
             });
         }
 
+
+    // =============================================
+    // User Management (Chat Users CRUD)
+    // =============================================
+
+    let chatUsersData = [];
+    let availablePdnCodes = [];
+    let deleteUserEmail = null;
+
+    async function loadChatUsers() {
+        const tbody = document.getElementById('chatUsersTableBody');
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-400"><i class="fas fa-spinner fa-spin ml-2"></i> טוען...</td></tr>';
+
+        try {
+            const [usersResp, codesResp] = await Promise.all([
+                fetch(`/pdn-admin/users?session_token=${sessionToken}`),
+                fetch(`/pdn-admin/users/pdn-codes?session_token=${sessionToken}`)
+            ]);
+
+            if (usersResp.status === 401 || codesResp.status === 401) {
+                redirectToLogin();
+                return;
+            }
+
+            if (!usersResp.ok) throw new Error('Failed to load users');
+            if (!codesResp.ok) throw new Error('Failed to load PDN codes');
+
+            const usersData = await usersResp.json();
+            const codesData = await codesResp.json();
+
+            chatUsersData = usersData.users || [];
+            availablePdnCodes = codesData.codes || [];
+
+            renderChatUsersTable();
+        } catch (error) {
+            logError('loadChatUsers', error);
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-red-500">שגיאה בטעינת משתמשים</td></tr>';
+        }
+    }
+
+    function renderChatUsersTable() {
+        const tbody = document.getElementById('chatUsersTableBody');
+        document.getElementById('chatUserCount').textContent = `סה"כ: ${chatUsersData.length}`;
+
+        if (chatUsersData.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-400"><i class="fas fa-inbox text-3xl mb-2 block"></i>אין משתמשים</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = chatUsersData.map(user => `
+            <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                <td class="px-4 py-3 font-medium text-gray-900" dir="ltr">${user.email}</td>
+                <td class="px-4 py-3 text-gray-800">${user.name}</td>
+                <td class="px-4 py-3 text-center text-gray-700">${user.gender === 'male' ? 'גבר' : user.gender === 'female' ? 'אישה' : '-'}</td>
+                <td class="px-4 py-3 text-center">
+                    <span class="px-2 py-1 rounded-full text-xs font-medium ${getPdnBadgeColor(user.pdn_code)}">${user.pdn_code}</span>
+                </td>
+                <td class="px-4 py-3 text-center text-gray-700">${user.daily_conversation_limit}</td>
+                <td class="px-4 py-3 text-center">
+                    <div class="flex items-center justify-center gap-2">
+                        <button onclick="openEditUserModal('${user.email}')"
+                                class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="ערוך">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="openDeleteUserDialog('${user.email}')"
+                                class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="מחק">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function populatePdnCodeDropdown(selectedCode) {
+        const select = document.getElementById('userFormPdnCode');
+        select.innerHTML = '<option value="">בחר קוד PDN...</option>';
+        availablePdnCodes.forEach(code => {
+            const option = document.createElement('option');
+            option.value = code;
+            option.textContent = code.toUpperCase();
+            if (code === selectedCode) option.selected = true;
+            select.appendChild(option);
+        });
+    }
+
+    function openAddUserModal() {
+        document.getElementById('userFormMode').value = 'add';
+        document.getElementById('userFormOriginalEmail').value = '';
+        document.getElementById('userFormTitle').innerHTML = '<i class="fas fa-user-plus ml-2 text-blue-900"></i> הוסף משתמש';
+        document.getElementById('userFormEmail').value = '';
+        document.getElementById('userFormEmail').disabled = false;
+        document.getElementById('userFormPassword').value = '';
+        document.getElementById('userFormPassword').required = true;
+        document.getElementById('userFormPassword').placeholder = 'סיסמה (חובה)';
+        document.getElementById('userFormName').value = '';
+        document.getElementById('userFormLimit').value = 15;
+        populatePdnCodeDropdown('');
+        document.getElementById('userFormModal').style.display = 'flex';
+        setTimeout(() => document.getElementById('userFormEmail').focus(), 100);
+    }
+
+    function openEditUserModal(email) {
+        const user = chatUsersData.find(u => u.email === email);
+        if (!user) return;
+
+        document.getElementById('userFormMode').value = 'edit';
+        document.getElementById('userFormOriginalEmail').value = email;
+        document.getElementById('userFormTitle').innerHTML = '<i class="fas fa-user-edit ml-2 text-blue-900"></i> ערוך משתמש';
+        document.getElementById('userFormEmail').value = email;
+        document.getElementById('userFormEmail').disabled = true;
+        document.getElementById('userFormPassword').value = '';
+        document.getElementById('userFormPassword').required = false;
+        document.getElementById('userFormPassword').placeholder = 'השאר ריק לשמירת הסיסמה הנוכחית';
+        document.getElementById('userFormName').value = user.name;
+        document.getElementById('userFormGender').value = user.gender || '';
+        document.getElementById('userFormLimit').value = user.daily_conversation_limit;
+        populatePdnCodeDropdown(user.pdn_code);
+        document.getElementById('userFormModal').style.display = 'flex';
+        setTimeout(() => document.getElementById('userFormName').focus(), 100);
+    }
+
+    async function handleUserFormSubmit(e) {
+        e.preventDefault();
+
+        const mode = document.getElementById('userFormMode').value;
+        const email = document.getElementById('userFormEmail').value.trim().toLowerCase();
+        const password = document.getElementById('userFormPassword').value.trim();
+        const name = document.getElementById('userFormName').value.trim();
+        const gender = document.getElementById('userFormGender').value;
+        const pdnCode = document.getElementById('userFormPdnCode').value;
+        const limit = parseInt(document.getElementById('userFormLimit').value) || 15;
+
+        // Frontend validation
+        if (!email || !name || !pdnCode || !gender) {
+            showNotification('אנא מלא את כל השדות הנדרשים', 'warning');
+            return;
+        }
+
+        if (mode === 'add' && !password) {
+            showNotification('סיסמה נדרשת להוספת משתמש חדש', 'warning');
+            return;
+        }
+
+        // Email format validation
+        const emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+        if (mode === 'add' && !emailRegex.test(email)) {
+            showNotification('פורמט אימייל לא תקין', 'warning');
+            return;
+        }
+
+        // Request admin password
+        const adminPassword = await requestAdminPassword('אנא הזן סיסמת מנהל לאישור:');
+        if (!adminPassword) return;
+
+        showLoading();
+        try {
+            let url, method, body;
+
+            if (mode === 'add') {
+                url = `/pdn-admin/users?session_token=${sessionToken}`;
+                method = 'POST';
+                body = { email, password, name, gender, pdn_code: pdnCode, daily_conversation_limit: limit, admin_password: adminPassword };
+            } else {
+                const originalEmail = document.getElementById('userFormOriginalEmail').value;
+                url = `/pdn-admin/users/${encodeURIComponent(originalEmail)}?session_token=${sessionToken}`;
+                method = 'PUT';
+                body = { name, gender, pdn_code: pdnCode, daily_conversation_limit: limit, admin_password: adminPassword };
+                if (password) body.password = password;
+            }
+
+            const response = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            if (response.status === 401) {
+                const data = await response.json();
+                if (data.error === 'Invalid admin password') {
+                    showNotification('סיסמת מנהל שגויה', 'error');
+                } else {
+                    redirectToLogin();
+                }
+                return;
+            }
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || 'Operation failed');
+            }
+
+            closeModal('userFormModal');
+            showNotification(mode === 'add' ? 'משתמש נוסף בהצלחה' : 'משתמש עודכן בהצלחה', 'success');
+            await loadChatUsers();
+        } catch (error) {
+            logError('userFormSubmit', error);
+            showNotification(`שגיאה: ${error.message}`, 'error');
+        } finally {
+            hideLoading();
+        }
+    }
+
+    function openDeleteUserDialog(email) {
+        deleteUserEmail = email;
+        document.getElementById('deleteUserMessage').textContent = `האם אתה בטוח שברצונך למחוק את המשתמש ${email}?`;
+        document.getElementById('deleteUserModal').style.display = 'flex';
+    }
+
+    async function confirmDeleteUser() {
+        if (!deleteUserEmail) return;
+
+        closeModal('deleteUserModal');
+
+        const adminPassword = await requestAdminPassword('אנא הזן סיסמת מנהל לאישור מחיקה:');
+        if (!adminPassword) return;
+
+        showLoading();
+        try {
+            const response = await fetch(`/pdn-admin/users/${encodeURIComponent(deleteUserEmail)}?session_token=${sessionToken}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ admin_password: adminPassword })
+            });
+
+            if (response.status === 401) {
+                const data = await response.json();
+                if (data.error === 'Invalid admin password') {
+                    showNotification('סיסמת מנהל שגויה', 'error');
+                } else {
+                    redirectToLogin();
+                }
+                return;
+            }
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || 'Delete failed');
+            }
+
+            showNotification('משתמש נמחק בהצלחה', 'success');
+            await loadChatUsers();
+        } catch (error) {
+            logError('deleteUser', error);
+            showNotification(`שגיאה במחיקת משתמש: ${error.message}`, 'error');
+        } finally {
+            hideLoading();
+            deleteUserEmail = null;
+        }
+    }

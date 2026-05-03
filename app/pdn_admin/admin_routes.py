@@ -2,6 +2,7 @@ import csv
 import logging
 import os
 import secrets
+import time
 from datetime import datetime, timedelta
 
 from flask import Blueprint, request, render_template, jsonify, current_app, send_file, abort
@@ -14,6 +15,7 @@ from ..utils.pdn_calculator import calculate_pdn_code
 from ..utils.pdn_file_path import PDNFilePath
 from ..utils.conversation_stats import conversation_stats
 from ..version import VERSION, RELEASE_DATE, RELEASE_NOTES
+from ..pdn_chat_ai.user_manager import get_user_manager
 
 
 # Configure logging
@@ -37,7 +39,7 @@ def create_session(email):
     for token, session in list(admin_sessions.items()):
         if session.get("email") == email:
             del admin_sessions[token]
-            logger.info(f"Removed old session for {email}")
+            logger.info("Removed old session for %s", email)
 
     token = secrets.token_urlsafe(32)
     now = datetime.now()
@@ -47,11 +49,12 @@ def create_session(email):
         "login_time": now,
         "expires_at": now + SESSION_TIMEOUT
     }
-    logger.info(f"Created new session for {email}: {token}")
+    logger.info("Created new session for %s: %s", email, token)
     return token
 
 
 def verify_session(session_token: str):
+    cleanup_expired_sessions()
 
     if not session_token or session_token not in admin_sessions:
         abort(401, description="Invalid or expired session")
@@ -71,6 +74,9 @@ def cleanup_expired_sessions():
     for token in expired:
         del admin_sessions[token]
 
+_metadata_cache = {'data': None, 'timestamp': 0}
+_METADATA_CACHE_TTL = 60  # seconds
+
 def load_user_metadata():
     """
     Load user metadata from the CSV file and JSON files.
@@ -79,6 +85,10 @@ def load_user_metadata():
         List of dictionaries containing user metadata
     """
     try:
+        now = time.time()
+        if _metadata_cache['data'] is not None and (now - _metadata_cache['timestamp']) < _METADATA_CACHE_TTL:
+            return _metadata_cache['data']
+
         csv_file_path = Path(os.getenv('SAVED_RESULTS_DIR', 'saved_results')) / 'user_metadata.csv'
         logger.info("CSV file path: %s", csv_file_path)
         if not csv_file_path.exists():
@@ -136,6 +146,8 @@ def load_user_metadata():
                 metadata_list.append(user_data)
 
         logger.info("Loaded %d user records from CSV and JSON", len(metadata_list))
+        _metadata_cache['data'] = metadata_list
+        _metadata_cache['timestamp'] = time.time()
         return metadata_list
 
     except Exception as e:
@@ -145,24 +157,18 @@ def load_user_metadata():
 @pdn_admin_bp.route('/')
 def admin_login_page():
     """Admin login page"""
-    logger.debug("GET /pdn-admin/ called")
-    logger.debug("Request: %s %s", request.method, request.url)
     return render_template("admin_login.html")
 
 
 @pdn_admin_bp.route('/dashboard')
 def admin_dashboard_page():
     """Admin dashboard page"""
-    logger.debug("GET /pdn-admin/dashboard called")
-    logger.debug("Request: %s %s", request.method, request.url)
     return render_template("admin_dashboard.html")
 
 
 @pdn_admin_bp.route('/login', methods=['POST'])
 def admin_login():
     """Admin login endpoint"""
-    logger.debug("POST /pdn-admin/login called")
-    logger.debug("Request: %s %s", request.method, request.url)
 
     try:
         login_data = request.get_json()
@@ -190,8 +196,6 @@ def admin_login():
 @pdn_admin_bp.route('/logout')
 def admin_logout():
     """Admin logout endpoint"""
-    logger.debug("GET /pdn-admin/logout called")
-    logger.debug("Request: %s %s", request.method, request.url)
 
     admin_sessions.pop(request.args.get('session_token'), None)
     cleanup_expired_sessions()
@@ -221,65 +225,25 @@ def get_logged_in_users():
         try:
             from ..pdn_diagnose.diagnosis_routes import active_sessions
             users.extend(_format_user(s, "diagnosis") for s in active_sessions.values())
-            logger.debug(f"Loaded {len(active_sessions)} diagnosis sessions")
+            logger.debug("Loaded %d diagnosis sessions", len(active_sessions))
         except (ImportError, AttributeError) as e:
-            logger.debug(f"Could not load diagnosis sessions: {e}")
+            logger.debug("Could not load diagnosis sessions: %s", e)
         
         # Chat AI users
         try:
             from ..pdn_chat_ai.chat_routes import chat_sessions
             users.extend(_format_user(s, "chat_ai") for s in chat_sessions.values())
-            logger.debug(f"Loaded {len(chat_sessions)} chat sessions")
+            logger.debug("Loaded %d chat sessions", len(chat_sessions))
         except (ImportError, AttributeError) as e:
-            logger.debug(f"Could not load chat sessions: {e}")
+            logger.debug("Could not load chat sessions: %s", e)
         
         return jsonify({"users": users, "count": len(users)})
-    except:
+    except Exception:
         return jsonify({"error": "Unauthorized"}), 401
 
-
-@pdn_admin_bp.route('/all-logged-in-users')
-def get_all_logged_in_users():
-    """Get list of all logged-in users (admin + diagnosis)"""
-    logger.debug("GET /pdn-admin/all-logged-in-users called")
-    logger.debug("Request: %s %s", request.method, request.url)
-    try:
-        verify_session(request.args.get('session_token'))
-        
-        # Get admin users
-        admin_users = [{
-            "email": s["email"],
-            "login_time": s["login_time"].strftime("%d/%m/%Y %H:%M:%S"),
-            "expires_at": s["expires_at"].strftime("%d/%m/%Y %H:%M:%S"),
-            "type": "admin"
-        } for s in admin_sessions.values()]
-        
-        # Get diagnosis users
-        try:
-            from ..pdn_diagnose.diagnosis_routes import active_sessions as diagnosis_sessions
-            diagnosis_users = [{
-                "email": s["email"],
-                "login_time": s["login_time"].strftime("%d/%m/%Y %H:%M:%S"),
-                "type": "diagnosis"
-            } for s in diagnosis_sessions.values()]
-        except ImportError:
-            diagnosis_users = []
-        
-        all_users = admin_users + diagnosis_users
-        
-        return jsonify({
-            "users": all_users,
-            "count": len(all_users),
-            "admin_count": len(admin_users),
-            "diagnosis_count": len(diagnosis_users)
-        })
-    except:
-        return jsonify({"error": "Unauthorized"}), 401
 
 @pdn_admin_bp.route('/metadata/csv')
 def get_metadata_csv():
-    logger.debug("GET /pdn-admin/metadata/csv called")
-    logger.debug("Request: %s %s", request.method, request.url)
 
     try:
         verify_session(request.args.get('session_token'))
@@ -303,8 +267,6 @@ def remove_none_keys(obj):
 @pdn_admin_bp.route('/user/questionnaire/<email>')
 def get_user_questionnaire(email):
     """Get user questionnaire data"""
-    logger.debug("GET /pdn-admin/user/questionnaire/%s called", email)
-    logger.debug("Request: %s %s", request.method, request.url)
 
     try:
         verify_session(request.args.get('session_token'))
@@ -323,23 +285,21 @@ def get_user_questionnaire(email):
 
         if user_metadata:
             questionnaire_data.setdefault('metadata', {}).update(user_metadata)
-            logger.info(f"Loaded questionnaire for {email} with User ID: {user_metadata.get('User ID', 'N/A')}")
+            logger.info("Loaded questionnaire for %s with User ID: %s", email, user_metadata.get('User ID', 'N/A'))
         else:
             questionnaire_data.setdefault('metadata', {'email': email, 'User ID': 'N/A'})
-            logger.warning(f"No CSV metadata found for user: {email}")
+            logger.warning("No CSV metadata found for user: %s", email)
 
         return jsonify(remove_none_keys(questionnaire_data))
 
     except Exception as e:
-        logger.error(f"Error loading questionnaire for {email}: {e}", exc_info=True)
+        logger.error("Error loading questionnaire for %s: %s", email, e, exc_info=True)
         return jsonify({"error": f"Failed to load questionnaire: {str(e)}"}), 500
 
 
 @pdn_admin_bp.route('/user/voice/<email>')
 def get_user_voice(email):
     """Get user voice recording URL"""
-    logger.debug(f"GET /pdn-admin/user/voice/{email} called")
-    logger.debug("Request: %s %s", request.method, request.url)
     try:
         verify_session(request.args.get('session_token'))
     except Exception as e:
@@ -360,7 +320,7 @@ def get_user_voice(email):
                             'exists': True
                         }
                 except (OSError, IOError) as e:
-                    logger.warning(f"Error accessing {question_num} file {filename}: {e}")
+                    logger.warning("Error accessing %s file %s: %s", question_num, filename, e)
 
         if not voice_recordings:
             return jsonify({"error": "User voice recording not found"}), 404
@@ -371,15 +331,13 @@ def get_user_voice(email):
             "has_recordings": True
         })
     except Exception as e:
-        logger.error(f"Error finding user metadata: {e}")
+        logger.error("Error finding user metadata: %s", e)
         return jsonify({"error": "User not found"}), 404
 
 
 @pdn_admin_bp.route('/user/diagnose/<email>', methods=['PUT'])
 def update_user_diagnose(email):
     """Update user diagnose information"""
-    logger.debug(f"PUT /pdn-admin/user/diagnose/{email} called")
-    logger.debug("Request: %s %s", request.method, request.url)
 
     try:
         verify_session(request.args.get('session_token'))
@@ -401,9 +359,9 @@ def update_user_diagnose(email):
 
         try:
             UserMetadataHandler().update_diagnose_code(email, diagnose_pdn_code, diagnose_comments)
-            logger.info(f"Successfully updated CSV with diagnose info for {email}")
+            logger.info("Successfully updated CSV with diagnose info for %s", email)
         except Exception as csv_error:
-            logger.warning(f"Failed to update CSV with diagnose info: {csv_error}")
+            logger.warning("Failed to update CSV with diagnose info: %s", csv_error)
 
         return jsonify({
             "success": True,
@@ -411,14 +369,12 @@ def update_user_diagnose(email):
             "user": user_data
         })
     except Exception as e:
-        logger.error(f"Error updating diagnose: {e}")
+        logger.error("Error updating diagnose: %s", e)
         return jsonify({"error": "Failed to update diagnose"}), 400
 
 @pdn_admin_bp.route('/user/send_email/<email>', methods=['POST'])
 def send_user_email(email):
     """Send PDN report email to user"""
-    logger.debug(f"POST /pdn-admin/user/send_email/{email} called")
-    logger.debug("Request: %s %s", request.method, request.url)
 
     try:
         user_answers = load_answers(email)
@@ -437,7 +393,7 @@ def send_user_email(email):
         if not pdn_code:
             return jsonify({"error": "Could not calculate PDN code"}), 400
 
-        logger.info(f"send_email PDN code: {pdn_code} for user {email}, needs_verification: {needs_verification}")
+        logger.info("send_email PDN code: %s for user %s, needs_verification: %s", pdn_code, email, needs_verification)
 
         if not send_pdn_code_email(user_answers, pdn_code):
             return jsonify({"error": "Failed to send email"}), 500
@@ -450,14 +406,13 @@ def send_user_email(email):
         })
 
     except Exception as e:
-        logger.error(f"Error sending email: {e}")
+        logger.error("Error sending email: %s", e)
         return jsonify({"error": f"Error sending email: {str(e)}"}), 500
 
 
 @pdn_admin_bp.route('/user/send_binat_invite/<email>', methods=['POST'])
 def send_binat_invite(email):
     """Send Binat chat invitation email to user"""
-    logger.debug(f"POST /pdn-admin/user/send_binat_invite/{email} called")
 
     try:
         # Get user's first name from metadata
@@ -482,17 +437,13 @@ def send_binat_invite(email):
         })
 
     except Exception as e:
-        logger.error(f"Error sending Binat invite: {e}")
+        logger.error("Error sending Binat invite: %s", e)
         return jsonify({"error": f"Error sending Binat invite: {str(e)}"}), 500
 
 
 @pdn_admin_bp.route('/user/recalculate_pdn/<email>', methods=['POST'])
 def recalculate_user_pdn(email):
     """Recalculate PDN code for a user"""
-    logger.debug(f"POST /pdn-admin/user/recalculate_pdn/{email} called")
-    logger.debug("Request: %s %s", request.method, request.url)
-
-    session_token = request.args.get('session_token')
 
     try:
         user_answers = load_answers(email)
@@ -515,7 +466,7 @@ def recalculate_user_pdn(email):
         if not pdn_code:
             return jsonify({"error": "Could not calculate PDN code"}), 400
 
-        logger.info(f"recalculate_pdn PDN code: {pdn_code} for user {email}, needs_verification: {needs_verification}")
+        logger.info("recalculate_pdn PDN code: %s for user %s, needs_verification: %s", pdn_code, email, needs_verification)
 
         csv_handler = UserMetadataHandler()
         updated_by = "Admin"
@@ -525,7 +476,7 @@ def recalculate_user_pdn(email):
                 csv_handler._update_user_field(email, "Date", current_date)):
             return jsonify({"error": "Failed to update CSV with new PDN code"}), 500
 
-        logger.info(f"Successfully updated CSV with PDN code {pdn_code} and date {current_date} for {email} by {updated_by}")
+        logger.info("Successfully updated CSV with PDN code %s and date %s for %s by %s", pdn_code, current_date, email, updated_by)
 
         user_data = csv_handler.get_user_by_email(email)
         response_data = {
@@ -545,7 +496,7 @@ def recalculate_user_pdn(email):
         return jsonify(response_data)
 
     except Exception as e:
-        logger.error(f"Error recalculating PDN code, error: {e}")
+        logger.error("Error recalculating PDN code, error: %s", e)
         return jsonify({"error": f"Error recalculating PDN code: {str(e)}"}), 500
 
 
@@ -553,12 +504,10 @@ def recalculate_user_pdn(email):
 @pdn_admin_bp.route('/audio/<path:file_path>')
 def serve_audio(file_path):
     """Serve audio files with authentication."""
-    logger.debug(f"GET /pdn-admin/audio/{file_path} called")
-    logger.debug("Request: %s %s", request.method, request.url)
 
     # Extract session token from query parameters
     session_token = request.args.get('session_token')
-    logger.debug(f"Session token: {session_token}")
+    logger.debug("Session token: %s", session_token)
 
     try:
         verify_session(request.args.get('session_token'))
@@ -582,25 +531,25 @@ def serve_audio(file_path):
         # Use the file_path as is
         audio_path = Path(saved_results_dir) / file_path
 
-    logger.debug(f"Looking for file at: {audio_path.absolute()}")
+    logger.debug("Looking for file at: %s", audio_path.absolute())
 
     # Security check: ensure the path is within the allowed directory
     try:
         audio_path = audio_path.resolve()
         saved_results_path = Path(saved_results_dir).resolve()
-        if not str(audio_path).startswith(str(saved_results_path)):
+        if not audio_path.is_relative_to(saved_results_path):
             logger.warning("Path traversal attempt detected")
             abort(403, description="Access denied")
     except Exception as e:
-        logger.error(f"Path resolution error: {e}")
+        logger.error("Path resolution error: %s", e)
         abort(400, description="Invalid file path")
 
     # Check if file exists
     if not audio_path.exists():
-        logger.warning(f"File not found: {audio_path}")
+        logger.warning("File not found: %s", audio_path)
         abort(404, description="Audio file not found")
 
-    logger.debug(f"File found, serving: {audio_path}")
+    logger.debug("File found, serving: %s", audio_path)
 
     try:
         return send_file(
@@ -610,15 +559,13 @@ def serve_audio(file_path):
             download_name=audio_path.name
         )
     except Exception as e:
-        logger.error(f"Error serving audio file: {e}")
+        logger.error("Error serving audio file: %s", e)
         abort(500, description="Error serving audio file")
 
 
 @pdn_admin_bp.route('/api/save-audio', methods=['POST'])
 def save_audio():
     """Save uploaded audio file."""
-    logger.debug("POST /pdn-admin/api/save-audio called")
-    logger.debug("Request: %s %s", request.method, request.url)
     
     try:
         # Check if audio file is present
@@ -645,7 +592,7 @@ def save_audio():
         audio_path = user_dir / filename
         audio_file.save(audio_path)
         
-        logger.info(f"Audio file saved successfully: {audio_path}")
+        logger.info("Audio file saved successfully: %s", audio_path)
         
         return jsonify({
             "message": "Audio saved successfully",
@@ -655,7 +602,7 @@ def save_audio():
         })
         
     except Exception as e:
-        logger.error(f"Error saving audio file: {str(e)}")
+        logger.error("Error saving audio file: %s", str(e))
         return jsonify({"error": f"Failed to save audio: {str(e)}"}), 500
 
 
@@ -668,7 +615,7 @@ def get_conversation_stats():
             "stats": conversation_stats.get_all_stats(days),
             "days": days
         })
-    except:
+    except Exception:
         return jsonify({"error": "Unauthorized"}), 401
 
 
@@ -696,7 +643,7 @@ def get_token_usage():
         usage_stats = agent.get_usage_stats()
         return jsonify({"stats": usage_stats})
     except Exception as e:
-        logger.error(f"Error getting token usage: {e}")
+        logger.error("Error getting token usage: %s", e)
         return jsonify({"error": str(e)}), 500
 
 
@@ -728,7 +675,7 @@ def get_user_journey(email):
                 if first_name:
                     token_data = agent.token_usage.get(first_name, {})
         except Exception as e:
-            logger.debug(f"Could not load token usage for journey: {e}")
+            logger.debug("Could not load token usage for journey: %s", e)
         
         # Build timeline events
         events = []
@@ -799,14 +746,112 @@ def get_user_journey(email):
             }
         })
     except Exception as e:
-        logger.error(f"Error getting user journey: {e}")
+        logger.error("Error getting user journey: %s", e)
         return jsonify({"error": str(e)}), 500
+
+@pdn_admin_bp.route('/users', methods=['GET'])
+def list_users():
+    """GET /pdn-admin/users — return all users without passwords."""
+    verify_session(request.args.get('session_token'))
+    um = get_user_manager()
+    return jsonify({"users": um.get_all_users()})
+
+
+@pdn_admin_bp.route('/users/pdn-codes', methods=['GET'])
+def get_pdn_codes():
+    """GET /pdn-admin/users/pdn-codes — return available PDN codes from prompt files."""
+    verify_session(request.args.get('session_token'))
+    um = get_user_manager()
+    return jsonify({"codes": um.get_available_pdn_codes()})
+
+
+@pdn_admin_bp.route('/users', methods=['POST'])
+def create_user():
+    """POST /pdn-admin/users — add a new user."""
+    verify_session(request.args.get('session_token'))
+
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+
+    admin_password = data.get('admin_password', '')
+    if admin_password.lower() != current_app.config.get('ADMIN_PASSWORD', 'pdn').lower():
+        return jsonify({"error": "Invalid admin password"}), 401
+
+    email = data.get('email', '').strip().lower()
+    password = data.get('password', '').strip()
+    name = data.get('name', '').strip()
+    gender = data.get('gender', '').strip()
+    pdn_code = data.get('pdn_code', '').strip()
+    daily_limit = data.get('daily_conversation_limit', 15)
+
+    try:
+        daily_limit = int(daily_limit)
+    except (ValueError, TypeError):
+        return jsonify({"error": "daily_conversation_limit must be a number"}), 400
+
+    um = get_user_manager()
+    try:
+        user = um.add_user(email, password, name, pdn_code, daily_limit, gender=gender)
+        return jsonify({"success": True, "user": user}), 201
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@pdn_admin_bp.route('/users/<email>', methods=['PUT'])
+def update_user_endpoint(email):
+    """PUT /pdn-admin/users/<email> — update an existing user."""
+    verify_session(request.args.get('session_token'))
+
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+
+    admin_password = data.get('admin_password', '')
+    data.pop('admin_password', None)
+    if admin_password.lower() != current_app.config.get('ADMIN_PASSWORD', 'pdn').lower():
+        return jsonify({"error": "Invalid admin password"}), 401
+
+    um = get_user_manager()
+    allowed = {'password', 'name', 'gender', 'pdn_code', 'daily_conversation_limit'}
+    updates = {k: v for k, v in data.items() if k in allowed and v is not None}
+
+    if 'daily_conversation_limit' in updates:
+        try:
+            updates['daily_conversation_limit'] = int(updates['daily_conversation_limit'])
+        except (ValueError, TypeError):
+            return jsonify({"error": "daily_conversation_limit must be a number"}), 400
+
+    try:
+        user = um.update_user(email, **updates)
+        return jsonify({"success": True, "user": user})
+    except KeyError:
+        return jsonify({"error": "User not found"}), 404
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@pdn_admin_bp.route('/users/<email>', methods=['DELETE'])
+def delete_user_endpoint(email):
+    """DELETE /pdn-admin/users/<email> — remove a user."""
+    verify_session(request.args.get('session_token'))
+
+    data = request.get_json() or {}
+    admin_password = data.get('admin_password', '')
+    if admin_password.lower() != current_app.config.get('ADMIN_PASSWORD', 'pdn').lower():
+        return jsonify({"error": "Invalid admin password"}), 401
+
+    um = get_user_manager()
+    try:
+        um.delete_user(email)
+        return jsonify({"success": True, "message": f"User {email} deleted"})
+    except KeyError:
+        return jsonify({"error": "User not found"}), 404
+
 
 @pdn_admin_bp.route('/download-json')
 def download_user_json():
     """Download user's JSON answers file."""
-    logger.debug("GET /pdn-admin/download-json called")
-    logger.debug("Request: %s %s", request.method, request.url)
 
     # Extract session token from query parameters
     session_token = request.args.get('session_token')
@@ -826,7 +871,7 @@ def download_user_json():
         abort(401, description="Admin password required")
 
     # Verify admin password (same as email sending functionality)
-    if admin_password != 'admin':
+    if admin_password.lower() != current_app.config.get('ADMIN_PASSWORD', 'admin').lower():
         logger.warning("Invalid admin password provided")
         response = jsonify({"error": "Invalid admin password"}), 401
         response.headers['X-Error-Type'] = 'invalid_password'
@@ -850,30 +895,30 @@ def download_user_json():
         # Use the file_path as is
         json_path = Path(saved_results_dir) / file_path
 
-    logger.debug(f"Looking for JSON file at: {json_path.absolute()}")
+    logger.debug("Looking for JSON file at: %s", json_path.absolute())
 
     # Security check: ensure the path is within the allowed directory
     try:
         json_path = json_path.resolve()
         saved_results_path = Path(saved_results_dir).resolve()
-        if not str(json_path).startswith(str(saved_results_path)):
+        if not json_path.is_relative_to(saved_results_path):
             logger.warning("Path traversal attempt detected")
             abort(403, description="Access denied")
     except Exception as e:
-        logger.error(f"Path resolution error: {e}")
+        logger.error("Path resolution error: %s", e)
         abort(400, description="Invalid file path")
 
     # Check if file exists
     if not json_path.exists():
-        logger.warning(f"JSON file not found: {json_path}")
+        logger.warning("JSON file not found: %s", json_path)
         abort(404, description="JSON file not found")
 
     # Check if it's a JSON file
     if not json_path.suffix.lower() == '.json':
-        logger.warning(f"File is not a JSON file: {json_path}")
+        logger.warning("File is not a JSON file: %s", json_path)
         abort(400, description="File is not a JSON file")
 
-    logger.debug(f"JSON file found, serving: {json_path}")
+    logger.debug("JSON file found, serving: %s", json_path)
 
     try:
         return send_file(
@@ -883,5 +928,5 @@ def download_user_json():
             download_name=json_path.name
         )
     except Exception as e:
-        logger.error(f"Error serving JSON file: {e}")
+        logger.error("Error serving JSON file: %s", e)
         abort(500, description="Error serving JSON file")
