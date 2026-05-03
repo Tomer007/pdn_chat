@@ -224,7 +224,7 @@ body {
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 @keyframes notificationSlideIn {
-    from { opacity: 0; transform: translateX(100%) scale(0.9); }
+    from { opacity: 0; transform: translateX(-100%) scale(0.9); }
     to { opacity: 1; transform: translateX(0) scale(1); }
 }
 .notification-item.animate-bounce {

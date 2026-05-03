@@ -218,7 +218,7 @@
     async function promptAdminPassword() {
         const password = await requestAdminPassword('הזן סיסמת מנהל להורדת JSON:');
         if (!password) return;
-        if (password !== 'admin') {
+        if (password.toLowerCase() !== 'pdn') {
             showNotification('סיסמה שגויה', 'error');
             return;
         }
@@ -517,7 +517,7 @@
 
     async function loadTokenUsage() {
         const container = document.getElementById('tokenUsageContent');
-        container.innerHTML = '<p class="text-sm text-gray-500 text-center py-4"><i class="fas fa-spinner fa-spin ml-2"></i> טוען נתוני עלויות...</p>';
+        container.innerHTML = '<div style="text-align:center;padding:24px;"><i class="fas fa-spinner fa-spin" style="color:#94a3b8;font-size:20px;"></i><p style="font-size:13px;color:#94a3b8;margin-top:8px;">טוען נתוני עלויות...</p></div>';
         try {
             const response = await fetch(`/pdn-admin/token-usage?session_token=${sessionToken}`);
             if (!response.ok) throw new Error('Failed to load');
@@ -525,76 +525,76 @@
             const { users: stats, daily_totals, projection, period_days } = raw.stats;
             const userNames = Object.keys(stats);
             if (userNames.length === 0) {
-                container.innerHTML = '<p class="text-sm text-gray-500 text-center py-6">אין נתוני שימוש עדיין. נתונים יצטברו לאחר שיחות בבינת.</p>';
+                container.innerHTML = '<div style="text-align:center;padding:32px 16px;background:#f8fafc;border-radius:12px;border:1px dashed #cbd5e1;"><i class="fas fa-chart-line" style="font-size:24px;color:#94a3b8;margin-bottom:8px;display:block;"></i><p style="font-size:13px;color:#64748b;margin:0;">אין נתוני שימוש עדיין</p></div>';
                 return;
             }
             let tIn=0,tOut=0,tCR=0,tCost=0,tSav=0,tCalls=0;
             userNames.forEach(u=>{const s=stats[u];tIn+=s.input_tokens;tOut+=s.output_tokens;tCR+=s.cache_read_tokens;tCost+=s.total_cost;tSav+=s.cache_savings;tCalls+=s.calls;});
             avgCostPerCall = tCalls > 0 ? tCost / tCalls : 0;
             updateCostEstimate();
-            let html=`<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-5">
-                <div class="bg-blue-50 rounded-xl p-4 text-center border border-blue-100"><div class="text-2xl font-bold text-blue-900">${tCalls}</div><div class="text-xs text-gray-600 mt-1">קריאות (${period_days} ימים)</div></div>
-                <div class="bg-blue-50 rounded-xl p-4 text-center border border-blue-100"><div class="text-2xl font-bold text-blue-900">${((tIn+tOut)/1000).toFixed(1)}K</div><div class="text-xs text-gray-600 mt-1">סה"כ טוקנים</div></div>
-                <div class="bg-green-50 rounded-xl p-4 text-center border border-green-100"><div class="text-2xl font-bold text-green-700">$${tCost.toFixed(3)}</div><div class="text-xs text-gray-600 mt-1">עלות בפועל</div></div>
-                <div class="bg-emerald-50 rounded-xl p-4 text-center border border-emerald-100"><div class="text-2xl font-bold text-emerald-700">$${tSav.toFixed(3)}</div><div class="text-xs text-gray-600 mt-1">חיסכון cache</div></div>
-                <div class="bg-amber-50 rounded-xl p-4 text-center border border-amber-100"><div class="text-2xl font-bold text-amber-700">$${projection.projected_monthly}</div><div class="text-xs text-gray-600 mt-1">תחזית חודשית</div></div>
-                <div class="bg-red-50 rounded-xl p-4 text-center border border-red-100"><div class="text-2xl font-bold text-red-700">$${projection.projected_yearly}</div><div class="text-xs text-gray-600 mt-1">תחזית שנתית</div></div>
+            let html=`<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px;">
+                <div style="background:#f0f4ff;border-radius:12px;padding:16px;text-align:center;border:1px solid #dbeafe;"><div style="font-size:24px;font-weight:800;color:#0b2e6b;">${tCalls}</div><div style="font-size:11px;color:#64748b;margin-top:4px;">קריאות (${period_days} ימים)</div></div>
+                <div style="background:#f0f4ff;border-radius:12px;padding:16px;text-align:center;border:1px solid #dbeafe;"><div style="font-size:24px;font-weight:800;color:#0b2e6b;">${((tIn+tOut)/1000).toFixed(1)}K</div><div style="font-size:11px;color:#64748b;margin-top:4px;">סה"כ טוקנים</div></div>
+                <div style="background:#ecfdf5;border-radius:12px;padding:16px;text-align:center;border:1px solid #d1fae5;"><div style="font-size:24px;font-weight:800;color:#059669;">$${tCost.toFixed(3)}</div><div style="font-size:11px;color:#64748b;margin-top:4px;">עלות בפועל</div></div>
+                <div style="background:#fffbeb;border-radius:12px;padding:16px;text-align:center;border:1px solid #fde68a;"><div style="font-size:24px;font-weight:800;color:#d97706;">$${projection.projected_monthly}</div><div style="font-size:11px;color:#64748b;margin-top:4px;">תחזית חודשית</div></div>
+                <div style="background:#fef2f2;border-radius:12px;padding:16px;text-align:center;border:1px solid #fecaca;"><div style="font-size:24px;font-weight:800;color:#dc2626;">$${projection.projected_yearly}</div><div style="font-size:11px;color:#64748b;margin-top:4px;">תחזית שנתית</div></div>
             </div>`;
             const days=Object.keys(daily_totals).sort();
-            if(days.length>1){const mx=Math.max(...days.map(d=>daily_totals[d].cost),0.001);
-            html+=`<div class="mb-5 p-4 bg-gray-50 rounded-xl border border-gray-200"><h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2"><i class="fas fa-chart-line text-blue-900 text-xs"></i> עלות יומית (${period_days} ימים אחרונים)</h4><div class="flex items-end gap-1" style="height:120px;">`;
-            days.forEach(day=>{const d=daily_totals[day];const bh=Math.max(4,(d.cost/mx)*100);
-            html+=`<div class="flex-1 flex flex-col items-center justify-end h-full group relative"><div class="absolute -top-6 bg-gray-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">$${d.cost.toFixed(4)} | ${d.calls} קריאות</div><div class="w-full bg-blue-600 rounded-t transition-all hover:bg-blue-500" style="height:${bh}%;min-height:4px;"></div><div class="text-[9px] text-gray-500 mt-1 transform -rotate-45 origin-top-right">${day.slice(5)}</div></div>`;});
-            html+=`</div><div class="flex justify-between mt-2 text-[10px] text-gray-400"><span>ממוצע יומי: $${projection.avg_daily_cost.toFixed(4)}</span><span>${projection.active_days} ימים פעילים</span></div></div>`;}
-            html+=`<div class="overflow-x-auto rounded-lg border border-gray-200"><table class="w-full text-sm"><thead><tr class="bg-gray-50 border-b border-gray-200"><th class="px-4 py-3 text-right font-semibold text-gray-700">משתמש</th><th class="px-4 py-3 text-center font-semibold text-gray-700">קריאות</th><th class="px-4 py-3 text-center font-semibold text-gray-700">קלט</th><th class="px-4 py-3 text-center font-semibold text-gray-700">פלט</th><th class="px-4 py-3 text-center font-semibold text-gray-700">Cache Read</th><th class="px-4 py-3 text-center font-semibold text-gray-700">עלות</th><th class="px-4 py-3 text-center font-semibold text-gray-700">חיסכון</th></tr></thead><tbody>`;
+            if(days.length>1){
+                const mx=Math.max(...days.map(d=>daily_totals[d].cost),0.001);
+                html+=`<div style="margin-bottom:20px;padding:20px;background:white;border-radius:14px;border:1px solid #e2e8f0;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                        <h4 style="font-size:14px;font-weight:700;color:#1e293b;margin:0;display:flex;align-items:center;gap:8px;"><i class="fas fa-chart-bar" style="color:#0b2e6b;font-size:12px;"></i> עלות יומית</h4>
+                        <div style="display:flex;gap:16px;font-size:11px;color:#64748b;"><span>ממוצע: <strong style="color:#0b2e6b;">$${projection.avg_daily_cost.toFixed(4)}</strong></span><span>${projection.active_days} ימים פעילים מתוך ${period_days}</span></div>
+                    </div>
+                    <div style="display:flex;align-items:flex-end;gap:3px;height:140px;padding:0 4px;">`;
+                days.forEach(day=>{
+                    const d=daily_totals[day];
+                    const bh=Math.max(4,(d.cost/mx)*100);
+                    const isToday=day===new Date().toISOString().slice(0,10);
+                    const barColor=isToday?'#0b2e6b':'#93c5fd';
+                    html+=`<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;position:relative;cursor:pointer;" onmouseenter="this.querySelector('.tip').style.opacity='1'" onmouseleave="this.querySelector('.tip').style.opacity='0'">
+                        <div class="tip" style="position:absolute;top:-32px;background:#1e293b;color:white;font-size:10px;padding:4px 8px;border-radius:6px;opacity:0;transition:opacity 0.2s;white-space:nowrap;z-index:10;pointer-events:none;">$${d.cost.toFixed(4)} | ${d.calls} קריאות</div>
+                        <div style="width:100%;background:${barColor};border-radius:4px 4px 0 0;height:${bh}%;min-height:4px;transition:background 0.2s;"></div>
+                        <div style="font-size:9px;color:#94a3b8;margin-top:6px;transform:rotate(-45deg);transform-origin:top right;white-space:nowrap;">${day.slice(5)}</div>
+                    </div>`;
+                });
+                html+=`</div></div>`;
+            }
+            html+=`<div style="overflow-x:auto;border-radius:10px;border:1px solid #e2e8f0;">
+                <table style="width:100%;font-size:13px;border-collapse:collapse;">
+                    <thead><tr style="background:#f8fafc;border-bottom:1px solid #e2e8f0;">
+                        <th style="padding:12px 16px;text-align:right;font-weight:600;color:#475569;">משתמש</th>
+                        <th style="padding:12px 16px;text-align:center;font-weight:600;color:#475569;">קריאות</th>
+                        <th style="padding:12px 16px;text-align:center;font-weight:600;color:#475569;">קלט</th>
+                        <th style="padding:12px 16px;text-align:center;font-weight:600;color:#475569;">פלט</th>
+                        <th style="padding:12px 16px;text-align:center;font-weight:600;color:#475569;">עלות</th>
+                    </tr></thead><tbody>`;
             userNames.sort((a,b)=>stats[b].total_cost-stats[a].total_cost);
             userNames.forEach(user=>{const s=stats[user];
-            html+=`<tr class="border-b border-gray-100 hover:bg-gray-50"><td class="px-4 py-3 font-medium text-gray-900">${user}</td><td class="px-4 py-3 text-center text-gray-700">${s.calls}</td><td class="px-4 py-3 text-center text-gray-700">${(s.input_tokens/1000).toFixed(1)}K</td><td class="px-4 py-3 text-center text-gray-700">${(s.output_tokens/1000).toFixed(1)}K</td><td class="px-4 py-3 text-center">${s.cache_read_tokens>0?`<span class="text-green-700 font-medium">${(s.cache_read_tokens/1000).toFixed(1)}K</span>`:'<span class="text-gray-400">\u2014</span>'}</td><td class="px-4 py-3 text-center font-semibold text-blue-900">$${s.total_cost.toFixed(4)}</td><td class="px-4 py-3 text-center">${s.cache_savings>0?`<span class="text-emerald-700 font-medium">$${s.cache_savings.toFixed(4)}</span>`:'<span class="text-gray-400">\u2014</span>'}</td></tr>`;});
-            html+=`<tr class="bg-gray-50 font-semibold border-t-2 border-gray-300"><td class="px-4 py-3 text-gray-900">סה"כ</td><td class="px-4 py-3 text-center text-gray-900">${tCalls}</td><td class="px-4 py-3 text-center text-gray-900">${(tIn/1000).toFixed(1)}K</td><td class="px-4 py-3 text-center text-gray-900">${(tOut/1000).toFixed(1)}K</td><td class="px-4 py-3 text-center text-green-700">${(tCR/1000).toFixed(1)}K</td><td class="px-4 py-3 text-center text-blue-900">$${tCost.toFixed(4)}</td><td class="px-4 py-3 text-center text-emerald-700">$${tSav.toFixed(4)}</td></tr></tbody></table></div>`;
-            html+=`<p class="text-xs text-gray-400 mt-3 text-center">* נתונים נשמרים לקובץ. תמחור לפי Claude Sonnet 4. תחזית מבוססת על ממוצע יומי.</p>`;
+            html+=`<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:10px 16px;font-weight:500;color:#1e293b;">${user}</td><td style="padding:10px 16px;text-align:center;color:#475569;">${s.calls}</td><td style="padding:10px 16px;text-align:center;color:#475569;">${(s.input_tokens/1000).toFixed(1)}K</td><td style="padding:10px 16px;text-align:center;color:#475569;">${(s.output_tokens/1000).toFixed(1)}K</td><td style="padding:10px 16px;text-align:center;font-weight:700;color:#0b2e6b;">$${s.total_cost.toFixed(4)}</td></tr>`;});
+            html+=`<tr style="background:#f8fafc;border-top:2px solid #e2e8f0;"><td style="padding:10px 16px;font-weight:700;color:#1e293b;">סה"כ</td><td style="padding:10px 16px;text-align:center;font-weight:700;">${tCalls}</td><td style="padding:10px 16px;text-align:center;font-weight:700;">${(tIn/1000).toFixed(1)}K</td><td style="padding:10px 16px;text-align:center;font-weight:700;">${(tOut/1000).toFixed(1)}K</td><td style="padding:10px 16px;text-align:center;font-weight:700;color:#0b2e6b;">$${tCost.toFixed(4)}</td></tr></tbody></table></div>`;
+            html+=`<p style="font-size:10px;color:#94a3b8;margin-top:12px;text-align:center;">* תמחור לפי Claude Sonnet 4. תחזית מבוססת על ממוצע יומי.</p>`;
             container.innerHTML=html;
-        } catch(error){logError('loadTokenUsage',error);container.innerHTML='<p class="text-sm text-red-500 text-center py-4">שגיאה בטעינת נתוני עלויות</p>';}
+        } catch(error){logError('loadTokenUsage',error);container.innerHTML='<div style="text-align:center;padding:24px;color:#dc2626;font-size:13px;"><i class="fas fa-exclamation-circle" style="margin-left:6px;"></i> שגיאה בטעינת נתוני עלויות</div>';}
     }
 
     function updateCostEstimate() {
-        updateEstimateFromCalls();
+        // Show average cost per call in the highlight element
+        const highlight = document.getElementById('avgCostHighlight');
+        const valueEl = document.getElementById('avgCostValue');
+        if (highlight && valueEl && avgCostPerCall > 0) {
+            highlight.style.display = 'block';
+            valueEl.textContent = '$' + avgCostPerCall.toFixed(4);
+        }
     }
 
     function updateEstimateFromCalls() {
-        const callsInput = document.getElementById('estimateCalls');
-        const costInput = document.getElementById('estimateCost');
-        const monthlyEl = document.getElementById('estimateMonthly');
-        if (!callsInput || !costInput) return;
-
-        const calls = parseInt(callsInput.value) || 0;
-        if (avgCostPerCall <= 0) {
-            costInput.value = '';
-            costInput.placeholder = 'טען נתונים';
-            monthlyEl.textContent = '—';
-            return;
-        }
-
-        const estimated = calls * avgCostPerCall;
-        costInput.value = estimated.toFixed(4);
-        monthlyEl.textContent = `$${(estimated * 30).toFixed(2)}`;
+        updateCostEstimate();
     }
 
     function updateEstimateFromCost() {
-        const callsInput = document.getElementById('estimateCalls');
-        const costInput = document.getElementById('estimateCost');
-        const monthlyEl = document.getElementById('estimateMonthly');
-        if (!callsInput || !costInput) return;
-
-        const cost = parseFloat(costInput.value) || 0;
-        if (avgCostPerCall <= 0) {
-            callsInput.value = '';
-            monthlyEl.textContent = '—';
-            return;
-        }
-
-        const calls = Math.round(cost / avgCostPerCall);
-        callsInput.value = calls;
-        monthlyEl.textContent = `$${(cost * 30).toFixed(2)}`;
+        updateCostEstimate();
     }
 
     function displayConversationStats(stats) {
@@ -1713,42 +1713,35 @@
             // Final result card at top
             if (finalStage) {
                 const verifyBadge = finalStage.needs_verification
-                    ? '<div class="mt-3 inline-flex items-center gap-2 bg-yellow-100 text-yellow-800 text-sm font-semibold px-4 py-2 rounded-lg"><i class="fas fa-exclamation-triangle"></i> נדרש אימות אנושי</div>'
-                    : '<div class="mt-3 inline-flex items-center gap-2 bg-green-100 text-green-800 text-sm font-semibold px-4 py-2 rounded-lg"><i class="fas fa-check-circle"></i> תקין</div>';
+                    ? '<div style="margin-top: 12px; display: inline-flex; align-items: center; gap: 8px; background: #fef3c7; color: #92400e; font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 8px;"><i class="fas fa-exclamation-triangle"></i> נדרש אימות אנושי</div>'
+                    : '<div style="margin-top: 12px; display: inline-flex; align-items: center; gap: 8px; background: #d1fae5; color: #065f46; font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 8px;"><i class="fas fa-check-circle"></i> תקין</div>';
 
                 html += `
-                <div class="p-6 bg-gradient-to-br from-blue-900 to-blue-800 rounded-2xl text-white text-center shadow-lg">
-                    <div class="text-sm opacity-80 mb-1">${email}</div>
-                    <div class="text-5xl font-bold my-4 tracking-wide">${finalStage.pdn_code}</div>
-                    <div class="flex justify-center gap-8 text-sm opacity-90">
+                <div style="padding: 28px; background: linear-gradient(135deg, #0b2e6b 0%, #1a3f7a 100%); border-radius: 16px; color: white; text-align: center; box-shadow: 0 8px 32px rgba(11, 46, 107, 0.3);">
+                    <div style="font-size: 13px; opacity: 0.7; margin-bottom: 4px;">${email}</div>
+                    <div style="font-size: 48px; font-weight: 800; margin: 16px 0; letter-spacing: 2px;">${finalStage.pdn_code}</div>
+                    <div style="display: flex; justify-content: center; gap: 40px; font-size: 14px; opacity: 0.9;">
                         <div>
-                            <div class="text-xs opacity-70 mb-1">תכונה</div>
-                            <div class="font-semibold text-lg">${finalStage.trait}</div>
-                            <div class="text-xs opacity-70">${traitLabels[finalStage.trait] || finalStage.trait}</div>
+                            <div style="font-size: 11px; opacity: 0.6; margin-bottom: 4px;">תכונה</div>
+                            <div style="font-size: 20px; font-weight: 700;">${finalStage.trait}</div>
+                            <div style="font-size: 11px; opacity: 0.6;">${traitLabels[finalStage.trait] || finalStage.trait}</div>
                         </div>
-                        <div class="w-px bg-white/30"></div>
+                        <div style="width: 1px; background: rgba(255,255,255,0.2);"></div>
                         <div>
-                            <div class="text-xs opacity-70 mb-1">אנרגיה</div>
-                            <div class="font-semibold text-lg">${finalStage.energy}</div>
-                            <div class="text-xs opacity-70">${energyLabels[finalStage.energy] || finalStage.energy}</div>
+                            <div style="font-size: 11px; opacity: 0.6; margin-bottom: 4px;">אנרגיה</div>
+                            <div style="font-size: 20px; font-weight: 700;">${finalStage.energy}</div>
+                            <div style="font-size: 11px; opacity: 0.6;">${energyLabels[finalStage.energy] || finalStage.energy}</div>
                         </div>
                     </div>
                     ${verifyBadge}
-                    ${finalStage.confidence_score !== undefined ? `
-                    <div class="mt-3 flex items-center justify-center gap-3">
-                        <span class="text-xs opacity-70">רמת ביטחון:</span>
-                        <div class="w-24 bg-white/20 rounded-full h-3 overflow-hidden">
-                            <div class="h-3 rounded-full ${finalStage.confidence_score >= 80 ? 'bg-green-400' : finalStage.confidence_score >= 60 ? 'bg-yellow-400' : 'bg-red-400'}" style="width: ${finalStage.confidence_score}%"></div>
-                        </div>
-                        <span class="text-sm font-bold">${finalStage.confidence_score}%</span>
-                    </div>` : ''}
-                </div>`;
+                </div>`; 
             }
 
             // Stage-by-stage breakdown
-            html += '<div class="mt-6 space-y-4">';
-            html += '<h3 class="text-lg font-bold text-gray-800 flex items-center gap-2"><i class="fas fa-list-ol text-blue-900"></i> פירוט שלבי החישוב</h3>';
+            html += '<div style="margin-top: 24px;">';
+            html += '<h3 style="font-size: 16px; font-weight: 700; color: #1e293b; margin: 0 0 16px; display: flex; align-items: center; gap: 8px;"><i class="fas fa-list-ol" style="color: #0b2e6b;"></i> פירוט שלבי החישוב</h3>';
 
+            let energyLabelShown = false;
             stages.forEach(stage => {
                 if (stage.stage === 'Final') return; // Already shown at top
 
@@ -1757,18 +1750,18 @@
                 const hasEnergy = stage.scores && ['D','S','F'].some(k => stage.scores[k] !== undefined);
 
                 html += `
-                <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-                    <div class="bg-gray-50 px-5 py-3 border-b border-gray-200 flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <span class="text-xl">${info.icon}</span>
+                <div style="background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                    <div style="background: #f8fafc; padding: 12px 20px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span style="font-size: 20px;">${info.icon}</span>
                             <div>
-                                <div class="font-semibold text-gray-900">${info.name}</div>
-                                <div class="text-xs text-gray-500">${info.desc}</div>
+                                <div style="font-weight: 600; color: #1e293b; font-size: 14px;">${info.name}</div>
+                                <div style="font-size: 11px; color: #64748b;">${info.desc}</div>
                             </div>
                         </div>
-                        ${stage.dominant ? `<span class="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-bold rounded-full">דומיננטי: ${stage.dominant}</span>` : ''}
+                        ${stage.dominant ? `<span style="padding: 4px 12px; background: rgba(11,46,107,0.08); color: #0b2e6b; font-size: 12px; font-weight: 700; border-radius: 20px;">דומיננטי: ${stage.dominant}</span>` : ''}
                     </div>
-                    <div class="p-5 space-y-3">`;
+                    <div style="padding: 16px 20px;">`;
 
                 // Trait scores
                 if (hasTraits) {
@@ -1777,17 +1770,18 @@
                         if (stage.scores[key] !== undefined) {
                             const isDominant = stage.dominant === key;
                             const barWidth = Math.max(2, (stage.scores[key] / maxTrait) * 100);
-                            const barColor = isDominant ? 'bg-blue-600' : 'bg-gray-200';
-                            const labelStyle = isDominant ? 'font-bold text-blue-900' : 'text-gray-600';
-                            const scoreStyle = isDominant ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700';
+                            const barColor = isDominant ? '#0b2e6b' : '#e2e8f0';
+                            const labelWeight = isDominant ? '700' : '400';
+                            const labelColor = isDominant ? '#0b2e6b' : '#64748b';
+                            const scoreColor = isDominant ? '#0b2e6b' : '#64748b';
 
                             html += `
-                            <div class="flex items-center gap-3">
-                                <span class="w-28 text-sm ${labelStyle} flex-shrink-0">${traitLabels[key]}</span>
-                                <div class="flex-1 bg-gray-100 rounded-full h-6 relative overflow-hidden">
-                                    <div class="${barColor} h-6 rounded-full transition-all duration-500 ease-out" style="width: ${barWidth}%"></div>
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                <span style="width: 120px; font-size: 13px; font-weight: ${labelWeight}; color: ${labelColor}; flex-shrink: 0;">${traitLabels[key]}</span>
+                                <div style="flex: 1; background: #f1f5f9; border-radius: 20px; height: 22px; overflow: hidden; position: relative;">
+                                    <div style="background: ${barColor}; height: 100%; border-radius: 20px; width: ${barWidth}%; transition: width 0.5s ease;"></div>
                                 </div>
-                                <span class="w-10 text-center text-sm font-mono font-bold ${scoreStyle} rounded-md px-2 py-0.5 flex-shrink-0">${stage.scores[key]}</span>
+                                <span style="width: 36px; text-align: center; font-size: 13px; font-weight: 700; color: ${scoreColor}; flex-shrink: 0;">${stage.scores[key]}</span>
                             </div>`;
                         }
                     });
@@ -1796,25 +1790,29 @@
                 // Energy scores
                 if (hasEnergy) {
                     if (hasTraits) {
-                        html += '<div class="border-t border-gray-100 my-3"></div>';
-                        html += '<div class="text-xs text-gray-500 font-semibold mb-2">סוג אנרגיה</div>';
+                        html += '<div style="border-top: 1px solid #f1f5f9; margin: 12px 0;"></div>';
+                    }
+                    if (!energyLabelShown) {
+                        html += '<div style="font-size: 11px; color: #64748b; font-weight: 600; margin-bottom: 8px;">סוג אנרגיה</div>';
+                        energyLabelShown = true;
                     }
                     const maxEnergy = Math.max(...['D','S','F'].map(k => stage.scores[k] || 0), 1);
                     ['D', 'S', 'F'].forEach(key => {
                         if (stage.scores[key] !== undefined) {
                             const isDominant = stage.dominant === key;
                             const barWidth = Math.max(2, (stage.scores[key] / maxEnergy) * 100);
-                            const barColor = isDominant ? 'bg-emerald-600' : 'bg-gray-200';
-                            const labelStyle = isDominant ? 'font-bold text-emerald-900' : 'text-gray-600';
-                            const scoreStyle = isDominant ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-700';
+                            const barColor = isDominant ? '#059669' : '#e2e8f0';
+                            const labelWeight = isDominant ? '700' : '400';
+                            const labelColor = isDominant ? '#065f46' : '#64748b';
+                            const scoreColor = isDominant ? '#065f46' : '#64748b';
 
                             html += `
-                            <div class="flex items-center gap-3">
-                                <span class="w-28 text-sm ${labelStyle} flex-shrink-0">${energyLabels[key]}</span>
-                                <div class="flex-1 bg-gray-100 rounded-full h-6 relative overflow-hidden">
-                                    <div class="${barColor} h-6 rounded-full transition-all duration-500 ease-out" style="width: ${barWidth}%"></div>
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                <span style="width: 120px; font-size: 13px; font-weight: ${labelWeight}; color: ${labelColor}; flex-shrink: 0;">${energyLabels[key]}</span>
+                                <div style="flex: 1; background: #f1f5f9; border-radius: 20px; height: 22px; overflow: hidden; position: relative;">
+                                    <div style="background: ${barColor}; height: 100%; border-radius: 20px; width: ${barWidth}%; transition: width 0.5s ease;"></div>
                                 </div>
-                                <span class="w-10 text-center text-sm font-mono font-bold ${scoreStyle} rounded-md px-2 py-0.5 flex-shrink-0">${stage.scores[key]}</span>
+                                <span style="width: 36px; text-align: center; font-size: 13px; font-weight: 700; color: ${scoreColor}; flex-shrink: 0;">${stage.scores[key]}</span>
                             </div>`;
                         }
                     });
@@ -1927,7 +1925,7 @@
         async function exportTableCSV() {
             const password = await requestAdminPassword('הזן סיסמת מנהל לייצוא CSV:');
             if (!password) return;
-            if (password !== 'admin') {
+            if (password.toLowerCase() !== 'pdn') {
                 showNotification('סיסמה שגויה', 'error');
                 return;
             }
@@ -2039,9 +2037,9 @@
             const offset = existingNotifications.length * 90;
 
             notification.className = `
-    fixed right-6 z-[9999] p-6 rounded-xl shadow-2xl transition-all duration-500 transform translate-x-full border-2
+    fixed left-6 z-[9999] p-6 rounded-xl shadow-2xl transition-all duration-500 transform -translate-x-full border-2
         `;
-            notification.style.top = `${24 + offset}px`;
+            notification.style.bottom = `${24 + offset}px`;
 
             // Enhanced styling based on type
             let bgColor, borderColor, icon, textColor;
@@ -2098,7 +2096,7 @@
 
             // Animate in with bounce effect
             setTimeout(() => {
-                notification.classList.remove('translate-x-full');
+                notification.classList.remove('-translate-x-full');
                 notification.classList.add('animate-bounce');
                 setTimeout(() => {
                     notification.classList.remove('animate-bounce');
@@ -2107,7 +2105,7 @@
 
             // Auto remove after 8 seconds (increased from 5)
             setTimeout(() => {
-                notification.classList.add('translate-x-full');
+                notification.classList.add('-translate-x-full');
                 setTimeout(() => {
                     if (notification.parentElement) {
                         notification.remove();
