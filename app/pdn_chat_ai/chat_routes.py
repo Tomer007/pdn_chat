@@ -124,8 +124,8 @@ def chat_with_binat():
     if not data:
         return jsonify({"error": "No data provided"}), 400
 
-    # Track conversation
-    user_email = session.get('user_email')
+    # Track conversation — prefer session email, fall back to POST body email
+    user_email = session.get('user_email') or data.get('email', '')
     if user_email:
         conversation_stats.increment_conversation(user_email)
 
@@ -155,6 +155,11 @@ def build_21_transformation_plan():
     if not goal:
         return jsonify({"error": "Goal is required"}), 400
 
+    # Track conversation — prefer session email, fall back to POST body email
+    user_email = session.get('user_email') or data.get('email', '')
+    if user_email:
+        conversation_stats.increment_conversation(user_email)
+
     # Get daily_conversation_limit from session or use default
     daily_conversation_limit = session.get('daily_conversation_limit', 15)
 
@@ -176,6 +181,11 @@ def daily_training():
 
     if not task:
         return jsonify({"error": "Task is required"}), 400
+
+    # Track conversation — prefer session email, fall back to POST body email
+    user_email = session.get('user_email') or data.get('email', '')
+    if user_email:
+        conversation_stats.increment_conversation(user_email)
 
     # Get daily_conversation_limit from session or use default
     daily_conversation_limit = session.get('daily_conversation_limit', 15)
