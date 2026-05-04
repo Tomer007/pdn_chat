@@ -68,6 +68,22 @@ def load_answers(email: str) -> Optional[Dict[str, Any]]:
         return None
 
 
+def delete_answer(email: str, question_number: int) -> bool:
+    """Delete a single answer from the user's JSON file. Returns True if deleted."""
+    try:
+        file_path = pdn_file_path.get_user_file_path(email, f"{email}_answers.json")
+        data = _load_json_data(file_path)
+        key = str(question_number)
+        if key in data:
+            del data[key]
+            _save_with_lock(file_path, data)
+            return True
+        return False
+    except Exception as e:
+        logger.error(f"Failed to delete answer for {email}, question {question_number}: {e}")
+        return False
+
+
 def save_user_metadata(metadata: Dict[str, Any], email: str = None) -> None:
     """Save user metadata to JSON file and CSV."""
     if not email:

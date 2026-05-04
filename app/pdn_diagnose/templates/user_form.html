@@ -8,93 +8,9 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/diagnose-common.css') }}">
     <style>
-        :root {
-            --primary-color: #0b2e6b;
-            --text-primary: #1f2937;
-            --text-secondary: #6b7280;
-            --shadow-color: rgba(0, 0, 0, 0.1);
-            --gradient-start: #0b2e6b;
-            --gradient-end: #0b2e6b;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: #0b2e6b;
-            min-height: 100vh;
-            margin: 0;
-            padding: 0;
-            direction: rtl;
-            color: var(--text-primary);
-            transition: all 0.3s ease;
-        }
-
-        .card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 24px;
-            box-shadow: 0 20px 40px var(--shadow-color);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .btn-primary {
-            background: #0b2e6b;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 16px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 600;
-            box-shadow: 0 4px 12px rgba(11, 46, 107, 0.3);
-        }
-
-        .btn-primary:hover {
-            background: #0a2a5f;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(11, 46, 107, 0.4);
-        }
-
-        .btn-primary:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* Enhanced form styling */
-        .form-input {
-            transition: all 0.3s ease;
-        }
-
-        .form-input:focus {
-            border-color: #0b2e6b;
-            box-shadow: 0 0 0 3px rgba(11, 46, 107, 0.1);
-        }
-
-        /* Animations */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(16px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .fade-in {
-            animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
-        }
-
-        /* Mobile responsiveness */
-        @media (max-width: 768px) {
-            .card {
-                margin: 10px;
-                padding: 16px;
-                border-radius: 16px;
-            }
-        }
+        /* user_form specific styles — shared styles in diagnose-common.css */
     </style>
 </head>
 

@@ -7,7 +7,7 @@ from flask import Blueprint, request, render_template, jsonify, session, current
 from datetime import datetime
 
 from .logger import setup_logger
-from ..utils.answer_storage import load_answers, save_user_metadata, save_answer
+from ..utils.answer_storage import load_answers, save_user_metadata, save_answer, delete_answer
 from ..utils.pdn_calculator import calculate_pdn_code
 from ..utils.questionnaire import get_question
 
@@ -175,6 +175,24 @@ def submit_answer_route():
     except Exception as e:
         logger.error("Unexpected error submitting answer: %s", e, exc_info=True)
         return jsonify({"error": "An unexpected error occurred"}), 500
+
+
+@pdn_diagnose_bp.route('/delete_answer', methods=['POST'])
+def delete_answer_route():
+    """Delete a previously saved answer (used when user goes back)"""
+    try:
+        data = request.get_json()
+        question_number = data.get('question_number')
+        email = session.get('email', 'anonymous')
+
+        if question_number is None:
+            return jsonify({"error": "Missing question_number"}), 400
+
+        deleted = delete_answer(email, int(question_number))
+        return jsonify({"success": deleted, "question_number": question_number})
+    except Exception as e:
+        logger.error("Error deleting answer: %s", e)
+        return jsonify({"error": str(e)}), 400
 
 
 @pdn_diagnose_bp.route('/complete_questionnaire', methods=['POST'])

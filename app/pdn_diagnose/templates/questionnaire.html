@@ -7,81 +7,12 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/diagnose-common.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <!-- Include audio handler script -->
     <script src="/static/js/audio-handler.js"></script>
     <style>
-        :root {
-            --primary-color: #0b2e6b;
-            --text-primary: #1f2937;
-            --text-secondary: #6b7280;
-            --shadow-color: rgba(0, 0, 0, 0.1);
-            --gradient-start: #0b2e6b;
-            --gradient-end: #0b2e6b;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: #0b2e6b;
-            min-height: 100vh;
-            margin: 0;
-            padding: 0;
-            direction: rtl;
-            color: var(--text-primary);
-            transition: all 0.3s ease;
-        }
-
-        .glass-effect {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 24px;
-            box-shadow: 0 20px 40px var(--shadow-color);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(24px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .animate-fade-in-up {
-            animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
-        }
-
-        @keyframes bounce {
-            0%, 100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-10px);
-            }
-        }
-
-        .animate-bounce {
-            animation: bounce 1.2s infinite;
-        }
-
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.05);
-            }
-            100% {
-                transform: scale(1);
-            }
-        }
-
-        .animate-pulse {
-            animation: pulse 2s infinite;
-        }
+        /* Questionnaire-specific styles — shared styles in diagnose-common.css */
 
         @keyframes audioBarBounce {
             from {
@@ -194,10 +125,6 @@
                 padding: 16px;
                 border-radius: 16px;
             }
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -1048,6 +975,16 @@
 
     async function goBack() {
         if (questionHistory.length > 0) {
+            // Delete the answer for the current question before going back
+            try {
+                await fetch('/pdn-diagnose/delete_answer', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({question_number: currentQuestion})
+                });
+            } catch (e) {
+                console.error('Failed to delete answer:', e);
+            }
             currentQuestion = questionHistory.pop();
             loadQuestion(currentQuestion);
         }
