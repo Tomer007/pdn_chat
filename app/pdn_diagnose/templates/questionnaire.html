@@ -22,7 +22,7 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+            background: #0b2e6b;
             min-height: 100vh;
             margin: 0;
             padding: 0;
@@ -195,6 +195,10 @@
                 border-radius: 16px;
             }
         }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
@@ -213,7 +217,7 @@
         <p id="modalText" class="text-lg text-right text-gray-800 whitespace-pre-line mb-6 leading-relaxed"></p>
         <!-- Action button -->
         <button id="modalClose"
-                class="mx-auto block py-3 px-8 text-lg bg-gradient-to-r from-blue-900 to-blue-900 text-white rounded-lg font-semibold shadow-lg hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-blue-900/30 transform transition duration-300 hover:scale-105 animate-pulse">
+                class="mx-auto block py-3 px-8 text-lg bg-blue-900 text-white rounded-lg font-semibold shadow-lg hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-blue-900/30 transform transition duration-300 hover:scale-105 animate-pulse">
             יופי, אפשר להתקדם!
         </button>
     </div>
@@ -224,11 +228,11 @@
     <!-- Hidden fields for user data -->
     <input type="hidden" id="userName" value="{{ user_name or '' }}">
     <input type="hidden" id="userId" value="{{ user_id or '' }}">
-    <h1 class="text-4xl font-bold text-center text-blue-900 bg-gradient-to-r from-blue-900 to-blue-900 bg-clip-text text-transparent">
+    <h1 class="text-4xl font-bold text-center text-blue-900 bg-blue-900 bg-clip-text text-transparent">
         המסע לגילוי הצופן המקור שלך </h1>
 
     <!-- Progress Bar -->
-    <div id="progressContainer" class="mb-6">
+    <div id="progressContainer" class="mb-6" aria-live="polite" role="progressbar">
         <div class="flex justify-between items-center mb-2">
             <span id="progressLabel" class="text-sm font-medium text-blue-900"></span>
             <span id="progressPercent" class="text-sm font-semibold text-blue-900"></span>
@@ -258,19 +262,23 @@
             </div>
             </br>
             <div>
-                <button id="startRecordBtn"
-                        class="text-lg py-3 px-7 bg-gradient-to-r from-blue-900  to-blue-900 text-white rounded-xl shadow-lg font-semibold">
+                <button id="startRecordBtn" aria-label="התחל הקלטה"
+                        aria-label="התחל הקלטה"
+                        class="text-lg py-3 px-7 bg-blue-900 text-white rounded-xl shadow-lg font-semibold">
                     התחל להקליט
                 </button>
-                <button id="stopRecordBtn"
+                <button id="stopRecordBtn" aria-label="סיים הקלטה"
+                        aria-label="סיים הקלטה"
                         class="hidden text-lg py-3 px-7 bg-gradient-to-r from-indigo-900 to-blue-900 text-white rounded-xl shadow-lg font-semibold ml-2">
                     סיים הקלטה
                 </button>
-                <button id="reRecordBtn"
+                <button id="reRecordBtn" aria-label="הקלט שוב"
+                        aria-label="הקלט שוב"
                         class="hidden text-lg py-3 px-7 bg-white text-blue-900 rounded-xl shadow border border-blue-900 font-semibold ml-2">
                     הקלט שוב
                 </button>
-                <button id="skipRecordBtn"
+                <button id="skipRecordBtn" aria-label="דלג על הקלטה"
+                        aria-label="דלג על ההקלטה"
                         class="text-lg py-3 px-7 bg-white text-gray-600 rounded-xl shadow border border-gray-300 font-semibold ml-2">
                     דלג על ההקלטה
                 </button>
@@ -304,19 +312,23 @@
         </div>
         </br>
         <div>
-            <button id="startRecordBtn2"
-                    class="text-lg py-3 px-7 bg-gradient-to-r from-blue-900 to-blue-900 text-white rounded-xl shadow-lg font-semibold">
+            <button id="startRecordBtn2" aria-label="התחל הקלטה שנייה"
+                    aria-label="התחל הקלטה"
+                    class="text-lg py-3 px-7 bg-blue-900 text-white rounded-xl shadow-lg font-semibold">
                 התחל להקליט
             </button>
-            <button id="stopRecordBtn2"
-                    class="hidden text-lg py-3 px-7 bg-gradient-to-r from-blue-900 to-blue-900 text-white rounded-xl shadow-lg font-semibold ml-2">
+            <button id="stopRecordBtn2" aria-label="סיים הקלטה שנייה"
+                    aria-label="סיים הקלטה"
+                    class="hidden text-lg py-3 px-7 bg-blue-900 text-white rounded-xl shadow-lg font-semibold ml-2">
                 סיים הקלטה
             </button>
-            <button id="reRecordBtn2"
+            <button id="reRecordBtn2" aria-label="הקלט שוב שנייה"
+                    aria-label="הקלט שוב"
                     class="hidden text-lg py-3 px-7 bg-white text-blue-900 rounded-xl shadow border border-blue-900 font-semibold ml-2">
                 הקלט שוב
             </button>
-            <button id="skipRecordBtn2"
+            <button id="skipRecordBtn2" aria-label="דלג על הקלטה שנייה"
+                    aria-label="דלג על ההקלטה"
                     class="text-lg py-3 px-7 bg-white text-gray-600 rounded-xl shadow border border-gray-300 font-semibold ml-2">
                 דלג על ההקלטה
             </button>
@@ -331,15 +343,19 @@
         </div>
     </div>
     <div id="questionArea" class="hidden space-y-6">
+        <div id="questionLoading" class="hidden text-center py-8">
+            <div style="width:32px;height:32px;border:3px solid #e2e8f0;border-top-color:#0b2e6b;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto;"></div>
+            <p style="font-size:13px;color:#64748b;margin-top:8px;">טוען שאלה...</p>
+        </div>
         <h2 id="questionText"
-            class="text-lg font-semibold text-gray-700 mb-4 bg-gradient-to-r from-blue-900 to-blue-900 bg-clip-text text-transparent"></h2>
+            class="text-lg font-semibold text-gray-700 mb-4 bg-blue-900 bg-clip-text text-transparent"></h2>
         <div id="options" class="space-y-3"></div>
     </div>
 
     <!-- Footer Link -->
     <div class="text-center pt-4 space-y-4">
         <button id="backButton" onclick="goBack()"
-                class="text-sm w-1/2 py-2 px-3 bg-gradient-to-r from-blue-900 to-blue-900 text-white font-medium rounded-xl hover:from-blue-900 hover:to-blue-900 focus:outline-none focus:ring-4 focus:ring-blue-900/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hidden">
+                class="text-sm w-1/2 py-2 px-3 bg-blue-900 text-white font-medium rounded-xl hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-900/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hidden">
             חזור לשאלה הקודמת
         </button>
         {% include 'partials/footer.html' %}
@@ -347,7 +363,20 @@
 
 </main>
 
+<div id="toastContainer" style="position:fixed;bottom:24px;left:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;"></div>
+
 <script>
+    function showToast(message, type) {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        const bg = type === 'error' ? '#dc2626' : type === 'success' ? '#059669' : '#d97706';
+        toast.style.cssText = 'padding:12px 20px;border-radius:10px;color:white;font-size:14px;font-weight:500;box-shadow:0 4px 12px rgba(0,0,0,0.15);opacity:0;transform:translateX(-20px);transition:all 0.3s ease;background:' + bg;
+        toast.textContent = message;
+        container.appendChild(toast);
+        requestAnimationFrame(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(0)'; });
+        setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(-20px)'; setTimeout(() => toast.remove(), 300); }, 4000);
+    }
+
     let currentQuestion = 1;
     let currentStage = '';
     let nextData = null;
@@ -595,7 +624,7 @@
             // Show continue button
             const continueBtn = document.createElement('button');
             continueBtn.id = `continueBtn${this.areaId === '2' ? '2' : ''}`;
-            continueBtn.className = 'text-lg py-3 px-7 bg-gradient-to-r from-blue-900 to-blue-900 text-white rounded-xl shadow-lg font-semibold';
+            continueBtn.className = 'text-lg py-3 px-7 bg-blue-900 text-white rounded-xl shadow-lg font-semibold';
             continueBtn.innerText = this.areaId === '2' ? 'המשך לאיבחון' : 'המשך לשאלה הבאה';
             continueBtn.onclick = () => this.handleSkipContinue();
             
@@ -653,8 +682,20 @@
 
     // Question/Modal logic
     async function loadQuestion(questionNumber) {
+        // Show loading indicator
+        const loadingEl = document.getElementById('questionLoading');
+        const optionsEl = document.getElementById('options');
+        const questionTextEl = document.getElementById('questionText');
+        if (loadingEl) loadingEl.classList.remove('hidden');
+        if (optionsEl) optionsEl.innerHTML = '';
+        if (questionTextEl) questionTextEl.textContent = '';
+
         const response = await fetch(`/pdn-diagnose/questionnaire/${questionNumber}`);
         const data = await response.json();
+
+        // Hide loading indicator
+        if (loadingEl) loadingEl.classList.add('hidden');
+
         if (data.message === "No more questions.") return completeQuestionnaire();
         // Update progress for the current question, even if an instructions modal appears
         updateProgress(2 + questionNumber, `שאלה ${questionNumber} מתוך ${totalQuestions}`);
@@ -701,7 +742,7 @@
         const buttons = data.options.map(opt => {
             const btn = document.createElement('button');
             btn.innerText = opt.text;
-            btn.className = 'text-lg fade-in w-full py-4 px-6 bg-gradient-to-r from-blue-900 to-blue-900 text-white font-medium rounded-xl hover:from-blue-900 hover:to-blue-900 focus:outline-none focus:ring-4 focus:ring-blue-900/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg';
+            btn.className = 'text-lg fade-in w-full py-4 px-6 bg-blue-900 text-white font-medium rounded-xl hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-900/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg';
             btn.onclick = () => submitAnswer(data.question_number, opt.code, opt.text);
             return btn;
         });
@@ -782,7 +823,7 @@
         const submitBtn = document.createElement('button');
         submitBtn.type = 'button';
         submitBtn.innerText = 'שלח תשובה';
-        submitBtn.className = 'text-lg w-full py-3 px-6 bg-gradient-to-r from-blue-900 to-blue-900 text-white rounded-xl opacity-50 cursor-not-allowed';
+        submitBtn.className = 'text-lg w-full py-3 px-6 bg-blue-900 text-white rounded-xl opacity-50 cursor-not-allowed';
         submitBtn.disabled = true;
         submitBtn.onclick = async () => {
             if (currentStep === null || isSubmitting) return;
@@ -809,7 +850,7 @@
         instructionContainer.className = 'text-center mb-6';
 
         const mainInstruction = document.createElement('div');
-        mainInstruction.className = 'text-white bg-gradient-to-r from-blue-900 to-blue-900 px-6 py-4 rounded-2xl text-lg font-bold shadow-sm border border-blue-900 mb-3';
+        mainInstruction.className = 'text-white bg-blue-900 px-6 py-4 rounded-2xl text-lg font-bold shadow-sm border border-blue-900 mb-3';
         mainInstruction.innerHTML = 'לחץ לפי סדר החשיבות';
 
         const subInstruction = document.createElement('div');
@@ -883,7 +924,7 @@
 
         const submitBtn = document.createElement('button');
         submitBtn.type = 'button';
-        submitBtn.className = 'flex-1 py-4 px-6 bg-gradient-to-r from-blue-900 to-blue-900 text-white font-semibold rounded-xl hover:from-blue-900 hover:to-blue-900 transform hover:scale-105 transition-all duration-200 shadow-lg';
+        submitBtn.className = 'flex-1 py-4 px-6 bg-blue-900 text-white font-semibold rounded-xl hover:bg-blue-800 transform hover:scale-105 transition-all duration-200 shadow-lg';
         submitBtn.textContent = 'שלח דירוג';
 
         const errorDiv = document.createElement('div');
@@ -908,7 +949,7 @@
 
         const resetBtn = document.createElement('button');
         resetBtn.type = 'button';
-        resetBtn.className = 'flex-1 py-4 px-6 bg-gradient-to-r from-blue-900  to-blue-900  text-white font-semibold rounded-xl hover:from-blue-900 hover:to-blue-900 transform hover:scale-105 transition-all duration-200 border border-blue-900';
+        resetBtn.className = 'flex-1 py-4 px-6 bg-blue-900 text-white font-semibold rounded-xl hover:bg-blue-800 transform hover:scale-105 transition-all duration-200 border border-blue-900';
         resetBtn.textContent = 'איפוס';
 
         resetBtn.onclick = () => {
@@ -990,7 +1031,7 @@
             
         } catch (error) {
             console.error('Error submitting answer:', error);
-            alert(`שגיאה בשליחת התשובה: ${error.message}. אנא נסה שוב.`);
+            showToast('שגיאה בשליחת התשובה: ' + error.message, 'error');
             enableAllButtons(); // Re-enable buttons on error
         } finally {
             isSubmitting = false;
@@ -1002,7 +1043,7 @@
             method: 'POST',
             headers: {'Content-Type': 'application/json'}
         });
-        if (resp.ok) window.location.href = '/pdn-diagnose/pdn_report'; else alert('שגיאה בסיום השאלון, אנא נסה שוב.');
+        if (resp.ok) window.location.href = '/pdn-diagnose/pdn_report'; else showToast('שגיאה בסיום השאלון, אנא נסה שוב', 'error');
     }
 
     async function goBack() {
@@ -1011,6 +1052,20 @@
             loadQuestion(currentQuestion);
         }
     }
+
+    // Focus trap for instruction modal
+    document.addEventListener('keydown', function(e) {
+        const modal = document.getElementById('instructionModal');
+        if (modal.style.display !== 'flex') return;
+        if (e.key === 'Escape') {
+            document.getElementById('modalClose').click();
+            return;
+        }
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            document.getElementById('modalClose').focus();
+        }
+    });
 
 
 </script>

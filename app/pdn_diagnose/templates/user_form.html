@@ -20,7 +20,7 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+            background: #0b2e6b;
             min-height: 100vh;
             margin: 0;
             padding: 0;
@@ -101,9 +101,9 @@
 <body class="flex items-center justify-center min-h-screen p-4">
 <div class="card p-8 max-w-4xl w-full mx-auto rounded-2xl space-y-6 text-right">
     <div class="text-center">
-        <h1 class="text-4xl font-extrabold bg-gradient-to-r from-blue-900 to-blue-900 bg-clip-text text-transparent">
+        <h1 class="text-4xl font-extrabold bg-blue-900 bg-clip-text text-transparent">
             PDN Center</h1>
-        <p class="text-lg font-medium mt-2 bg-gradient-to-r from-blue-900 to-blue-900 bg-clip-text text-transparent">
+        <p class="text-lg font-medium mt-2 bg-blue-900 bg-clip-text text-transparent">
             המסע לגילוי הצופן המקור שלך </p>
         {% if personal_instructions %}
         <div id="welcomeMessage"
@@ -117,8 +117,8 @@
             <!-- Input Group -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2 text-right">
-                        <i class="fas fa-user mr-2"> שם פרטי </i> <span class="text-red-500">*</span>
+                    <label for="name" class="block text-sm font-medium text-gray-700 mb-2 text-right">
+                        <i class="fas fa-user mr-2"></i> שם פרטי <span class="text-red-500">*</span>
                     </label>
                     <input type="text" id="name" name="name" required
                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 form-input"
@@ -126,8 +126,8 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2 text-right">
-                        <i class="fas fa-user mr-2"> שם משפחה </i> <span class="text-red-500">*</span>
+                    <label for="last_name" class="block text-sm font-medium text-gray-700 mb-2 text-right">
+                        <i class="fas fa-user mr-2"></i> שם משפחה <span class="text-red-500">*</span>
                     </label>
                     <input type="text" id="last_name" name="last_name" required
                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 form-input"
@@ -135,8 +135,8 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2 text-right">
-                        <i class="fas fa-phone mr-2"> טלפון </i> <span class="text-red-500">*</span>
+                    <label for="phone" class="block text-sm font-medium text-gray-700 mb-2 text-right">
+                        <i class="fas fa-phone mr-2"></i> טלפון <span class="text-red-500">*</span>
                     </label>
                     <input type="tel" id="phone" name="phone" required
                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 form-input"
@@ -144,8 +144,8 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2 text-right">
-                        <i class="fas fa-language mr-2"> שפת אם </i>
+                    <label for="mother_language" class="block text-sm font-medium text-gray-700 mb-2 text-right">
+                        <i class="fas fa-language mr-2"></i> שפת אם
                     </label>
                     <select id="mother_language" name="mother_language"
                             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 form-input">
@@ -157,8 +157,8 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2 text-right">
-                        <i class="fas fa-venus-mars mr-2"> מגדר </i>
+                    <label for="gender" class="block text-sm font-medium text-gray-700 mb-2 text-right">
+                        <i class="fas fa-venus-mars mr-2"></i> מגדר
                     </label>
                     <select id="gender" name="gender"
                             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 form-input">
@@ -170,8 +170,8 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2 text-right">
-                        <i class="fas fa-graduation-cap mr-2"> השכלה </i>
+                    <label for="education" class="block text-sm font-medium text-gray-700 mb-2 text-right">
+                        <i class="fas fa-graduation-cap mr-2"></i> השכלה
                     </label>
                     <select id="education" name="education"
                             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 form-input">
@@ -185,8 +185,8 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2 text-right">
-                        <i class="fas fa-briefcase mr-2"> תפקיד בעבודה </i>
+                    <label for="job_title" class="block text-sm font-medium text-gray-700 mb-2 text-right">
+                        <i class="fas fa-briefcase mr-2"></i> תפקיד בעבודה
                     </label>
                     <select id="job_title" name="job_title" onchange="handleJobChange()"
                             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 form-input">
@@ -207,16 +207,16 @@
                            placeholder="הכנס תפקיד אחר..."/>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2 text-right">
-                        <i class="fas fa-calendar mr-2"> שנת לידה </i>
+                    <label for="birth_year" class="block text-sm font-medium text-gray-700 mb-2 text-right">
+                        <i class="fas fa-calendar mr-2"></i> שנת לידה
                     </label>
-                    <input type="number" id="birth_year" name="birth_year" min="1900" max="2024"
+                    <input type="number" id="birth_year" name="birth_year" min="1900" max="2010"
                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 form-input"
                            placeholder="הכנס שנת לידה"/>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2 text-right">
-                        <i class="fas fa-user mr-2"> שם מפנה</i>
+                    <label for="referral_source" class="block text-sm font-medium text-gray-700 mb-2 text-right">
+                        <i class="fas fa-user mr-2"></i> שם מפנה
                     </label>
                     <input type="text" id="referral_source" name="referral_source"
                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 form-input"
@@ -244,28 +244,28 @@
     <!-- Consent Section -->
     <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg text-right">
         <h3 class="text-sm font-semibold text-blue-800 mb-3 flex items-center">
-            <i class="fas fa-shield-alt mr-2"> הסכמה לשימוש במערכת </i>
+            <i class="fas fa-shield-alt mr-2"></i> הסכמה לשימוש במערכת
         </h3>
 
         <div class="space-y-2 text-xs text-blue-700">
             <p class="flex items-start">
-                <i class="fas fa-exclamation-triangle mr-2 mt-1"> האבחון אינו תחליף לטיפול רפואי או מקצועי. השימוש אישי
-                    ובאחריות המשתמש בלבד. </i>
+                <i class="fas fa-exclamation-triangle mr-2 mt-1"></i> האבחון אינו תחליף לטיפול רפואי או מקצועי. השימוש אישי
+                    ובאחריות המשתמש בלבד.
 
             </p>
 
             <p class="flex items-start">
-                <i class="fas fa-database mr-2 mt-1"> הנתונים שייאספו ישמשו לאבחון אישי, ולעיתים למחקר ולשיפור תוך שמירה
-                    על אנונימיות. </i>
+                <i class="fas fa-database mr-2 mt-1"></i> הנתונים שייאספו ישמשו לאבחון אישי, ולעיתים למחקר ולשיפור תוך שמירה
+                    על אנונימיות.
 
             </p>
 
             <p class="flex items-start">
-                <i class="fas fa-check-circle mr-2 mt-1"> השימוש במערכת בכל שלב מהווה הסכמה לכך. </i>
+                <i class="fas fa-check-circle mr-2 mt-1"></i> השימוש במערכת בכל שלב מהווה הסכמה לכך.
 
             </p>
             <p>
-                <i class="fas fa-copyright mr-2 mt-1"> כל הזכויות שמורות למרכז PDN</i>
+                <i class="fas fa-copyright mr-2 mt-1"></i> כל הזכויות שמורות למרכז PDN
 
             </p>
         </div>
@@ -275,7 +275,20 @@
 </div>
 </div>
 
+<div id="toastContainer" style="position:fixed;bottom:24px;left:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;"></div>
+
 <script>
+    function showToast(message, type) {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        const bg = type === 'error' ? '#dc2626' : type === 'success' ? '#059669' : '#d97706';
+        toast.style.cssText = 'padding:12px 20px;border-radius:10px;color:white;font-size:14px;font-weight:500;box-shadow:0 4px 12px rgba(0,0,0,0.15);opacity:0;transform:translateX(-20px);transition:all 0.3s ease;background:' + bg;
+        toast.textContent = message;
+        container.appendChild(toast);
+        requestAnimationFrame(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(0)'; });
+        setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(-20px)'; setTimeout(() => toast.remove(), 300); }, 4000);
+    }
+
     function handleJobChange() {
         const jobSelect = document.getElementById('job_title');
         const customInput = document.getElementById('custom_job_title');
@@ -324,7 +337,7 @@
         }
 
         if (!isValid) {
-            alert('אנא מלא את כל השדות המסומנים ב-*');
+            showToast('אנא מלא את כל השדות המסומנים ב-*', 'error');
             return;
         }
 
@@ -356,11 +369,11 @@
                 window.location.href = '/pdn-diagnose/chat';
             } else {
                 const errorData = await response.json();
-                alert('שגיאה בשמירת הפרטים: ' + (errorData.detail || 'אנא נסה שוב'));
+                showToast('שגיאה בשמירת הפרטים: ' + (errorData.detail || 'אנא נסה שוב'), 'error');
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('שגיאה בשמירת הפרטים, אנא נסה שוב.');
+            showToast('שגיאה בשמירת הפרטים, אנא נסה שוב', 'error');
         }
     });
 
