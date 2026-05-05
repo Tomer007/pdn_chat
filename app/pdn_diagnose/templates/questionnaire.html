@@ -178,7 +178,7 @@
             <p class="text-lg mb-4">שלום {{ user_name }},</p>
             <p class="text-lg mb-4">בוא נגלה יחד את קוד המקור הייחודי שלך, המצפן הפנימי שלך לצמיחה והתפתחות.</p>
             <p class="text-lg mb-4">ענה על השאלה הבאה כדי לעזור לנו לזהות את קוד המקור שלך:</p>
-            <div class="bg-blue-900 border border-blue-200 rounded-lg p-3 mb-4">
+            <div class="rounded-lg p-3 mb-4" style="background-color: #d97706; border: 1px solid #f59e0b;">
                 <p class="text-sm text-white font-medium">
                     <i class="fas fa-info-circle mr-2"></i>
                     <strong>חשוב:</strong> ההקלטה תיעצר אוטומטית לאחר דקה וחצי
@@ -227,7 +227,7 @@
          dir="rtl">
         <p class="text-lg mb-4">תודה על התשובה הראשונה!</p>
         <p class="text-lg mb-4">עכשיו בוא נעמיק קצת יותר. אנא ענה על השאלה הבאה:</p>
-        <div class="bg-blue-900 border border-blue-200 rounded-lg p-3 mb-4">
+        <div class="rounded-lg p-3 mb-4" style="background-color: #d97706; border: 1px solid #f59e0b;">
             <p class="text-sm text-white font-medium">
                 <i class="fas fa-info-circle mr-2"></i>
                 <strong>חשוב:</strong> ההקלטה תיעצר אוטומטית לאחר דקה וחצי
@@ -777,7 +777,9 @@
         instructionContainer.className = 'text-center mb-6';
 
         const mainInstruction = document.createElement('div');
-        mainInstruction.className = 'text-white bg-blue-900 px-6 py-4 rounded-2xl text-lg font-bold shadow-sm border border-blue-900 mb-3';
+        mainInstruction.className = 'text-white px-6 py-4 rounded-2xl text-lg font-bold shadow-sm mb-3';
+        mainInstruction.style.backgroundColor = '#047857';
+        mainInstruction.style.border = '1px solid #047857';
         mainInstruction.innerHTML = 'לחץ לפי סדר החשיבות';
 
         const subInstruction = document.createElement('div');

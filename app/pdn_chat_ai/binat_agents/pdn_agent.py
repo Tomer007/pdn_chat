@@ -49,7 +49,7 @@ class PDNAgent:
 
         # Use a cheap model for summarization — same provider as main LLM
         if self._is_anthropic:
-            self.summary_llm = ChatAnthropic(model="claude-3-5-haiku-20241022", temperature=0.3, api_key=config.ANTHROPIC_API_KEY)
+            self.summary_llm = ChatAnthropic(model="claude-3-5-haiku-latest", temperature=0.3, api_key=config.ANTHROPIC_API_KEY)
         else:
             self.summary_llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.3, api_key=config.OPENAI_API_KEY)
 
