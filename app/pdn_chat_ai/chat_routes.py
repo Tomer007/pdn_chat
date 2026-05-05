@@ -13,9 +13,11 @@ from .binat_agents.pdn_agent import PDNAgent
 from .logger import setup_logger
 from .user_manager import get_user_manager
 from ..utils.conversation_stats import conversation_stats
+from ..utils.user_history_service import UserHistoryPayload, UserHistoryService
 
 logger = setup_logger()
 _pdn_agent = None
+_history_service = UserHistoryService()
 
 # Track active chat sessions
 chat_sessions = {}  # session_id -> {email, user_id, login_time}
@@ -78,6 +80,11 @@ def login():
             "user_id": user_id,
             "login_time": datetime.now()
         }
+
+        # Load persisted conversation history for cross-session continuity
+        history_payload = _history_service.load_user_history(email)
+        session['user_history'] = history_payload.to_dict() if history_payload else None
+
         logger.info("User %s logged in successfully", email)
         return jsonify({
             "success": True,
@@ -94,8 +101,15 @@ def login():
 @pdn_chat_ai_bp.route('/logout', methods=['POST'])
 @handle_errors
 def logout():
-    """Handle user logout"""
+    """Handle user logout — save conversation history before clearing session."""
     user_email = session.get('user_email')
+    user_name = session.get('user_name')
+    
+    # Persist conversation history via the agent's public API
+    if user_name and user_email:
+        agent = get_agent_instance()
+        agent.persist_session(user_name, user_email)
+        logger.info("Saved conversation history for %s on logout", user_email)
     
     # Remove from active sessions
     chat_sessions.pop(session.sid, None)
@@ -133,10 +147,25 @@ def chat_with_binat():
     daily_conversation_limit = session.get('daily_conversation_limit', 15)
 
     agent = get_agent_instance()
+
+    # Register email mapping for history persistence (display name may be Hebrew)
+    chat_user_name = data.get('user_name', 'Anonymous')
+    if user_email and chat_user_name:
+        agent.register_user_email(chat_user_name, user_email)
+
+    # Inject persisted history into agent context (once per session)
+    user_history_data = session.pop('user_history', None)
+    if user_history_data:
+        payload = UserHistoryPayload.from_dict(user_history_data)
+        # Seed the agent's in-memory summary with persisted history + session marker
+        last_date = payload.metadata.get('last_session_date', payload.updated_at[:10])
+        session_marker = f"\n--- שיחה חדשה ({datetime.now().strftime('%d.%m.%Y')}) | שיחה קודמת: {last_date} ---"
+        agent.conversation_history[chat_user_name].summary = payload.summary + session_marker
+
     return jsonify({
         "response": agent.chat_with_binat(
             data.get('message', '').strip(),
-            data.get('user_name', 'Anonymous'),
+            chat_user_name,
             data.get('pdn_code', ''),
             daily_conversation_limit=daily_conversation_limit
         ),

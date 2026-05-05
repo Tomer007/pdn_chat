@@ -9,12 +9,13 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union
 
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 
+from app.utils.user_history_service import UserHistoryService
 from config import Config
 
 @dataclass
@@ -26,9 +27,11 @@ class PDNAgent:
     """Single agent for all PDN chat interactions."""
     
     MAX_CONTEXT_TOKENS = 3500
-    MAX_TURNS_BEFORE_SUMMARY = 10
+    MAX_TURNS_BEFORE_SUMMARY = 6
     RAW_TURNS_TO_KEEP = 3
     MAX_CONVERSATIONS_PER_DAY = 15
+    MAX_SUMMARY_TOKENS = 500  # Budget cap for summary length
+    EXEMPT_USERS = frozenset(['פנינה'])  # Users exempt from daily limits
 
     def __init__(self, llm_provider=None, model_name=None):
         """Initialize the PDN agent.
@@ -46,12 +49,14 @@ class PDNAgent:
 
         # Use a cheap model for summarization — same provider as main LLM
         if self._is_anthropic:
-            self.summary_llm = ChatAnthropic(model="claude-3-5-haiku-20241022", temperature=0.3, max_tokens=300, api_key=config.ANTHROPIC_API_KEY)
+            self.summary_llm = ChatAnthropic(model="claude-3-5-haiku-20241022", temperature=0.3, api_key=config.ANTHROPIC_API_KEY)
         else:
             self.summary_llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.3, api_key=config.OPENAI_API_KEY)
 
         self.conversation_history = defaultdict(UserHistory)
         self.user_conversations = defaultdict(lambda: {'count': 0, 'last_reset': datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)})
+        # Map display name → email for history persistence (display names may be non-ASCII)
+        self._user_email_map: Dict[str, str] = {}
 
         # Token usage tracking — persisted to file with daily granularity
         self._usage_file = Path(os.getenv('SAVED_RESULTS_DIR', 'saved_results')) / 'token_usage.json'
@@ -59,13 +64,18 @@ class PDNAgent:
         self._last_usage_save = 0  # timestamp of last disk write
         self._usage_save_interval = 5  # seconds between disk writes
 
+        # User history persistence service
+        self.history_service = UserHistoryService(
+            base_dir=str(Path(os.getenv('SAVED_RESULTS_DIR', 'saved_results')))
+        )
+
         self.logger = logging.getLogger("pdn_agent")
         self._prompt_cache = {}
         self._prompts_dir = Path(__file__).parent / "prompts"
 
         self.logger.info("Initialized PDNAgent with %s using model %s", self.llm_provider, self.model_name)
 
-    def _initialize_llm(self, config):
+    def _initialize_llm(self, config) -> Union[ChatAnthropic, ChatOpenAI]:
         """Initialize the appropriate LLM based on the provider."""
         providers = {
             'anthropic': (ChatAnthropic, config.ANTHROPIC_API_KEY, "ANTHROPIC_API_KEY"),
@@ -94,9 +104,8 @@ class PDNAgent:
     def _has_exceeded_daily_limit(self, user_name: str, max_conversations_per_day: int = None) -> bool:
         """Check if the user has exceeded the daily conversation limit."""
         self._reset_daily_count(user_name)
-        exempt_users = ['פנינה']
 
-        if user_name not in exempt_users:
+        if user_name not in self.EXEMPT_USERS:
             limit = max_conversations_per_day or self.MAX_CONVERSATIONS_PER_DAY
             return self.user_conversations[user_name]['count'] >= limit
         else:
@@ -294,33 +303,89 @@ class PDNAgent:
             'period_days': days
         }
 
-    def _summarize_old_turns(self, user_name: str):
-        """Summarize old exchanges when raw list exceeds threshold."""
+    def _summarize_old_turns(self, user_name: str) -> None:
+        """Summarize old exchanges into a single consolidated narrative with token budget."""
         hist = self.conversation_history[user_name]
         if len(hist.raw) <= self.RAW_TURNS_TO_KEEP:
             return
         
         old_turns = hist.raw[:-self.RAW_TURNS_TO_KEEP]
         text = "\n".join(f"User: {ex['user']}\nAssistant: {ex['assistant']}" for ex in old_turns)
+        today = datetime.now().strftime('%Y-%m-%d')
+        
+        # Build context for the LLM: existing summary + new turns
+        if hist.summary:
+            merge_input = (
+                f"EXISTING SUMMARY:\n{hist.summary}\n\n"
+                f"NEW CONVERSATION (date: {today}):\n{text}"
+            )
+            prompt = self._get_merge_prompt()
+        else:
+            merge_input = f"CONVERSATION (date: {today}):\n{text}"
+            prompt = self._get_initial_prompt()
         
         try:
-            new_summary = self.summary_llm.invoke([
-                SystemMessage(content=(
-                    "Summarize this conversation in a structured format. Be extremely concise (max 4 lines):\n"
-                    "Topic: [main topic]\n"
-                    "Stage: [1=opening, 2=clarification, 3=reflection, 4=summary]\n"
-                    "Insight: [key emotional/personal insight revealed]\n"
-                    "Action: [action suggested or taken]"
-                )),
-                HumanMessage(content=text)
-            ]).content
+            consolidated = self.summary_llm.invoke([
+                SystemMessage(content=prompt),
+                HumanMessage(content=merge_input)
+            ], max_tokens=self.MAX_SUMMARY_TOKENS).content
             
-            hist.summary = f"{hist.summary}\n{new_summary}".strip() if hist.summary else new_summary
+            hist.summary = consolidated.strip()
+            # Persist history to disk for cross-session continuity (use email, not display name)
+            persist_id = self._user_email_map.get(user_name, user_name)
+            if hist.summary:
+                self.history_service.save_user_history(
+                    persist_id, hist.summary,
+                    metadata={
+                        "source": "PDNChat",
+                        "summary_version": "3",
+                        "last_session_date": today,
+                    }
+                )
             hist.raw = hist.raw[-self.RAW_TURNS_TO_KEEP:]
             self.logger.info("Summarized %d turns for %s", len(old_turns), user_name)
         except Exception as e:
             # Summarization failed — keep raw history intact to avoid data loss
             self.logger.warning("Summarization failed for %s, keeping raw history: %s", user_name, e)
+
+    def _get_merge_prompt(self) -> str:
+        """Return the prompt for merging existing summary with new conversation."""
+        return (
+            "You are a personal development coach's memory system. "
+            "Merge the EXISTING SUMMARY with the NEW CONVERSATION into ONE consolidated summary.\n\n"
+            "FORMAT — produce exactly these sections:\n"
+            "נושאים מרכזיים: [main topics/challenges discussed across all sessions]\n"
+            "פרטים חשובים: [specific names, numbers, decisions — NEVER drop concrete details]\n"
+            "מסע רגשי: [how the user's feelings evolved over time]\n"
+            "החלטות ופעולות: [what was decided, what actions were taken or planned]\n"
+            "לא נפתר: [open questions, unresolved tensions]\n"
+            "סטטוס נוכחי: [where the user left off, what they plan to do next]\n\n"
+            "RULES:\n"
+            "- ONE consolidated narrative per section, not separate blocks per session\n"
+            "- NEVER drop specific numbers, names, prices, or decisions\n"
+            "- Include dates when things happened (e.g., 'ב-5.5 החליט...')\n"
+            "- Prioritize recent/unresolved items over old resolved ones\n"
+            "- If summary is getting long, compress OLD RESOLVED items, keep RECENT ones detailed\n"
+            "- Max 10 lines total. Use Hebrew.\n"
+            "- If the user spoke English about specific topics, keep those terms in English"
+        )
+
+    def _get_initial_prompt(self) -> str:
+        """Return the prompt for creating the first summary from a conversation."""
+        return (
+            "You are a personal development coach's memory system. "
+            "Summarize this conversation into a structured memory.\n\n"
+            "FORMAT:\n"
+            "נושאים מרכזיים: [main topics/challenges]\n"
+            "פרטים חשובים: [specific names, numbers, decisions]\n"
+            "מסע רגשי: [user's emotional state and why]\n"
+            "החלטות ופעולות: [what was decided or planned]\n"
+            "סטטוס נוכחי: [where the user left off]\n\n"
+            "RULES:\n"
+            "- Keep specific details: numbers, names, prices, dates\n"
+            "- Max 8 lines. Use Hebrew.\n"
+            "- If the user spoke English about specific topics, keep those terms"
+        )
 
     def _add_to_history(self, user_name: str, user_query: str, assistant_response: str):
         """Add conversation exchange to history with hybrid summarization."""
@@ -363,6 +428,62 @@ class PDNAgent:
         """Clear conversation history for user."""
         if user_name in self.conversation_history:
             self.conversation_history[user_name] = UserHistory()
+
+    def register_user_email(self, user_name: str, email: str) -> None:
+        """Register the email for a display name so history can be persisted by email."""
+        if user_name and email:
+            self._user_email_map[user_name] = email
+
+    def persist_session(self, user_name: str, email: str) -> None:
+        """Force-save all conversation history for a user (called on logout).
+        
+        Summarizes any remaining raw turns and persists the result to disk.
+        """
+        if not user_name or not email:
+            return
+        self.register_user_email(user_name, email)
+        hist = self.conversation_history.get(user_name)
+        if not hist:
+            return
+        
+        if hist.raw:
+            # Summarize ALL remaining turns (bypass threshold)
+            old_turns = hist.raw
+            text = "\n".join(
+                f"User: {ex['user']}\nAssistant: {ex['assistant']}" for ex in old_turns
+            )
+            today = datetime.now().strftime('%Y-%m-%d')
+            
+            if hist.summary:
+                merge_input = (
+                    f"EXISTING SUMMARY:\n{hist.summary}\n\n"
+                    f"NEW CONVERSATION (date: {today}):\n{text}"
+                )
+                prompt = self._get_merge_prompt()
+            else:
+                merge_input = f"CONVERSATION (date: {today}):\n{text}"
+                prompt = self._get_initial_prompt()
+            
+            try:
+                consolidated = self.summary_llm.invoke([
+                    SystemMessage(content=prompt),
+                    HumanMessage(content=merge_input)
+                ], max_tokens=self.MAX_SUMMARY_TOKENS).content
+                hist.summary = consolidated.strip()
+                hist.raw = []
+            except Exception as e:
+                self.logger.warning("Logout summarization failed for %s: %s", user_name, e)
+        
+        # Persist whatever summary we have
+        if hist.summary:
+            self.history_service.save_user_history(
+                email, hist.summary,
+                metadata={
+                    "source": "PDNChat",
+                    "summary_version": "3",
+                    "last_session_date": datetime.now().strftime('%Y-%m-%d'),
+                }
+            )
 
     def chat_with_binat(self, user_query: str, user_name: str = None, pdn_code: str = None, daily_conversation_limit: int = None) -> str:
         """Generate response using PDN prompt."""
