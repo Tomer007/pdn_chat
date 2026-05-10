@@ -172,21 +172,26 @@ class RelationshipAgent(BasePDNAgent):
         relationship_label = RELATIONSHIP_LABELS.get(relationship_type, relationship_type)
 
         # Compose final prompt with relationship type context
-        composed = (
-            f"{base_prompt}\n\n"
-            f"## Relationship Context\n"
-            f"Relationship type: {relationship_label}\n\n"
-            f"## User's PDN Code:\n{user_code_data}\n\n"
-            f"## Partner's PDN Code:\n{partner_code_data}\n\n"
-        )
-
-        # Append guardrails
+        # Compose: static instructions first (cacheable), dynamic data last
+        # Anthropic caches from the beginning of the prompt, so static content first
+        # maximizes cache hit rate across different user/partner code combinations.
+        
+        # Load guardrails (static — same for all users)
         if not GUARDRAILS_PATH.exists():
             raise ValueError(
                 f"Guardrails prompt file not found: {GUARDRAILS_PATH}"
             )
         guardrails = GUARDRAILS_PATH.read_text(encoding='utf-8')
-        composed += guardrails
+
+        composed = (
+            f"{base_prompt}\n\n"
+            f"{guardrails}\n\n"
+            f"---\n\n"
+            f"## Relationship Context\n"
+            f"Relationship type: {relationship_label}\n\n"
+            f"## User's PDN Code:\n{user_code_data}\n\n"
+            f"## Partner's PDN Code:\n{partner_code_data}\n"
+        )
 
         # Cache the composed prompt
         self._prompt_cache[cache_key] = composed

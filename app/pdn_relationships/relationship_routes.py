@@ -24,10 +24,15 @@ _history_service = UserHistoryService()
 
 
 def get_relationship_agent():
-    """Get or create the single RelationshipAgent instance."""
+    """Get or create the single RelationshipAgent instance.
+    
+    Uses Anthropic (Sonnet for chat, Haiku for summarization) — same as binat.
+    """
     global _relationship_agent
     if _relationship_agent is None:
-        _relationship_agent = RelationshipAgent()
+        from .agents.base_pdn_agent import BaseAgentConfig
+        config = BaseAgentConfig(llm_provider='anthropic')
+        _relationship_agent = RelationshipAgent(config=config)
         logger.info("Created new RelationshipAgent instance")
     return _relationship_agent
 
