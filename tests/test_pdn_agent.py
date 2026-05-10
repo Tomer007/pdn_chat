@@ -24,8 +24,8 @@ def mock_config():
 def agent(tmp_path, monkeypatch, mock_config):
     """Create a PDNAgent with mocked LLM."""
     monkeypatch.setenv('SAVED_RESULTS_DIR', str(tmp_path))
-    with patch('app.pdn_chat_ai.binat_agents.pdn_agent.Config', return_value=mock_config):
-        with patch('app.pdn_chat_ai.binat_agents.pdn_agent.ChatOpenAI') as mock_openai:
+    with patch('app.pdn_relationships.agents.base_pdn_agent.Config', return_value=mock_config):
+        with patch('app.pdn_relationships.agents.base_pdn_agent.ChatOpenAI') as mock_openai:
             mock_llm = MagicMock()
             mock_openai.return_value = mock_llm
             ag = PDNAgent(llm_provider='openai', model_name='gpt-4o-mini')

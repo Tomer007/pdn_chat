@@ -12,9 +12,9 @@ from app.pdn_chat_ai.binat_agents.pdn_agent import PDNAgent, UserHistory
 @pytest.fixture
 def agent():
     """Create a PDNAgent with mocked LLMs so no real API calls are made."""
-    with patch("app.pdn_chat_ai.binat_agents.pdn_agent.ChatOpenAI") as mock_openai, \
-         patch("app.pdn_chat_ai.binat_agents.pdn_agent.ChatAnthropic"), \
-         patch("app.pdn_chat_ai.binat_agents.pdn_agent.Config") as mock_config:
+    with patch("app.pdn_relationships.agents.base_pdn_agent.ChatOpenAI") as mock_openai, \
+         patch("app.pdn_relationships.agents.base_pdn_agent.ChatAnthropic"), \
+         patch("app.pdn_relationships.agents.base_pdn_agent.Config") as mock_config:
 
         cfg = mock_config.return_value
         cfg.LLM_PROVIDER = "openai"
@@ -98,20 +98,22 @@ class TestSummarizationTriggerFrequency:
             "Summarization fired again after just 1 new turn — should wait for a batch"
 
     def test_summarization_does_not_fire_every_turn_after_first(self, agent):
-        """After the fix, summarization should NOT fire on every turn.
-        With MAX_TURNS_BEFORE_SUMMARY=10 and RAW_TURNS_TO_KEEP=5,
-        after the first summarization at turn 11, the next batch
-        shouldn't trigger until turn 16."""
+        """After the first summarization, adding turns below the threshold
+        should NOT trigger another summarization.
+        With MAX_TURNS_BEFORE_SUMMARY=6 and RAW_TURNS_TO_KEEP=3,
+        after the first summarization at turn 6, raw is trimmed to 3.
+        Adding 1-2 more turns should NOT trigger again (only at 6 raw turns)."""
         user = "test_user"
-        # Trigger first summarization at turn 11 (> 10 threshold)
-        for i in range(agent.MAX_TURNS_BEFORE_SUMMARY + 1):
+        # Trigger first summarization at turn 6 (>= MAX_TURNS_BEFORE_SUMMARY)
+        for i in range(agent.MAX_TURNS_BEFORE_SUMMARY):
             agent._add_to_history(user, f"question {i}", f"answer {i}")
 
         first_count = agent.summary_llm.invoke.call_count
         assert first_count == 1
 
-        # Add 3 more turns — none should trigger summarization
-        for i in range(3):
+        # After summarization, raw is trimmed to RAW_TURNS_TO_KEEP (3).
+        # Adding 1-2 more turns should NOT trigger summarization (3+2=5 < 6)
+        for i in range(agent.MAX_TURNS_BEFORE_SUMMARY - agent.RAW_TURNS_TO_KEEP - 1):
             agent._add_to_history(user, f"extra question {i}", f"extra answer {i}")
 
         assert agent.summary_llm.invoke.call_count == 1, \
@@ -141,13 +143,16 @@ class TestSummarizeOldTurns:
         agent._summarize_old_turns(user)
 
         assert len(hist.raw) == agent.RAW_TURNS_TO_KEEP
-        # The kept turns should be the most recent ones
-        assert hist.raw[0]["user"] == "q3"
+        # The kept turns should be the most recent ones (last RAW_TURNS_TO_KEEP=3)
+        assert hist.raw[0]["user"] == f"q{8 - agent.RAW_TURNS_TO_KEEP}"
         assert hist.raw[-1]["user"] == "q7"
         assert hist.summary == "summary of old turns"
 
     def test_appends_to_existing_summary(self, agent):
-        """New summary should be appended to existing summary."""
+        """When existing summary exists, the LLM is asked to merge old + new.
+        The implementation delegates merging to the LLM (via merge prompt),
+        so the result is whatever the LLM returns (mocked as 'summary of old turns').
+        We verify that the LLM was invoked with the existing summary in its input."""
         user = "test_user"
         hist = agent.conversation_history[user]
         hist.summary = "previous summary"
@@ -156,17 +161,23 @@ class TestSummarizeOldTurns:
 
         agent._summarize_old_turns(user)
 
-        assert "previous summary" in hist.summary
-        assert "summary of old turns" in hist.summary
+        # The LLM was called to merge
+        assert agent.summary_llm.invoke.call_count == 1
+        # Verify the merge input included the existing summary
+        call_args = agent.summary_llm.invoke.call_args[0][0]
+        human_msg_content = call_args[1].content
+        assert "previous summary" in human_msg_content
+        # The summary is now whatever the LLM returned (mocked)
+        assert hist.summary == "summary of old turns"
 
 
 class TestFormatHistory:
     """Tests for the _format_history method."""
 
     def test_no_history_returns_default(self, agent):
-        """Should return 'No previous conversation.' for unknown user."""
+        """Should return empty string for unknown user with no history."""
         result = agent._format_history("unknown_user")
-        assert result == "No previous conversation."
+        assert result == ""
 
     def test_only_raw_turns(self, agent):
         """Should format only recent exchanges when no summary exists."""
@@ -229,9 +240,9 @@ class TestPromptCaching:
         """When using Anthropic, _build_system_message should use content blocks
         with cache_control (not additional_kwargs) since langchain-anthropic
         only reads cache_control from content block dicts."""
-        with patch("app.pdn_chat_ai.binat_agents.pdn_agent.ChatOpenAI"), \
-             patch("app.pdn_chat_ai.binat_agents.pdn_agent.ChatAnthropic") as mock_anthropic, \
-             patch("app.pdn_chat_ai.binat_agents.pdn_agent.Config") as mock_config:
+        with patch("app.pdn_relationships.agents.base_pdn_agent.ChatOpenAI"), \
+             patch("app.pdn_relationships.agents.base_pdn_agent.ChatAnthropic") as mock_anthropic, \
+             patch("app.pdn_relationships.agents.base_pdn_agent.Config") as mock_config:
 
             cfg = mock_config.return_value
             cfg.LLM_PROVIDER = "anthropic"
@@ -254,9 +265,9 @@ class TestPromptCaching:
 
     def test_openai_system_message_no_cache_control(self):
         """When using OpenAI, _build_system_message should NOT add cache_control."""
-        with patch("app.pdn_chat_ai.binat_agents.pdn_agent.ChatOpenAI") as mock_openai, \
-             patch("app.pdn_chat_ai.binat_agents.pdn_agent.ChatAnthropic"), \
-             patch("app.pdn_chat_ai.binat_agents.pdn_agent.Config") as mock_config:
+        with patch("app.pdn_relationships.agents.base_pdn_agent.ChatOpenAI") as mock_openai, \
+             patch("app.pdn_relationships.agents.base_pdn_agent.ChatAnthropic"), \
+             patch("app.pdn_relationships.agents.base_pdn_agent.Config") as mock_config:
 
             cfg = mock_config.return_value
             cfg.LLM_PROVIDER = "openai"
@@ -275,11 +286,11 @@ class TestPromptCaching:
 class TestSummaryLLMProviderSelection:
     """Tests that the summary LLM always uses gpt-4o-mini regardless of main provider."""
 
-    def test_anthropic_provider_uses_gpt4o_mini_for_summary(self):
-        """Even when main provider is Anthropic, summary_llm should be gpt-4o-mini."""
-        with patch("app.pdn_chat_ai.binat_agents.pdn_agent.ChatOpenAI") as mock_openai, \
-             patch("app.pdn_chat_ai.binat_agents.pdn_agent.ChatAnthropic") as mock_anthropic, \
-             patch("app.pdn_chat_ai.binat_agents.pdn_agent.Config") as mock_config:
+    def test_anthropic_provider_uses_haiku_for_summary(self):
+        """When main provider is Anthropic, summary_llm should be claude-3-5-haiku-latest."""
+        with patch("app.pdn_relationships.agents.base_pdn_agent.ChatOpenAI") as mock_openai, \
+             patch("app.pdn_relationships.agents.base_pdn_agent.ChatAnthropic") as mock_anthropic, \
+             patch("app.pdn_relationships.agents.base_pdn_agent.Config") as mock_config:
 
             cfg = mock_config.return_value
             cfg.LLM_PROVIDER = "anthropic"
@@ -292,18 +303,18 @@ class TestSummaryLLMProviderSelection:
             mock_openai.return_value = MagicMock()
             agent = PDNAgent()
 
-            # ChatOpenAI should be called with gpt-4o-mini for summary LLM
-            mini_calls = [
-                call for call in mock_openai.call_args_list
-                if call.kwargs.get("model") == "gpt-4o-mini"
+            # ChatAnthropic should be called twice: once for main LLM, once for summary (haiku)
+            haiku_calls = [
+                call for call in mock_anthropic.call_args_list
+                if call.kwargs.get("model") == "claude-3-5-haiku-latest"
             ]
-            assert len(mini_calls) == 1, "Expected ChatOpenAI to be called with gpt-4o-mini for summary LLM"
+            assert len(haiku_calls) == 1, "Expected ChatAnthropic to be called with claude-3-5-haiku-latest for summary LLM"
 
     def test_openai_provider_uses_gpt4o_mini_for_summary(self):
         """When main provider is OpenAI, summary_llm should be gpt-4o-mini."""
-        with patch("app.pdn_chat_ai.binat_agents.pdn_agent.ChatOpenAI") as mock_openai, \
-             patch("app.pdn_chat_ai.binat_agents.pdn_agent.ChatAnthropic"), \
-             patch("app.pdn_chat_ai.binat_agents.pdn_agent.Config") as mock_config:
+        with patch("app.pdn_relationships.agents.base_pdn_agent.ChatOpenAI") as mock_openai, \
+             patch("app.pdn_relationships.agents.base_pdn_agent.ChatAnthropic"), \
+             patch("app.pdn_relationships.agents.base_pdn_agent.Config") as mock_config:
 
             cfg = mock_config.return_value
             cfg.LLM_PROVIDER = "openai"

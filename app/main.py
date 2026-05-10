@@ -8,6 +8,7 @@ from app.pdn_admin import pdn_admin_bp, audio_bp
 from app.pdn_chat_ai import pdn_chat_ai_bp
 from app.pdn_diagnose import pdn_diagnose_bp
 from app.neo import neo_bp
+from app.pdn_relationships import pdn_relationships_bp
 from flask_session import Session
 from app.utils.memory_monitor import start_memory_monitoring
 
@@ -48,7 +49,8 @@ def create_app():
         (pdn_admin_bp, '/pdn-admin'),
         (audio_bp, '/pdn-admin'),
         (pdn_chat_ai_bp, '/pdn-binat'),
-        (neo_bp, '/neo')
+        (neo_bp, '/neo'),
+        (pdn_relationships_bp, '/pdn-relationships')
     ]:
         app.register_blueprint(bp, url_prefix=prefix)
 
@@ -65,7 +67,8 @@ def create_app():
                 "/pdn-diagnose - Personal development interaction",
                 "/pdn-admin - Admin dashboard and monitoring",
                 "/pdn-binat - AI chat assistance",
-                "/neo - Neo P.D.N Center"
+                "/neo - Neo P.D.N Center",
+                "/pdn-relationships - Relationship advisor"
             ]
         }
 

@@ -1,4 +1,8 @@
 // Global variables (USER_NAME, USER_ID, PDN_CODE are set by inline script in the HTML template)
+// STORAGE_PREFIX can be set by the template before loading this script to namespace localStorage keys.
+// Defaults to 'binat' for backward compatibility with the original binat chat.
+const _STORAGE_PREFIX = (typeof STORAGE_PREFIX !== 'undefined') ? STORAGE_PREFIX : 'binat';
+
 let messageQueue = [];
 let isProcessing = false;
 let currentController = null;
@@ -297,7 +301,7 @@ function saveMessageToHistory(message) {
     try {
         const history = getConversationHistory();
         history.push(message);
-        localStorage.setItem('binat_chat_history', JSON.stringify(history));
+        localStorage.setItem(`${_STORAGE_PREFIX}_chat_history`, JSON.stringify(history));
     } catch (error) {
         // Error saving message to history
     }
@@ -305,7 +309,7 @@ function saveMessageToHistory(message) {
 
 function getConversationHistory() {
     try {
-        const history = localStorage.getItem('binat_chat_history');
+        const history = localStorage.getItem(`${_STORAGE_PREFIX}_chat_history`);
         return history ? JSON.parse(history) : [];
     } catch (error) {
         return [];
@@ -314,7 +318,7 @@ function getConversationHistory() {
 
 function clearConversationHistory() {
     try {
-        localStorage.removeItem('binat_chat_history');
+        localStorage.removeItem(`${_STORAGE_PREFIX}_chat_history`);
     } catch (error) {
         // Error clearing conversation history
     }
@@ -734,12 +738,12 @@ function updateSessionTimer() {
 // Bookmark functionality with localStorage persistence
 function getBookmarks() {
     try {
-        return JSON.parse(localStorage.getItem('binat_bookmarks') || '[]');
+        return JSON.parse(localStorage.getItem(`${_STORAGE_PREFIX}_bookmarks`) || '[]');
     } catch { return []; }
 }
 
 function saveBookmarks(bookmarks) {
-    localStorage.setItem('binat_bookmarks', JSON.stringify(bookmarks));
+    localStorage.setItem(`${_STORAGE_PREFIX}_bookmarks`, JSON.stringify(bookmarks));
 }
 
 function toggleBookmark(btn) {
@@ -836,7 +840,7 @@ function toggleChatTheme() {
     if (fabThemeIcon) fabThemeIcon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
     if (fabThemeText) fabThemeText.textContent = isDark ? 'מצב בהיר' : 'מצב כהה';
 
-    localStorage.setItem('binat_dark_mode', isDark);
+    localStorage.setItem(`${_STORAGE_PREFIX}_dark_mode`, isDark);
 }
 
 // Floating Action Menu
@@ -1156,7 +1160,7 @@ document.addEventListener('click', function (e) {
 document.addEventListener("DOMContentLoaded", function () {
     try {
         // Load theme preference
-        if (localStorage.getItem('binat_dark_mode') === 'true') {
+        if (localStorage.getItem(`${_STORAGE_PREFIX}_dark_mode`) === 'true') {
             document.body.classList.add('dark-mode');
             const fabThemeIcon = document.getElementById('fabThemeIcon');
             const fabThemeText = document.getElementById('fabThemeText');
