@@ -59,27 +59,60 @@ class PDNAgent(BasePDNAgent):
         return self._prompt_cache[cache_key]
 
     def get_usage_stats(self, days: int = 14) -> Dict[str, Any]:
-        """Return token usage stats with daily history and cost projections."""
-        INPUT_PRICE = 3.0
-        OUTPUT_PRICE = 15.0
-        CACHE_WRITE_PRICE = 3.75
-        CACHE_READ_PRICE = 0.30
+        """Return token usage stats with daily history, cost projections, and model recommendations."""
+
+        # Pricing per million tokens by model family
+        MODEL_PRICING = {
+            'sonnet': {
+                'input': 3.0, 'output': 15.0,
+                'cache_write': 3.75, 'cache_read': 0.30,
+            },
+            'haiku': {
+                'input': 0.80, 'output': 4.0,
+                'cache_write': 1.0, 'cache_read': 0.08,
+            },
+            'gpt-4o-mini': {
+                'input': 0.15, 'output': 0.60,
+                'cache_write': 0.15, 'cache_read': 0.075,
+            },
+        }
+
+        def _get_pricing(model_name: str) -> dict:
+            """Determine pricing tier from model name."""
+            model_lower = (model_name or '').lower()
+            if 'haiku' in model_lower:
+                return MODEL_PRICING['haiku']
+            elif 'gpt-4o-mini' in model_lower:
+                return MODEL_PRICING['gpt-4o-mini']
+            else:
+                # Default to Sonnet pricing (claude-sonnet-*, claude-3-*)
+                return MODEL_PRICING['sonnet']
 
         cutoff = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
 
-        def calc_cost(d):
-            uncached = d['input_tokens'] - d['cache_creation_tokens'] - d['cache_read_tokens']
+        def calc_cost(d, pricing=None):
+            if pricing is None:
+                pricing = _get_pricing(d.get('model', ''))
+            uncached = d['input_tokens'] - d.get('cache_creation_tokens', 0) - d.get('cache_read_tokens', 0)
             return (
-                (max(0, uncached) / 1e6) * INPUT_PRICE +
-                (d['output_tokens'] / 1e6) * OUTPUT_PRICE +
-                (d['cache_creation_tokens'] / 1e6) * CACHE_WRITE_PRICE +
-                (d['cache_read_tokens'] / 1e6) * CACHE_READ_PRICE
+                (max(0, uncached) / 1e6) * pricing['input'] +
+                (d['output_tokens'] / 1e6) * pricing['output'] +
+                (d.get('cache_creation_tokens', 0) / 1e6) * pricing['cache_write'] +
+                (d.get('cache_read_tokens', 0) / 1e6) * pricing['cache_read']
             )
 
-        def calc_savings(d):
-            if d['cache_read_tokens'] <= 0:
+        def calc_savings(d, pricing=None):
+            if pricing is None:
+                pricing = _get_pricing(d.get('model', ''))
+            cache_read = d.get('cache_read_tokens', 0)
+            if cache_read <= 0:
                 return 0
-            return (d['cache_read_tokens'] / 1e6) * (INPUT_PRICE - CACHE_READ_PRICE)
+            return (cache_read / 1e6) * (pricing['input'] - pricing['cache_read'])
+
+        def calc_cost_with_model(d, target_model: str):
+            """Calculate what the cost WOULD BE with a different model."""
+            pricing = MODEL_PRICING.get(target_model, MODEL_PRICING['sonnet'])
+            return calc_cost(d, pricing)
 
         # Build per-user summary + daily breakdown
         users = {}
@@ -94,8 +127,8 @@ class PDNAgent(BasePDNAgent):
                     continue
                 user_total['input_tokens'] += d['input_tokens']
                 user_total['output_tokens'] += d['output_tokens']
-                user_total['cache_creation_tokens'] += d['cache_creation_tokens']
-                user_total['cache_read_tokens'] += d['cache_read_tokens']
+                user_total['cache_creation_tokens'] += d.get('cache_creation_tokens', 0)
+                user_total['cache_read_tokens'] += d.get('cache_read_tokens', 0)
                 user_total['calls'] += d['calls']
                 user_total['model'] = d.get('model', '')
                 user_total['daily'][date_str] = {**d, 'cost': round(calc_cost(d), 4)}
@@ -107,8 +140,8 @@ class PDNAgent(BasePDNAgent):
                 dt = daily_totals[date_str]
                 dt['input_tokens'] += d['input_tokens']
                 dt['output_tokens'] += d['output_tokens']
-                dt['cache_creation_tokens'] += d['cache_creation_tokens']
-                dt['cache_read_tokens'] += d['cache_read_tokens']
+                dt['cache_creation_tokens'] += d.get('cache_creation_tokens', 0)
+                dt['cache_read_tokens'] += d.get('cache_read_tokens', 0)
                 dt['calls'] += d['calls']
                 dt['cost'] += calc_cost(d)
 
@@ -126,18 +159,63 @@ class PDNAgent(BasePDNAgent):
         total_cost_period = sum(dt['cost'] for dt in daily_totals.values())
         avg_daily_cost = total_cost_period / active_days if active_days > 0 else 0
 
+        # Calculate total tokens for "what-if" model comparison
+        total_input = sum(u['input_tokens'] for u in users.values())
+        total_output = sum(u['output_tokens'] for u in users.values())
+        total_cache_creation = sum(u['cache_creation_tokens'] for u in users.values())
+        total_cache_read = sum(u['cache_read_tokens'] for u in users.values())
+        total_calls = sum(u['calls'] for u in users.values())
+
+        aggregate = {
+            'input_tokens': total_input,
+            'output_tokens': total_output,
+            'cache_creation_tokens': total_cache_creation,
+            'cache_read_tokens': total_cache_read,
+            'model': '',
+        }
+
+        # Model comparison: what would the same usage cost on different models?
+        model_comparison = {
+            'sonnet': {
+                'cost': round(calc_cost_with_model(aggregate, 'sonnet'), 4),
+                'per_call': round(calc_cost_with_model(aggregate, 'sonnet') / max(total_calls, 1), 4),
+                'label': 'Claude Sonnet 4 (נוכחי)',
+            },
+            'haiku': {
+                'cost': round(calc_cost_with_model(aggregate, 'haiku'), 4),
+                'per_call': round(calc_cost_with_model(aggregate, 'haiku') / max(total_calls, 1), 4),
+                'label': 'Claude 3.5 Haiku (מומלץ)',
+                'savings_pct': round((1 - calc_cost_with_model(aggregate, 'haiku') / max(calc_cost_with_model(aggregate, 'sonnet'), 0.001)) * 100, 1),
+            },
+        }
+
         projection = {
             'active_days': active_days,
             'avg_daily_cost': round(avg_daily_cost, 4),
             'projected_monthly': round(avg_daily_cost * 30, 2),
             'projected_yearly': round(avg_daily_cost * 365, 2),
+            'per_conversation_avg': round(total_cost_period / max(total_calls / 8, 1), 4),  # ~8 turns per conversation
+            'per_100_conversations': round((total_cost_period / max(total_calls / 8, 1)) * 100, 2),
         }
+
+        # Recommendation
+        recommendation = None
+        if total_cost_period > 0 and model_comparison['haiku']['savings_pct'] > 50:
+            recommendation = {
+                'action': 'switch_to_haiku',
+                'label': 'מומלץ: מעבר ל-Claude 3.5 Haiku',
+                'reason': f"חיסכון של {model_comparison['haiku']['savings_pct']}% בעלויות עם שמירה על איכות טובה בעברית",
+                'current_cost_100': projection['per_100_conversations'],
+                'projected_cost_100': round(model_comparison['haiku']['per_call'] * 800, 2),  # 100 conv × 8 turns
+            }
 
         return {
             'users': users,
             'daily_totals': dict(sorted(daily_totals.items())),
             'projection': projection,
-            'period_days': days
+            'model_comparison': model_comparison,
+            'recommendation': recommendation,
+            'period_days': days,
         }
 
     def chat_with_binat(self, user_query: str, user_name: str = None, pdn_code: str = None, daily_conversation_limit: int = None) -> str:
