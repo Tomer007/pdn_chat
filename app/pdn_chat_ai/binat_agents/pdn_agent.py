@@ -148,23 +148,26 @@ class PDNAgent(BasePDNAgent):
         system_prompt = self._load_prompt(pdn_code, "binat_agent.prompt")
         history_context = self._format_history(user_name)
 
+        # Sanitize user input to prevent prompt injection
+        safe_query = self._sanitize_user_input(user_query)
+
         if history_context:
             user_message = (
                 f"<context>\n"
                 f"User: {user_name} | Code: {pdn_code}\n"
                 f"Session history:\n{history_context}\n"
                 f"</context>\n\n"
-                f"<user_message>\n{user_query}\n</user_message>"
+                f"<user_message>\n{safe_query}\n</user_message>"
             )
         else:
             user_message = (
                 f"<context>\n"
                 f"User: {user_name} | Code: {pdn_code}\n"
                 f"</context>\n\n"
-                f"<user_message>\n{user_query}\n</user_message>"
+                f"<user_message>\n{safe_query}\n</user_message>"
             )
 
-        response = self.llm.invoke([
+        response = self._invoke_llm([
             self._build_system_message(system_prompt),
             HumanMessage(content=user_message)
         ])
@@ -184,9 +187,10 @@ class PDNAgent(BasePDNAgent):
             return "הגעת למגבלת השיחות להיום, אנא חזור אלינו מחר."
 
         system_prompt = self._load_prompt(pdn_code, "21_plan.prompt")
-        user_message = f"user_name: {user_name}\nuser_pdn_code: {pdn_code}\nuser_goal: {user_goal}"
+        safe_goal = self._sanitize_user_input(user_goal)
+        user_message = f"user_name: {user_name}\nuser_pdn_code: {pdn_code}\nuser_goal: {safe_goal}"
 
-        response = self.llm.invoke([
+        response = self._invoke_llm([
             self._build_system_message(system_prompt),
             HumanMessage(content=user_message)
         ], max_tokens=4000)
@@ -206,9 +210,10 @@ class PDNAgent(BasePDNAgent):
             return "הגעת למגבלת השיחות להיום, אנא חזור אלינו מחר."
 
         system_prompt = self._load_prompt(pdn_code, "daily_training.prompt")
-        user_message = f"User name: {user_name}\n User day Task: {day_task}\n."
+        safe_task = self._sanitize_user_input(day_task)
+        user_message = f"User name: {user_name}\n User day Task: {safe_task}\n."
 
-        response = self.llm.invoke([
+        response = self._invoke_llm([
             self._build_system_message(system_prompt),
             HumanMessage(content=user_message)
         ])

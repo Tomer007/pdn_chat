@@ -8,6 +8,7 @@ and summarization logic from PDNAgent. Enables future modules
 import json
 import logging
 import os
+import re
 import time
 
 from collections import defaultdict
@@ -19,10 +20,30 @@ from typing import Dict, List, Optional, Union
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_openai import ChatOpenAI
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
 from app.utils.user_history_service import UserHistoryService
 from config import Config
 
+
+# Retryable exceptions from LLM providers
+try:
+    from anthropic import RateLimitError as AnthropicRateLimitError, APITimeoutError as AnthropicTimeoutError
+except ImportError:
+    AnthropicRateLimitError = Exception
+    AnthropicTimeoutError = Exception
+
+try:
+    from openai import RateLimitError as OpenAIRateLimitError, APITimeoutError as OpenAITimeoutError
+except ImportError:
+    OpenAIRateLimitError = Exception
+    OpenAITimeoutError = Exception
+
+# Pattern to detect prompt injection attempts in user input
+_INJECTION_PATTERNS = re.compile(
+    r'</?(system|context|user_message|assistant|instruction)>',
+    re.IGNORECASE,
+)
 
 @dataclass
 class UserHistory:
@@ -164,6 +185,41 @@ class BasePDNAgent:
                 }]
             )
         return SystemMessage(content=system_prompt)
+
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=1, max=15),
+        retry=retry_if_exception_type((
+            AnthropicRateLimitError, AnthropicTimeoutError,
+            OpenAIRateLimitError, OpenAITimeoutError,
+            TimeoutError, ConnectionError,
+        )),
+        reraise=True,
+    )
+    def _invoke_llm(self, messages, **kwargs):
+        """Invoke the LLM with automatic retry on transient failures.
+
+        Retries up to 3 times with exponential backoff (1s, 2s, 4s) on:
+        - Rate limit errors (429)
+        - Timeout errors
+        - Connection errors
+        """
+        return self.llm.invoke(messages, **kwargs)
+
+    @staticmethod
+    def _sanitize_user_input(text: str) -> str:
+        """Sanitize user input to prevent prompt injection.
+
+        Strips XML-like tags that could break the prompt structure
+        (e.g., </user_message>, <system>, etc.).
+        """
+        if not text:
+            return text
+        # Replace injection-like tags with escaped versions
+        return _INJECTION_PATTERNS.sub(
+            lambda m: m.group(0).replace('<', '＜').replace('>', '＞'),
+            text,
+        )
 
     def _estimate_tokens(self, text: str) -> int:
         """Estimate token count. Hebrew tokenizes at ~1 token per 2-3 chars."""

@@ -84,6 +84,9 @@ class RelationshipAgent(BasePDNAgent):
         # Build user message with context (history, names, codes)
         history_context = self._format_history(user_name)
 
+        # Sanitize user input to prevent prompt injection
+        safe_message = self._sanitize_user_input(message)
+
         if history_context:
             user_message = (
                 f"<context>\n"
@@ -92,7 +95,7 @@ class RelationshipAgent(BasePDNAgent):
                 f"Relationship: {RELATIONSHIP_LABELS.get(relationship_type, relationship_type)}\n"
                 f"Session history:\n{history_context}\n"
                 f"</context>\n\n"
-                f"<user_message>\n{message}\n</user_message>"
+                f"<user_message>\n{safe_message}\n</user_message>"
             )
         else:
             user_message = (
@@ -101,11 +104,11 @@ class RelationshipAgent(BasePDNAgent):
                 f"Partner code: {partner_code} | "
                 f"Relationship: {RELATIONSHIP_LABELS.get(relationship_type, relationship_type)}\n"
                 f"</context>\n\n"
-                f"<user_message>\n{message}\n</user_message>"
+                f"<user_message>\n{safe_message}\n</user_message>"
             )
 
-        # Invoke LLM with composed system prompt + user message
-        response = self.llm.invoke([
+        # Invoke LLM with retry logic
+        response = self._invoke_llm([
             self._build_system_message(system_prompt),
             HumanMessage(content=user_message),
         ])

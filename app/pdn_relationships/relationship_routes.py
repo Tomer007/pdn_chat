@@ -33,14 +33,20 @@ def get_relationship_agent():
 
 
 def handle_errors(f):
-    """Decorator for consistent error handling."""
+    """Decorator with differentiated error handling by exception type."""
     @wraps(f)
     def wrapper(*args, **kwargs):
         try:
             return f(*args, **kwargs)
+        except ValueError as e:
+            logger.warning("Validation error in %s: %s", f.__name__, e)
+            return jsonify({"error": str(e)}), 400
+        except (TimeoutError, ConnectionError) as e:
+            logger.error("Network error in %s: %s", f.__name__, e)
+            return jsonify({"error": "שגיאת תקשורת עם שרת ה-AI. אנא נסה שוב."}), 503
         except Exception as e:
-            logger.error("Error in %s: %s", f.__name__, e)
-            return jsonify({"error": f"{f.__name__.replace('_', ' ').title()} error occurred"}), 500
+            logger.error("Unexpected error in %s: %s", f.__name__, e, exc_info=True)
+            return jsonify({"error": "שגיאה פנימית. אנא נסה שוב."}), 500
     return wrapper
 
 
