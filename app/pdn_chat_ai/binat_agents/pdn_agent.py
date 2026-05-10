@@ -492,12 +492,22 @@ class PDNAgent:
 
         system_prompt = self._load_prompt(pdn_code, "binat_agent.prompt")
         history_context = self._format_history(user_name)
-        enhanced_question = f"User Name is: {user_name}\nUser PDN Code is: {pdn_code}\n{user_query}"
 
         if history_context:
-            user_message = f"Conversation History:\n{history_context}\n\nCurrent Question:\n{enhanced_question}"
+            user_message = (
+                f"<context>\n"
+                f"User: {user_name} | Code: {pdn_code}\n"
+                f"Session history:\n{history_context}\n"
+                f"</context>\n\n"
+                f"<user_message>\n{user_query}\n</user_message>"
+            )
         else:
-            user_message = enhanced_question
+            user_message = (
+                f"<context>\n"
+                f"User: {user_name} | Code: {pdn_code}\n"
+                f"</context>\n\n"
+                f"<user_message>\n{user_query}\n</user_message>"
+            )
 
         response = self.llm.invoke([
             self._build_system_message(system_prompt),
