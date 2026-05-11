@@ -12,16 +12,427 @@
     <!-- Include audio handler script -->
     <script src="/static/js/audio-handler.js"></script>
     <style>
-        /* Questionnaire-specific styles — shared styles in diagnose-common.css */
+        /* Questionnaire-specific styles — spiritual, modern, delightful */
 
+        /* ===== Spiritual Background Ambiance ===== */
+        body {
+            background:
+                radial-gradient(ellipse at 30% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(245, 158, 11, 0.08) 0%, transparent 40%),
+                radial-gradient(ellipse at 50% 50%, rgba(11, 46, 107, 0.05) 0%, transparent 60%);
+            background-color: #0b2e6b;
+            background-size: 100% 100%;
+        }
+
+        /* ===== Enhanced Main Card ===== */
+        #chatArea {
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(24px) saturate(1.3);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow:
+                0 24px 48px rgba(11, 46, 107, 0.12),
+                0 0 0 1px rgba(255, 255, 255, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #chatArea::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #0b2e6b, #6366f1, #f59e0b, #6366f1, #0b2e6b);
+            background-size: 200% 100%;
+            animation: shimmerBar 4s ease infinite;
+        }
+
+        @keyframes shimmerBar {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+
+        /* ===== Title with Spiritual Gradient ===== */
+        #chatArea > h1 {
+            background: linear-gradient(135deg, #0b2e6b 0%, #4f46e5 50%, #0b2e6b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+            position: relative;
+        }
+
+        /* ===== Enhanced Progress Bar ===== */
+        #progressContainer .w-full {
+            background: linear-gradient(90deg, #e0e7ff, #f0f4ff, #e0e7ff);
+            border-radius: 12px;
+            height: 10px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+        }
+
+        #progressBar {
+            background: linear-gradient(90deg, #0b2e6b, #4f46e5, #6366f1);
+            border-radius: 12px;
+            height: 10px !important;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+        }
+
+        #progressBar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: progressShimmer 2s ease infinite;
+        }
+
+        @keyframes progressShimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        /* ===== Voice Recording Sections ===== */
+        #voiceRecordArea,
+        #voiceRecordArea2 {
+            background: linear-gradient(135deg, #f8faff 0%, #eef2ff 50%, #f5f3ff 100%);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            border-radius: 20px;
+            padding: 28px;
+            box-shadow:
+                0 4px 16px rgba(99, 102, 241, 0.06),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #voiceRecordArea:hover,
+        #voiceRecordArea2:hover {
+            box-shadow:
+                0 8px 24px rgba(99, 102, 241, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        /* Question box styling */
+        #voiceRecordArea .bg-white,
+        #voiceRecordArea2 .bg-white {
+            background: white;
+            border-radius: 14px;
+            border-right: 4px solid #4f46e5 !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            padding: 16px 20px;
+            font-size: 17px;
+            line-height: 1.7;
+        }
+
+        /* ===== Recording Buttons - Spiritual Style ===== */
+        #startRecordBtn, #startRecordBtn2 {
+            background: linear-gradient(135deg, #0b2e6b 0%, #4f46e5 100%);
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: none;
+        }
+
+        #startRecordBtn:hover, #startRecordBtn2:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4);
+        }
+
+        #stopRecordBtn, #stopRecordBtn2 {
+            background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            border: none;
+        }
+
+        #skipRecordBtn, #skipRecordBtn2 {
+            border-radius: 14px;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        #skipRecordBtn:hover, #skipRecordBtn2:hover {
+            border-color: #94a3b8;
+            background: #f8fafc;
+        }
+
+        /* ===== Audio Bar Animation - Spiritual Wave ===== */
         @keyframes audioBarBounce {
             from {
-                height: 8px;
-                background: #c4b5fd;
+                height: 6px;
+                background: #c7d2fe;
+                border-radius: 3px;
             }
             to {
-                height: 22px;
-                background: #0b2e6b;
+                height: 24px;
+                background: linear-gradient(180deg, #4f46e5, #0b2e6b);
+                border-radius: 4px;
+            }
+        }
+
+        .audio-bar {
+            width: 6px;
+            height: 24px;
+            background: linear-gradient(180deg, #4f46e5, #0b2e6b);
+            margin: 0 3px;
+            border-radius: 4px;
+            display: inline-block;
+            vertical-align: bottom;
+            animation: audioBarBounce 0.8s ease-in-out infinite alternate;
+        }
+
+        .audio-bar:nth-child(2) { animation-delay: .12s; }
+        .audio-bar:nth-child(3) { animation-delay: .24s; }
+        .audio-bar:nth-child(4) { animation-delay: .36s; }
+        .audio-bar:nth-child(5) { animation-delay: .48s; }
+
+        /* ===== Question Options - Elevated Cards ===== */
+        #options button {
+            background: linear-gradient(135deg, #0b2e6b 0%, #1e3a7a 100%);
+            border: none;
+            border-radius: 14px;
+            padding: 18px 24px;
+            font-size: 16px;
+            box-shadow: 0 4px 12px rgba(11, 46, 107, 0.2);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #options button::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        #options button:hover {
+            transform: translateY(-3px) scale(1.01);
+            box-shadow: 0 8px 24px rgba(11, 46, 107, 0.3);
+            background: linear-gradient(135deg, #1e3a7a 0%, #4f46e5 100%);
+        }
+
+        #options button:hover::before {
+            opacity: 1;
+        }
+
+        #options button:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        /* ===== Scale Question Dots - Clear Selection ===== */
+        #options .rounded-full {
+            width: 32px;
+            height: 32px;
+            border: 2px solid #d1d5db;
+            border-radius: 50% !important;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            background: white !important;
+            cursor: pointer;
+        }
+
+        #options .rounded-full:hover {
+            transform: scale(1.15);
+            border-color: #4f46e5;
+            box-shadow: 0 0 12px rgba(79, 70, 229, 0.25);
+            background: #f5f3ff !important;
+        }
+
+        /* Selected state for scale dots */
+        #options .rounded-full.from-blue-900,
+        #options .rounded-full.bg-gradient-to-r {
+            background: linear-gradient(135deg, #0b2e6b, #4f46e5) !important;
+            border-color: #4f46e5 !important;
+            transform: scale(1.2);
+            box-shadow: 0 0 16px rgba(79, 70, 229, 0.35), 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        /* Unselected state override */
+        #options .rounded-full.bg-gray-200 {
+            background: white !important;
+            border: 2px solid #d1d5db;
+            border-radius: 50% !important;
+        }
+
+        #options .rounded-full.bg-gray-200:hover {
+            border-color: #a5b4fc;
+            background: #f5f3ff !important;
+        }
+
+        /* ===== Ranking Items ===== */
+        .ranking-item {
+            border-radius: 14px;
+            border: 2px solid #f1f5f9;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 16px 20px;
+        }
+
+        .ranking-item:hover {
+            border-color: #c7d2fe;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
+            transform: translateX(-2px);
+        }
+
+        .ranking-number {
+            color: #6b7280;
+            font-weight: bold;
+        }
+
+        .ranking-number.selected {
+            color: white !important;
+            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.4);
+        }
+
+        /* ===== Instruction Modal - Spiritual Glow ===== */
+        #instructionModal > div {
+            background: linear-gradient(135deg, #ffffff 0%, #f8faff 50%, #eef2ff 100%);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            box-shadow:
+                0 24px 48px rgba(0, 0, 0, 0.15),
+                0 0 60px rgba(99, 102, 241, 0.1);
+            border-radius: 24px;
+            padding: 40px 32px;
+            text-align: center;
+        }
+
+        #instructionModal > div .text-4xl {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 4px 8px rgba(245, 158, 11, 0.3));
+        }
+
+        #instructionModal #modalText {
+            font-size: 17px;
+            line-height: 1.8;
+            color: #1e293b;
+            background: none;
+            padding: 16px 0;
+            text-align: right;
+            direction: rtl;
+        }
+
+        #modalClose {
+            background: linear-gradient(135deg, #0b2e6b 0%, #4f46e5 100%);
+            border-radius: 14px;
+            padding: 14px 32px;
+            font-size: 17px;
+            box-shadow: 0 4px 16px rgba(79, 70, 229, 0.3);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            animation: none;
+            margin-top: 16px;
+        }
+
+        #modalClose:hover {
+            transform: scale(1.05) translateY(-2px);
+            box-shadow: 0 8px 24px rgba(79, 70, 229, 0.4);
+        }
+
+        /* ===== Back Button ===== */
+        #backButton {
+            background: linear-gradient(135deg, #0b2e6b 0%, #4f46e5 100%);
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        #backButton:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(79, 70, 229, 0.3);
+        }
+
+        /* ===== Warning Banner - Softer ===== */
+        #voiceRecordArea .rounded-lg[style*="d97706"],
+        #voiceRecordArea2 .rounded-lg[style*="d97706"] {
+            border-radius: 12px !important;
+            background: linear-gradient(135deg, #fef3c7, #fffbeb) !important;
+            border: 1px solid #fbbf24 !important;
+        }
+
+        #voiceRecordArea .rounded-lg[style*="d97706"] p,
+        #voiceRecordArea2 .rounded-lg[style*="d97706"] p {
+            color: #92400e !important;
+        }
+
+        /* ===== Recording Validation States ===== */
+        .recording-validation {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .recording-validation.valid {
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1), 0 4px 16px rgba(16, 185, 129, 0.08);
+        }
+
+        .recording-validation.invalid {
+            border-color: #ef4444;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1), 0 4px 16px rgba(239, 68, 68, 0.08);
+        }
+
+        .recording-validation.recording {
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1), 0 4px 16px rgba(245, 158, 11, 0.08);
+            animation: recordingPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes recordingPulse {
+            0%, 100% { box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1); }
+            50% { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.05), 0 0 20px rgba(245, 158, 11, 0.1); }
+        }
+
+        /* ===== Voice record UI ===== */
+        .recording {
+            color: #4f46e5;
+            font-weight: bold;
+            animation: pulse 1.1s infinite alternate;
+        }
+
+        /* ===== Color Utilities ===== */
+        .text-orange-600 { color: #ea580c; }
+        .text-green-600 { color: #16a34a; }
+        .text-red-600 { color: #dc2626; }
+        .opacity-50 { opacity: 0.5; }
+        .cursor-not-allowed { cursor: not-allowed; }
+
+        /* ===== Loading Spinner ===== */
+        #questionLoading div {
+            border-color: #e0e7ff;
+            border-top-color: #4f46e5;
+        }
+
+        /* ===== Fade-in for questions ===== */
+        #questionArea {
+            animation: questionFadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes questionFadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== Mobile Responsiveness ===== */
+        @media (max-width: 768px) {
+            .glass-effect {
+                margin: 10px;
+                padding: 16px;
+                border-radius: 16px;
+            }
+
+            #voiceRecordArea, #voiceRecordArea2 {
+                padding: 20px;
+                border-radius: 16px;
+            }
+
+            #options button {
+                padding: 14px 18px;
+                font-size: 15px;
             }
         }
 
@@ -31,99 +442,13 @@
             }
         }
 
-        /* Voice record UI */
-        .recording {
-            color: #0b2e6b;
-            font-weight: bold;
-            animation: pulse 1.1s infinite alternate;
-        }
-
-
-        .audio-bar {
-            width: 8px;
-            height: 22px;
-            background: #0b2e6b;
-            margin: 0 2px;
-            border-radius: 5px;
-            display: inline-block;
-            vertical-align: bottom;
-            animation: audioBarBounce 1s infinite alternate;
-        }
-
-        .audio-bar:nth-child(2) {
-            animation-delay: .15s;
-        }
-
-        .audio-bar:nth-child(3) {
-            animation-delay: .3s;
-        }
-
-        .audio-bar:nth-child(4) {
-            animation-delay: .45s;
-        }
-
-        .audio-bar:nth-child(5) {
-            animation-delay: .6s;
-        }
-
-
-        .ranking-number.selected {
-            color: #0b2e6b;
-            font-weight: bold;
-        }
-
-        .ranking-number {
-            color: #0b2e6b;
-            font-weight: bold;
-        }
-
-        /* Voice recording validation styles */
-        .text-orange-600 {
-            color: #ea580c;
-        }
-
-        .text-green-600 {
-            color: #16a34a;
-        }
-
-        .text-red-600 {
-            color: #dc2626;
-        }
-
-        .opacity-50 {
-            opacity: 0.5;
-        }
-
-        .cursor-not-allowed {
-            cursor: not-allowed;
-        }
-
-        .recording-validation {
-            transition: all 0.3s ease;
-        }
-
-        .recording-validation.valid {
-            border-color: #16a34a;
-            box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
-        }
-
-        .recording-validation.invalid {
-            border-color: #dc2626;
-            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
-        }
-
-        .recording-validation.recording {
-            border-color: #ea580c;
-            box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1);
-        }
-
-
-        /* Mobile responsiveness */
-        @media (max-width: 768px) {
-            .glass-effect {
-                margin: 10px;
-                padding: 16px;
-                border-radius: 16px;
+        /* ===== Reduced Motion ===== */
+        @media (prefers-reduced-motion: reduce) {
+            #progressBar::after,
+            #chatArea::before,
+            .audio-bar,
+            .recording-validation.recording {
+                animation: none;
             }
         }
     </style>
@@ -134,17 +459,17 @@
 <div id="instructionModal" class="fixed inset-0 backdrop-blur-sm hidden items-center justify-center z-50"
      style="background: linear-gradient(135deg, #0b2e6b 0%, #0a2a5f 100%);"
 >
-    <div class="relative bg-gradient-to-r from-blue-100 to-blue-100 rounded-2xl p-8 max-w-md w-full glass-effect glow animate-fade-in-up shadow-2xl text-center">
+    <div class="relative rounded-2xl p-10 max-w-md w-full glass-effect animate-fade-in-up shadow-2xl text-center">
 
         <!-- Animated bulb icon -->
         <div class="text-4xl mb-4 animate-bounce">💡</div>
         <!-- Title (if used) -->
-        <h3 id="modalTitle" class="text-lg font-extrabold mb-2" style="font-family:'Inter',sans-serif"></h3>
+        <h3 id="modalTitle" class="text-lg font-extrabold mb-2" style="font-family:'Inter',sans-serif; color: #0b2e6b;"></h3>
         <!-- Instruction text -->
         <p id="modalText" class="text-lg text-right text-gray-800 whitespace-pre-line mb-6 leading-relaxed"></p>
         <!-- Action button -->
         <button id="modalClose"
-                class="mx-auto block py-3 px-8 text-lg bg-blue-900 text-white rounded-lg font-semibold shadow-lg hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-blue-900/30 transform transition duration-300 hover:scale-105 animate-pulse">
+                class="mx-auto block py-3 px-8 text-lg bg-blue-900 text-white rounded-lg font-semibold shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-900/30 transition duration-300">
             יופי, אפשר להתקדם!
         </button>
     </div>
@@ -152,6 +477,12 @@
 
 
 <main id="chatArea" class="glass-effect p-8 rounded-2xl shadow-2xl w-full max-w-2xl border border-white/20 space-y-6">
+    <!-- PDN Logo at top -->
+    <div class="text-center mb-4">
+        <a href="https://www.pdn.co.il" target="_blank">
+            <img src="/static/images/pdn_logo.png" alt="PDN Logo" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; margin: 0 auto; box-shadow: 0 6px 20px rgba(11, 46, 107, 0.2); border: 3px solid rgba(11, 46, 107, 0.1);">
+        </a>
+    </div>
     <!-- Hidden fields for user data -->
     <input type="hidden" id="userName" value="{{ user_name or '' }}">
     <input type="hidden" id="userId" value="{{ user_id or '' }}">
@@ -763,6 +1094,14 @@
 
         container.append(submitBtn);
 
+        // Support Enter key to submit
+        document.addEventListener('keydown', function scaleEnterHandler(e) {
+            if (e.key === 'Enter' && currentStep !== null && !isSubmitting) {
+                submitBtn.click();
+                document.removeEventListener('keydown', scaleEnterHandler);
+            }
+        });
+
         document.getElementById('options').appendChild(container);
         updateSelection();
     }
@@ -778,12 +1117,16 @@
 
         const mainInstruction = document.createElement('div');
         mainInstruction.className = 'text-white px-6 py-4 rounded-2xl text-lg font-bold shadow-sm mb-3';
-        mainInstruction.style.backgroundColor = '#047857';
-        mainInstruction.style.border = '1px solid #047857';
+        mainInstruction.style.background = 'linear-gradient(135deg, #0b2e6b 0%, #4f46e5 100%)';
+        mainInstruction.style.border = '1px solid rgba(79, 70, 229, 0.3)';
+        mainInstruction.style.boxShadow = '0 4px 12px rgba(79, 70, 229, 0.2)';
         mainInstruction.innerHTML = 'לחץ לפי סדר החשיבות';
 
         const subInstruction = document.createElement('div');
-        subInstruction.className = 'text-blue-900 bg-blue-100 px-4 py-2 rounded-xl text-sm font-medium italic';
+        subInstruction.className = 'px-4 py-2 rounded-xl text-sm font-medium italic';
+        subInstruction.style.color = '#4f46e5';
+        subInstruction.style.background = 'linear-gradient(135deg, #eef2ff, #f5f3ff)';
+        subInstruction.style.border = '1px solid rgba(99, 102, 241, 0.15)';
         subInstruction.innerHTML = 'לא בטוח? תמיד אפשר ללחוץ שוב ולשנות';
 
         instructionContainer.appendChild(mainInstruction);
@@ -836,11 +1179,13 @@
                 const idx = selectedOrder.indexOf(code);
                 if (idx >= 0) {
                     numberDiv.textContent = idx + 1;
-                    numberDiv.className = 'ranking-number w-10 h-10 rounded-full bg-blue-100 text-white flex items-center justify-center font-bold selected';
+                    numberDiv.className = 'ranking-number w-10 h-10 rounded-full flex items-center justify-center font-bold selected';
+                    numberDiv.style.cssText = 'background: linear-gradient(135deg, #0b2e6b, #4f46e5) !important; color: white !important; border: none;';
                     li.className = 'ranking-item bg-white rounded-xl p-4 flex items-center gap-4 border-2 border-blue-300 cursor-pointer shadow-md transition-all duration-200';
                 } else {
                     numberDiv.textContent = '?';
                     numberDiv.className = 'ranking-number w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-500';
+                    numberDiv.style.cssText = '';
                     li.className = 'ranking-item bg-white rounded-xl p-4 flex items-center gap-4 border cursor-pointer hover:shadow-md transition-all duration-200';
                 }
             });
