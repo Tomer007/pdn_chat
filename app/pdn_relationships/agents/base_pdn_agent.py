@@ -311,10 +311,12 @@ class BasePDNAgent:
             hist.raw = hist.raw[-self.RAW_TURNS_TO_KEEP:]
             self.logger.info("Summarized %d turns for %s", len(old_turns), user_name)
         except Exception as e:
-            # Summarization failed — keep raw history intact to avoid data loss
+            # Summarization failed — truncate if too large to prevent unbounded growth
             self.logger.warning(
                 "Summarization failed for %s, keeping raw history: %s", user_name, e
             )
+            if len(hist.raw) > self.RAW_TURNS_TO_KEEP * 2:
+                hist.raw = hist.raw[-self.RAW_TURNS_TO_KEEP:]
 
     def _get_merge_prompt(self) -> str:
         """Return the prompt for merging existing summary with new conversation."""
@@ -398,14 +400,16 @@ class BasePDNAgent:
         return {}
 
     def _save_usage_file(self, force: bool = False):
-        """Persist token usage history to JSON file (debounced to avoid excessive I/O)."""
+        """Persist token usage history to JSON file (debounced, atomic write)."""
         now = time.time()
         if not force and (now - self._last_usage_save) < self._usage_save_interval:
             return
         try:
             self._usage_file.parent.mkdir(parents=True, exist_ok=True)
-            with open(self._usage_file, 'w') as f:
+            tmp_file = self._usage_file.with_suffix('.tmp')
+            with open(tmp_file, 'w') as f:
                 json.dump(self.token_usage, f, ensure_ascii=False, indent=2)
+            tmp_file.replace(self._usage_file)
             self._last_usage_save = now
         except Exception as e:
             self.logger.warning("Could not save token usage file: %s", e)

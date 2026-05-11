@@ -4,6 +4,7 @@ Handles user authentication, chat messaging, and session management
 for the relationship advice module.
 """
 
+import threading
 import uuid
 import logging
 from datetime import datetime
@@ -21,6 +22,7 @@ from ..utils.user_history_service import UserHistoryPayload, UserHistoryService
 logger = logging.getLogger(__name__)
 
 _relationship_agent = None
+_relationship_agent_lock = threading.Lock()
 _history_service = UserHistoryService()
 
 
@@ -31,10 +33,12 @@ def get_relationship_agent():
     """
     global _relationship_agent
     if _relationship_agent is None:
-        from .agents.base_pdn_agent import BaseAgentConfig
-        config = BaseAgentConfig(llm_provider='anthropic')
-        _relationship_agent = RelationshipAgent(config=config)
-        logger.info("Created new RelationshipAgent instance")
+        with _relationship_agent_lock:
+            if _relationship_agent is None:
+                from .agents.base_pdn_agent import BaseAgentConfig
+                config = BaseAgentConfig(llm_provider='anthropic')
+                _relationship_agent = RelationshipAgent(config=config)
+                logger.info("Created new RelationshipAgent instance")
     return _relationship_agent
 
 

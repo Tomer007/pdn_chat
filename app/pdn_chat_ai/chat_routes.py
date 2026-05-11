@@ -3,6 +3,7 @@ PDN Chat AI Routes - Flask routes for AI-powered chat interface.
 Handles user authentication, chat messaging, and 21-day plan generation.
 """
 
+import threading
 import uuid
 from datetime import datetime
 from functools import wraps
@@ -18,6 +19,7 @@ from ..utils.user_history_service import UserHistoryPayload, UserHistoryService
 
 logger = setup_logger()
 _pdn_agent = None
+_agent_lock = threading.Lock()
 _history_service = UserHistoryService()
 
 # Track active chat sessions
@@ -45,8 +47,10 @@ def get_agent_instance():
     """Get or create the single PDN agent instance"""
     global _pdn_agent
     if _pdn_agent is None:
-        _pdn_agent = PDNAgent()
-        logger.info("Created new PDNAgent instance")
+        with _agent_lock:
+            if _pdn_agent is None:
+                _pdn_agent = PDNAgent()
+                logger.info("Created new PDNAgent instance")
     return _pdn_agent
 
 def handle_errors(f):

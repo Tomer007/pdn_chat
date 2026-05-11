@@ -657,6 +657,7 @@ def get_user_journey(email):
         verify_session(request.args.get('session_token'))
     except Exception as e:
         logger.error("Session verification failed: %s", e)
+        return jsonify({"error": str(e)}), 401
 
     try:
         # Get user metadata
