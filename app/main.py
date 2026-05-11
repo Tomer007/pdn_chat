@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+from datetime import timedelta
 from flask import Flask, request
 from pathlib import Path
 
@@ -19,7 +20,8 @@ def create_app():
     # Configuration
     app.config.update(
         SECRET_KEY=os.getenv('SECRET_KEY', 'your-very-secret-key'),
-        SESSION_TYPE='filesystem'
+        SESSION_TYPE='filesystem',
+        PERMANENT_SESSION_LIFETIME=timedelta(hours=2),
     )
 
     Session(app)

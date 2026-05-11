@@ -12,6 +12,7 @@ from flask import Blueprint, request, render_template, jsonify, session
 from .binat_agents.pdn_agent import PDNAgent
 from .logger import setup_logger
 from .user_manager import get_user_manager
+from ..utils.auth import require_auth
 from ..utils.conversation_stats import conversation_stats
 from ..utils.user_history_service import UserHistoryPayload, UserHistoryService
 
@@ -93,10 +94,11 @@ def login():
         return jsonify({"error": "Email and password are required"}), 400
 
     user_data = get_user_manager().get_user(email)
-    if user_data and user_data['password'] == password:
+    if user_data and get_user_manager().verify_password(email, password):
         user_id = str(uuid.uuid4())
         # Get daily_conversation_limit with default value of 15
         daily_conversation_limit = user_data.get('daily_conversation_limit', 15)
+        session.permanent = True
         session.update({
             'user_id': user_id,
             'user_email': email,
@@ -161,6 +163,7 @@ def chat_interface():
     )
 
 @pdn_chat_ai_bp.route('/chat', methods=['POST'])
+@require_auth
 @handle_errors
 def chat_with_binat():
     """Handle chat messages with improved AI responses"""
@@ -203,6 +206,7 @@ def chat_with_binat():
     })
 
 @pdn_chat_ai_bp.route('/21-day-plan', methods=['POST'])
+@require_auth
 @handle_errors
 def build_21_transformation_plan():
     """Handle 21-day transformation plan requests"""
@@ -230,6 +234,7 @@ def build_21_transformation_plan():
     })
 
 @pdn_chat_ai_bp.route('/daily-training', methods=['POST'])
+@require_auth
 @handle_errors
 def daily_training():
     """Handle daily training requests"""

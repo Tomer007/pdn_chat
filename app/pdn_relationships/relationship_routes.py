@@ -14,6 +14,7 @@ from flask import Blueprint, request, render_template, jsonify, session
 from .constants import PDN_CODES, RelationshipType
 from .agents.relationship_agent import RelationshipAgent
 from ..pdn_chat_ai.user_manager import get_user_manager
+from ..utils.auth import require_auth
 from ..utils.conversation_stats import conversation_stats
 from ..utils.user_history_service import UserHistoryPayload, UserHistoryService
 
@@ -96,10 +97,11 @@ def login():
         return jsonify({"error": f"Invalid relationship type: {relationship_type}"}), 400
 
     user_data = get_user_manager().get_user(email)
-    if user_data and user_data['password'] == password:
+    if user_data and get_user_manager().verify_password(email, password):
         user_id = str(uuid.uuid4())
         daily_conversation_limit = user_data.get('daily_conversation_limit', 15)
 
+        session.permanent = True
         session.update({
             'user_id': user_id,
             'user_email': email,
@@ -131,6 +133,7 @@ def login():
 
 
 @pdn_relationships_bp.route('/chat', methods=['POST'])
+@require_auth
 @handle_errors
 def chat():
     """Handle chat messages for relationship advice.
@@ -187,6 +190,7 @@ def chat():
 
 
 @pdn_relationships_bp.route('/logout', methods=['POST'])
+@require_auth
 @handle_errors
 def logout():
     """Save conversation history and clear session."""
@@ -205,6 +209,7 @@ def logout():
 
 
 @pdn_relationships_bp.route('/chat-page')
+@require_auth
 def chat_page():
     """Render the relationship chat interface with session context."""
     return render_template(

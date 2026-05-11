@@ -3,12 +3,14 @@ PDN Diagnose Routes - Flask routes for psychological assessment questionnaire.
 Handles user registration, questionnaire management, PDN code calculation, and report generation.
 """
 
+import hmac
 import threading
 from flask import Blueprint, request, render_template, jsonify, session, current_app
 from datetime import datetime
 
 from .logger import setup_logger
 from ..utils.answer_storage import load_answers, save_user_metadata, save_answer, delete_answer
+from ..utils.auth import require_auth
 from ..utils.pdn_calculator import calculate_pdn_code
 from ..utils.questionnaire import get_question
 from ..utils.email_sender import send_email_via_smtp
@@ -122,8 +124,9 @@ def login_user():
 
     try:
         login_data = request.get_json()
-        if login_data.get('password') == current_app.config.get('ADMIN_PASSWORD', 'pdn'):
+        if hmac.compare_digest(login_data.get('password', ''), current_app.config.get('ADMIN_PASSWORD', 'pdn')):
             email = login_data.get('email').lower()
+            session.permanent = True
             session["email"] = email
             # Track active session
             active_sessions[session.sid] = {
@@ -151,6 +154,7 @@ def get_question_route(question_number):
 
 
 @pdn_diagnose_bp.route('/answer', methods=['POST'])
+@require_auth
 def submit_answer_route():
     """Submit answer for a question"""
     logger.debug("POST /pdn-diagnose/answer called")
@@ -220,6 +224,7 @@ def submit_answer_route():
 
 
 @pdn_diagnose_bp.route('/delete_answer', methods=['POST'])
+@require_auth
 def delete_answer_route():
     """Delete a previously saved answer (used when user goes back)"""
     try:
@@ -238,6 +243,7 @@ def delete_answer_route():
 
 
 @pdn_diagnose_bp.route('/complete_questionnaire', methods=['POST'])
+@require_auth
 def complete_questionnaire():
     """Complete questionnaire and calculate PDN code"""
     logger.debug("POST /pdn-diagnose/complete_questionnaire called")
@@ -305,6 +311,7 @@ def pdn_report():
 
 
 @pdn_diagnose_bp.route('/get_report_data', methods=['GET'])
+@require_auth
 def get_report_data():
     """Get report data for the frontend"""
     try:

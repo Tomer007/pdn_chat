@@ -1,4 +1,5 @@
 import csv
+import hmac
 import logging
 import os
 import secrets
@@ -178,7 +179,7 @@ def admin_login():
         email = login_data.get('email', '')
         password = login_data.get('password', '')
 
-        if password.lower() == current_app.config.get('ADMIN_PASSWORD', 'pdn').lower():
+        if hmac.compare_digest(password, current_app.config.get('ADMIN_PASSWORD', 'pdn')):
             session_token = create_session(email)
             return jsonify({
                 "success": True,
@@ -187,7 +188,7 @@ def admin_login():
             })
 
         # Log failed login attempt
-        logger.warning("Failed login attempt with password: %s", password)
+        logger.warning("Failed admin login attempt for email: %s", email)
 
         return jsonify({"error": "Invalid credentials"}), 401
 

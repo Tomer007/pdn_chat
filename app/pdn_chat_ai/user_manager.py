@@ -1,12 +1,15 @@
 """UserManager - JSON file-backed user management with in-memory caching."""
 
 import json
+import hmac
 import logging
 import re
 import threading
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
+
+import bcrypt
 
 logger = logging.getLogger("pdn_chat_ai")
 
@@ -33,6 +36,49 @@ class UserManager:
         self._users: dict = {}
         self._lock = threading.Lock()
         self._load_users()
+        self._migrate_plaintext_passwords()
+
+    # --- Password hashing helpers ---
+
+    @staticmethod
+    def _hash_password(password: str) -> str:
+        """Hash a password using bcrypt and return the hash string."""
+        return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+    @staticmethod
+    def _verify_password(password: str, hashed: str) -> bool:
+        """Verify a password against a bcrypt hash using constant-time comparison."""
+        return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+
+    def verify_password(self, email: str, password: str) -> bool:
+        """Verify password for a user using constant-time comparison."""
+        with self._lock:
+            user = self._users.get(email.strip().lower())
+        if not user:
+            # Perform dummy hash to prevent timing attacks
+            bcrypt.checkpw(b'dummy', bcrypt.hashpw(b'dummy', bcrypt.gensalt()))
+            return False
+        stored = user.get('password', '')
+        if stored.startswith('$2b$'):
+            return bcrypt.checkpw(password.encode('utf-8'), stored.encode('utf-8'))
+        else:
+            # Legacy plaintext comparison (should not happen after migration)
+            return hmac.compare_digest(stored, password)
+
+    def _migrate_plaintext_passwords(self) -> None:
+        """Auto-migrate any plaintext passwords to bcrypt hashes on startup."""
+        migrated = False
+        with self._lock:
+            for email, user_data in self._users.items():
+                pwd = user_data.get('password', '')
+                if pwd and not pwd.startswith('$2b$'):
+                    user_data['password'] = self._hash_password(pwd)
+                    migrated = True
+            if migrated:
+                self._save_to_file()
+                logger.info("Migrated plaintext passwords to bcrypt hashes")
+
+    # --- Core data operations ---
 
     def _load_users(self) -> None:
         """Load users from JSON file, seeding from _SEED_USERS if file missing or corrupt."""
@@ -107,7 +153,7 @@ class UserManager:
                 raise ValueError(f"משתמש עם אימייל {email} כבר קיים")
 
             self._users[email] = {
-                'password': password,
+                'password': self._hash_password(password),
                 'pdn_code': pdn_code,
                 'name': name.strip(),
                 'gender': gender,
@@ -133,7 +179,10 @@ class UserManager:
                     continue
 
                 value = updates[key]
-                if key == 'pdn_code':
+                if key == 'password':
+                    # Hash the new password before storing
+                    value = self._hash_password(value)
+                elif key == 'pdn_code':
                     available_codes = self.get_available_pdn_codes()
                     if value not in available_codes:
                         raise ValueError(f"קוד PDN לא תקין: {value}")
