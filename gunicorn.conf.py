@@ -4,12 +4,13 @@
 bind = "0.0.0.0:8000"
 backlog = 2048
 
-# Worker processes - single worker to maintain in-memory session consistency
-# (admin_sessions, conversation_history, token_usage are all in-memory dicts)
+# Worker processes - single worker with gevent for concurrent I/O
+# Keeps all in-memory state consistent (conversation_history, admin_sessions, token_usage)
+# while handling 50+ concurrent LLM calls without blocking
 workers = 1
-worker_class = "sync"
-worker_connections = 1000
-timeout = 300  # 5 minutes timeout for long-running requests like 21-day plan
+worker_class = "gevent"
+worker_connections = 100
+timeout = 180  # 3 minutes for LLM calls (Sonnet averages 10-15s, max with retries ~60s)
 keepalive = 2
 
 # Restart workers to prevent memory leaks
