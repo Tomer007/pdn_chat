@@ -2,8 +2,12 @@ import json
 import logging
 import os
 from datetime import timedelta
-from flask import Flask, request
 from pathlib import Path
+
+from dotenv import load_dotenv
+load_dotenv()
+
+from flask import Flask, request
 
 from app.pdn_admin import pdn_admin_bp, audio_bp
 from app.pdn_chat_ai import pdn_chat_ai_bp
@@ -19,9 +23,10 @@ def create_app():
 
     # Configuration
     app.config.update(
-        SECRET_KEY=os.getenv('SECRET_KEY', 'your-very-secret-key'),
+        SECRET_KEY=os.environ['SECRET_KEY'],  # Must be set — no default
         SESSION_TYPE='filesystem',
         PERMANENT_SESSION_LIFETIME=timedelta(hours=2),
+        MAX_CONTENT_LENGTH=16 * 1024 * 1024,  # 16MB max request size
     )
 
     Session(app)
@@ -74,10 +79,10 @@ def create_app():
             ]
         }
 
-    # Request/response logging
+    # Request/response logging (sanitized — no query params)
     @app.before_request
     def log_request():
-        logger.info(f"{request.method} {request.url}")
+        logger.info(f"{request.method} {request.path}")
 
     @app.after_request
     def log_response(response):

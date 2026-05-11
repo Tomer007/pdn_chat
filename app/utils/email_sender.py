@@ -4,6 +4,7 @@ PDN Report Email Sender
 """
 
 import logging
+import os
 import smtplib
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
@@ -17,8 +18,8 @@ logger = logging.getLogger(__name__)
 class EmailConfig:
     SMTP_SERVER = 'smtp.gmail.com'
     SMTP_PORT = 587
-    FROM_EMAIL = 'tomergur@gmail.com'
-    APP_PASSWORD = 'jlzd ytwd dpat hcsi'  # Move to environment variable
+    FROM_EMAIL = os.environ.get('GMAIL_USER', 'tomergur@gmail.com')
+    APP_PASSWORD = os.environ.get('GMAIL_APP_PASSWORD', '')
     REPORTS_DIR = Path("app/static/reports")
 
 def get_html_template(pdn_code: str, first_name: str) -> str:

@@ -34,6 +34,7 @@ pdn_admin_bp = Blueprint('pdn_admin', __name__,
 
 # Admin sessions storage (in production, use Redis or database)
 admin_sessions = {}  # session_token -> user_info
+MAX_ADMIN_SESSIONS = 50  # Prevent unbounded growth
 
 def create_session(email):
     # Remove any existing sessions for this email
@@ -41,6 +42,12 @@ def create_session(email):
         if session.get("email") == email:
             del admin_sessions[token]
             logger.info("Removed old session for %s", email)
+
+    # Enforce max sessions limit
+    cleanup_expired_sessions()
+    if len(admin_sessions) >= MAX_ADMIN_SESSIONS:
+        oldest = min(admin_sessions, key=lambda k: admin_sessions[k].get('login_time', datetime.min))
+        del admin_sessions[oldest]
 
     token = secrets.token_urlsafe(32)
     now = datetime.now()

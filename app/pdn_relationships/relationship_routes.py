@@ -149,6 +149,11 @@ def chat():
         return jsonify({"error": "No data provided"}), 400
 
     message = data.get('message', '').strip()
+    if not message:
+        return jsonify({"error": "Message cannot be empty"}), 400
+    if len(message) > 5000:
+        return jsonify({"error": "Message too long (max 5000 characters)"}), 400
+
     user_name = data.get('user_name', '')
     user_code = data.get('pdn_code', '')
     partner_code = data.get('partner_code', '')

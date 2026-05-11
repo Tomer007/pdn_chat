@@ -24,6 +24,16 @@ _history_service = UserHistoryService()
 
 # Track active chat sessions
 chat_sessions = {}  # session_id -> {email, user_id, login_time}
+MAX_CHAT_SESSIONS = 500  # Prevent unbounded growth
+
+
+def _cleanup_stale_sessions():
+    """Remove sessions older than 4 hours to prevent memory leaks."""
+    now = datetime.now()
+    stale = [sid for sid, info in chat_sessions.items()
+             if (now - info.get('login_time', now)).total_seconds() > 14400]
+    for sid in stale:
+        del chat_sessions[sid]
 
 
 # --- Custom exceptions for differentiated error handling ---
@@ -110,7 +120,12 @@ def login():
             'pdn_code': user_data['pdn_code'],
             'daily_conversation_limit': daily_conversation_limit
         })
-        # Track active session
+        # Track active session (with cleanup to prevent unbounded growth)
+        _cleanup_stale_sessions()
+        if len(chat_sessions) >= MAX_CHAT_SESSIONS:
+            # Remove oldest session
+            oldest = min(chat_sessions, key=lambda k: chat_sessions[k].get('login_time', datetime.min))
+            del chat_sessions[oldest]
         chat_sessions[session.sid] = {
             "email": email,
             "user_id": user_id,
@@ -175,6 +190,13 @@ def chat_with_binat():
     if not data:
         return jsonify({"error": "No data provided"}), 400
 
+    # Validate message length
+    message = data.get('message', '').strip()
+    if not message:
+        raise ValidationError("Message cannot be empty")
+    if len(message) > 5000:
+        raise ValidationError("Message too long (max 5000 characters)")
+
     # Track conversation — prefer session email, fall back to POST body email
     user_email = session.get('user_email') or data.get('email', '')
     if user_email:
@@ -201,7 +223,7 @@ def chat_with_binat():
 
     return jsonify({
         "response": agent.chat_with_binat(
-            data.get('message', '').strip(),
+            message,
             chat_user_name,
             data.get('pdn_code', ''),
             daily_conversation_limit=daily_conversation_limit
