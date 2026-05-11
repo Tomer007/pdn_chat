@@ -134,7 +134,7 @@ def send_pdn_code_email(user_answers: Dict[str, Any], pdn_code: str) -> bool:
         msg = MIMEMultipart()
         msg['From'] = EmailConfig.FROM_EMAIL
         msg['To'] = user_email
-        msg['Subject'] = 'ברוך הבא למסע – קוד המקור שלך מחכה להתגלות'
+        msg['Subject'] = 'תוצאות אבחון צופן ״קוד המקור״ מבית PDN'
 
         # Attach HTML content
         html_content = get_html_template(pdn_code, first_name)
