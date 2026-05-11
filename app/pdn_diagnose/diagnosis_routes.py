@@ -3,6 +3,7 @@ PDN Diagnose Routes - Flask routes for psychological assessment questionnaire.
 Handles user registration, questionnaire management, PDN code calculation, and report generation.
 """
 
+import threading
 from flask import Blueprint, request, render_template, jsonify, session, current_app
 from datetime import datetime
 
@@ -10,14 +11,41 @@ from .logger import setup_logger
 from ..utils.answer_storage import load_answers, save_user_metadata, save_answer, delete_answer
 from ..utils.pdn_calculator import calculate_pdn_code
 from ..utils.questionnaire import get_question
+from ..utils.email_sender import send_email_via_smtp
 
 # Setup logger
 logger = setup_logger()
+
+# Admin notification email
+ADMIN_EMAIL = 'tomergur@gmail.com'
 
 # Create blueprint
 pdn_diagnose_bp = Blueprint('pdn_diagnose', __name__,
                             template_folder='templates',
                             static_folder='static')
+
+
+def _send_admin_notification(subject: str, body: str):
+    """Send a notification email to admin in a background thread (non-blocking)."""
+    def _send():
+        try:
+            from email.mime.multipart import MIMEMultipart
+            from email.mime.text import MIMEText
+            from ..utils.email_sender import EmailConfig
+
+            msg = MIMEMultipart()
+            msg['From'] = EmailConfig.FROM_EMAIL
+            msg['To'] = ADMIN_EMAIL
+            msg['Subject'] = subject
+            msg.attach(MIMEText(body, 'plain', 'utf-8'))
+            send_email_via_smtp(msg)
+            logger.info("Admin notification sent: %s", subject)
+        except Exception as e:
+            logger.warning("Failed to send admin notification: %s", e)
+
+    thread = threading.Thread(target=_send, daemon=True)
+    thread.start()
+
 
 # Track active sessions
 active_sessions = {}  # session_id -> {email, login_time}
@@ -65,6 +93,20 @@ def save_user_info_api():
         user_data['email'] = email  # UPDATE the email in user_data
         save_user_metadata(user_data, email)
         session["user_data"] = user_data
+
+        # Notify admin about new user registration
+        name = f"{user_data.get('first_name', '')} {user_data.get('last_name', '')}".strip()
+        _send_admin_notification(
+            subject=f"🆕 משתמש חדש נרשם לשאלון: {name}",
+            body=(
+                f"משתמש חדש נרשם לשאלון PDN\n\n"
+                f"שם: {name}\n"
+                f"אימייל: {email}\n"
+                f"טלפון: {user_data.get('phone', 'לא צוין')}\n"
+                f"תאריך: {datetime.now().strftime('%d/%m/%Y %H:%M')}\n"
+            ),
+        )
+
         return jsonify({"message": "User information saved successfully."})
     except (ValueError, KeyError, TypeError) as e:
         logger.error("Error saving user info: %s", e)
@@ -231,6 +273,17 @@ def complete_questionnaire():
         except Exception as csv_error:
             logger.warning("Failed to update CSV with PDN code: %s", csv_error)
             # Don't fail the entire request if CSV update fails
+
+        # Notify admin about completed questionnaire
+        _send_admin_notification(
+            subject=f"✅ שאלון הושלם: {email} → קוד {pdn_code}",
+            body=(
+                f"משתמש סיים את השאלון PDN\n\n"
+                f"אימייל: {email}\n"
+                f"קוד PDN: {pdn_code}\n"
+                f"תאריך: {datetime.now().strftime('%d/%m/%Y %H:%M')}\n"
+            ),
+        )
 
         return jsonify({"pdn_code": pdn_code, "message": "Questionnaire completed successfully"})
     except (ValueError, KeyError, FileNotFoundError) as e:
