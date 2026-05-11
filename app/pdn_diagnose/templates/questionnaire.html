@@ -1095,12 +1095,22 @@
         container.append(submitBtn);
 
         // Support Enter key to submit
-        document.addEventListener('keydown', function scaleEnterHandler(e) {
+        let scaleEnterHandler = function(e) {
             if (e.key === 'Enter' && currentStep !== null && !isSubmitting) {
-                submitBtn.click();
                 document.removeEventListener('keydown', scaleEnterHandler);
+                submitBtn.click();
+            }
+        };
+        document.addEventListener('keydown', scaleEnterHandler);
+
+        // Clean up listener when options area is cleared (next question loads)
+        const observer = new MutationObserver(() => {
+            if (!document.getElementById('options').contains(container)) {
+                document.removeEventListener('keydown', scaleEnterHandler);
+                observer.disconnect();
             }
         });
+        observer.observe(document.getElementById('options'), { childList: true });
 
         document.getElementById('options').appendChild(container);
         updateSelection();
