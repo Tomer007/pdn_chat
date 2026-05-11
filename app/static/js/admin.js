@@ -507,7 +507,7 @@
     }
 
     async function loadConversationStats(days) {
-        if (!days) days = window._statsDays || 7;
+        if (!days) days = window._statsDays || 30;
         window._statsDays = days;
         const container = document.getElementById('conversationStats');
         container.innerHTML = '<div style="text-align:center;padding:24px;"><i class="fas fa-spinner fa-spin" style="color:#94a3b8;font-size:16px;"></i></div>';
@@ -630,6 +630,12 @@
         });
         
         const users = Array.from(allUsers).sort();
+
+        // Show empty state if no users have conversations
+        if (users.length === 0) {
+            container.innerHTML = '<div style="text-align:center;padding:32px 16px;background:#f8fafc;border-radius:12px;border:1px dashed #cbd5e1;"><i class="fas fa-comments" style="font-size:24px;color:#94a3b8;margin-bottom:8px;display:block;"></i><p style="font-size:13px;color:#64748b;margin:0;">אין שיחות בתקופה הנבחרת</p><p style="font-size:11px;color:#94a3b8;margin-top:4px;">נסה לבחור תקופה ארוכה יותר</p></div>';
+            return;
+        }
         const weeklyTotals = {};
         let grandTotal = 0;
         users.forEach(user => {
