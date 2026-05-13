@@ -333,20 +333,9 @@ function restoreConversationHistory() {
             return;
         }
 
-        // Find the initial welcome message (the last one with "בינת קוד המקור:" header)
-        const existingMessages = Array.from(chatContainer.querySelectorAll('.chat-bubble'));
-        const welcomeMessage = existingMessages.find(msg => {
-            const header = msg.querySelector('.message-header');
-            return header && header.textContent.includes('בינת קוד המקור:') &&
-                   msg.querySelector('.message-content').textContent.includes('שלום');
-        });
-
-        // Remove all messages except the welcome message
-        existingMessages.forEach(msg => {
-            if (msg !== welcomeMessage) {
-                msg.remove();
-            }
-        });
+        // Clear all existing chat bubbles to prevent duplicates
+        const existingMessages = chatContainer.querySelectorAll('.chat-bubble');
+        existingMessages.forEach(msg => msg.remove());
 
         // Restore messages from history
         history.forEach(messageData => {
@@ -714,11 +703,12 @@ function typewriterEffect(element, html, speed = 15) {
     return new Promise(resolve => {
         element.innerHTML = '';
         let i = 0;
-        const chars = html.split('');
+        // HTML-aware tokenizer: each token is either a complete HTML tag or a single text character
+        const tokens = html.match(/<[^>]+>|[^<]/g) || [];
         const interval = setInterval(() => {
-            element.innerHTML = chars.slice(0, i + 1).join('');
+            element.innerHTML = tokens.slice(0, i + 1).join('');
             i++;
-            if (i >= chars.length) {
+            if (i >= tokens.length) {
                 clearInterval(interval);
                 resolve();
             }

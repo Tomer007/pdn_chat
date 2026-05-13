@@ -74,9 +74,12 @@ class BasePDNAgent:
     - Token usage tracking with disk persistence
     - User email registration for history persistence
     - Session persistence on logout
+    - Automatic eviction of inactive users to bound memory growth
     """
 
     EXEMPT_USERS = frozenset(['פנינה'])  # Users exempt from daily limits
+    # Default TTL for inactive user eviction (seconds). 2 hours.
+    DEFAULT_EVICTION_TTL_SECONDS = 2 * 60 * 60
 
     def __init__(self, config: BaseAgentConfig = None):
         """Initialize the base PDN agent.
@@ -122,6 +125,10 @@ class BasePDNAgent:
 
         # Conversation state
         self.conversation_history: Dict[str, UserHistory] = defaultdict(UserHistory)
+        self._last_active: Dict[str, float] = {}  # user_name -> timestamp of last activity
+        self._eviction_ttl_seconds: int = int(
+            os.getenv('CONVERSATION_EVICTION_TTL_SECONDS', str(self.DEFAULT_EVICTION_TTL_SECONDS))
+        )
         self.user_conversations: Dict[str, dict] = defaultdict(
             lambda: {'count': 0, 'last_reset': datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)}
         )
@@ -243,8 +250,44 @@ class BasePDNAgent:
 
         return "\n\n".join(parts)
 
+    def _evict_inactive_users(self) -> None:
+        """Remove conversation history for users inactive longer than the configured TTL.
+
+        This bounds memory growth by evicting users who haven't interacted recently.
+        Before eviction, persists the user's session if they have meaningful history.
+        """
+        now = time.time()
+        cutoff = now - self._eviction_ttl_seconds
+        users_to_evict = [
+            user_name for user_name, last_ts in self._last_active.items()
+            if last_ts < cutoff and user_name in self.conversation_history
+        ]
+
+        for user_name in users_to_evict:
+            hist = self.conversation_history.get(user_name)
+            # Persist session for evicted users if they have history worth saving
+            if hist and (hist.raw or hist.summary):
+                email = self._user_email_map.get(user_name, user_name)
+                try:
+                    self.persist_session(user_name, email)
+                except Exception as e:
+                    self.logger.warning(
+                        "Failed to persist session for evicted user %s: %s", user_name, e
+                    )
+
+            # Remove from conversation history and last_active tracking
+            self.conversation_history.pop(user_name, None)
+            self._last_active.pop(user_name, None)
+            self.logger.info("Evicted inactive user %s from conversation history", user_name)
+
     def _add_to_history(self, user_name: str, user_query: str, assistant_response: str):
         """Add conversation exchange to history with hybrid summarization."""
+        # Evict inactive users to bound memory growth
+        self._evict_inactive_users()
+
+        # Update last active timestamp for this user
+        self._last_active[user_name] = time.time()
+
         hist = self.conversation_history[user_name]
         hist.raw.append({"user": user_query, "assistant": assistant_response})
 

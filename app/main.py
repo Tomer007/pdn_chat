@@ -16,6 +16,7 @@ from app.neo import neo_bp
 from app.pdn_relationships import pdn_relationships_bp
 from flask_session import Session
 from app.utils.memory_monitor import start_memory_monitoring
+from app.utils.session_cleanup import start_session_cleanup
 
 def create_app():
     """Application factory pattern for Flask app creation"""
@@ -30,6 +31,15 @@ def create_app():
     )
 
     Session(app)
+
+    # Start session file cleanup (removes expired session files periodically)
+    session_dir = app.config.get('SESSION_FILE_DIR', 'flask_session')
+    session_lifetime = app.config['PERMANENT_SESSION_LIFETIME'].total_seconds()
+    start_session_cleanup(
+        session_dir=session_dir,
+        session_lifetime_seconds=session_lifetime,
+        cleanup_interval_seconds=3600,  # Run every hour
+    )
 
     # Setup logging
     os.makedirs('logs', exist_ok=True)

@@ -2,7 +2,8 @@
 Neo P.D.N Center Routes
 """
 
-from flask import Blueprint, render_template, request, jsonify, redirect, url_for
+from flask import Blueprint, render_template, request, jsonify, redirect, url_for, current_app
+import hmac
 import uuid
 import json
 import base64
@@ -77,8 +78,14 @@ def login_post():
                 'error': 'אימייל וסיסמה נדרשים'
             }), 400
         
-        # For demo purposes, accept any email/password combination
-        # In real app, validate against user database
+        # Validate password against configured NEO_PASSWORD
+        configured_password = current_app.config.get('NEO_PASSWORD', 'neo')
+        if not hmac.compare_digest(password.encode('utf-8'), configured_password.encode('utf-8')):
+            return jsonify({
+                'success': False,
+                'error': 'אימייל או סיסמה שגויים'
+            }), 401
+        
         user_name = email.split('@')[0]  # Extract name from email
         user_id = str(uuid.uuid4())
         pdn_code = "E5"  # Default PDN code for demo
@@ -177,7 +184,10 @@ def analyze():
                 'products': products
             }
             
-            analysis_result = neo_agent.analyze_customer_code(transcribed_text, company_context)
+            # Extract user attributes from request
+            user_attributes = data.get('user', {})
+            
+            analysis_result = neo_agent.analyze_customer_code(transcribed_text, company_context, user_attributes)
             
         except ValueError as e:
             return jsonify({

@@ -3,6 +3,7 @@ import os
 from flask import Blueprint, request, jsonify, send_file, Response
 from werkzeug.exceptions import RequestedRangeNotSatisfiable
 
+from .admin_routes import verify_session
 from ..utils.pdn_file_path import PDNFilePath
 
 logger = logging.getLogger(__name__)
@@ -15,6 +16,8 @@ def serve_audio(filename):
     """
     Serve audio files with proper range request handling
     """
+    verify_session(request.args.get('session_token'))
+
     try:
         # Decode the URL-encoded filename
         import urllib.parse

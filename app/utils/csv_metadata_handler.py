@@ -1,4 +1,5 @@
 import csv
+import fcntl
 import json
 import logging
 import os
@@ -85,7 +86,7 @@ class UserMetadataHandler:
         return '@' in email and '.' in email and len(email) > 5
 
     def _read_csv_data(self) -> List[Dict[str, str]]:
-        """Read CSV data with error handling and caching."""
+        """Read CSV data with error handling, caching, and shared file locking."""
         try:
             if not os.path.exists(self.csv_filename):
                 return []
@@ -94,10 +95,18 @@ class UserMetadataHandler:
             if self._is_cache_valid():
                 return self._data_cache.copy()
 
+            lock_path = self.csv_filename.with_suffix('.lock')
+            os.makedirs(os.path.dirname(lock_path), exist_ok=True)
+
             data = []
-            with open(self.csv_filename, 'r', encoding='utf-8') as csvfile:
-                reader = csv.DictReader(csvfile)
-                data = list(reader)
+            with open(lock_path, 'w') as lock_file:
+                fcntl.flock(lock_file.fileno(), fcntl.LOCK_SH)
+                try:
+                    with open(self.csv_filename, 'r', encoding='utf-8') as csvfile:
+                        reader = csv.DictReader(csvfile)
+                        data = list(reader)
+                finally:
+                    fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
 
             # Update cache
             self._data_cache = data
@@ -110,15 +119,27 @@ class UserMetadataHandler:
             return []
 
     def _write_csv_data(self, data: List[Dict[str, str]]) -> bool:
-        """Write data to CSV with error handling."""
+        """Write data to CSV using atomic write pattern with exclusive file locking."""
+        tmp_path = self.csv_filename.with_suffix('.tmp')
+        lock_path = self.csv_filename.with_suffix('.lock')
         try:
             # Ensure directory exists
             os.makedirs(os.path.dirname(self.csv_filename), exist_ok=True)
 
-            with open(self.csv_filename, 'w', newline='', encoding='utf-8') as csvfile:
-                writer = csv.DictWriter(csvfile, fieldnames=self.headers)
-                writer.writeheader()
-                writer.writerows(data)
+            # Acquire exclusive lock before writing
+            with open(lock_path, 'w') as lock_file:
+                fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+                try:
+                    # Write to temporary file first
+                    with open(tmp_path, 'w', newline='', encoding='utf-8') as csvfile:
+                        writer = csv.DictWriter(csvfile, fieldnames=self.headers)
+                        writer.writeheader()
+                        writer.writerows(data)
+
+                    # Atomically replace the target file with the temp file
+                    os.replace(tmp_path, self.csv_filename)
+                finally:
+                    fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
 
             # Invalidate cache after write
             self._invalidate_cache()
@@ -126,6 +147,12 @@ class UserMetadataHandler:
 
         except Exception as e:
             logger.error(f"Error writing CSV data: {e}")
+            # Clean up temp file if write failed
+            if os.path.exists(tmp_path):
+                try:
+                    os.remove(tmp_path)
+                except OSError:
+                    pass
             return False
 
     def append_user_metadata(self, user_data: Dict[str, Any]) -> bool:

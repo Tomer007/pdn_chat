@@ -30,6 +30,9 @@ class Config:
     # Admin credentials
     ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'pdn')
     
+    # Neo credentials
+    NEO_PASSWORD = os.environ.get('NEO_PASSWORD', 'neo')
+    
     # Email configuration (if needed)
     SMTP_SERVER = os.environ.get('SMTP_SERVER', 'smtp.gmail.com')
     SMTP_PORT = int(os.environ.get('SMTP_PORT', '587'))

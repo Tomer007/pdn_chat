@@ -256,10 +256,7 @@ def get_logged_in_users():
 @pdn_admin_bp.route('/metadata/csv')
 def get_metadata_csv():
 
-    try:
-        verify_session(request.args.get('session_token'))
-    except Exception as e:
-        logger.error("Session verification failed: %s", e)
+    verify_session(request.args.get('session_token'))
 
     return jsonify({"data": load_user_metadata()})
 
@@ -279,10 +276,7 @@ def remove_none_keys(obj):
 def get_user_questionnaire(email):
     """Get user questionnaire data"""
 
-    try:
-        verify_session(request.args.get('session_token'))
-    except Exception as e:
-        logger.error("Session verification failed: %s", e)
+    verify_session(request.args.get('session_token'))
 
     try:
         csv_metadata_handler = UserMetadataHandler()
@@ -311,10 +305,7 @@ def get_user_questionnaire(email):
 @pdn_admin_bp.route('/user/voice/<email>')
 def get_user_voice(email):
     """Get user voice recording URL"""
-    try:
-        verify_session(request.args.get('session_token'))
-    except Exception as e:
-        logger.error("Session verification failed: %s", e)
+    verify_session(request.args.get('session_token'))
 
     try:
         pdn_file_path = PDNFilePath()
@@ -350,10 +341,7 @@ def get_user_voice(email):
 def update_user_diagnose(email):
     """Update user diagnose information"""
 
-    try:
-        verify_session(request.args.get('session_token'))
-    except Exception as e:
-        logger.error("Session verification failed: %s", e)
+    verify_session(request.args.get('session_token'))
 
     try:
         diagnose_data = request.get_json()
@@ -518,10 +506,7 @@ def serve_audio(file_path):
     session_token = request.args.get('session_token')
     logger.debug("Session token: %s", session_token)
 
-    try:
-        verify_session(request.args.get('session_token'))
-    except Exception as e:
-        logger.error("Session verification failed: %s", e)
+    verify_session(request.args.get('session_token'))
 
     # Use the environment variable for saved_results directory
     saved_results_dir = os.getenv('SAVED_RESULTS_DIR', 'saved_results')
@@ -575,7 +560,8 @@ def serve_audio(file_path):
 @pdn_admin_bp.route('/api/save-audio', methods=['POST'])
 def save_audio():
     """Save uploaded audio file."""
-    
+    verify_session(request.args.get('session_token'))
+
     try:
         # Check if audio file is present
         if 'audio' not in request.files:
@@ -641,10 +627,7 @@ def get_version():
 @pdn_admin_bp.route('/token-usage')
 def get_token_usage():
     """Get token usage and cost stats for all Binat chat users"""
-    try:
-        verify_session(request.args.get('session_token'))
-    except Exception as e:
-        logger.error("Session verification failed: %s", e)
+    verify_session(request.args.get('session_token'))
 
     try:
         days = int(request.args.get('days', 14))
