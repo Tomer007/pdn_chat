@@ -365,11 +365,7 @@
                 </button>
             </div>
             <span id="searchResultCount" class="hidden" style="font-size: 12px; color: #64748b; white-space: nowrap;" aria-live="polite"></span>
-            <label class="filter-chip" id="redUsersFilterChip" onclick="toggleRedFilter()">
-                <input type="checkbox" id="redUsersFilter" style="display: none;">
-                <i class="fas fa-exclamation-triangle" style="font-size: 11px;"></i>
-                <span>חריגים בלבד</span>
-            </label>
+            <input type="checkbox" id="redUsersFilter" style="display: none;">
         </div>
     </div>
 
@@ -887,6 +883,6 @@
     }
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<script src="{{ url_for('static', filename='js/admin.js') }}?v=253"></script>
+<script src="{{ url_for('static', filename='js/admin.js') }}?v=254"></script>
 </body>
 </html>
