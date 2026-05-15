@@ -12,7 +12,7 @@ from pathlib import Path
 from ..utils.answer_storage import load_answers
 from ..utils.csv_metadata_handler import UserMetadataHandler
 from ..utils.email_sender import send_pdn_code_email, send_binat_invite_email
-from ..utils.pdn_calculator import calculate_pdn_code
+from ..utils.pdn_calculator import calculate_pdn_code, check_verification_needed
 from ..utils.pdn_file_path import PDNFilePath
 from ..utils.conversation_stats import conversation_stats
 from ..version import VERSION, RELEASE_DATE, RELEASE_NOTES
@@ -154,6 +154,19 @@ def load_user_metadata():
                     "questionnaire": f"/api/user/questionnaire/{email}",
                     "voice": f"/api/user/voice/{email}"
                 }
+
+                # Calculate needs_verification from user's answers
+                needs_verification = False
+                try:
+                    user_answers = load_answers(email)
+                    if user_answers:
+                        calc_result = calculate_pdn_code(user_answers)
+                        if isinstance(calc_result, dict):
+                            needs_verification = calc_result.get('needs_verification', False)
+                except Exception as e:
+                    logger.debug("Could not calculate verification for %s: %s", email, e)
+                user_data["needs_verification"] = needs_verification
+
                 metadata_list.append(user_data)
 
         logger.info("Loaded %d user records from CSV and JSON", len(metadata_list))

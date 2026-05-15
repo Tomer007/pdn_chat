@@ -57,20 +57,18 @@
 
     function parseDate(dateStr) {
         if (!dateStr || dateStr === 'N/A' || dateStr === '') return new Date(0);
-        let date = new Date(dateStr);
-        if (isNaN(date.getTime())) {
-            const parts = dateStr.split('/');
-            if (parts.length === 3) {
-                date = new Date(parts[2], parts[1] - 1, parts[0]);
-            }
+        // Always parse as DD/MM/YYYY (the format stored in the CSV)
+        const parts = dateStr.split('/');
+        if (parts.length === 3) {
+            const date = new Date(parts[2], parts[1] - 1, parts[0]);
+            return isNaN(date.getTime()) ? new Date(0) : date;
         }
+        let date = new Date(dateStr);
         return isNaN(date.getTime()) ? new Date(0) : date;
     }
 
     function isRedUser(user) {
-        return (user.pdn_code !== user.diagnose_pdn_code && user.diagnose_pdn_code !== "N/A" && user.diagnose_pdn_code !== "") ||
-            (user.pdn_code !== user.pdn_voice_code && user.pdn_voice_code !== "N/A" && user.pdn_voice_code !== "") ||
-            (user.pdn_voice_code !== user.diagnose_pdn_code && user.diagnose_pdn_code !== "N/A" && user.diagnose_pdn_code !== "" && user.pdn_voice_code !== "N/A" && user.pdn_voice_code !== "");
+        return user.needs_verification === true;
     }
 
     function getPdnBadgeColor(code) {
@@ -716,9 +714,10 @@
 
     function updateDashboardSummary() {
         const total = currentData.length;
-        const today = new Date().toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit', year: 'numeric'});
-        const todayAlt = new Date().toLocaleDateString('en-GB', {day: '2-digit', month: '2-digit', year: 'numeric'});
-        const diagnosedToday = currentData.filter(u => u.date === today || u.date === todayAlt).length;
+        // Build today string in DD/MM/YYYY format (matching CSV storage format)
+        const now = new Date();
+        const today = String(now.getDate()).padStart(2, '0') + '/' + String(now.getMonth() + 1).padStart(2, '0') + '/' + now.getFullYear();
+        const diagnosedToday = currentData.filter(u => u.date === today).length;
         const anomalies = currentData.filter(u => isRedUser(u)).length;
 
         document.getElementById('summaryTotal').textContent = total;
@@ -1976,10 +1975,29 @@
             const password = await requestAdminPassword('הזן סיסמת מנהל לייצוא CSV:');
             if (!password) return;
 
-            const headers = ['מזהה מערכת', 'שם', 'אימייל', 'תאריך', 'קוד מערכת', 'ניתוח קול', 'קוד מאבחן', 'הערות', 'עדכון קוד פדן'];
-            const rows = currentData.map(u => [
+            // Apply current filters to export only visible data
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const showRedUsersOnly = document.getElementById('redUsersFilter').checked;
+
+            const exportData = currentData.filter(user => {
+                const fullName = ((user.first_name || '') + ' ' + (user.last_name || '')).trim().toLowerCase();
+                const matchesSearch = user.email.toLowerCase().includes(searchTerm) ||
+                    fullName.includes(searchTerm) ||
+                    (user.first_name && user.first_name.toLowerCase().includes(searchTerm)) ||
+                    (user.last_name && user.last_name.toLowerCase().includes(searchTerm));
+
+                if (showRedUsersOnly) {
+                    return matchesSearch && user.needs_verification === true;
+                }
+                return matchesSearch;
+            });
+
+            const headers = ['מזהה מערכת', 'שם', 'אימייל', 'תאריך', 'קוד מערכת', 'אימות', 'ניתוח קול', 'קוד מאבחן', 'הערות', 'עדכון קוד פדן'];
+            const rows = exportData.map(u => [
                 u.user_id || '', ((u.first_name || '') + ' ' + (u.last_name || '')).trim(),
-                u.email, u.date, u.pdn_code || '', u.pdn_voice_code || '',
+                u.email, u.date, u.pdn_code || '',
+                u.needs_verification ? 'נדרש אימות' : 'תקין',
+                u.pdn_voice_code || '',
                 u.diagnose_pdn_code || '', u.diagnose_comments || '', u.pdn_update_comments || ''
             ]);
 
@@ -1992,7 +2010,7 @@
             link.download = `pdn_admin_export_${new Date().toISOString().slice(0,10)}.csv`;
             link.click();
             URL.revokeObjectURL(url);
-            showNotification('קובץ CSV יוצא בהצלחה', 'success');
+            showNotification(`קובץ CSV יוצא בהצלחה (${exportData.length} שורות)`, 'success');
         }
 
         async function viewJourney(email) {
