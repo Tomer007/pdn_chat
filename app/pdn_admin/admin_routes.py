@@ -940,3 +940,67 @@ def download_user_json():
     except Exception as e:
         logger.error("Error serving JSON file: %s", e)
         abort(500, description="Error serving JSON file")
+
+
+@pdn_admin_bp.route('/cleanup-test-users', methods=['POST'])
+def cleanup_test_users():
+    """Remove all load test users (loadtest_*@test.com) from CSV and filesystem.
+    
+    This is a one-time cleanup endpoint. Remove after use.
+    Requires admin session + admin password for safety.
+    """
+    import shutil
+
+    verify_session(request.args.get('session_token'))
+
+    data = request.get_json() or {}
+    admin_password = data.get('admin_password', '')
+    if admin_password.lower() != current_app.config.get('ADMIN_PASSWORD', 'pdn').lower():
+        return jsonify({"error": "Invalid admin password"}), 401
+
+    # Pattern to match load test users
+    pattern = data.get('pattern', 'loadtest_')
+
+    try:
+        csv_handler = UserMetadataHandler()
+        all_data = csv_handler._read_csv_data()
+
+        # Find test users
+        test_users = [row for row in all_data if row.get('Email', '').startswith(pattern)]
+        clean_data = [row for row in all_data if not row.get('Email', '').startswith(pattern)]
+
+        if not test_users:
+            return jsonify({"message": "No test users found", "deleted_count": 0})
+
+        # Remove from CSV
+        csv_handler._write_csv_data(clean_data)
+
+        # Remove user directories from filesystem
+        pdn_file_path = PDNFilePath()
+        dirs_removed = 0
+        for user in test_users:
+            email = user.get('Email', '').strip()
+            if email:
+                user_dir = pdn_file_path.get_user_dir(email)
+                if user_dir.exists():
+                    shutil.rmtree(user_dir)
+                    dirs_removed += 1
+
+        # Invalidate metadata cache
+        _metadata_cache['data'] = None
+        _metadata_cache['timestamp'] = 0
+
+        logger.info("Cleanup: removed %d test users from CSV, %d directories from disk",
+                    len(test_users), dirs_removed)
+
+        return jsonify({
+            "success": True,
+            "deleted_count": len(test_users),
+            "dirs_removed": dirs_removed,
+            "remaining_users": len(clean_data),
+            "sample_deleted": [u.get('Email') for u in test_users[:10]]
+        })
+
+    except Exception as e:
+        logger.error("Error during test user cleanup: %s", e)
+        return jsonify({"error": str(e)}), 500
