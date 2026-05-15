@@ -163,6 +163,9 @@ def load_user_metadata():
                         calc_result = calculate_pdn_code(user_answers)
                         if isinstance(calc_result, dict):
                             needs_verification = calc_result.get('needs_verification', False)
+                        else:
+                            # String return means needs_verification is False
+                            needs_verification = False
                 except Exception as e:
                     logger.debug("Could not calculate verification for %s: %s", email, e)
                 user_data["needs_verification"] = needs_verification
