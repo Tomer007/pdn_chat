@@ -478,13 +478,6 @@
                 const data = await response.json();
                 currentData = data.data;
 
-                // Calculate verification status for each user
-                currentData.forEach(user => {
-                    // For existing data, we'll set needs_verification to false by default
-                    // The actual verification will be calculated when recalculating PDN codes
-                    user.needs_verification = false;
-                });
-
                 // Sort by date (newest first)
                 currentData.sort((a, b) => parseDate(b.date) - parseDate(a.date));
 
