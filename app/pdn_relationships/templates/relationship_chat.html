@@ -35,32 +35,8 @@
         </button>
     </div>
 </div>
-
-<!-- Header with improved layout -->
-<header>
-    <div class="header-content">
-        <!-- Logo and title section -->
-        <div class="header-left">
-            <a href="https://www.pdn.co.il" target="_blank" class="logo-link">
-                <img src="/static/images/pdn_logo.png" alt="PDN Logo" class="header-logo"/>
-            </a>
-            <div class="header-text">
-                <h1 class="text-2xl font-bold mb-2 text-white">בינת מערכות יחסים</h1>
-                <p class="text-2xl opacity-90 text-white">ייעוץ מותאם אישית</p>
-            </div>
-        </div>
-
-        <!-- Session Timer -->
-        <div class="session-timer" id="sessionTimer">
-            <i class="fas fa-clock"></i>
-            <span id="sessionTime">00:00</span>
-        </div>
-
-    </div>
-</header>
-
-<!-- Main container -->
 <div class="container mx-auto p-6 max-w-4xl">
+  <div class="chat-wrapper">
     <div class="chat-container" id="chatContainer">
         <!-- Chat messages will be inserted here -->
     </div>
@@ -69,6 +45,8 @@
     <button id="scrollToBottomBtn" class="scroll-to-bottom-btn hidden" onclick="scrollToBottom(true)" aria-label="גלול למטה">
         <i class="fas fa-chevron-down"></i> הודעות חדשות
     </button>
+
+    <div class="chat-divider"></div>
 
     <!-- Enhanced input area -->
     <div class="input-area">
@@ -91,6 +69,14 @@
             </button>
         </div>
     </div>
+
+    <div class="chat-divider"></div>
+
+    <!-- Footer - minimal -->
+    <div style="padding: 12px 24px; text-align: center;">
+        <p style="font-size: 11px; color: #8a8279; margin: 0;">&copy; 2025 PDN Center</p>
+    </div>
+  </div>
 </div>
 
 <!-- Custom Confirmation Modal -->
@@ -305,9 +291,9 @@
         welcomeBubble.innerHTML = `
             <div class="message-header">${BOT_NAME}:</div>
             <div class="message-content">
-                <p>שלום ${USER_NAME}, 👋</p>
-                <p>אני כאן כדי לעזור לך להבין טוב יותר את הדינמיקה במערכת היחסים שלך.</p>
-                <p>ספר/י לי מה מעסיק אותך, ואשמח לסייע.</p>
+                <p>שלום ${USER_NAME} 👋</p>
+                <p>אני כאן כדי לעזור לך לראות את מערכת היחסים שלך מזווית חדשה, דרך הצופן הייחודי שלך ושל הצד השני.</p>
+                <p>ספר/י לי מה מעסיק אותך עכשיו, ונצלול פנימה יחד.</p>
             </div>
             <div class="message-time">${currentTime}</div>
         `;
@@ -324,6 +310,5 @@
     });
 </script>
 
-{% include 'partials/footer.html' %}
 </body>
 </html>
