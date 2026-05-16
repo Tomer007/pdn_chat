@@ -54,21 +54,24 @@
                     <i class="fas fa-user-friends"></i>
                     קוד PDN של הצד השני
                 </label>
-                <select id="partner_code" name="partner_code" required class="form-input">
-                    <option value="" disabled selected>בחר קוד PDN</option>
-                    <option value="a3">A3</option>
-                    <option value="a7">A7</option>
-                    <option value="a11">A11</option>
-                    <option value="e1">E1</option>
-                    <option value="e5">E5</option>
-                    <option value="e9">E9</option>
-                    <option value="p2">P2</option>
-                    <option value="p6">P6</option>
-                    <option value="p10">P10</option>
-                    <option value="t4">T4</option>
-                    <option value="t8">T8</option>
-                    <option value="t12">T12</option>
-                </select>
+                <input type="hidden" id="partner_code" name="partner_code" required>
+                <div class="custom-select-wrapper" data-target="partner_code">
+                    <div class="custom-select-trigger placeholder">בחר קוד PDN</div>
+                    <div class="custom-select-options">
+                        <div class="custom-select-option" data-value="a3">A3</div>
+                        <div class="custom-select-option" data-value="a7">A7</div>
+                        <div class="custom-select-option" data-value="a11">A11</div>
+                        <div class="custom-select-option" data-value="e1">E1</div>
+                        <div class="custom-select-option" data-value="e5">E5</div>
+                        <div class="custom-select-option" data-value="e9">E9</div>
+                        <div class="custom-select-option" data-value="p2">P2</div>
+                        <div class="custom-select-option" data-value="p6">P6</div>
+                        <div class="custom-select-option" data-value="p10">P10</div>
+                        <div class="custom-select-option" data-value="t4">T4</div>
+                        <div class="custom-select-option" data-value="t8">T8</div>
+                        <div class="custom-select-option" data-value="t12">T12</div>
+                    </div>
+                </div>
             </div>
 
             <div class="form-group">
@@ -76,12 +79,15 @@
                     <i class="fas fa-heart"></i>
                     סוג מערכת היחסים
                 </label>
-                <select id="relationship_type" name="relationship_type" required class="form-input">
-                    <option value="" disabled selected>בחר סוג מערכת יחסים</option>
-                    <option value="partner">בן/בת זוג</option>
-                    <option value="friend">חבר/ה</option>
-                    <option value="colleague">עמית/ה לעבודה</option>
-                </select>
+                <input type="hidden" id="relationship_type" name="relationship_type" required>
+                <div class="custom-select-wrapper" data-target="relationship_type">
+                    <div class="custom-select-trigger placeholder">בחר סוג מערכת יחסים</div>
+                    <div class="custom-select-options">
+                        <div class="custom-select-option" data-value="partner">בן/בת זוג</div>
+                        <div class="custom-select-option" data-value="friend">חבר/ה</div>
+                        <div class="custom-select-option" data-value="colleague">עמית/ה לעבודה</div>
+                    </div>
+                </div>
             </div>
 
             <button type="submit" class="submit-button">
@@ -135,6 +141,48 @@
                 this.closest('.disclaimer').classList.toggle('collapsed');
             });
         }
+
+        // Custom dropdown logic
+        document.querySelectorAll('.custom-select-wrapper').forEach(wrapper => {
+            const trigger = wrapper.querySelector('.custom-select-trigger');
+            const options = wrapper.querySelector('.custom-select-options');
+            const targetId = wrapper.dataset.target;
+            const hiddenInput = document.getElementById(targetId);
+
+            trigger.addEventListener('click', function(e) {
+                e.stopPropagation();
+                // Close all other dropdowns
+                document.querySelectorAll('.custom-select-options.open').forEach(el => {
+                    if (el !== options) el.classList.remove('open');
+                });
+                document.querySelectorAll('.custom-select-trigger.open').forEach(el => {
+                    if (el !== trigger) el.classList.remove('open');
+                });
+                options.classList.toggle('open');
+                trigger.classList.toggle('open');
+            });
+
+            wrapper.querySelectorAll('.custom-select-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const value = this.dataset.value;
+                    const text = this.textContent;
+                    hiddenInput.value = value;
+                    trigger.textContent = text;
+                    trigger.classList.remove('placeholder');
+                    options.classList.remove('open');
+                    trigger.classList.remove('open');
+                    // Mark selected
+                    wrapper.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('selected'));
+                    this.classList.add('selected');
+                });
+            });
+        });
+
+        // Close dropdowns on outside click
+        document.addEventListener('click', function() {
+            document.querySelectorAll('.custom-select-options.open').forEach(el => el.classList.remove('open'));
+            document.querySelectorAll('.custom-select-trigger.open').forEach(el => el.classList.remove('open'));
+        });
     });
 
     // Login form submission

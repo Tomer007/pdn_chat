@@ -292,8 +292,10 @@
             <div class="message-header">${BOT_NAME}:</div>
             <div class="message-content">
                 <p>שלום ${USER_NAME} 👋</p>
-                <p>אני כאן כדי לעזור לך לראות את מערכת היחסים שלך מזווית חדשה, דרך הצופן הייחודי שלך ושל הצד השני.</p>
-                <p>ספר/י לי מה מעסיק אותך עכשיו, ונצלול פנימה יחד.</p>
+                <p>הצופן שלך: <strong>${PDN_CODE.toUpperCase()}</strong> | הצופן של הצד השני: <strong>${PARTNER_CODE.toUpperCase()}</strong></p>
+                <p>סוג הקשר: <strong>${relLabel}</strong></p>
+                <p>בואו נגלה יחד מה קורה בדינמיקה ביניכם, ואיך אפשר לנווט אותה בצורה טובה יותר.</p>
+                <p>ספר/י לי מה מעסיק אותך עכשיו.</p>
             </div>
             <div class="message-time">${currentTime}</div>
         `;

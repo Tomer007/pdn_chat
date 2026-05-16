@@ -881,7 +881,7 @@ async function processMessageQueue() {
     userBubble.className = "chat-bubble user animated";
     const currentTime = getCurrentTime();
     userBubble.innerHTML = `
-            <div class="message-header">${USER_NAME}:</div>
+            <div class="message-header"><span class="user-avatar-initials">${USER_NAME.charAt(0)}</span>${USER_NAME}:</div>
             <div class="message-content">${safeMarkdownParse(message)}</div>
             <div class="message-time">${currentTime}</div>
         `;
@@ -953,12 +953,12 @@ async function processMessageQueue() {
         const botTime = getCurrentTime();
         const botContent = safeMarkdownParse(data.message || data.response || 'מצטער, אירעה שגיאה. אנא נסה שוב.');
         botBubble.innerHTML = `
-                <div class="message-header">בינת קוד המקור:</div>
+                <div class="message-header"><img src="/static/images/pdn_logo.png" class="bot-avatar-inline" alt=""> בינת קוד המקור:</div>
                 <div class="message-content"></div>
                 <div class="message-time">${botTime}</div>
                 <div class="message-actions">
-                    <button class="bookmark-btn" onclick="toggleBookmark(this)" title="שמור הודעה">
-                        <i class="far fa-bookmark"></i>
+                    <button class="bookmark-btn" onclick="toggleBookmark(this)" title="שמור הודעה" aria-label="שמור הודעה">
+                        <i class="fas fa-bookmark"></i> שמור
                     </button>
                 </div>
             `;
@@ -1071,9 +1071,12 @@ function hideConfirmationModal() {
 async function confirmLogout() {
     hideConfirmationModal();
 
+    const logoutEndpoint = (typeof LOGOUT_ENDPOINT !== 'undefined') ? LOGOUT_ENDPOINT : '/pdn-binat/logout';
+    const loginPage = (typeof LOGIN_PAGE !== 'undefined') ? LOGIN_PAGE : '/pdn-binat/';
+
     try {
         // Call logout endpoint to clear server session
-        const response = await fetch('/pdn-binat/logout', {
+        const response = await fetch(logoutEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1116,11 +1119,11 @@ async function confirmLogout() {
     const goodbyeBubble = document.createElement("div");
     goodbyeBubble.className = "chat-bubble bot animated";
     goodbyeBubble.innerHTML = `
-            <div class="message-header">בינת קוד המקור:</div>
+            <div class="message-header"><img src="/static/images/pdn_logo.png" class="bot-avatar-inline" alt=""> בינת קוד המקור:</div>
             <div class="message-content">
-                🌿 תודה לך על השיחה היפה!<br>
+                <span style="color: #c9a96e;">🌿</span> תודה לך על השיחה היפה!<br>
                 בינת קוד המקור תמיד כאן בשבילך.<br>
-                עד הפעם הבאה... 💜
+                עד הפעם הבאה... <span style="color: #c9a96e;">💛</span>
             </div>
             <div class="message-time">${getCurrentTime()}</div>
         `;
@@ -1130,7 +1133,7 @@ async function confirmLogout() {
 
     // Redirect after a short delay to show the goodbye message
     setTimeout(() => {
-        window.location.href = '/pdn-binat/';
+        window.location.href = loginPage;
     }, 2000);
 }
 
@@ -1186,22 +1189,36 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
 
-        // Add welcome message
+        // Add welcome message (only for binat, not relationship module)
+        if (_STORAGE_PREFIX === 'binat') {
         const initialBot = document.createElement("div");
         initialBot.className = "chat-bubble bot animated";
 
-        const rawMessage = `🌿 שלום ${USER_NAME.toUpperCase()}, קוד המקור שלך הינו ${finalPdnCode.toUpperCase()}\nבינת קוד המקור ממתינה לך כאן, בקצב שלך.\n\n<span style="font-size: 12px;">הסכמה מודעת וכתב ויתור\nבינת קוד המקור מיועדת לצורכי התפתחות אישית והעשרה עצמית בלבד.\nהשיחות והתובנות המוצעות כאן אינן מהוות תחליף לייעוץ מקצועי, טיפול פסיכולוגי, רפואי או כל שירות מקצועי אחר.\nהשימוש בבינה זו הוא באחריותך המלאה. אם את/ה חווה מצוקה נפשית, קושי רגשי משמעותי או זקוק/ה לתמיכה מקצועית – מומלץ בחום לפנות לגורם מוסמך.\nהבינה מיועדת לשימוש אישי בלבד  ואינה מחליפה ליווי אנושי מקצועי.\nכל הזכויות שמורות למרכז PDN ולבעליו החוקיים.\nבעלי הזכויות רשאים להפסיק את פעילות הבינה  בכל עת ולהשיב יתרה יחסית בגין מנוי פעיל.\nהשימוש בבינה מהווה אישור להסכמה מלאה לכל האמור לעיל.\n\nאנו כאן להזכיר לך – הכוח כבר בתוכך. 💜</span>`;
-        const formattedMessage = rawMessage.replace(/\n/g, '<br>');
-
         initialBot.innerHTML = `
-                <div class="message-header">בינת קוד המקור:</div>
-                <div class="message-content">${formattedMessage}</div>
+                <div class="message-header"><img src="/static/images/pdn_logo.png" class="bot-avatar-inline" alt=""> בינת קוד המקור:</div>
+                <div class="message-content">
+                    <p class="welcome-greeting"><span style="color: #c9a96e;">🌿</span> שלום ${USER_NAME.toUpperCase()}, קוד המקור שלך הינו <strong>${finalPdnCode.toUpperCase()}</strong></p>
+                    <p>בינת קוד המקור ממתינה לך כאן, בקצב שלך.</p>
+                    <details class="welcome-disclaimer">
+                        <summary>הסכמה מודעת וכתב ויתור</summary>
+                        <div class="disclaimer-body">
+                            <p>בינת קוד המקור מיועדת לצורכי התפתחות אישית והעשרה עצמית בלבד.</p>
+                            <p>השיחות והתובנות המוצעות כאן אינן מהוות תחליף לייעוץ מקצועי, טיפול פסיכולוגי, רפואי או כל שירות מקצועי אחר.</p>
+                            <p>השימוש בבינה זו הוא באחריותך המלאה. אם את/ה חווה מצוקה נפשית, קושי רגשי משמעותי או זקוק/ה לתמיכה מקצועית – מומלץ בחום לפנות לגורם מוסמך.</p>
+                            <p>הבינה מיועדת לשימוש אישי בלבד ואינה מחליפה ליווי אנושי מקצועי.</p>
+                            <p>כל הזכויות שמורות למרכז PDN ולבעליו החוקיים.</p>
+                            <p>השימוש בבינה מהווה אישור להסכמה מלאה לכל האמור לעיל.</p>
+                        </div>
+                    </details>
+                    <p class="welcome-closing">אני כאן להזכיר לך – הכוח כבר בתוכך. <span style="color: #c9a96e;">💛</span></p>
+                </div>
                 <div class="message-time">${getCurrentTime()}</div>
             `;
 
         chatContainer.appendChild(initialBot);
         addQuickReplies(initialBot);
         scrollToBottom(true);
+        } // end binat-only welcome message
 
         // Restore conversation history
         restoreConversationHistory();
@@ -1304,7 +1321,7 @@ async function submitPlanRequest(event) {
             const userTime = getCurrentTime();
             const userContent = safeMarkdownParse(goal);
             userBubble.innerHTML = `
-                <div class="message-header">${USER_NAME}:</div>
+                <div class="message-header"><span class="user-avatar-initials">${USER_NAME.charAt(0)}</span>${USER_NAME}:</div>
                 <div class="message-content">${userContent}</div>
                 <div class="message-time">${userTime}</div>
 
@@ -1329,15 +1346,15 @@ async function submitPlanRequest(event) {
 
 
             botBubble.innerHTML = `
-                <div class="message-header">בינת קוד המקור:</div>
+                <div class="message-header"><img src="/static/images/pdn_logo.png" class="bot-avatar-inline" alt=""> בינת קוד המקור:</div>
                 <div class="message-content">${botContent}</div>
                 <div class="message-actions">
                     <button class="copy-plan-btn" onclick="downloadPlan(this)" title="הורד את התוכנית">
                         <i class="fas fa-download"></i>
                         <span>הורד תוכנית</span>
                     </button>
-                    <button class="bookmark-btn" onclick="toggleBookmark(this)" title="שמור הודעה">
-                        <i class="far fa-bookmark"></i>
+                    <button class="bookmark-btn" onclick="toggleBookmark(this)" title="שמור הודעה" aria-label="שמור הודעה">
+                        <i class="fas fa-bookmark"></i> שמור
                     </button>
                 </div>
                 <div class="message-time">${botTime}</div>
@@ -1583,7 +1600,7 @@ async function submitDailyTrainingRequest(event) {
             const userTime = getCurrentTime();
             const userContent = safeMarkdownParse(`אימון יומי:\n\n**המשימה שלי:**\n${task}`);
             userBubble.innerHTML = `
-                <div class="message-header">${USER_NAME}:</div>
+                <div class="message-header"><span class="user-avatar-initials">${USER_NAME.charAt(0)}</span>${USER_NAME}:</div>
                 <div class="message-content">${userContent}</div>
                 <div class="message-time">${userTime}</div>
             `;
@@ -1604,11 +1621,11 @@ async function submitDailyTrainingRequest(event) {
             let botContent = safeMarkdownParse(data.response || 'תודה על השיתוף! המשיכה בדרך שלך.');
 
             botBubble.innerHTML = `
-                <div class="message-header">בינת קוד המקור:</div>
+                <div class="message-header"><img src="/static/images/pdn_logo.png" class="bot-avatar-inline" alt=""> בינת קוד המקור:</div>
                 <div class="message-content">${botContent}</div>
                 <div class="message-actions">
-                    <button class="bookmark-btn" onclick="toggleBookmark(this)" title="שמור הודעה">
-                        <i class="far fa-bookmark"></i>
+                    <button class="bookmark-btn" onclick="toggleBookmark(this)" title="שמור הודעה" aria-label="שמור הודעה">
+                        <i class="fas fa-bookmark"></i> שמור
                     </button>
                 </div>
                 <div class="message-time">${botTime}</div>
