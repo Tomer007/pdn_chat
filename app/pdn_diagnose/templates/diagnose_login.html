@@ -2,44 +2,34 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8"/>
-    <title>מערכת אבחון אישי PDN </title>
+    <title>מערכת אבחון אישי PDN</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+          crossorigin="anonymous" referrerpolicy="no-referrer">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/binat-login.css') }}">
 </head>
 <body>
-<!-- Theme toggle -->
-<button class="theme-toggle" onclick="toggleTheme()" title="החלף ערכת נושא" aria-label="החלף ערכת נושא">
-    <i class="fas fa-moon"></i>
-</button>
-
-<!-- Header with improved layout -->
-<header class="header-gradient">
-    <div class="header-content">
-        <!-- Logo and title section -->
-        <div class="header-left">
-            <a href="https://www.pdn.co.il" target="_blank" class="logo-link">
-                <img src="/static/images/pdn_logo.png" alt="PDN Logo" class="header-logo"/>
-            </a>
-            <div class="header-text">
-                <h1 class="text-2xl font-bold mb-2 text-white">PDN Center</h1>
-                <p class="text-2xl opacity-90 text-white">מערכת אבחון אישי</p>
-            </div>
-        </div>
-    </div>
-</header>
 
 <!-- Main container -->
 <div class="container mx-auto p-6 max-w-4xl">
     <div class="login-container">
-        <div class="text-center mb-8">
-            <h2 class="text-3xl font-bold text-blue-900 mb-2">ברוך הבא למערכת האבחון</h2>
-            <p class="text-blue-700">הזן פרטים כדי להתחיל את האבחון</p>
+        <!-- Logo -->
+        <div class="text-center mb-2">
+            <a href="https://www.pdn.co.il" target="_blank" style="display: inline-block;">
+                <img src="{{ url_for('static', filename='images/pdn_logo.png') }}" alt="PDN Logo"
+                     style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 1.5px solid rgba(201, 169, 110, 0.25);">
+            </a>
         </div>
 
-        <form id="loginForm" class="space-y-6">
+        <!-- Heading -->
+        <div class="text-center mb-8">
+            <h2 class="login-heading">ברוך הבא למסע הגילוי</h2>
+            <p class="login-subheading">הזן פרטים כדי להתחיל את המסע לגילוי קוד המקור שלך</p>
+        </div>
+
+        <form id="loginForm">
             <div class="form-group">
                 <label for="email" class="form-label">
                     <i class="fas fa-envelope"></i>
@@ -64,75 +54,55 @@
             </div>
 
             <button type="submit" class="submit-button">
-                <i class="fas fa-sign-in-alt"></i>
                 התחל אבחון
             </button>
         </form>
 
-        <div id="loginError" class="error-message">
-            <i class="fas fa-exclamation-triangle mr-2"></i>
+        <div id="loginError" class="error-message" role="alert">
+            <i class="fas fa-exclamation-triangle"></i>
             <span>פרטים שגויים</span>
         </div>
 
         <!-- Disclaimer -->
-        <div class="disclaimer">
-            <h2 class="text-blue-900 text-2xl">הסכמה מודעת לאבחון קוד המקור</h2>
-                <p>האבחון נועד לעורר תודעה, לאפשר גילוי עצמי, ולהאיר כיוונים פנימיים. הוא לא מחליף ייעוץ או טיפול מקצועי
-                    – רגשי, רפואי או אחר – ואינו מתיימר לאבחן או לרפא.</p>
-                <p>האבחון מזמין אותך להתבונן, להקשיב לעצמך, ולבחור איך לפעול. האחריות על הדרך, הבחירות וההשלכות – היא
-                    שלך בלבד.</p>
+        <div class="disclaimer collapsed">
+            <h3 class="disclaimer-toggle">הסכמה מודעת לאבחון קוד המקור</h3>
+            <div class="disclaimer-content">
+                <p>האבחון נועד לעורר תודעה, לאפשר גילוי עצמי, ולהאיר כיוונים פנימיים. הוא לא מחליף ייעוץ או טיפול מקצועי – רגשי, רפואי או אחר – ואינו מתיימר לאבחן או לרפא.</p>
+                <p>האבחון מזמין אותך להתבונן, להקשיב לעצמך, ולבחור איך לפעול. האחריות על הדרך, הבחירות וההשלכות – היא שלך בלבד.</p>
                 <p>אם עולה קושי רגשי עמוק, מצוקה מתמשכת או צורך בתמיכה – חשוב לפנות לאיש מקצוע מתאים.</p>
                 <p>אנחנו כאן להזכיר – שהכוח כבר בתוכך.</p>
+            </div>
         </div>
 
-        <!-- Footer -->
-        {% include 'partials/footer.html' %}
+        <!-- Footer - minimal -->
+        <div style="text-align: center; margin-top: 24px; padding-top: 16px; border-top: 1px solid rgba(201, 169, 110, 0.1);">
+            <p style="font-size: 11px; color: #8a8279; margin: 0;">&copy; 2025 PDN Center כל הזכויות שמורות</p>
+        </div>
     </div>
 </div>
 
 <script>
-    let isDarkMode = false;
-
-    // Function to show error message
-    function showError() {
-        const loginError = document.getElementById('loginError');
-        loginError.style.display = 'block';
-    }
-
-    // Function to hide error message
-    function hideError() {
-        const loginError = document.getElementById('loginError');
-        loginError.style.display = 'none';
-    }
-
-    // Theme toggle with proper state management
-    function toggleTheme() {
-        isDarkMode = !isDarkMode;
-        document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
-
-        const themeIcon = document.querySelector('.theme-toggle i');
-        themeIcon.className = isDarkMode ? 'fas fa-sun' : 'fas fa-moon';
-
-        // Save preference
-        localStorage.setItem('darkMode', isDarkMode);
-    }
-
-    // Initialize
     document.addEventListener('DOMContentLoaded', function () {
-        // Load theme preference
-        const savedTheme = localStorage.getItem('darkMode');
-        if (savedTheme === 'true') {
-            isDarkMode = true;
-            document.documentElement.setAttribute('data-theme', 'dark');
-            const themeIcon = document.querySelector('.theme-toggle i');
-            themeIcon.className = 'fas fa-sun';
-        }
-
-        // Focus on email input when page loads
         document.getElementById('email').focus();
+
+        // Disclaimer toggle
+        const disclaimerToggle = document.querySelector('.disclaimer-toggle');
+        if (disclaimerToggle) {
+            disclaimerToggle.addEventListener('click', function () {
+                this.closest('.disclaimer').classList.toggle('collapsed');
+            });
+        }
     });
 
-    // Hide error when user starts typing
+    function showError() {
+        document.getElementById('loginError').style.display = 'flex';
+    }
+
+    function hideError() {
+        document.getElementById('loginError').style.display = 'none';
+    }
+
+    // Hide error on input
     document.getElementById('email').addEventListener('input', hideError);
     document.getElementById('password').addEventListener('input', hideError);
 
@@ -145,19 +115,15 @@
         submitButton.classList.add('loading');
         submitButton.disabled = true;
 
-        const loginData = {
-            email: document.getElementById('email').value,
-            password: document.getElementById('password').value
-        };
-
         try {
             const response = await fetch('/pdn-diagnose/login', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(loginData)
+                body: JSON.stringify({
+                    email: document.getElementById('email').value,
+                    password: document.getElementById('password').value
+                })
             });
-
-            const data = await response.json();
 
             if (response.ok) {
                 window.location.href = '/pdn-diagnose/user_info';
@@ -166,17 +132,10 @@
             }
         } catch (error) {
             showError();
-            console.error('Error:', error);
+            console.error('Login error:', error);
         } finally {
             submitButton.classList.remove('loading');
             submitButton.disabled = false;
-        }
-    });
-
-    // Handle Enter key press
-    document.getElementById('password').addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-            document.getElementById('loginForm').dispatchEvent(new Event('submit'));
         }
     });
 </script>

@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/diagnose-common.css') }}">
     <style>
         /* Report-specific styles — spiritual, premium, celebratory */
@@ -14,19 +14,21 @@
         /* ===== Spiritual Background ===== */
         body {
             background:
-                radial-gradient(ellipse at 30% 20%, rgba(99, 102, 241, 0.12) 0%, transparent 50%),
-                radial-gradient(ellipse at 70% 70%, rgba(245, 158, 11, 0.08) 0%, transparent 40%),
+                radial-gradient(ellipse at 30% 20%, rgba(124, 58, 237, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 70%, rgba(201, 169, 110, 0.08) 0%, transparent 40%),
                 radial-gradient(ellipse at 50% 50%, rgba(139, 92, 246, 0.06) 0%, transparent 60%);
-            background-color: #0b2e6b;
+            background-color: #2d2a5e;
         }
 
         /* ===== Main Card Enhancement ===== */
         main.glass-effect {
-            background: rgba(255, 255, 255, 0.97);
-            border: 1px solid rgba(255, 255, 255, 0.4);
+            background: rgba(255, 252, 247, 0.97);
+            border: 1px solid rgba(201, 169, 110, 0.12);
             box-shadow:
-                0 24px 48px rgba(11, 46, 107, 0.12),
-                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+                0 24px 48px rgba(30, 27, 75, 0.12),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5),
+                inset 0 0 40px rgba(201, 169, 110, 0.02),
+                0 0 40px rgba(201, 169, 110, 0.04);
             position: relative;
             overflow: hidden;
         }
@@ -37,10 +39,10 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #0b2e6b, #6366f1, #f59e0b, #6366f1, #0b2e6b);
+            height: 3px;
+            background: linear-gradient(90deg, #8b6914, #c9a96e, #f0c840, #c9a96e, #8b6914);
             background-size: 200% 100%;
-            animation: shimmerBar 4s ease infinite;
+            animation: shimmerBar 8s ease infinite;
         }
 
         @keyframes shimmerBar {
@@ -51,8 +53,8 @@
         /* ===== Title Styling ===== */
         #heroTitle {
             font-size: 1.5rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #0b2e6b 0%, #4f46e5 50%, #0b2e6b 100%);
+            font-weight: 600;
+            background: linear-gradient(135deg, #8b6914 0%, #c9a96e 40%, #e6b020 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -60,7 +62,7 @@
 
         /* ===== "מה הלאה?" Section ===== */
         main h2 {
-            background: linear-gradient(135deg, #0b2e6b, #4f46e5);
+            background: linear-gradient(135deg, #8b6914, #c9a96e);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -70,7 +72,7 @@
         .divider-enhanced {
             height: 4px;
             width: 60px;
-            background: linear-gradient(90deg, #0b2e6b, #6366f1, #f59e0b);
+            background: linear-gradient(90deg, #8b6914, #c9a96e, #f0c840);
             border-radius: 2px;
             margin: 16px auto 24px;
         }
@@ -78,113 +80,15 @@
         /* ===== Content Text ===== */
         .lead-text {
             font-size: 17px;
-            line-height: 1.8;
-            color: #374151;
+            line-height: 2.0;
+            color: #2d2a26;
             margin-bottom: 20px;
             padding: 16px 20px;
-            background: linear-gradient(135deg, #f8faff 0%, #fefefe 100%);
-            border-radius: 14px;
-            border-right: 3px solid #4f46e5;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-        }
-
-        /* ===== PDN Logo Container ===== */
-        .pdn-logo-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 24px;
-            position: relative;
-        }
-
-        .pdn-logo {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid rgba(99, 102, 241, 0.2);
-            box-shadow:
-                0 8px 32px rgba(11, 46, 107, 0.2),
-                0 0 0 6px rgba(99, 102, 241, 0.05);
-            transition: all 0.3s ease;
-            position: relative;
-            z-index: 2;
-        }
-
-        .pdn-logo:hover {
-            transform: scale(1.08);
-            box-shadow:
-                0 12px 40px rgba(11, 46, 107, 0.3),
-                0 0 0 8px rgba(99, 102, 241, 0.1);
-        }
-
-        /* Animated ring around logo */
-        .logo-ring {
-            position: absolute;
-            width: 100px;
-            height: 100px;
-            border: 2px solid transparent;
-            border-top: 2px solid rgba(99, 102, 241, 0.4);
-            border-right: 2px solid rgba(99, 102, 241, 0.4);
-            border-radius: 50%;
-            animation: logoSpin 4s linear infinite;
-        }
-
-        .logo-ring:nth-child(2) {
-            width: 116px;
-            height: 116px;
-            border-top: 1.5px solid rgba(245, 158, 11, 0.3);
-            border-right: 1.5px solid rgba(245, 158, 11, 0.3);
-            animation: logoSpin 6s linear infinite reverse;
-        }
-
-        @keyframes logoSpin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Logo glow */
-        .logo-glow {
-            position: absolute;
-            width: 90px;
-            height: 90px;
-            background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
-            border-radius: 50%;
-            animation: logoGlow 3s ease-in-out infinite alternate;
-            z-index: 1;
-        }
-
-        @keyframes logoGlow {
-            0% { transform: scale(1); opacity: 0.4; }
-            100% { transform: scale(1.3); opacity: 0.7; }
-        }
-
-        /* Floating particles */
-        .logo-particle {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: #6366f1;
-            border-radius: 50%;
-            opacity: 0.5;
-        }
-
-        .logo-particle:nth-child(3) { top: 15%; left: 15%; animation: float1 3s ease-in-out infinite; }
-        .logo-particle:nth-child(4) { top: 25%; right: 15%; animation: float2 2.5s ease-in-out infinite; }
-        .logo-particle:nth-child(5) { bottom: 20%; left: 20%; animation: float3 3.5s ease-in-out infinite; }
-        .logo-particle:nth-child(6) { bottom: 15%; right: 15%; animation: float1 2.8s ease-in-out infinite; }
-
-        @keyframes float1 {
-            0%, 100% { transform: translateY(0) translateX(0); opacity: 0.5; }
-            50% { transform: translateY(-8px) translateX(4px); opacity: 1; }
-        }
-        @keyframes float2 {
-            0%, 100% { transform: translateY(0) translateX(0); opacity: 0.5; }
-            50% { transform: translateY(-6px) translateX(-3px); opacity: 1; }
-        }
-        @keyframes float3 {
-            0%, 100% { transform: translateY(0) translateX(0); opacity: 0.5; }
-            50% { transform: translateY(-10px) translateX(-2px); opacity: 1; }
+            background: linear-gradient(135deg, rgba(255, 252, 247, 1) 0%, rgba(250, 245, 239, 1) 100%);
+            border-radius: 16px;
+            border-right: 3px solid #c9a96e;
+            box-shadow: 0 2px 8px rgba(30, 27, 75, 0.03);
+            font-weight: 300;
         }
 
         /* ===== CTA Button ===== */
@@ -193,44 +97,44 @@
             align-items: center;
             gap: 8px;
             padding: 14px 28px;
-            border-radius: 14px;
-            font-weight: 600;
+            border-radius: 16px;
+            font-weight: 500;
             text-decoration: none;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
             cursor: pointer;
             border: none;
             font-size: 16px;
         }
 
         .btn-primary-enhanced {
-            background: linear-gradient(135deg, #0b2e6b 0%, #4f46e5 100%);
-            color: white;
-            box-shadow: 0 4px 16px rgba(79, 70, 229, 0.3);
+            background: linear-gradient(135deg, #8b6914 0%, #c9a96e 40%, #e6b020 100%);
+            color: #faf5ef;
+            box-shadow: 0 4px 16px rgba(30, 27, 75, 0.3), 0 0 15px rgba(201, 169, 110, 0.06);
         }
 
         .btn-primary-enhanced:hover {
             transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 8px 24px rgba(79, 70, 229, 0.4);
+            box-shadow: 0 8px 28px rgba(30, 27, 75, 0.4), 0 0 20px rgba(124, 58, 237, 0.1);
         }
 
         .btn-primary-enhanced:active {
             transform: translateY(0) scale(0.98);
         }
 
-        /* ===== Celebration Confetti (CSS only) ===== */
+        /* ===== Celebration Sparkle (CSS only) ===== */
         main.glass-effect::after {
             content: '✨';
             position: absolute;
             top: 20px;
             right: 20px;
             font-size: 24px;
-            animation: sparkle 2s ease-in-out infinite;
+            animation: sparkle 3s ease-in-out infinite;
             opacity: 0.6;
         }
 
         @keyframes sparkle {
             0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.6; }
-            50% { transform: scale(1.2) rotate(10deg); opacity: 1; }
+            50% { transform: scale(1.15) rotate(5deg); opacity: 1; }
         }
 
         /* ===== Reduced Motion ===== */
@@ -242,32 +146,21 @@
         }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
+<body class="flex flex-col min-h-screen">
+<div class="flex items-center justify-center flex-1 p-4">
 
 <main class="glass-effect p-8 rounded-2xl shadow-2xl w-full max-w-2xl border border-white/20 space-y-6 animate-fade-in-up">
 
-    <!-- PDN Logo Section -->
-    <div class="pdn-logo-container">
-        <div class="logo-glow"></div>
-        <div class="logo-ring"></div>
-        <div class="logo-ring"></div>
-        <div class="logo-particle"></div>
-        <div class="logo-particle"></div>
-        <div class="logo-particle"></div>
-        <div class="logo-particle"></div>
-        <img src="/static/images/pdn_logo.png" alt="PDN Logo" class="pdn-logo"/>
-    </div>
-
     <!-- Header Section -->
     <div class="text-center mb-8">
-        <h1 class="text-xl font-bold text-center text-blue-900 bg-blue-900 bg-clip-text text-transparent mb-4">
+        <h1 class="text-xl font-bold text-center mb-4" style="background: linear-gradient(135deg, #8b6914, #c9a96e, #e6b020); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
             <span id="heroTitle"> סיימת את האבחון בהצלחה</span>
         </h1>
     </div>
 
     <!-- Success Section -->
     <div class="text-center mb-8">
-        <h2 class="text-xl font-bold text-center text-blue-900 bg-blue-900 bg-clip-text text-transparent mb-4">
+        <h2 class="text-xl font-bold text-center mb-4" style="background: linear-gradient(135deg, #8b6914, #c9a96e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
             מה הלאה?</h2>
         <div class="divider-enhanced"></div>
     </div>
@@ -289,21 +182,21 @@
 
     <!-- Action Button -->
     <div class="text-center pt-6">
-        <button class="btn-enhanced btn-primary-enhanced" onclick="openSite()">
+        <button class="btn-enhanced btn-primary-enhanced" onclick="openSite(event)">
             <i class="fas fa-external-link-alt"></i>
             PDN Site
         </button>
     </div>
 
     <!-- Footer Section -->
-    <div class="text-center pt-6 border-t border-blue-100/30 mt-8">
+    <div class="text-center pt-6 mt-8" style="border-top: 1px solid rgba(30, 27, 75, 0.06);">
         {% include 'partials/footer.html' %}
     </div>
 
 </main>
+</div>
 
 <script>
-    // Personalize title with user name and initialize logo effects
     document.addEventListener('DOMContentLoaded', async () => {
         try {
             const resp = await fetch('/pdn-diagnose/get_report_data');
@@ -313,99 +206,23 @@
                 const last = (data.metadata && data.metadata.last_name) || '';
                 const fullName = `${first} ${last}`.trim();
                 const titleEl = document.getElementById('heroTitle');
-                if (titleEl) {
-                    titleEl.textContent = fullName ? `${fullName} – סיימת את האבחון בהצלחה` : 'סיימת את האבחון בהצלחה';
+                if (titleEl && fullName) {
+                    titleEl.textContent = `${fullName} – סיימת את האבחון בהצלחה`;
                 }
             }
         } catch (e) {
             console.error('Failed to load report data', e);
         }
-
-        // Initialize PDN logo effects
-        initLogoEffects();
     });
 
-    function initLogoEffects() {
-        const logo = document.querySelector('.pdn-logo');
-        const logoContainer = document.querySelector('.pdn-logo-container');
-
-        if (logo && logoContainer) {
-            // Add click effect to logo
-            logo.addEventListener('click', function () {
-                // Create ripple effect
-                const ripple = document.createElement('div');
-                ripple.style.cssText = `
-                    position: absolute;
-                    width: 10px;
-                    height: 10px;
-                    background: rgba(11, 46, 107, 0.6);
-                    border-radius: 50%;
-                    transform: scale(0);
-                    animation: ripple 0.6s linear;
-                    pointer-events: none;
-                    z-index: 3;
-                    left: 50%;
-                    top: 50%;
-                    margin-left: -5px;
-                    margin-top: -5px;
-                `;
-
-                logoContainer.appendChild(ripple);
-
-                // Remove ripple after animation
-                setTimeout(() => {
-                    if (ripple.parentNode) {
-                        ripple.parentNode.removeChild(ripple);
-                    }
-                }, 600);
-
-                // Add temporary glow boost
-                logo.style.boxShadow = '0 0 40px rgba(11, 46, 107, 0.8)';
-                setTimeout(() => {
-                    logo.style.boxShadow = '';
-                }, 300);
-            });
-
-            // Add mouseover effect
-            logo.addEventListener('mouseenter', function () {
-                const particles = document.querySelectorAll('.logo-particle');
-                particles.forEach(particle => {
-                    particle.style.animationDuration = '1s';
-                    particle.style.opacity = '1';
-                });
-            });
-
-            logo.addEventListener('mouseleave', function () {
-                const particles = document.querySelectorAll('.logo-particle');
-                particles.forEach((particle, index) => {
-                    const durations = ['3s', '2.5s', '3.5s', '2.8s'];
-                    particle.style.animationDuration = durations[index] || '3s';
-                    particle.style.opacity = '0.6';
-                });
-            });
-        }
-    }
-
-    function openSite() {
-        const button = event.target;
+    function openSite(e) {
+        const button = e.currentTarget;
         button.style.transform = 'scale(0.95)';
         setTimeout(() => {
             button.style.transform = '';
             window.open('https://www.pdn.co.il', '_blank', 'noopener');
         }, 150);
     }
-
-    // Add CSS for ripple animation
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes ripple {
-            to {
-                transform: scale(4);
-                opacity: 0;
-            }
-        }
-    `;
-    document.head.appendChild(style);
 </script>
 </body>
 </html> 

@@ -242,6 +242,21 @@ def delete_answer_route():
         return jsonify({"error": str(e)}), 400
 
 
+@pdn_diagnose_bp.route('/get_progress', methods=['GET'])
+@require_auth
+def get_progress():
+    """Return saved progress for resume functionality"""
+    email = session.get('email', 'anonymous')
+    answers = load_answers(email)
+    if not answers:
+        return jsonify({"current_question": 0})
+    digit_keys = [int(k) for k in answers.keys() if k.isdigit()]
+    if not digit_keys:
+        return jsonify({"current_question": 0})
+    max_question = max(digit_keys)
+    return jsonify({"current_question": max_question})
+
+
 @pdn_diagnose_bp.route('/complete_questionnaire', methods=['POST'])
 @require_auth
 def complete_questionnaire():

@@ -6,80 +6,87 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/diagnose-common.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <!-- Include audio handler script -->
-    <script src="/static/js/audio-handler.js"></script>
+    <script src="{{ url_for('static', filename='js/audio-handler.js') }}"></script>
     <style>
-        /* Questionnaire-specific styles — spiritual, modern, delightful */
+        /* Questionnaire-specific styles — spiritual, warm, contemplative */
 
         /* ===== Spiritual Background Ambiance ===== */
         body {
             background:
-                radial-gradient(ellipse at 30% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
-                radial-gradient(ellipse at 70% 80%, rgba(245, 158, 11, 0.08) 0%, transparent 40%),
-                radial-gradient(ellipse at 50% 50%, rgba(11, 46, 107, 0.05) 0%, transparent 60%);
-            background-color: #0b2e6b;
+                radial-gradient(ellipse at 30% 20%, rgba(124, 58, 237, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(201, 169, 110, 0.06) 0%, transparent 40%),
+                radial-gradient(ellipse at 50% 50%, rgba(139, 92, 246, 0.08) 0%, transparent 60%);
+            background-color: #2d2a5e;
             background-size: 100% 100%;
         }
 
         /* ===== Enhanced Main Card ===== */
         #chatArea {
-            background: rgba(255, 255, 255, 0.97);
-            backdrop-filter: blur(24px) saturate(1.3);
-            border: 1px solid rgba(255, 255, 255, 0.4);
+            background: rgba(255, 252, 247, 0.97);
+            backdrop-filter: blur(20px) saturate(1.2);
+            border: 1px solid rgba(201, 169, 110, 0.12);
             box-shadow:
-                0 24px 48px rgba(11, 46, 107, 0.12),
-                0 0 0 1px rgba(255, 255, 255, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+                0 24px 48px rgba(30, 27, 75, 0.12),
+                0 0 0 1px rgba(201, 169, 110, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5),
+                inset 0 0 40px rgba(201, 169, 110, 0.02),
+                0 0 40px rgba(201, 169, 110, 0.04);
             position: relative;
             overflow: hidden;
         }
 
         #chatArea::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #0b2e6b, #6366f1, #f59e0b, #6366f1, #0b2e6b);
-            background-size: 200% 100%;
-            animation: shimmerBar 4s ease infinite;
-        }
-
-        @keyframes shimmerBar {
-            0% { background-position: 0% 50%; }
-            100% { background-position: 200% 50%; }
+            display: none;
         }
 
         /* ===== Title with Spiritual Gradient ===== */
         #chatArea > h1 {
-            background: linear-gradient(135deg, #0b2e6b 0%, #4f46e5 50%, #0b2e6b 100%);
+            background: linear-gradient(135deg, #8b6914 0%, #c9a96e 40%, #e6b020 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             letter-spacing: -0.5px;
             position: relative;
+            font-weight: 600;
+        }
+
+        /* ===== Sticky Progress Bar ===== */
+        #progressContainer {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            background: rgba(255, 252, 247, 0.95);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            padding: 12px 0;
+            margin-bottom: 16px;
+            transition: box-shadow 0.3s ease;
+        }
+
+        #progressContainer.is-stuck {
+            box-shadow: 0 2px 12px rgba(30, 27, 75, 0.08);
         }
 
         /* ===== Enhanced Progress Bar ===== */
         #progressContainer .w-full {
-            background: linear-gradient(90deg, #e0e7ff, #f0f4ff, #e0e7ff);
+            background: linear-gradient(90deg, rgba(139, 105, 20, 0.06), rgba(201, 169, 110, 0.08), rgba(139, 105, 20, 0.06));
             border-radius: 12px;
             height: 10px;
             overflow: hidden;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+            box-shadow: inset 0 2px 4px rgba(30, 27, 75, 0.04);
         }
 
         #progressBar {
-            background: linear-gradient(90deg, #0b2e6b, #4f46e5, #6366f1);
+            background: linear-gradient(90deg, #8b6914, #c9a96e, #f0c840);
             border-radius: 12px;
             height: 10px !important;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+            box-shadow: 0 2px 8px rgba(201, 169, 110, 0.3);
         }
 
         #progressBar::after {
@@ -89,8 +96,8 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-            animation: progressShimmer 2s ease infinite;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+            animation: progressShimmer 4s ease infinite;
         }
 
         @keyframes progressShimmer {
@@ -101,77 +108,74 @@
         /* ===== Voice Recording Sections ===== */
         #voiceRecordArea,
         #voiceRecordArea2 {
-            background: linear-gradient(135deg, #f8faff 0%, #eef2ff 50%, #f5f3ff 100%);
-            border: 1px solid rgba(99, 102, 241, 0.15);
-            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(255, 252, 247, 1) 0%, rgba(250, 245, 239, 1) 50%, rgba(255, 252, 247, 1) 100%);
+            border: 1px solid rgba(30, 27, 75, 0.06);
+            border-radius: 24px;
             padding: 28px;
             box-shadow:
-                0 4px 16px rgba(99, 102, 241, 0.06),
-                inset 0 1px 0 rgba(255, 255, 255, 0.8);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                0 4px 16px rgba(30, 27, 75, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.7),
+                inset 0 0 30px rgba(201, 169, 110, 0.02),
+                0 0 20px rgba(201, 169, 110, 0.03);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         #voiceRecordArea:hover,
         #voiceRecordArea2:hover {
             box-shadow:
-                0 8px 24px rgba(99, 102, 241, 0.1),
-                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+                0 8px 24px rgba(30, 27, 75, 0.07),
+                inset 0 1px 0 rgba(255, 255, 255, 0.7),
+                inset 0 0 30px rgba(201, 169, 110, 0.03),
+                0 0 30px rgba(201, 169, 110, 0.04);
         }
 
         /* Question box styling */
         #voiceRecordArea .bg-white,
         #voiceRecordArea2 .bg-white {
             background: white;
-            border-radius: 14px;
-            border-right: 4px solid #4f46e5 !important;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            border-radius: 16px;
+            border-right: 4px solid #c9a96e !important;
+            box-shadow: 0 2px 8px rgba(30, 27, 75, 0.03);
             padding: 16px 20px;
             font-size: 17px;
-            line-height: 1.7;
+            line-height: 1.8;
         }
 
-        /* ===== Recording Buttons - Spiritual Style ===== */
+        /* ===== Recording Buttons - Gold Style ===== */
         #startRecordBtn, #startRecordBtn2 {
-            background: linear-gradient(135deg, #0b2e6b 0%, #4f46e5 100%);
-            border-radius: 14px;
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            background: linear-gradient(135deg, #8b6914 0%, #c9a96e 40%, #e6b020 100%);
+            color: #2d2a26;
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(201, 169, 110, 0.4);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
             border: none;
         }
 
         #startRecordBtn:hover, #startRecordBtn2:hover {
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(201, 169, 110, 0.5);
         }
 
         #stopRecordBtn, #stopRecordBtn2 {
-            background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
-            border-radius: 14px;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            background: linear-gradient(135deg, #c9a96e 0%, #e6b020 100%);
+            color: #2d2a26;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(201, 169, 110, 0.3);
             border: none;
         }
 
-        #skipRecordBtn, #skipRecordBtn2 {
-            border-radius: 14px;
-            border: 2px solid #e2e8f0;
-            transition: all 0.3s ease;
-        }
-
-        #skipRecordBtn:hover, #skipRecordBtn2:hover {
-            border-color: #94a3b8;
-            background: #f8fafc;
-        }
+        /* ===== Skip Recording Buttons — styled via .btn-dismiss class ===== */
 
         /* ===== Audio Bar Animation - Spiritual Wave ===== */
         @keyframes audioBarBounce {
             from {
                 height: 6px;
-                background: #c7d2fe;
+                background: rgba(201, 169, 110, 0.35);
                 border-radius: 3px;
             }
             to {
                 height: 24px;
-                background: linear-gradient(180deg, #4f46e5, #0b2e6b);
+                background: linear-gradient(180deg, #f0c840, #8b6914);
                 border-radius: 4px;
             }
         }
@@ -179,126 +183,162 @@
         .audio-bar {
             width: 6px;
             height: 24px;
-            background: linear-gradient(180deg, #4f46e5, #0b2e6b);
+            background: linear-gradient(180deg, #f0c840, #8b6914);
             margin: 0 3px;
             border-radius: 4px;
             display: inline-block;
             vertical-align: bottom;
-            animation: audioBarBounce 0.8s ease-in-out infinite alternate;
+            animation: audioBarBounce 1.2s ease-in-out infinite alternate;
         }
 
-        .audio-bar:nth-child(2) { animation-delay: .12s; }
-        .audio-bar:nth-child(3) { animation-delay: .24s; }
-        .audio-bar:nth-child(4) { animation-delay: .36s; }
-        .audio-bar:nth-child(5) { animation-delay: .48s; }
+        .audio-bar:nth-child(2) { animation-delay: .2s; }
+        .audio-bar:nth-child(3) { animation-delay: .4s; }
+        .audio-bar:nth-child(4) { animation-delay: .6s; }
+        .audio-bar:nth-child(5) { animation-delay: .8s; }
 
-        /* ===== Question Options - Elevated Cards ===== */
-        #options button {
-            background: linear-gradient(135deg, #0b2e6b 0%, #1e3a7a 100%);
-            border: none;
-            border-radius: 14px;
-            padding: 18px 24px;
-            font-size: 16px;
-            box-shadow: 0 4px 12px rgba(11, 46, 107, 0.2);
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        /* ===== Question Options - Gold Cards ===== */
+        #options button.btn-primary {
             position: relative;
             overflow: hidden;
         }
 
-        #options button::before {
+        #options button.btn-primary::before {
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 50%);
             opacity: 0;
             transition: opacity 0.3s ease;
         }
 
-        #options button:hover {
-            transform: translateY(-3px) scale(1.01);
-            box-shadow: 0 8px 24px rgba(11, 46, 107, 0.3);
-            background: linear-gradient(135deg, #1e3a7a 0%, #4f46e5 100%);
-        }
-
-        #options button:hover::before {
+        #options button.btn-primary:hover::before {
             opacity: 1;
         }
 
-        #options button:active {
-            transform: translateY(0) scale(0.98);
-        }
-
-        /* ===== Scale Question Dots - Clear Selection ===== */
-        #options .rounded-full {
-            width: 32px;
-            height: 32px;
-            border: 2px solid #d1d5db;
-            border-radius: 50% !important;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            background: white !important;
+        /* ===== Scale Question Dots ===== */
+        .scale-dot {
+            width: 44px;
+            height: 44px;
+            min-width: 44px;
+            min-height: 44px;
+            border-radius: 50%;
+            border: 2px solid #d4ccc4;
+            background: white;
             cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            z-index: 1;
         }
 
-        #options .rounded-full:hover {
+        .scale-dot:hover {
             transform: scale(1.15);
-            border-color: #4f46e5;
-            box-shadow: 0 0 12px rgba(79, 70, 229, 0.25);
-            background: #f5f3ff !important;
+            border-color: #c9a96e;
+            box-shadow: 0 0 16px rgba(201, 169, 110, 0.3);
+            background: rgba(201, 169, 110, 0.05);
         }
 
-        /* Selected state for scale dots */
-        #options .rounded-full.from-blue-900,
-        #options .rounded-full.bg-gradient-to-r {
-            background: linear-gradient(135deg, #0b2e6b, #4f46e5) !important;
-            border-color: #4f46e5 !important;
+        .scale-dot.selected {
+            background: linear-gradient(135deg, #8b6914, #c9a96e);
+            border-color: #c9a96e;
             transform: scale(1.2);
-            box-shadow: 0 0 16px rgba(79, 70, 229, 0.35), 0 0 0 3px rgba(79, 70, 229, 0.1);
+            box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.3);
         }
 
-        /* Unselected state override */
-        #options .rounded-full.bg-gray-200 {
-            background: white !important;
-            border: 2px solid #d1d5db;
-            border-radius: 50% !important;
-        }
-
-        #options .rounded-full.bg-gray-200:hover {
-            border-color: #a5b4fc;
-            background: #f5f3ff !important;
+        .scale-line {
+            height: 2px;
+            background: linear-gradient(90deg, #d4ccc4, #c9a96e, #d4ccc4);
+            position: absolute;
+            top: 50%;
+            left: 22px;
+            right: 22px;
+            transform: translateY(-50%);
         }
 
         /* ===== Ranking Items ===== */
         .ranking-item {
-            border-radius: 14px;
-            border: 2px solid #f1f5f9;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 16px;
+            border: 2px solid rgba(201, 169, 110, 0.15);
+            transition: all 250ms ease, transform 250ms ease;
             padding: 16px 20px;
         }
 
         .ranking-item:hover {
-            border-color: #c7d2fe;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
+            border-color: rgba(201, 169, 110, 0.4);
+            box-shadow: 0 4px 16px rgba(201, 169, 110, 0.1);
             transform: translateX(-2px);
         }
 
+        .ranking-item.sortable-ghost {
+            opacity: 0.4;
+            background: rgba(201, 169, 110, 0.08);
+        }
+
+        .ranking-item.sortable-chosen {
+            box-shadow: 0 8px 24px rgba(201, 169, 110, 0.25);
+            transform: scale(1.02);
+        }
+
         .ranking-number {
-            color: #6b7280;
+            color: #5c5650;
             font-weight: bold;
         }
 
         .ranking-number.selected {
             color: white !important;
-            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.4);
+            background: linear-gradient(135deg, #8b6914, #c9a96e);
+            box-shadow: 0 2px 8px rgba(201, 169, 110, 0.4);
+        }
+
+        /* ===== Drag Handle ===== */
+        .ranking-drag-handle {
+            color: #b8b0a8;
+            cursor: grab;
+            font-size: 18px;
+            padding: 4px;
+            transition: color 0.2s ease;
+            user-select: none;
+        }
+
+        .ranking-drag-handle:hover {
+            color: #8b6914;
+        }
+
+        .ranking-drag-handle:active {
+            cursor: grabbing;
+        }
+
+        /* ===== Ranking Tooltip ===== */
+        .ranking-tooltip {
+            background: linear-gradient(135deg, #fffbeb, #fef3c7);
+            border: 1px solid #d97706;
+            border-radius: 12px;
+            padding: 10px 16px;
+            font-size: 13px;
+            color: #92400e;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(-8px);
+            transition: opacity 300ms ease, transform 300ms ease;
+            margin-bottom: 12px;
+        }
+
+        .ranking-tooltip.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .ranking-tooltip .tooltip-icon {
+            margin-left: 6px;
         }
 
         /* ===== Instruction Modal - Spiritual Glow ===== */
         #instructionModal > div {
-            background: linear-gradient(135deg, #ffffff 0%, #f8faff 50%, #eef2ff 100%);
-            border: 1px solid rgba(99, 102, 241, 0.15);
+            background: linear-gradient(135deg, rgba(255, 252, 247, 1) 0%, rgba(250, 245, 239, 1) 50%, rgba(255, 252, 247, 1) 100%);
+            border: 1px solid rgba(201, 169, 110, 0.15);
             box-shadow:
-                0 24px 48px rgba(0, 0, 0, 0.15),
-                0 0 60px rgba(99, 102, 241, 0.1);
-            border-radius: 24px;
+                0 24px 48px rgba(30, 27, 75, 0.2),
+                0 0 60px rgba(201, 169, 110, 0.08);
+            border-radius: 28px;
             padding: 40px 32px;
             text-align: center;
         }
@@ -306,54 +346,47 @@
         #instructionModal > div .text-4xl {
             font-size: 3rem;
             margin-bottom: 20px;
-            filter: drop-shadow(0 4px 8px rgba(245, 158, 11, 0.3));
+            filter: drop-shadow(0 4px 8px rgba(201, 169, 110, 0.25));
         }
 
         #instructionModal #modalText {
             font-size: 17px;
-            line-height: 1.8;
-            color: #1e293b;
+            line-height: 2.0;
+            color: #2d2a26;
             background: none;
             padding: 16px 0;
             text-align: right;
             direction: rtl;
+            font-weight: 300;
         }
 
         #modalClose {
-            background: linear-gradient(135deg, #0b2e6b 0%, #4f46e5 100%);
-            border-radius: 14px;
+            background: linear-gradient(135deg, #e6b020 0%, #f0c840 40%, #f8e070 100%);
+            color: #2d2a26;
+            border-radius: 16px;
             padding: 14px 32px;
             font-size: 17px;
-            box-shadow: 0 4px 16px rgba(79, 70, 229, 0.3);
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            font-weight: 600;
+            box-shadow: 0 4px 16px rgba(230, 176, 32, 0.3);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
             animation: none;
             margin-top: 16px;
+            border: none;
         }
 
         #modalClose:hover {
-            transform: scale(1.05) translateY(-2px);
-            box-shadow: 0 8px 24px rgba(79, 70, 229, 0.4);
-        }
-
-        /* ===== Back Button ===== */
-        #backButton {
-            background: linear-gradient(135deg, #0b2e6b 0%, #4f46e5 100%);
-            border-radius: 14px;
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
-            transition: all 0.3s ease;
-        }
-
-        #backButton:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(79, 70, 229, 0.3);
+            box-shadow: 0 8px 24px rgba(201, 169, 110, 0.4);
         }
+
+        /* ===== Back Button — styled via .btn-secondary class ===== */
 
         /* ===== Warning Banner - Softer ===== */
         #voiceRecordArea .rounded-lg[style*="d97706"],
         #voiceRecordArea2 .rounded-lg[style*="d97706"] {
-            border-radius: 12px !important;
+            border-radius: 14px !important;
             background: linear-gradient(135deg, #fef3c7, #fffbeb) !important;
-            border: 1px solid #fbbf24 !important;
+            border: 1px solid #d4a574 !important;
         }
 
         #voiceRecordArea .rounded-lg[style*="d97706"] p,
@@ -363,12 +396,12 @@
 
         /* ===== Recording Validation States ===== */
         .recording-validation {
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .recording-validation.valid {
-            border-color: #10b981;
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1), 0 4px 16px rgba(16, 185, 129, 0.08);
+            border-color: #6b9080;
+            box-shadow: 0 0 0 3px rgba(107, 144, 128, 0.1), 0 4px 16px rgba(107, 144, 128, 0.08);
         }
 
         .recording-validation.invalid {
@@ -377,44 +410,45 @@
         }
 
         .recording-validation.recording {
-            border-color: #f59e0b;
-            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1), 0 4px 16px rgba(245, 158, 11, 0.08);
-            animation: recordingPulse 2s ease-in-out infinite;
+            border-color: #c9a96e;
+            box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.12), 0 4px 16px rgba(201, 169, 110, 0.08);
+            animation: recordingPulse 3.5s ease-in-out infinite;
         }
 
         @keyframes recordingPulse {
-            0%, 100% { box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1); }
-            50% { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.05), 0 0 20px rgba(245, 158, 11, 0.1); }
+            0%, 100% { box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.08); }
+            50% { box-shadow: 0 0 0 6px rgba(201, 169, 110, 0.04), 0 0 24px rgba(201, 169, 110, 0.08); }
         }
 
         /* ===== Voice record UI ===== */
         .recording {
-            color: #4f46e5;
+            color: #c9a96e;
             font-weight: bold;
-            animation: pulse 1.1s infinite alternate;
+            animation: pulse 2.5s infinite alternate;
         }
 
         /* ===== Color Utilities ===== */
         .text-orange-600 { color: #ea580c; }
-        .text-green-600 { color: #16a34a; }
+        .recording-timer-gold { color: #8b6914; }
+        .text-green-600 { color: #6b9080; }
         .text-red-600 { color: #dc2626; }
         .opacity-50 { opacity: 0.5; }
         .cursor-not-allowed { cursor: not-allowed; }
 
         /* ===== Loading Spinner ===== */
         #questionLoading div {
-            border-color: #e0e7ff;
-            border-top-color: #4f46e5;
+            border-color: rgba(201, 169, 110, 0.15);
+            border-top-color: #c9a96e;
         }
 
         /* ===== Fade-in for questions ===== */
         #questionArea {
-            animation: questionFadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: questionFadeIn 0.7s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         @keyframes questionFadeIn {
-            from { opacity: 0; transform: translateY(12px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; transform: translateY(12px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
         /* ===== Mobile Responsiveness ===== */
@@ -422,12 +456,12 @@
             .glass-effect {
                 margin: 10px;
                 padding: 16px;
-                border-radius: 16px;
+                border-radius: 20px;
             }
 
             #voiceRecordArea, #voiceRecordArea2 {
                 padding: 20px;
-                border-radius: 16px;
+                border-radius: 20px;
             }
 
             #options button {
@@ -442,184 +476,372 @@
             }
         }
 
+        /* ===== Validation Message ===== */
+        .validation-message {
+            border: 1px solid #d97706;
+            color: #92400e;
+            background: #fffbeb;
+            border-radius: 12px;
+            padding: 8px 16px;
+            font-size: 14px;
+            opacity: 0;
+            transform: translateY(-4px);
+            transition: opacity 200ms ease, transform 200ms ease;
+        }
+
+        .validation-message.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ===== Button Hierarchy ===== */
+        .btn-primary {
+            background: linear-gradient(135deg, #8b6914 0%, #e6b020 100%);
+            color: #2d2a26;
+            border: none;
+            border-radius: 16px;
+            padding: 18px 24px;
+            font-size: 16px;
+            font-weight: 500;
+            box-shadow: 0 4px 16px rgba(201, 169, 110, 0.3);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(201, 169, 110, 0.45);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #8b6914;
+            border: 2px solid #c9a96e;
+            border-radius: 16px;
+            padding: 12px 24px;
+            font-size: 15px;
+            font-weight: 500;
+            box-shadow: 0 2px 8px rgba(201, 169, 110, 0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            cursor: pointer;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(201, 169, 110, 0.25);
+            border-color: #8b6914;
+        }
+
+        .btn-secondary:active {
+            transform: translateY(0);
+        }
+
+        .btn-dismiss {
+            background: transparent;
+            color: #6b7280;
+            border: 2px solid #d1d5db;
+            border-radius: 16px;
+            padding: 12px 24px;
+            font-size: 15px;
+            font-weight: 500;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            cursor: pointer;
+        }
+
+        .btn-dismiss:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+            border-color: #9ca3af;
+        }
+
+        .btn-dismiss:active {
+            transform: translateY(0);
+        }
+
+        /* ===== Resume Modal ===== */
+        #resumeModal {
+            background: rgba(30, 27, 75, 0.85);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+
+        #resumeModal > div {
+            background: linear-gradient(135deg, rgba(255, 252, 247, 1) 0%, rgba(250, 245, 239, 1) 50%, rgba(255, 252, 247, 1) 100%);
+            border: 1px solid rgba(201, 169, 110, 0.15);
+            box-shadow:
+                0 24px 48px rgba(30, 27, 75, 0.2),
+                0 0 60px rgba(201, 169, 110, 0.08);
+            border-radius: 28px;
+            padding: 40px 32px;
+            text-align: center;
+        }
+
+        #resumeModal .resume-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #5c4a2a;
+            margin-bottom: 12px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        #resumeModal .resume-message {
+            font-size: 1rem;
+            color: #2d2a26;
+            line-height: 1.8;
+            margin-bottom: 24px;
+        }
+
+        #resumeModal .resume-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* ===== Confetti Animation ===== */
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        @keyframes confetti-fade {
+            0%, 80% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .confetti-container {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 100;
+            animation: confetti-fade 4s ease-out forwards;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            animation: confetti-fall 3s ease-in-out forwards;
+        }
+
         /* ===== Reduced Motion ===== */
         @media (prefers-reduced-motion: reduce) {
             #progressBar::after,
             #chatArea::before,
             .audio-bar,
-            .recording-validation.recording {
+            .recording-validation.recording,
+            .confetti-container,
+            .confetti-piece {
                 animation: none;
+            }
+
+            .btn-primary:hover,
+            .btn-secondary:hover,
+            .btn-dismiss:hover {
+                transform: none;
+            }
+
+            .ranking-item {
+                transition: none;
+            }
+
+            .ranking-tooltip {
+                transition: none;
             }
         }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
+<body class="flex flex-col min-h-screen">
+<div class="flex items-center justify-center flex-1 p-4">
 
 <!-- Modal for stage instructions -->
 <div id="instructionModal" class="fixed inset-0 backdrop-blur-sm hidden items-center justify-center z-50"
-     style="background: linear-gradient(135deg, #0b2e6b 0%, #0a2a5f 100%);"
+     style="background: rgba(30, 27, 75, 0.85);"
 >
     <div class="relative rounded-2xl p-10 max-w-md w-full glass-effect animate-fade-in-up shadow-2xl text-center">
 
         <!-- Animated bulb icon -->
-        <div class="text-4xl mb-4 animate-bounce">💡</div>
+        <div class="text-4xl mb-4 animate-bounce">✨</div>
         <!-- Title (if used) -->
-        <h3 id="modalTitle" class="text-lg font-extrabold mb-2" style="font-family:'Inter',sans-serif; color: #0b2e6b;"></h3>
+        <h3 id="modalTitle" class="text-lg font-extrabold mb-2" style="font-family:'Inter',sans-serif; color: #5c4a2a;"></h3>
         <!-- Instruction text -->
         <p id="modalText" class="text-lg text-right text-gray-800 whitespace-pre-line mb-6 leading-relaxed"></p>
         <!-- Action button -->
         <button id="modalClose"
-                class="mx-auto block py-3 px-8 text-lg bg-blue-900 text-white rounded-lg font-semibold shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-900/30 transition duration-300">
+                class="mx-auto block py-3 px-8 text-lg rounded-lg font-semibold shadow-lg focus:outline-none focus:ring-4 focus:ring-amber-500/30 transition duration-300">
             יופי, אפשר להתקדם!
         </button>
     </div>
 </div>
 
 
-<main id="chatArea" class="glass-effect p-8 rounded-2xl shadow-2xl w-full max-w-2xl border border-white/20 space-y-6">
-    <!-- PDN Logo at top -->
-    <div class="text-center mb-4">
-        <a href="https://www.pdn.co.il" target="_blank">
-            <img src="/static/images/pdn_logo.png" alt="PDN Logo" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; margin: 0 auto; box-shadow: 0 6px 20px rgba(11, 46, 107, 0.2); border: 3px solid rgba(11, 46, 107, 0.1);">
-        </a>
+<!-- Resume Modal -->
+<div id="resumeModal" class="fixed inset-0 hidden items-center justify-center z-50" role="dialog" aria-modal="true" aria-labelledby="resumeTitle">
+    <div class="relative rounded-2xl p-10 max-w-md w-full glass-effect animate-fade-in-up shadow-2xl text-center">
+        <div class="text-4xl mb-4">✨</div>
+        <h3 id="resumeTitle" class="resume-title">להמשיך מאיפה שהפסקת?</h3>
+        <p class="resume-message">מצאנו התקדמות שמורה. תרצה להמשיך מהשאלה שבה עצרת?</p>
+        <div class="resume-buttons">
+            <button id="resumeAcceptBtn" class="btn-primary text-lg py-3 px-8 rounded-xl font-semibold">
+                כן, להמשיך מאיפה שהפסקתי
+            </button>
+            <button id="resumeDeclineBtn" class="btn-secondary text-lg py-3 px-8 rounded-xl font-semibold">
+                לא, להתחיל מההתחלה
+            </button>
+        </div>
     </div>
+</div>
+
+<main id="chatArea" class="glass-effect p-8 rounded-2xl shadow-2xl w-full max-w-2xl border border-white/20 space-y-6">
     <!-- Hidden fields for user data -->
     <input type="hidden" id="userName" value="{{ user_name or '' }}">
     <input type="hidden" id="userId" value="{{ user_id or '' }}">
-    <h1 class="text-4xl font-bold text-center text-blue-900 bg-blue-900 bg-clip-text text-transparent">
+    <h1 class="text-4xl font-bold text-center" style="background: linear-gradient(135deg, #8b6914, #c9a96e, #e6b020); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
         המסע לגילוי הצופן המקור שלך </h1>
 
+    <!-- Sticky sentinel for IntersectionObserver -->
+    <div id="progressSentinel" aria-hidden="true" style="height: 1px; margin: 0; padding: 0; border: 0; visibility: hidden;"></div>
+
     <!-- Progress Bar -->
-    <div id="progressContainer" class="mb-6" aria-live="polite" role="progressbar">
+    <div id="progressContainer" aria-live="polite" role="progressbar">
         <div class="flex justify-between items-center mb-2">
-            <span id="progressLabel" class="text-sm font-medium text-blue-900"></span>
-            <span id="progressPercent" class="text-sm font-semibold text-blue-900"></span>
+            <span id="progressLabel" class="text-sm font-medium" style="color: #5c4a2a;"></span>
+            <span id="timeRemaining" class="text-sm font-medium" style="color: #8b6914;" aria-label="זמן משוער שנותר"></span>
+            <span id="progressPercent" class="text-sm font-semibold" style="color: #5c4a2a;"></span>
         </div>
-        <div class="w-full bg-blue-100 rounded-full h-3 overflow-hidden">
-            <div id="progressBar" class="bg-blue-900 h-3 rounded-full transition-all duration-300"
-                 style="width: 0%"></div>
+        <div class="w-full rounded-full h-3 overflow-hidden" style="background: rgba(30, 27, 75, 0.05);">
+            <div id="progressBar" class="h-3 rounded-full transition-all duration-300"
+                 style="width: 0%; background: linear-gradient(90deg, #8b6914, #c9a96e, #f0c840);"></div>
         </div>
     </div>
     <div id="messages" class="space-y-4 fade-in">
 
         <!-- Voice Recording Section -->
         <div id="voiceRecordArea"
-             class="p-6 rounded-xl border border-blue-100 bg-gradient-to-r from-blue-100 to-blue-100 text-gray-800 shadow-sm fade-in text-right recording-validation"
-             dir="rtl">
+             class="p-6 rounded-xl border text-gray-800 shadow-sm fade-in text-right recording-validation"
+             dir="rtl"
+             style="border-color: rgba(30, 27, 75, 0.06); background: linear-gradient(135deg, rgba(255, 252, 247, 1), rgba(250, 245, 239, 1));">
             <p class="text-lg mb-4">שלום {{ user_name }},</p>
-            <p class="text-lg mb-4">בוא נגלה יחד את קוד המקור הייחודי שלך, המצפן הפנימי שלך לצמיחה והתפתחות.</p>
-            <p class="text-lg mb-4">ענה על השאלה הבאה כדי לעזור לנו לזהות את קוד המקור שלך:</p>
-            <div class="rounded-lg p-3 mb-4" style="background-color: #d97706; border: 1px solid #f59e0b;">
+            <p class="text-lg mb-4">ברוך הבא למסע הגילוי שלך. בדקות הקרובות נצלול יחד לעומק כדי לחשוף את הצופן הייחודי שמניע אותך.</p>
+            <p class="text-lg mb-4">אין תשובות נכונות או לא נכונות, רק הכנות שלך. דבר מהלב, ותן לקול שלך לספר את הסיפור:</p>
+            <div class="rounded-lg p-3 mb-4" style="background-color: #8b6914; border: 1px solid #c9a96e;">
                 <p class="text-sm text-white font-medium">
                     <i class="fas fa-info-circle mr-2"></i>
                     <strong>חשוב:</strong> ההקלטה תיעצר אוטומטית לאחר דקה וחצי
                 </p>
             </div>
-            <div class="bg-white p-4 rounded border-r-4 border-blue-900">
+            <div class="bg-white p-4 rounded border-r-4" style="border-right-color: #c9a96e;">
                 <span>1.</span> ספר לי על חוויה חיובית או מרגשת שחווית בשנה האחרונה. משהו שנגע בך או שימח אותך במיוחד.
             </div>
             </br>
             <div>
                 <button id="startRecordBtn" aria-label="התחל הקלטה"
                         aria-label="התחל הקלטה"
-                        class="text-lg py-3 px-7 bg-blue-900 text-white rounded-xl shadow-lg font-semibold">
+                        class="text-lg py-3 px-7 text-white rounded-xl shadow-lg font-semibold" style="background: linear-gradient(135deg, #8b6914, #c9a96e, #e6b020); color: #2d2a26;">
                     התחל להקליט
                 </button>
                 <button id="stopRecordBtn" aria-label="סיים הקלטה"
                         aria-label="סיים הקלטה"
-                        class="hidden text-lg py-3 px-7 bg-gradient-to-r from-indigo-900 to-blue-900 text-white rounded-xl shadow-lg font-semibold ml-2">
+                        class="hidden text-lg py-3 px-7 text-white rounded-xl shadow-lg font-semibold ml-2" style="background: linear-gradient(135deg, #c9a96e, #e6b020); color: #2d2a26;">
                     סיים הקלטה
                 </button>
                 <button id="reRecordBtn" aria-label="הקלט שוב"
                         aria-label="הקלט שוב"
-                        class="hidden text-lg py-3 px-7 bg-white text-blue-900 rounded-xl shadow border border-blue-900 font-semibold ml-2">
+                        class="hidden text-lg py-3 px-7 bg-white rounded-xl shadow border font-semibold ml-2" style="color: #5c4a2a; border-color: rgba(30, 27, 75, 0.15);">
                     הקלט שוב
                 </button>
                 <button id="skipRecordBtn" aria-label="דלג על הקלטה"
                         aria-label="דלג על ההקלטה"
-                        class="text-lg py-3 px-7 bg-white text-gray-600 rounded-xl shadow border border-gray-300 font-semibold ml-2">
+                        class="btn-dismiss text-lg py-3 px-7 font-semibold ml-2">
                     דלג על ההקלטה
                 </button>
             </div>
-            <div id="recordStatus" class="text-lg text-blue-900"></div>
+            <div id="recordStatus" class="text-lg" style="color: #5c4a2a;"></div>
             <div id="visualizer" class="flex justify-center items-end space-x-1 mb-1"
                  style="height:24px;direction:ltr"></div>
             <audio id="audioPlayback" controls class="hidden mx-auto" style="max-width:260px"></audio>
             <!-- Audio upload status -->
             <div id="uploadStatus" class="text-center mt-4 hidden">
-                <div class="text-green-600 font-semibold">הקלטה נשמרה בהצלחה!</div>
+                <div class="font-semibold" style="color: #8b6914;">הקלטה נשמרה בהצלחה!</div>
             </div>
         </div>
     </div>
 
     <!-- Second Voice Record Area -->
     <div id="voiceRecordArea2"
-         class="p-6 rounded-xl border border-blue-100 bg-gradient-to-r from-blue-100 to-blue-100 text-gray-800 shadow-sm fade-in text-right hidden recording-validation"
-         dir="rtl">
+         class="p-6 rounded-xl border text-gray-800 shadow-sm fade-in text-right hidden recording-validation"
+         dir="rtl"
+         style="border-color: rgba(30, 27, 75, 0.06); background: linear-gradient(135deg, rgba(255, 252, 247, 1), rgba(250, 245, 239, 1));">
         <p class="text-lg mb-4">תודה על התשובה הראשונה!</p>
         <p class="text-lg mb-4">עכשיו בוא נעמיק קצת יותר. אנא ענה על השאלה הבאה:</p>
-        <div class="rounded-lg p-3 mb-4" style="background-color: #d97706; border: 1px solid #f59e0b;">
+        <div class="rounded-lg p-3 mb-4" style="background-color: #8b6914; border: 1px solid #c9a96e;">
             <p class="text-sm text-white font-medium">
                 <i class="fas fa-info-circle mr-2"></i>
                 <strong>חשוב:</strong> ההקלטה תיעצר אוטומטית לאחר דקה וחצי
             </p>
         </div>
-        <div class="bg-white p-4 rounded border-r-4 border-blue-900">
-            <span>2.</span> ספר לי על אתגר משמעותי שהתמודדת איתו לאחרונה – משהו שהיה לך לא פשוט, ואיך הצלחת לעבור
+        <div class="bg-white p-4 rounded border-r-4" style="border-right-color: #c9a96e;">
+            <span>2.</span> ספר לי על אתגר משמעותי שהתמודדת איתו לאחרונה, משהו שהיה לך לא פשוט, ואיך הצלחת לעבור
             אותו?
         </div>
         </br>
         <div>
             <button id="startRecordBtn2" aria-label="התחל הקלטה שנייה"
                     aria-label="התחל הקלטה"
-                    class="text-lg py-3 px-7 bg-blue-900 text-white rounded-xl shadow-lg font-semibold">
+                    class="text-lg py-3 px-7 text-white rounded-xl shadow-lg font-semibold" style="background: linear-gradient(135deg, #8b6914, #c9a96e, #e6b020); color: #2d2a26;">
                 התחל להקליט
             </button>
             <button id="stopRecordBtn2" aria-label="סיים הקלטה שנייה"
                     aria-label="סיים הקלטה"
-                    class="hidden text-lg py-3 px-7 bg-blue-900 text-white rounded-xl shadow-lg font-semibold ml-2">
+                    class="hidden text-lg py-3 px-7 text-white rounded-xl shadow-lg font-semibold ml-2" style="background: linear-gradient(135deg, #c9a96e, #e6b020); color: #2d2a26;">
                 סיים הקלטה
             </button>
             <button id="reRecordBtn2" aria-label="הקלט שוב שנייה"
                     aria-label="הקלט שוב"
-                    class="hidden text-lg py-3 px-7 bg-white text-blue-900 rounded-xl shadow border border-blue-900 font-semibold ml-2">
+                    class="hidden text-lg py-3 px-7 bg-white rounded-xl shadow border font-semibold ml-2" style="color: #5c4a2a; border-color: rgba(30, 27, 75, 0.15);">
                 הקלט שוב
             </button>
             <button id="skipRecordBtn2" aria-label="דלג על הקלטה שנייה"
                     aria-label="דלג על ההקלטה"
-                    class="text-lg py-3 px-7 bg-white text-gray-600 rounded-xl shadow border border-gray-300 font-semibold ml-2">
+                    class="btn-dismiss text-lg py-3 px-7 font-semibold ml-2">
                 דלג על ההקלטה
             </button>
         </div>
-        <div id="recordStatus2" class="text-lg text-blue-900"></div>
+        <div id="recordStatus2" class="text-lg" style="color: #5c4a2a;"></div>
         <div id="visualizer2" class="flex justify-center items-end space-x-1 mb-1"
              style="height:24px;direction:ltr"></div>
         <audio id="audioPlayback2" controls class="hidden mx-auto" style="max-width:260px"></audio>
         <!-- Audio upload status -->
         <div id="uploadStatus2" class="text-center mt-4 hidden">
-            <div class="text-green-600 font-semibold">הקלטה נשמרה בהצלחה!</div>
+            <div class="font-semibold" style="color: #8b6914;">הקלטה נשמרה בהצלחה!</div>
         </div>
     </div>
     <div id="questionArea" class="hidden space-y-6">
         <div id="questionLoading" class="hidden text-center py-8">
-            <div style="width:32px;height:32px;border:3px solid #e2e8f0;border-top-color:#0b2e6b;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto;"></div>
-            <p style="font-size:13px;color:#64748b;margin-top:8px;">טוען שאלה...</p>
+            <div style="width:32px;height:32px;border:3px solid rgba(30,27,75,0.08);border-top-color:#c9a96e;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto;"></div>
+            <p style="font-size:13px;color:#5c5650;margin-top:8px;">טוען שאלה...</p>
         </div>
         <h2 id="questionText"
-            class="text-lg font-semibold text-gray-700 mb-4 bg-blue-900 bg-clip-text text-transparent"></h2>
+            class="text-lg font-semibold mb-4" style="background: linear-gradient(135deg, #8b6914, #c9a96e, #e6b020); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;"></h2>
         <div id="options" class="space-y-3"></div>
     </div>
 
     <!-- Footer Link -->
     <div class="text-center pt-4 space-y-4">
         <button id="backButton" onclick="goBack()"
-                class="text-sm w-1/2 py-2 px-3 bg-blue-900 text-white font-medium rounded-xl hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-900/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hidden">
+                class="btn-secondary text-sm w-1/2 py-2 px-3 font-medium rounded-xl focus:outline-none focus:ring-4 transition-all duration-500 transform active:scale-[0.98] hidden"
+                style="--tw-ring-color: rgba(201, 169, 110, 0.3);">
             חזור לשאלה הקודמת
         </button>
         {% include 'partials/footer.html' %}
     </div>
 
 </main>
+</div>
 
 <div id="toastContainer" style="position:fixed;bottom:24px;left:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;"></div>
 
@@ -635,12 +857,225 @@
         setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(-20px)'; setTimeout(() => toast.remove(), 300); }, 4000);
     }
 
+    // ValidationManager — controls validation message display timing
+    class ValidationManager {
+        constructor() {
+            this.activeValidation = null;
+        }
+
+        /** Show validation message adjacent to the question */
+        showValidation(containerEl, message) {
+            this.hideValidation();
+            const el = document.createElement('div');
+            el.className = 'validation-message';
+            el.setAttribute('role', 'alert');
+            el.setAttribute('aria-live', 'polite');
+            el.textContent = message;
+            containerEl.appendChild(el);
+            this.activeValidation = el;
+            // Animate in
+            requestAnimationFrame(() => el.classList.add('visible'));
+        }
+
+        /** Hide any active validation message */
+        hideValidation() {
+            if (this.activeValidation) {
+                this.activeValidation.classList.remove('visible');
+                setTimeout(() => this.activeValidation?.remove(), 200);
+                this.activeValidation = null;
+            }
+        }
+    }
+
+    // Initialize ValidationManager
+    const validationManager = new ValidationManager();
+
+    // AutoSaveManager — manages dual-write persistence to localStorage
+    class AutoSaveManager {
+        constructor(sessionId) {
+            this.storageKey = `pdn_progress_${sessionId}`;
+            this.storageAvailable = this._checkStorageAvailable();
+        }
+
+        /** Check if localStorage is available (handles private browsing mode) */
+        _checkStorageAvailable() {
+            try {
+                const testKey = '__storage_test__';
+                localStorage.setItem(testKey, '1');
+                localStorage.removeItem(testKey);
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        /** Save progress after each answer submission */
+        saveProgress(questionNumber, answers) {
+            if (!this.storageAvailable) return;
+            try {
+                const existing = this.loadLocalProgress();
+                const mergedAnswers = existing ? { ...existing.answers, ...answers } : { ...answers };
+                const data = {
+                    currentQuestion: questionNumber,
+                    answers: mergedAnswers,
+                    timestamp: Date.now()
+                };
+                localStorage.setItem(this.storageKey, JSON.stringify(data));
+            } catch (e) {
+                console.warn('AutoSaveManager: Failed to save progress to localStorage', e);
+            }
+        }
+
+        /** Load saved progress from localStorage */
+        loadLocalProgress() {
+            if (!this.storageAvailable) return null;
+            try {
+                const raw = localStorage.getItem(this.storageKey);
+                return raw ? JSON.parse(raw) : null;
+            } catch (e) {
+                console.warn('AutoSaveManager: Failed to load progress from localStorage', e);
+                return null;
+            }
+        }
+
+        /** Resolve conflict between session and localStorage — higher question number wins */
+        resolveConflict(sessionQuestion, localQuestion) {
+            return Math.max(sessionQuestion || 0, localQuestion || 0);
+        }
+
+        /** Clear progress on completion */
+        clearProgress() {
+            if (!this.storageAvailable) return;
+            try {
+                localStorage.removeItem(this.storageKey);
+            } catch (e) {
+                console.warn('AutoSaveManager: Failed to clear progress from localStorage', e);
+            }
+        }
+
+        /** Check if resume is available */
+        hasResumableProgress() {
+            const local = this.loadLocalProgress();
+            return local && local.currentQuestion > 1;
+        }
+    }
+
+    // Initialize currentUsername early (needed by AutoSaveManager)
+    const currentUsername = '{{ email }}' || 'anonymous';
+
+    // Initialize AutoSaveManager with user email
+    const autoSaveManager = new AutoSaveManager(currentUsername);
+
+    // ProgressManager — handles time estimation, document title updates, and progress labels
+    class ProgressManager {
+        constructor(totalQuestions) {
+            this.totalQuestions = totalQuestions;
+            this.startTime = Date.now();
+            this.questionTimestamps = [];
+        }
+
+        /** Calculate estimated time remaining in seconds */
+        calculateTimeRemaining(currentQuestion) {
+            if (this.questionTimestamps.length < 2) {
+                // Default: 15 minutes for all questions
+                const avgPerQuestion = (15 * 60) / this.totalQuestions;
+                return Math.round((this.totalQuestions - currentQuestion) * avgPerQuestion);
+            }
+            const elapsed = (Date.now() - this.startTime) / 1000;
+            const avgPerQuestion = elapsed / currentQuestion;
+            return Math.round((this.totalQuestions - currentQuestion) * avgPerQuestion);
+        }
+
+        /** Format time remaining for display */
+        formatTimeRemaining(seconds) {
+            if (seconds < 120) return 'כמעט סיימנו!';
+            const minutes = Math.ceil(seconds / 60);
+            return `כ-${minutes} דקות נותרו`;
+        }
+
+        /** Update document title with current question */
+        updateTitle(currentQuestion) {
+            document.title = `אבחון PDN - שאלה ${currentQuestion}/${this.totalQuestions}`;
+        }
+
+        /** Set initial title on page load */
+        setInitialTitle() {
+            document.title = 'אבחון PDN - המסע לגילוי הצופן';
+        }
+
+        /** Set completion title */
+        setCompletionTitle() {
+            document.title = 'אבחון PDN - הושלם';
+        }
+
+        /** Format progress label */
+        formatProgressLabel(currentQuestion) {
+            return `שאלה ${currentQuestion} מתוך ${this.totalQuestions}`;
+        }
+    }
+
+    // Initialize ProgressManager
+    const progressManager = new ProgressManager(67);
+    // Set initial page title
+    progressManager.setInitialTitle();
+
+    /**
+     * Creates a CSS-only confetti animation overlay.
+     * Generates confetti pieces with varied colors, sizes, positions, and animation delays.
+     * Auto-fades after 4 seconds via the confetti-fade animation.
+     * Respects prefers-reduced-motion (animations disabled via CSS media query).
+     */
+    function createConfetti() {
+        // Remove any existing confetti
+        const existing = document.querySelector('.confetti-container');
+        if (existing) existing.remove();
+
+        const container = document.createElement('div');
+        container.className = 'confetti-container';
+        container.setAttribute('aria-hidden', 'true');
+
+        const colors = ['#f0c840', '#7c3aed', '#d97706', '#0d9488']; // gold, purple, amber, teal
+        const pieceCount = 40;
+
+        for (let i = 0; i < pieceCount; i++) {
+            const piece = document.createElement('div');
+            piece.className = 'confetti-piece';
+
+            // Varied size between 8-14px
+            const size = Math.floor(Math.random() * 7) + 8;
+            piece.style.width = size + 'px';
+            piece.style.height = size + 'px';
+
+            // Random color
+            piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+
+            // Random horizontal position
+            piece.style.left = Math.floor(Math.random() * 100) + '%';
+
+            // Random animation delay between 0-2s
+            piece.style.animationDelay = (Math.random() * 2).toFixed(2) + 's';
+
+            // Random border-radius for varied shapes (some square, some rounded)
+            piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+
+            container.appendChild(piece);
+        }
+
+        document.body.appendChild(container);
+
+        // Remove confetti container from DOM after animation completes (4s fade + buffer)
+        setTimeout(() => {
+            container.remove();
+        }, 5000);
+    }
+
     let currentQuestion = 1;
     let currentStage = '';
     let nextData = null;
-    let questionHistory = []; // Array to store question history
-    let currentUsername = '{{ email }}' || 'anonymous'; // Get username from template
+    let questionHistory = []; // Array of {questionNumber, selectedAnswer} objects for back navigation
+    let pendingSelectedAnswer = null; // Stores the previously selected answer code when navigating back
     let isSubmitting = false; // Flag to prevent multiple simultaneous submissions
+    let rankingInstructionShown = false; // Flag to show drag tooltip only on first ranking question
 
     // Progress logic
     const totalQuestions = 67; // Based on phases A-F (1-67)
@@ -655,11 +1090,20 @@
         const labelEl = document.getElementById('progressLabel');
         if (bar) bar.style.width = percent + '%';
         if (percentEl) percentEl.textContent = percent + '%';
-        if (labelEl) labelEl.textContent = labelText || `התקדמות: ${stepNumber} מתוך ${totalSteps}`;
+        if (labelEl) labelEl.textContent = labelText || progressManager.formatProgressLabel(Math.max(1, stepNumber - 2));
     }
 
     // Initialize progress at first voice step
     updateProgress(1, 'הקלטה 1/2');
+
+    // Set initial time remaining display (15 minutes estimate)
+    (function() {
+        const timeRemainingEl = document.getElementById('timeRemaining');
+        if (timeRemainingEl) {
+            const secondsLeft = progressManager.calculateTimeRemaining(0);
+            timeRemainingEl.textContent = progressManager.formatTimeRemaining(secondsLeft);
+        }
+    })();
 
     // Modal logic
     const modal = document.getElementById('instructionModal');
@@ -751,7 +1195,7 @@
                     let statusText = `מקליט... (${("0" + min).slice(-2)}:${("0" + sec).slice(-2)} / ${("0" + maxMin).slice(-2)}:${("0" + maxSec).slice(-2)})`;
 
                     // Change color when minimum duration is reached
-                    let statusClass = this.recordElapsed >= this.minDuration ? 'text-green-600' : 'text-orange-600';
+                    let statusClass = this.recordElapsed >= this.minDuration ? 'recording-timer-gold' : 'recording-timer-gold';
                     this.recordStatus.innerHTML = `<span class="${statusClass}">${statusText}</span>`;
 
                     // Enable stop button when minimum duration is reached
@@ -809,7 +1253,7 @@
             } else {
                 // Recording duration is valid
                 this.recordingValid = true;
-                this.recordStatus.innerHTML = `<span class="text-green-600 font-bold">✓ הקלטה הושלמה (${this.formatTime(this.recordElapsed)})</span>`;
+                this.recordStatus.innerHTML = `<span style="color: #c9a96e;" class="font-bold">✓ הקלטה הושלמה (${this.formatTime(this.recordElapsed)})</span>`;
                 this.stopBtn.innerText = this.areaId === '2' ? 'המשך לאיבחון' : 'המשך לשאלה הבאה';
                 this.stopBtn.disabled = false;
                 this.stopBtn.classList.remove('opacity-50', 'cursor-not-allowed');
@@ -823,7 +1267,7 @@
             try {
                 const result = await saveUserAudio(currentUsername, audioBlob, this.questionId);
                 this.uploadStatus.classList.remove('hidden');
-                this.uploadStatus.innerHTML = '<div class="text-green-600 font-semibold">הקלטה נשמרה בהצלחה!</div>';
+                this.uploadStatus.innerHTML = '<div class="font-semibold" style="color: #8b6914;">הקלטה נשמרה בהצלחה!</div>';
                 console.log(`Audio uploaded successfully for ${this.questionId}:`, result);
             } catch (error) {
                 console.error(`Failed to upload audio for ${this.questionId}:`, error);
@@ -839,7 +1283,7 @@
                 if (this.areaId === '2') {
                     document.getElementById('voiceRecordArea2').classList.add('hidden');
                     document.getElementById('questionArea').classList.remove('hidden');
-                    updateProgress(2 + currentQuestion, `שאלה ${currentQuestion} מתוך ${totalQuestions}`);
+                    updateProgress(2 + currentQuestion, progressManager.formatProgressLabel(currentQuestion));
                     loadQuestion(currentQuestion);
                 } else {
                     document.getElementById('voiceRecordArea').classList.add('hidden');
@@ -867,7 +1311,7 @@
 
         skipRecording() {
             // Show confirmation message
-            this.recordStatus.innerHTML = '<span class="text-orange-600 font-semibold">דילגת על ההקלטה</span>';
+            this.recordStatus.innerHTML = '<span class="recording-timer-gold font-semibold">דילגת על ההקלטה</span>';
             
             // Hide all recording buttons and show skip confirmation
             this.startBtn.classList.add('hidden');
@@ -882,7 +1326,8 @@
             // Show continue button
             const continueBtn = document.createElement('button');
             continueBtn.id = `continueBtn${this.areaId === '2' ? '2' : ''}`;
-            continueBtn.className = 'text-lg py-3 px-7 bg-blue-900 text-white rounded-xl shadow-lg font-semibold';
+            continueBtn.className = 'text-lg py-3 px-7 text-white rounded-xl shadow-lg font-semibold';
+            continueBtn.style.background = 'linear-gradient(135deg, #8b6914, #c9a96e, #e6b020)';
             continueBtn.innerText = this.areaId === '2' ? 'המשך לאיבחון' : 'המשך לשאלה הבאה';
             continueBtn.onclick = () => this.handleSkipContinue();
             
@@ -894,7 +1339,7 @@
             if (this.areaId === '2') {
                 document.getElementById('voiceRecordArea2').classList.add('hidden');
                 document.getElementById('questionArea').classList.remove('hidden');
-                updateProgress(2 + currentQuestion, `שאלה ${currentQuestion} מתוך ${totalQuestions}`);
+                updateProgress(2 + currentQuestion, progressManager.formatProgressLabel(currentQuestion));
                 loadQuestion(currentQuestion);
             } else {
                 document.getElementById('voiceRecordArea').classList.add('hidden');
@@ -956,14 +1401,28 @@
 
         if (data.message === "No more questions.") return completeQuestionnaire();
         // Update progress for the current question, even if an instructions modal appears
-        updateProgress(2 + questionNumber, `שאלה ${questionNumber} מתוך ${totalQuestions}`);
+        updateProgress(2 + questionNumber, progressManager.formatProgressLabel(questionNumber));
+        // Update document title and time remaining display
+        progressManager.updateTitle(questionNumber);
+        const timeRemainingEl = document.getElementById('timeRemaining');
+        if (timeRemainingEl) {
+            const secondsLeft = progressManager.calculateTimeRemaining(questionNumber);
+            timeRemainingEl.textContent = progressManager.formatTimeRemaining(secondsLeft);
+        }
         if (data.stage !== currentStage) {
             currentStage = data.stage;
             if (data.instructions) {
-                //<div id="voiceRecordArea" class="p-6 rounded-xl border border-indigo-100 bg-gradient-to-r from-purple-100 to-indigo-100 text-gray-800 shadow-sm fade-in text-right" dir="rtl">
+                // Set modal title for the phase transition
+                modalTitle.textContent = 'הוראות לשלב הבא';
 
-                //modalTitle.innerHTML = "<div class=' p-6 text-lg font-bold text-gray-700 ' >הסבר:</div>";
-                modalText.innerText = data.instructions;
+                // For PartF transition, ensure encouraging message is displayed
+                const partFEncouragement = 'כמעט סיימנו – כל הכבוד על ההתמדה!';
+                if (data.stage === 'PartF' && !data.instructions.includes(partFEncouragement)) {
+                    modalText.innerText = partFEncouragement + '\n' + data.instructions;
+                } else {
+                    modalText.innerText = data.instructions;
+                }
+
                 modal.style.display = 'flex';
                 document.body.style.overflow = "hidden";
                 setTimeout(() => {
@@ -983,15 +1442,20 @@
         const optionsDiv = document.getElementById('options');
         optionsDiv.innerHTML = '';
 
+        // Clear any active validation from previous question
+        validationManager.hideValidation();
+
         // Show/hide back button based on question history
         const backButton = document.getElementById('backButton');
         backButton.classList.toggle('hidden', questionHistory.length === 0);
 
         if (['PartC', 'PartD'].includes(data.stage)) {
+            pendingSelectedAnswer = null; // Clear pending selection for non-binary questions
             renderScaleQuestion(data, data.question_number);
             return;
         }
         if (data.type === 'ranking') {
+            pendingSelectedAnswer = null; // Clear pending selection for non-binary questions
             renderRankingQuestion(data, data.question_number);
             return;
         }
@@ -1000,10 +1464,21 @@
         const buttons = data.options.map(opt => {
             const btn = document.createElement('button');
             btn.innerText = opt.text;
-            btn.className = 'text-lg fade-in w-full py-4 px-6 bg-blue-900 text-white font-medium rounded-xl hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-900/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg';
+            btn.className = 'btn-primary text-lg fade-in w-full py-4 px-6 font-medium rounded-xl focus:outline-none focus:ring-4 focus:ring-violet-500/30 transition-all duration-500 transform active:scale-[0.98]';
             btn.onclick = () => submitAnswer(data.question_number, opt.code, opt.text);
+
+            // Highlight previously selected answer when navigating back
+            if (pendingSelectedAnswer && opt.code === pendingSelectedAnswer) {
+                btn.classList.add('ring-4');
+                btn.style.boxShadow = '0 0 0 4px rgba(201, 169, 110, 0.5), 0 8px 24px rgba(201, 169, 110, 0.3)';
+                btn.style.transform = 'scale(1.02)';
+            }
+
             return btn;
         });
+
+        // Clear the pending selected answer after rendering
+        pendingSelectedAnswer = null;
 
         // Randomize the order of buttons
         buttons.sort(() => Math.random() - 0.5);
@@ -1021,8 +1496,12 @@
 
         const leftLabel = document.createElement('span');
         leftLabel.textContent = data.options[0].text;
+        leftLabel.style.fontWeight = '500';
+        leftLabel.style.color = '#5c4a2a';
         const rightLabel = document.createElement('span');
         rightLabel.textContent = data.options[1].text;
+        rightLabel.style.fontWeight = '500';
+        rightLabel.style.color = '#5c4a2a';
 
         labelsRow.append(leftLabel, rightLabel);
         container.append(labelsRow);
@@ -1042,14 +1521,20 @@
 
         const stepsRow = document.createElement('div');
         stepsRow.className = 'flex justify-between items-center py-2';
+        stepsRow.style.position = 'relative';
+
+        // Add connecting line between dots
+        const scaleLine = document.createElement('div');
+        scaleLine.className = 'scale-line';
+        stepsRow.appendChild(scaleLine);
 
         function updateSelection() {
             buttons.forEach((btn, idx) => {
-                btn.classList.toggle('from-blue-900', idx === currentStep);
-                btn.classList.toggle('to-blue-900', idx === currentStep);
-                btn.classList.toggle('bg-gradient-to-r', idx === currentStep);
-                btn.classList.toggle('text-white', idx === currentStep);
-                btn.classList.toggle('bg-gray-200', idx !== currentStep);
+                if (idx === currentStep) {
+                    btn.classList.add('selected');
+                } else {
+                    btn.classList.remove('selected');
+                }
             });
             valueDisplay.textContent = currentStep !== null ? descriptions[currentStep] : '';
             submitBtn.disabled = currentStep === null;
@@ -1060,12 +1545,14 @@
         const buttons = Array.from({length: 7}, (_, idx) => {
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.className = 'w-8 h-8 rounded-full bg-gray-200 transition';
+            btn.className = 'scale-dot';
             btn.setAttribute('aria-label', descriptions[idx]);
             btn.onclick = () => {
                 if (!isSubmitting) {
                     currentStep = idx;
                     updateSelection();
+                    // Auto-hide validation when user selects an answer
+                    validationManager.hideValidation();
                 }
             };
             stepsRow.appendChild(btn);
@@ -1075,16 +1562,22 @@
         container.append(stepsRow);
 
         const valueDisplay = document.createElement('div');
-        valueDisplay.className = 'text-center text-xl font-bold text-blue-900';
+        valueDisplay.className = 'text-center text-xl font-bold';
+        valueDisplay.style.color = '#5c4a2a';
         container.append(valueDisplay);
 
         const submitBtn = document.createElement('button');
         submitBtn.type = 'button';
         submitBtn.innerText = 'שלח תשובה';
-        submitBtn.className = 'text-lg w-full py-3 px-6 bg-blue-900 text-white rounded-xl opacity-50 cursor-not-allowed';
+        submitBtn.className = 'btn-primary text-lg w-full py-3 px-6 rounded-xl opacity-50 cursor-not-allowed';
         submitBtn.disabled = true;
         submitBtn.onclick = async () => {
-            if (currentStep === null || isSubmitting) return;
+            if (isSubmitting) return;
+            if (currentStep === null) {
+                // Show validation when user clicks submit without selecting a scale dot
+                validationManager.showValidation(container, 'יש לבחור תשובה לפני שממשיכים');
+                return;
+            }
             const leftCode = data.options[0].code;
             const rightCode = data.options[1].code;
             const scaleMap = [[12, 0], [10, 2], [8, 4], [6, 6], [4, 8], [2, 10], [0, 12]];
@@ -1121,22 +1614,40 @@
         const container = document.createElement('div');
         container.className = 'glass-effect rounded-3xl shadow-lg p-8';
 
+        // First-encounter tooltip (shown only once per session)
+        if (!rankingInstructionShown) {
+            rankingInstructionShown = true;
+            const tooltip = document.createElement('div');
+            tooltip.className = 'ranking-tooltip';
+            tooltip.innerHTML = '<i class="fas fa-hand-pointer tooltip-icon"></i> לחצו על הפריטים לפי סדר החשיבות';
+            container.appendChild(tooltip);
+            // Animate tooltip in after a short delay
+            requestAnimationFrame(() => {
+                setTimeout(() => tooltip.classList.add('visible'), 100);
+            });
+            // Auto-hide tooltip after 5 seconds
+            setTimeout(() => {
+                tooltip.classList.remove('visible');
+                setTimeout(() => tooltip.remove(), 300);
+            }, 5000);
+        }
+
         // Enhanced instruction container with better styling
         const instructionContainer = document.createElement('div');
         instructionContainer.className = 'text-center mb-6';
 
         const mainInstruction = document.createElement('div');
         mainInstruction.className = 'text-white px-6 py-4 rounded-2xl text-lg font-bold shadow-sm mb-3';
-        mainInstruction.style.background = 'linear-gradient(135deg, #0b2e6b 0%, #4f46e5 100%)';
-        mainInstruction.style.border = '1px solid rgba(79, 70, 229, 0.3)';
-        mainInstruction.style.boxShadow = '0 4px 12px rgba(79, 70, 229, 0.2)';
+        mainInstruction.style.background = 'linear-gradient(135deg, #8b6914 0%, #c9a96e 100%)';
+        mainInstruction.style.border = '1px solid rgba(124, 58, 237, 0.3)';
+        mainInstruction.style.boxShadow = '0 4px 12px rgba(124, 58, 237, 0.2)';
         mainInstruction.innerHTML = 'לחץ לפי סדר החשיבות';
 
         const subInstruction = document.createElement('div');
         subInstruction.className = 'px-4 py-2 rounded-xl text-sm font-medium italic';
-        subInstruction.style.color = '#4f46e5';
-        subInstruction.style.background = 'linear-gradient(135deg, #eef2ff, #f5f3ff)';
-        subInstruction.style.border = '1px solid rgba(99, 102, 241, 0.15)';
+        subInstruction.style.color = '#c9a96e';
+        subInstruction.style.background = 'linear-gradient(135deg, #f5f3ff, #ede9fe)';
+        subInstruction.style.border = '1px solid rgba(124, 58, 237, 0.12)';
         subInstruction.innerHTML = 'לא בטוח? תמיד אפשר ללחוץ שוב ולשנות';
 
         instructionContainer.appendChild(mainInstruction);
@@ -1166,7 +1677,7 @@
             li.appendChild(numberDiv);
             li.appendChild(textSpan);
 
-            li.addEventListener('click', () => {
+            li.addEventListener('click', (e) => {
                 if (!isSubmitting) {
                     const code = opt.code;
                     const idx = selectedOrder.indexOf(code);
@@ -1176,6 +1687,8 @@
                         selectedOrder.push(code);
                     }
                     renderRanks();
+                    // Auto-hide validation when user selects/changes ranking
+                    validationManager.hideValidation();
                 }
             });
 
@@ -1190,8 +1703,8 @@
                 if (idx >= 0) {
                     numberDiv.textContent = idx + 1;
                     numberDiv.className = 'ranking-number w-10 h-10 rounded-full flex items-center justify-center font-bold selected';
-                    numberDiv.style.cssText = 'background: linear-gradient(135deg, #0b2e6b, #4f46e5) !important; color: white !important; border: none;';
-                    li.className = 'ranking-item bg-white rounded-xl p-4 flex items-center gap-4 border-2 border-blue-300 cursor-pointer shadow-md transition-all duration-200';
+                    numberDiv.style.cssText = 'background: linear-gradient(135deg, #8b6914, #c9a96e, #e6b020) !important; color: white !important; border: none;';
+                    li.className = 'ranking-item bg-white rounded-xl p-4 flex items-center gap-4 border-2 border-violet-300 cursor-pointer shadow-md transition-all duration-200';
                 } else {
                     numberDiv.textContent = '?';
                     numberDiv.className = 'ranking-number w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-500';
@@ -1208,21 +1721,14 @@
 
         const submitBtn = document.createElement('button');
         submitBtn.type = 'button';
-        submitBtn.className = 'flex-1 py-4 px-6 bg-blue-900 text-white font-semibold rounded-xl hover:bg-blue-800 transform hover:scale-105 transition-all duration-200 shadow-lg';
+        submitBtn.className = 'btn-primary flex-1 py-4 px-6 font-semibold rounded-xl transform transition-all duration-300';
         submitBtn.textContent = 'שלח דירוג';
-
-        const errorDiv = document.createElement('div');
-        errorDiv.id = 'rankingError';
-        errorDiv.className = 'text-red-600 text-right mb-2 bg-red-50 border border-red-200 rounded-lg p-3 font-medium';
-        errorDiv.style.display = 'none';
-        document.getElementById('options').appendChild(errorDiv);
 
         submitBtn.onclick = async () => {
             if (selectedOrder.length < data.options.length) {
-                errorDiv.textContent = 'יש לדרג את כל האפשרויות';
-                errorDiv.style.display = 'block';
+                validationManager.showValidation(container, 'יש לדרג את כל האפשרויות');
             } else if (!isSubmitting) {
-                errorDiv.style.display = 'none';
+                validationManager.hideValidation();
                 const result = {};
                 selectedOrder.forEach((code, index) => {
                     result[code] = index + 1;
@@ -1233,7 +1739,7 @@
 
         const resetBtn = document.createElement('button');
         resetBtn.type = 'button';
-        resetBtn.className = 'flex-1 py-4 px-6 bg-blue-900 text-white font-semibold rounded-xl hover:bg-blue-800 transform hover:scale-105 transition-all duration-200 border border-blue-900';
+        resetBtn.className = 'btn-secondary flex-1 py-4 px-6 font-semibold rounded-xl transform transition-all duration-300';
         resetBtn.textContent = 'איפוס';
 
         resetBtn.onclick = () => {
@@ -1305,11 +1811,17 @@
             // Only proceed to next question if the response was successful
             console.log(`Answer saved successfully for question ${qNum}`);
 
+            // Record timestamp for time estimation
+            progressManager.questionTimestamps.push(Date.now());
+
+            // Dual-write to localStorage after successful server save
+            autoSaveManager.saveProgress(qNum, {[qNum]: code || JSON.stringify(ranking)});
+
             await new Promise(resolve => setTimeout(resolve, 100));
 
 
-            // Store current question in history before moving to next
-            questionHistory.push(currentQuestion);
+            // Store current question and selected answer in history before moving to next
+            questionHistory.push({questionNumber: currentQuestion, selectedAnswer: code || null});
             currentQuestion++;
             loadQuestion(currentQuestion);
             
@@ -1323,11 +1835,113 @@
     }
 
     async function completeQuestionnaire() {
+        // Set completion title
+        progressManager.setCompletionTitle();
+
         const resp = await fetch('/pdn-diagnose/complete_questionnaire', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'}
         });
-        if (resp.ok) window.location.href = '/pdn-diagnose/pdn_report'; else showToast('שגיאה בסיום השאלון, אנא נסה שוב', 'error');
+
+        if (!resp.ok) {
+            showToast('שגיאה בסיום השאלון, אנא נסה שוב', 'error');
+            return;
+        }
+
+        // Clear localStorage progress on completion
+        autoSaveManager.clearProgress();
+
+        // Hide the question area and show completion screen in-place
+        const questionArea = document.getElementById('questionArea');
+        const messagesArea = document.getElementById('messages');
+        const backButton = document.getElementById('backButton');
+        if (questionArea) questionArea.classList.add('hidden');
+        if (messagesArea) messagesArea.classList.add('hidden');
+        if (backButton) backButton.classList.add('hidden');
+
+        // Get user first name
+        const userNameEl = document.getElementById('userName');
+        const firstName = (userNameEl && userNameEl.value) ? userNameEl.value.trim() : '';
+
+        // Build completion screen
+        const completionSection = document.createElement('div');
+        completionSection.id = 'completionScreen';
+        completionSection.setAttribute('role', 'region');
+        completionSection.setAttribute('aria-label', 'מסך סיום השאלון');
+        completionSection.className = 'text-center space-y-6 py-8';
+        completionSection.style.animation = 'questionFadeIn 0.7s cubic-bezier(0.4, 0, 0.2, 1)';
+
+        // Completion heading
+        const heading = document.createElement('h2');
+        heading.id = 'completionHeading';
+        heading.className = 'text-3xl font-bold mb-4';
+        heading.style.cssText = 'background: linear-gradient(135deg, #8b6914, #c9a96e, #e6b020); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;';
+        heading.setAttribute('tabindex', '-1');
+        heading.textContent = 'כל הכבוד' + (firstName ? ', ' + firstName : '') + '!';
+        completionSection.appendChild(heading);
+
+        // Engaging congratulatory message
+        const message = document.createElement('p');
+        message.className = 'text-lg mb-6';
+        message.style.color = '#5c4a2a';
+        message.style.lineHeight = '2';
+        message.textContent = 'עשית צעד אמיץ ומשמעותי – השלמת את המסע לגילוי הצופן המקור שלך.';
+        completionSection.appendChild(message);
+
+        // What's next section
+        const nextSection = document.createElement('div');
+        nextSection.className = 'text-right space-y-4 mt-6';
+        nextSection.style.color = '#5c4a2a';
+        nextSection.style.lineHeight = '2';
+        nextSection.style.fontSize = '16px';
+
+        const nextTitle = document.createElement('h3');
+        nextTitle.className = 'text-xl font-bold mb-3';
+        nextTitle.style.color = '#8b6914';
+        nextTitle.textContent = 'מה הלאה?';
+        nextSection.appendChild(nextTitle);
+
+        const nextP1 = document.createElement('p');
+        nextP1.textContent = 'בימים הקרובים נעבד את תשובותיך לעומק, ובמהלך השבוע הקרוב תישלח אליך מפת דרכים אישית המבוססת על קוד המקור הייחודי שלך.';
+        nextSection.appendChild(nextP1);
+
+        const nextP2 = document.createElement('p');
+        nextP2.textContent = 'עם קבלת הצופן המלא, במידה ורכשת קורס PDN, ישלח קישור אישי (עם סיסמה) לקורס הדיגיטלי "המנוע הראשי שלך" – לניווט בהצלחה.';
+        nextSection.appendChild(nextP2);
+
+        const nextP3 = document.createElement('p');
+        nextP3.className = 'font-semibold mt-4';
+        nextP3.style.color = '#8b6914';
+        nextP3.textContent = 'זהו צעד ראשון להיכרות עמוקה עם הקוד שלך, מנגנוני ההפעלה, והדרך הייחודית שלך לנווט מתוך בהירות, דיוק והגשמה.';
+        nextSection.appendChild(nextP3);
+
+        // CTA button to buy the course — centered within the section
+        const ctaWrapper = document.createElement('div');
+        ctaWrapper.className = 'text-center mt-8 mb-4';
+        const ctaBtn = document.createElement('a');
+        ctaBtn.href = 'https://www.pdn.co.il/mano-rashi';
+        ctaBtn.target = '_blank';
+        ctaBtn.className = 'btn-primary inline-block text-lg py-4 px-12 rounded-xl font-semibold';
+        ctaBtn.style.textDecoration = 'none';
+        ctaBtn.textContent = 'לרכישת הקורס';
+        ctaWrapper.appendChild(ctaBtn);
+        nextSection.appendChild(ctaWrapper);
+
+        completionSection.appendChild(nextSection);
+
+        // Insert completion screen into the main area
+        const mainArea = document.getElementById('chatArea');
+        const progressContainer = document.getElementById('progressContainer');
+        if (progressContainer) progressContainer.classList.add('hidden');
+        mainArea.insertBefore(completionSection, mainArea.querySelector('.text-center.pt-4'));
+
+        // Trigger confetti animation
+        createConfetti();
+
+        // Manage focus to completion heading for accessibility
+        setTimeout(() => {
+            heading.focus();
+        }, 100);
     }
 
     async function goBack() {
@@ -1342,7 +1956,9 @@
             } catch (e) {
                 console.error('Failed to delete answer:', e);
             }
-            currentQuestion = questionHistory.pop();
+            const historyEntry = questionHistory.pop();
+            currentQuestion = historyEntry.questionNumber;
+            pendingSelectedAnswer = historyEntry.selectedAnswer;
             loadQuestion(currentQuestion);
         }
     }
@@ -1360,6 +1976,115 @@
             document.getElementById('modalClose').focus();
         }
     });
+
+    // Sticky progress bar — IntersectionObserver sentinel pattern
+    (function() {
+        const sentinel = document.getElementById('progressSentinel');
+        const progressContainer = document.getElementById('progressContainer');
+        if (sentinel && progressContainer) {
+            const observer = new IntersectionObserver(
+                ([entry]) => {
+                    // When sentinel is NOT intersecting (scrolled out of view), add .is-stuck
+                    if (!entry.isIntersecting) {
+                        progressContainer.classList.add('is-stuck');
+                    } else {
+                        progressContainer.classList.remove('is-stuck');
+                    }
+                },
+                { threshold: 0 }
+            );
+            observer.observe(sentinel);
+        }
+    })();
+
+    // Resume prompt logic — check for saved progress on page load
+    (async function checkResumeOnLoad() {
+        try {
+            // 1. Fetch session progress from server
+            let sessionQuestion = 0;
+            try {
+                const response = await fetch('/pdn-diagnose/get_progress');
+                if (response.ok) {
+                    const data = await response.json();
+                    sessionQuestion = data.current_question || 0;
+                }
+            } catch (e) {
+                console.warn('Resume: Failed to fetch session progress', e);
+            }
+
+            // 2. Check localStorage for local progress
+            const localProgress = autoSaveManager.loadLocalProgress();
+            const localQuestion = localProgress ? localProgress.currentQuestion : 0;
+
+            // 3. Resolve conflict — use the higher question number
+            const resumePoint = autoSaveManager.resolveConflict(sessionQuestion, localQuestion);
+
+            // 4. If resume point > 0, show the resume modal
+            if (resumePoint > 0) {
+                const resumeModal = document.getElementById('resumeModal');
+                const acceptBtn = document.getElementById('resumeAcceptBtn');
+                const declineBtn = document.getElementById('resumeDeclineBtn');
+
+                resumeModal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+
+                // Focus the accept button for accessibility
+                setTimeout(() => acceptBtn.focus(), 100);
+
+                // Handle accept: navigate to question N+1
+                acceptBtn.onclick = function() {
+                    resumeModal.style.display = 'none';
+                    document.body.style.overflow = '';
+
+                    // Hide voice recording areas, show question area
+                    document.getElementById('voiceRecordArea').classList.add('hidden');
+                    document.getElementById('voiceRecordArea2').classList.add('hidden');
+                    document.getElementById('questionArea').classList.remove('hidden');
+
+                    // Set current question to resumePoint + 1 (next unanswered question)
+                    currentQuestion = resumePoint + 1;
+                    updateProgress(2 + currentQuestion, progressManager.formatProgressLabel(currentQuestion));
+                    loadQuestion(currentQuestion);
+                };
+
+                // Handle decline: clear localStorage, start from beginning
+                declineBtn.onclick = function() {
+                    resumeModal.style.display = 'none';
+                    document.body.style.overflow = '';
+
+                    // Clear saved progress
+                    autoSaveManager.clearProgress();
+
+                    // Continue normally — voice recordings first (already visible by default)
+                };
+
+                // Handle Escape key to dismiss (same as decline)
+                function handleResumeEscape(e) {
+                    if (e.key === 'Escape' && resumeModal.style.display === 'flex') {
+                        declineBtn.click();
+                        document.removeEventListener('keydown', handleResumeEscape);
+                    }
+                }
+                document.addEventListener('keydown', handleResumeEscape);
+
+                // Focus trap within resume modal
+                resumeModal.addEventListener('keydown', function(e) {
+                    if (e.key === 'Tab') {
+                        e.preventDefault();
+                        // Toggle focus between accept and decline buttons
+                        if (document.activeElement === acceptBtn) {
+                            declineBtn.focus();
+                        } else {
+                            acceptBtn.focus();
+                        }
+                    }
+                });
+            }
+        } catch (e) {
+            console.warn('Resume: Error during resume check', e);
+            // On any error, continue normally without resume prompt
+        }
+    })();
 
 
 </script>
