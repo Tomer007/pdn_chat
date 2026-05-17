@@ -15,17 +15,16 @@
     <i class="fas fa-moon"></i>
 </button>
 
-<!-- Header with improved layout -->
+<!-- Header -->
 <header class="header-gradient">
     <div class="header-content">
-        <!-- Logo and title section -->
         <div class="header-left">
             <a href="https://www.pdn.co.il" target="_blank" class="logo-link">
-                <img src="/static/images/pdn_logo.png" alt="PDN Logo" class="header-logo"/>
+                <img src="{{ url_for('static', filename='images/pdn_logo.png') }}" alt="PDN Logo" class="header-logo"/>
             </a>
             <div class="header-text">
-                <h1 class="text-2xl font-bold mb-2 text-white">PDN Center</h1>
-                <p class="text-2xl opacity-90 text-white">מערכת שליטה וניהול</p>
+                <h1 class="header-title">PDN Center</h1>
+                <p class="header-subtitle">מערכת שליטה וניהול</p>
             </div>
         </div>
     </div>
