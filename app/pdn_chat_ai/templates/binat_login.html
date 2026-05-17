@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <meta http-equiv="Content-Security-Policy"
-          content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data:; connect-src 'self';">
     <title>בינת קוד המקור - התחברות</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+          crossorigin="anonymous" referrerpolicy="no-referrer">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/binat-login.css') }}">
 </head>
 <body>
@@ -18,31 +17,19 @@
     <i class="fas fa-moon"></i>
 </button>
 
-<!-- Header with improved layout -->
-<header class="header-gradient">
-    <div class="header-content">
-        <!-- Logo and title section -->
-        <div class="header-left">
-            <a href="https://www.pdn.co.il" target="_blank" class="logo-link">
-                <img src="/static/images/pdn_logo.png" alt="PDN Logo" class="header-logo"/>
-            </a>
-            <div class="header-text">
-                <h1 class="text-2xl font-bold mb-2 text-white">PDN Center</h1>
-                <p class="text-2xl opacity-90 text-white">בינת קוד המקור</p>
-            </div>
-        </div>
-    </div>
-</header>
-
 <!-- Main container -->
 <div class="container mx-auto p-6 max-w-4xl">
     <div class="login-container">
         <div class="text-center mb-8">
-            <h2 class="text-3xl font-bold text-blue-900 mb-2">ברוך הבא לבינת קוד המקור</h2>
-            <p class="text-blue-700">התחבר כדי להתחיל את המסע שלך</p>
+            <a href="https://www.pdn.co.il" target="_blank" style="display: inline-block; margin-bottom: 12px;">
+                <img src="{{ url_for('static', filename='images/pdn_logo.png') }}" alt="PDN Logo"
+                     style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(201, 169, 110, 0.25);">
+            </a>
+            <h2 class="login-heading">ברוך הבא לבינת קוד המקור</h2>
+            <p class="login-subheading">התחבר כדי להתחיל את המסע שלך</p>
         </div>
 
-        <form id="loginForm" class="space-y-6">
+        <form id="loginForm">
             <div class="form-group">
                 <label for="username" class="form-label">
                     <i class="fas fa-envelope"></i>
@@ -67,26 +54,26 @@
             </div>
 
             <button type="submit" class="submit-button">
-                <i class="fas fa-sign-in-alt"></i>
                 התחל שיחה עם בינת קוד המקור
             </button>
         </form>
 
-        <div id="loginError" class="error-message">
-            <i class="fas fa-exclamation-triangle mr-2"></i>
+        <div id="loginError" class="error-message" role="alert">
+            <i class="fas fa-exclamation-triangle"></i>
             <span>אנא הזן אימייל וסיסמה תקינים</span>
         </div>
 
         <!-- Disclaimer -->
-        <div class="disclaimer">
-            <h2 class="text-blue-900 text-2xl">הסכמה מודעת למסע עם קוד המקור</h2>
-                <p>המסע עם קוד המקור נועד לעורר תודעה, לאפשר גילוי עצמי, ולהאיר כיוונים פנימיים. הוא לא מחליף ייעוץ או
-                    טיפול מקצועי – רגשי, רפואי או אחר – ואינו מתיימר לאבחן או לרפא.</p>
-                <p>האבחון והליווי דרך קוד המקור מזמינים אותך להתבונן, להקשיב לעצמך, ולבחור איך לפעול. האחריות על הדרך,
-                    הבחירות וההשלכות – היא שלך בלבד.</p>
+        <div class="disclaimer collapsed">
+            <h3 class="disclaimer-toggle">הסכמה מודעת למסע עם קוד המקור</h3>
+            <div class="disclaimer-content">
+                <p>המסע עם קוד המקור נועד לעורר תודעה, לאפשר גילוי עצמי, ולהאיר כיוונים פנימיים. הוא לא מחליף ייעוץ או טיפול מקצועי – רגשי, רפואי או אחר – ואינו מתיימר לאבחן או לרפא.</p>
+                <p>האבחון והליווי דרך קוד המקור מזמינים אותך להתבונן, להקשיב לעצמך, ולבחור איך לפעול. האחריות על הדרך, הבחירות וההשלכות – היא שלך בלבד.</p>
                 <p>אם עולה קושי רגשי עמוק, מצוקה מתמשכת או צורך בתמיכה – חשוב לפנות לאיש מקצוע מתאים.</p>
                 <p>אנחנו כאן להזכיר – שהכוח כבר בתוכך.</p>
+            </div>
         </div>
+
         <!-- Footer -->
         {% include 'partials/footer.html' %}
     </div>
