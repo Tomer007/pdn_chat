@@ -881,7 +881,7 @@ async function processMessageQueue() {
     userBubble.className = "chat-bubble user animated";
     const currentTime = getCurrentTime();
     userBubble.innerHTML = `
-            <div class="message-header"><span class="user-avatar-initials">${USER_NAME.charAt(0)}</span>${USER_NAME}:</div>
+            <div class="message-header">${USER_NAME}:</div>
             <div class="message-content">${safeMarkdownParse(message)}</div>
             <div class="message-time">${currentTime}</div>
         `;
@@ -1321,7 +1321,7 @@ async function submitPlanRequest(event) {
             const userTime = getCurrentTime();
             const userContent = safeMarkdownParse(goal);
             userBubble.innerHTML = `
-                <div class="message-header"><span class="user-avatar-initials">${USER_NAME.charAt(0)}</span>${USER_NAME}:</div>
+                <div class="message-header">${USER_NAME}:</div>
                 <div class="message-content">${userContent}</div>
                 <div class="message-time">${userTime}</div>
 
@@ -1600,7 +1600,7 @@ async function submitDailyTrainingRequest(event) {
             const userTime = getCurrentTime();
             const userContent = safeMarkdownParse(`אימון יומי:\n\n**המשימה שלי:**\n${task}`);
             userBubble.innerHTML = `
-                <div class="message-header"><span class="user-avatar-initials">${USER_NAME.charAt(0)}</span>${USER_NAME}:</div>
+                <div class="message-header">${USER_NAME}:</div>
                 <div class="message-content">${userContent}</div>
                 <div class="message-time">${userTime}</div>
             `;
