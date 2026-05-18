@@ -37,7 +37,7 @@ def get_html_template(pdn_code: str, first_name: str) -> str:
         <tr>
             <td style="background: linear-gradient(135deg, #0b2e6b, #0a2a5f); color: white; padding: 30px; text-align: center;">
                 <h1 style="margin: 0 0 10px 0; font-size: 24px; font-weight: bold;"> מפת קוד המקור</h1>
-                <h2 style="margin: 0; font-size: 16px; font-weight: normal; opacity: 0.9;">קוד המקור - הנווט הראשי שלך להצלחה</h2>
+                <h2 style="margin: 0; font-size: 16px; font-weight: normal; opacity: 0.9;">ברוך הבא למסע הגילוי</h2>
             </td>
         </tr>
         <tr>
