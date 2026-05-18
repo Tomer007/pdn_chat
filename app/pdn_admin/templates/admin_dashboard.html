@@ -836,14 +836,15 @@
 
     // Stat card click handler
     function handleStatClick(type) {
+        const redUsersFilterChip = document.getElementById('redUsersFilterChip');
         switch(type) {
             case 'total':
                 // Clear all filters and show all data
                 document.getElementById('searchInput').value = '';
                 const redCheckbox = document.getElementById('redUsersFilter');
-                if (redCheckbox.checked) {
+                if (redCheckbox && redCheckbox.checked) {
                     redCheckbox.checked = false;
-                    document.getElementById('redUsersFilterChip').classList.remove('active');
+                    if (redUsersFilterChip) redUsersFilterChip.classList.remove('active');
                 }
                 handleSearch();
                 handleFilter();
@@ -854,9 +855,9 @@
                 // Clear other filters first
                 document.getElementById('searchInput').value = '';
                 const redCb = document.getElementById('redUsersFilter');
-                if (redCb.checked) {
+                if (redCb && redCb.checked) {
                     redCb.checked = false;
-                    document.getElementById('redUsersFilterChip').classList.remove('active');
+                    if (redUsersFilterChip) redUsersFilterChip.classList.remove('active');
                 }
                 // Filter by today's date directly on currentData
                 const today = new Date();
@@ -870,8 +871,8 @@
                 // Filter to show only red/anomaly users directly
                 document.getElementById('searchInput').value = '';
                 const redCbAnom = document.getElementById('redUsersFilter');
-                redCbAnom.checked = true;
-                document.getElementById('redUsersFilterChip').classList.add('active');
+                if (redCbAnom) redCbAnom.checked = true;
+                if (redUsersFilterChip) redUsersFilterChip.classList.add('active');
                 applyFilters();
                 document.querySelector('.table-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
                 break;
