@@ -132,14 +132,14 @@ class CouponManager:
                 result.append(coupon_with_status)
             return result
 
-    def update_coupon(self, code: str, **updates) -> dict:
+    def update_coupon(self, coupon_code: str, **updates) -> dict:
         """Update coupon fields (name, max_usage). Code is immutable.
 
         Raises KeyError if not found, ValueError if invalid updates.
         """
         with self._lock:
-            if code not in self._coupons:
-                raise KeyError(f"Coupon not found: {code}")
+            if coupon_code not in self._coupons:
+                raise KeyError(f"Coupon not found: {coupon_code}")
 
             # Code is immutable - reject any attempt to change it
             if "code" in updates:
@@ -150,7 +150,7 @@ class CouponManager:
                 if key not in allowed_fields:
                     raise ValueError(f"Cannot update field: {key}")
 
-            coupon = self._coupons[code]
+            coupon = self._coupons[coupon_code]
             for key, value in updates.items():
                 coupon[key] = value
 

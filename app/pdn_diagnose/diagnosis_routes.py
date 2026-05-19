@@ -14,6 +14,7 @@ from ..utils.auth import require_auth
 from ..utils.pdn_calculator import calculate_pdn_code
 from ..utils.questionnaire import get_question
 from ..utils.email_sender import send_email_via_smtp
+from ..pdn_admin.coupon_manager import get_coupon_manager
 
 # Setup logger
 logger = setup_logger()
@@ -76,10 +77,12 @@ def user_info_page():
 
     personal_instructions = questions.get("phases", {}).get("PersonalDetails", {}).get("instructions", "")
     logger.info(" /user_info  personal_instructions: %s", personal_instructions)
+    coupon_code = session.get('coupon_code', '')
     return render_template("user_form.html",
                            include_menu=True,
                            email=email,
-                           personal_instructions=personal_instructions)
+                           personal_instructions=personal_instructions,
+                           coupon_code=coupon_code)
 
 
 @pdn_diagnose_bp.route('/user_info', methods=['POST'])
@@ -93,6 +96,10 @@ def save_user_info_api():
         user_data = request.get_json()
         email = user_data.get('email', 'anonymous').lower()
         user_data['email'] = email  # UPDATE the email in user_data
+        # Store coupon_code in user record if user logged in with a coupon
+        coupon_code = session.get('coupon_code', '')
+        if coupon_code:
+            user_data['coupon_code'] = coupon_code
         save_user_metadata(user_data, email)
         session["user_data"] = user_data
 
@@ -117,17 +124,49 @@ def save_user_info_api():
 
 @pdn_diagnose_bp.route('/login', methods=['POST'])
 def login_user():
-    """User login endpoint"""
+    """User login endpoint - supports email/password or coupon code authentication"""
     logger.debug("POST /pdn-diagnose/login called")
     logger.info("Request: %s %s", request.method, request.url)
     logger.info("Response: %s", 200)
 
     try:
         login_data = request.get_json()
-        if hmac.compare_digest(login_data.get('password', ''), current_app.config.get('ADMIN_PASSWORD', 'pdn')):
-            email = login_data.get('email').lower()
+        coupon_code = login_data.get('coupon_code')
+
+        # Coupon-based login path
+        if coupon_code:
+            email = login_data.get('email', '').lower()
+            if not email:
+                return jsonify({"error": "Email is required"}), 400
+
+            coupon_manager = get_coupon_manager()
+            is_valid, message = coupon_manager.validate_coupon(coupon_code)
+
+            if not is_valid:
+                if "usage limit" in message:
+                    return jsonify({"error": message}), 403
+                return jsonify({"error": message}), 401
+
+            # Redeem the coupon
+            coupon_manager.redeem_coupon(coupon_code, email)
+
             session.permanent = True
             session["email"] = email
+            session["coupon_code"] = coupon_code
+            # Track active session
+            active_sessions[session.sid] = {
+                "email": email,
+                "login_time": datetime.now()
+            }
+            return jsonify({"message": "Login successful"})
+
+        # Standard email/password login path
+        email = login_data.get('email', '').lower()
+        expected_password = email.split('@')[0] if '@' in email else email
+        if hmac.compare_digest(login_data.get('password', ''), expected_password):
+            session.permanent = True
+            session["email"] = email
+            session.pop("coupon_code", None)  # Clear any previous coupon login
             # Track active session
             active_sessions[session.sid] = {
                 "email": email,
@@ -341,6 +380,9 @@ def get_report_data():
             logger.error("No answers found for email: %s", email)
             return jsonify({'error': 'No answers found'}), 400
         
+        # Calculate PDN code
+        pdn_code = calculate_pdn_code(user_answers_data)
+
         # Get user metadata
         user_data = session.get('user_data', {})
 
@@ -350,7 +392,8 @@ def get_report_data():
                 'first_name': user_data.get('first_name', 'User'),
                 'last_name': user_data.get('last_name', ''),
                 'email': email
-            }
+            },
+            'pdn_code': pdn_code or 'N/A'
         }
 
         return jsonify(response_data)

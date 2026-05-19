@@ -33,6 +33,17 @@
         {% endif %}
         <form id="userForm" class="space-y-6">
             <input type="hidden" id="email" value="{{ email }}">
+            {% if coupon_code %}
+            <!-- Coupon Code Read-Only Field -->
+            <div class="p-3 rounded-lg" style="background: rgba(201, 169, 110, 0.08); border: 1.5px solid rgba(201, 169, 110, 0.4);">
+                <label class="block text-sm font-medium mb-1 text-right" style="color: #8b6914;">
+                    <i class="fas fa-lock mr-2"></i> קוד קופון
+                </label>
+                <input type="text" id="coupon_code" value="{{ coupon_code }}" readonly
+                       class="w-full px-4 py-2 border rounded-lg text-gray-700 font-mono tracking-wider"
+                       style="background: rgba(201, 169, 110, 0.05); border-color: rgba(201, 169, 110, 0.3); cursor: not-allowed;">
+            </div>
+            {% endif %}
             <!-- Input Group -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>

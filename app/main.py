@@ -45,7 +45,7 @@ def create_app():
     questions_path = Path(__file__).parent / "data" / "questions.json"
     try:
         app.config['QUESTIONS_FILE'] = json.loads(questions_path.read_text(encoding="utf-8"))
-        logger.info(f"Loaded {len(app.config['QUESTIONS_FILE'].get('phases', {}))} question phases")
+        logger.debug(f"Loaded {len(app.config['QUESTIONS_FILE'].get('phases', {}))} question phases")
     except Exception as e:
         logger.error(f"Failed to load questions: {e}")
         app.config['QUESTIONS_FILE'] = {}

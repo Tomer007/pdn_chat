@@ -54,7 +54,7 @@ def calculate_confidence_score(scores: Dict[str, int]) -> int:
     confidence = int(trait_confidence + energy_confidence)
     confidence = max(0, min(100, confidence))
     
-    logger.info("Confidence score: %d (trait: %.1f, energy: %.1f)", confidence, trait_confidence, energy_confidence)
+    logger.debug("Confidence score: %d (trait: %.1f, energy: %.1f)", confidence, trait_confidence, energy_confidence)
     return confidence
 
 
@@ -86,7 +86,7 @@ def check_verification_needed(scores: Dict[str, int]) -> bool:
     logger.debug("Highest score: %s, Second highest: %s, Gap: %s", highest, second_highest, gap)
 
     if gap <= 2:
-        logger.info("Verification needed: gap of %s points between highest (%s) and second highest (%s)", gap, highest, second_highest)
+        logger.debug("Verification needed: gap of %s points between highest (%s) and second highest (%s)", gap, highest, second_highest)
         return True
 
     return False
@@ -139,11 +139,11 @@ def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) ->
         dominant_trait: str = 'Undetermined'
     result['trait'] = dominant_trait
 
-    logger.info("Stage A: Trait Calculation for A %s", result['scores']['A'])
-    logger.info("Stage A: Trait Calculation for T %s", result['scores']['T'])
-    logger.info("Stage A: Trait Calculation for P %s", result['scores']['P'])
-    logger.info("Stage A: Trait Calculation for E %s", result['scores']['E'])
-    logger.info("Stage A dominant trait %s", dominant_trait)
+    logger.debug("Stage A: Trait Calculation for A %s", result['scores']['A'])
+    logger.debug("Stage A: Trait Calculation for T %s", result['scores']['T'])
+    logger.debug("Stage A: Trait Calculation for P %s", result['scores']['P'])
+    logger.debug("Stage A: Trait Calculation for E %s", result['scores']['E'])
+    logger.debug("Stage A dominant trait %s", dominant_trait)
     
     
     # Add to calculation details if requested
@@ -181,10 +181,10 @@ def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) ->
         dominant_energy = 'Undetermined'
     result['energy'] = dominant_energy
 
-    logger.info("Stage B: Energy Type Calculation for D %s", energy_counts['D'])
-    logger.info("Stage B: Energy Type Calculation for S %s", energy_counts['S'])
-    logger.info("Stage B: Energy Type Calculation for F %s", energy_counts['F'])
-    logger.info("Stage B dominant energy %s", dominant_energy)
+    logger.debug("Stage B: Energy Type Calculation for D %s", energy_counts['D'])
+    logger.debug("Stage B: Energy Type Calculation for S %s", energy_counts['S'])
+    logger.debug("Stage B: Energy Type Calculation for F %s", energy_counts['F'])
+    logger.debug("Stage B dominant energy %s", dominant_energy)
     
     
     # Add to calculation details if requested
@@ -226,11 +226,11 @@ def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) ->
         dominant_trait = 'Undetermined'
     result['trait'] = dominant_trait
 
-    logger.info("Stage C: Trait Calculation for A %s", result['scores']['A'])
-    logger.info("Stage C: Trait Calculation for T %s", result['scores']['T'])
-    logger.info("Stage C: Trait Calculation for P %s", result['scores']['P'])
-    logger.info("Stage C: Trait Calculation for E %s", result['scores']['E'])
-    logger.info("Stage C dominant trait %s", dominant_trait)
+    logger.debug("Stage C: Trait Calculation for A %s", result['scores']['A'])
+    logger.debug("Stage C: Trait Calculation for T %s", result['scores']['T'])
+    logger.debug("Stage C: Trait Calculation for P %s", result['scores']['P'])
+    logger.debug("Stage C: Trait Calculation for E %s", result['scores']['E'])
+    logger.debug("Stage C dominant trait %s", dominant_trait)
     
     
     # Add to calculation details if requested
@@ -283,11 +283,11 @@ def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) ->
         dominant_trait = 'Undetermined'
     result['trait'] = dominant_trait
 
-    logger.info("Stage D: Trait Calculation for A %s", result['scores']['A'])
-    logger.info("Stage D: Trait Calculation for T %s", result['scores']['T'])
-    logger.info("Stage D: Trait Calculation for P %s", result['scores']['P'])
-    logger.info("Stage D: Trait Calculation for E %s", result['scores']['E'])
-    logger.info("Stage D dominant trait %s", dominant_trait)
+    logger.debug("Stage D: Trait Calculation for A %s", result['scores']['A'])
+    logger.debug("Stage D: Trait Calculation for T %s", result['scores']['T'])
+    logger.debug("Stage D: Trait Calculation for P %s", result['scores']['P'])
+    logger.debug("Stage D: Trait Calculation for E %s", result['scores']['E'])
+    logger.debug("Stage D dominant trait %s", dominant_trait)
     
     
     # Add to calculation details if requested
@@ -329,11 +329,11 @@ def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) ->
         dominant_trait = 'Undetermined'
     result['trait'] = dominant_trait
 
-    logger.info("Stage E: Trait Calculation for A %s", result['scores']['A'])
-    logger.info("Stage E: Trait Calculation for T %s", result['scores']['T'])
-    logger.info("Stage E: Trait Calculation for P %s", result['scores']['P'])
-    logger.info("Stage E: Trait Calculation for E %s", result['scores']['E'])
-    logger.info("Stage E dominant trait %s", dominant_trait)
+    logger.debug("Stage E: Trait Calculation for A %s", result['scores']['A'])
+    logger.debug("Stage E: Trait Calculation for T %s", result['scores']['T'])
+    logger.debug("Stage E: Trait Calculation for P %s", result['scores']['P'])
+    logger.debug("Stage E: Trait Calculation for E %s", result['scores']['E'])
+    logger.debug("Stage E dominant trait %s", dominant_trait)
     
     # Add to calculation details if requested
     if calculation_details is not None:
@@ -373,7 +373,7 @@ def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) ->
     pdn_code: str = pdn_matrix.get((result['trait'], result['energy']), 'NA')
     result['pdn_code'] = pdn_code
 
-    logger.info("Finalizing the PDN code %s", pdn_code)
+    logger.debug("Finalizing the PDN code %s", pdn_code)
     
     # Add final result to calculation details if requested
     if calculation_details is not None:

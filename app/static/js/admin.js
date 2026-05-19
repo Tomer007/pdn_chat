@@ -735,7 +735,7 @@
         document.getElementById('rowCount').textContent = `סה"כ שורות: ${data.length}`;
 
         if (data.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="11" class="text-center py-12 text-gray-500">
+            tbody.innerHTML = `<tr><td colspan="12" class="text-center py-12 text-gray-500">
                 <i class="fas fa-inbox text-4xl mb-3 block"></i>
                 <p class="text-lg">לא נמצאו נתונים</p>
             </td></tr>`;
@@ -865,6 +865,9 @@
             </td>
             <td class="px-4 py-4 text-gray-700 max-w-xs truncate" title="${escapeHtml(user.diagnose_comments || '')}">${escapeHtml(user.diagnose_comments || '')}</td>
             <td class="px-4 py-4 text-gray-700 max-w-xs truncate" title="${user.pdn_update_comments || ''}">${user.pdn_update_comments || ''}</td>
+            <td class="px-4 py-4 text-gray-700">
+                ${user.coupon_code ? `<span class="px-2 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-medium font-mono">${escapeHtml(user.coupon_code)}</span>` : '—'}
+            </td>
         `;
             tbody.appendChild(row);
         });
@@ -956,7 +959,8 @@
                 (user.first_name && user.first_name.toLowerCase().includes(searchTerm)) ||
                 (user.last_name && user.last_name.toLowerCase().includes(searchTerm)) ||
                 (user.pdn_code && user.pdn_code.toLowerCase().includes(searchTerm)) ||
-                (user.diagnose_pdn_code && user.diagnose_pdn_code.toLowerCase().includes(searchTerm));
+                (user.diagnose_pdn_code && user.diagnose_pdn_code.toLowerCase().includes(searchTerm)) ||
+                (user.coupon_code && user.coupon_code.toLowerCase().includes(searchTerm));
 
             // Red users filter
             if (showRedUsersOnly) {
@@ -1943,6 +1947,10 @@
                         valA = (a.pdn_code || '').toLowerCase();
                         valB = (b.pdn_code || '').toLowerCase();
                         break;
+                    case 'coupon_code':
+                        valA = (a.coupon_code || '').toLowerCase();
+                        valB = (b.coupon_code || '').toLowerCase();
+                        break;
                     default:
                         valA = (a[column] || '').toString().toLowerCase();
                         valB = (b[column] || '').toString().toLowerCase();
@@ -1985,13 +1993,14 @@
                 return matchesSearch;
             });
 
-            const headers = ['מזהה מערכת', 'שם', 'אימייל', 'תאריך', 'קוד מערכת', 'אימות', 'ניתוח קול', 'קוד מאבחן', 'הערות', 'עדכון קוד פדן'];
+            const headers = ['מזהה מערכת', 'שם', 'אימייל', 'תאריך', 'קוד מערכת', 'אימות', 'ניתוח קול', 'קוד מאבחן', 'הערות', 'עדכון קוד פדן', 'קופון'];
             const rows = exportData.map(u => [
                 u.user_id || '', ((u.first_name || '') + ' ' + (u.last_name || '')).trim(),
                 u.email, u.date, u.pdn_code || '',
                 u.needs_verification ? 'נדרש אימות' : 'תקין',
                 u.pdn_voice_code || '',
-                u.diagnose_pdn_code || '', u.diagnose_comments || '', u.pdn_update_comments || ''
+                u.diagnose_pdn_code || '', u.diagnose_comments || '', u.pdn_update_comments || '',
+                u.coupon_code || ''
             ]);
 
             const BOM = '\uFEFF';

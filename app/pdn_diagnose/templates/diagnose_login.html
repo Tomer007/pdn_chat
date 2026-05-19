@@ -19,7 +19,7 @@
         <div class="text-center mb-2">
             <a href="https://www.pdn.co.il" target="_blank" style="display: inline-block;">
                 <img src="{{ url_for('static', filename='images/pdn_logo.png') }}" alt="PDN Logo"
-                     style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 1.5px solid rgba(201, 169, 110, 0.25);">
+                     style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(201, 169, 110, 0.25);">
             </a>
         </div>
 
@@ -63,6 +63,50 @@
             <span>פרטים שגויים</span>
         </div>
 
+        <!-- Coupon Login Divider -->
+        <div style="display: flex; align-items: center; margin: 28px 0 24px; gap: 12px;">
+            <div style="flex: 1; height: 1px; background: linear-gradient(to left, transparent, rgba(201, 169, 110, 0.3), transparent);"></div>
+            <span style="font-size: 13px; color: #8b6914; font-weight: 500; white-space: nowrap;">או התחבר עם קוד קופון</span>
+            <div style="flex: 1; height: 1px; background: linear-gradient(to right, transparent, rgba(201, 169, 110, 0.3), transparent);"></div>
+        </div>
+
+        <!-- Coupon Login Form -->
+        <form id="couponLoginForm">
+            <div class="form-group">
+                <label for="couponEmail" class="form-label">
+                    <i class="fas fa-envelope"></i>
+                    אימייל
+                </label>
+                <input type="email" id="couponEmail" name="couponEmail" required
+                       class="form-input"
+                       placeholder="הזן כתובת אימייל"
+                       autocomplete="email">
+            </div>
+
+            <div class="form-group">
+                <label for="couponCode" class="form-label">
+                    <i class="fas fa-ticket-alt"></i>
+                    קוד קופון
+                </label>
+                <input type="text" id="couponCode" name="couponCode" required
+                       class="form-input"
+                       placeholder="הזן קוד קופון"
+                       autocomplete="off"
+                       maxlength="20"
+                       style="text-transform: uppercase; letter-spacing: 1px;">
+            </div>
+
+            <button type="submit" class="submit-button" id="couponSubmitButton">
+                <i class="fas fa-ticket-alt"></i>
+                התחבר עם קופון
+            </button>
+        </form>
+
+        <div id="couponError" class="error-message" role="alert">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span id="couponErrorText">קוד קופון לא תקין</span>
+        </div>
+
         <!-- Disclaimer -->
         <div class="disclaimer collapsed">
             <h3 class="disclaimer-toggle">הסכמה מודעת לאבחון קוד המקור</h3>
@@ -94,6 +138,7 @@
         }
     });
 
+    // === Email/Password Login ===
     function showError() {
         document.getElementById('loginError').style.display = 'flex';
     }
@@ -111,7 +156,7 @@
         e.preventDefault();
         hideError();
 
-        const submitButton = document.querySelector('.submit-button');
+        const submitButton = e.target.querySelector('.submit-button');
         submitButton.classList.add('loading');
         submitButton.disabled = true;
 
@@ -133,6 +178,55 @@
         } catch (error) {
             showError();
             console.error('Login error:', error);
+        } finally {
+            submitButton.classList.remove('loading');
+            submitButton.disabled = false;
+        }
+    });
+
+    // === Coupon Login ===
+    function showCouponError(message) {
+        const errorEl = document.getElementById('couponError');
+        document.getElementById('couponErrorText').textContent = message || 'קוד קופון לא תקין';
+        errorEl.style.display = 'flex';
+    }
+
+    function hideCouponError() {
+        document.getElementById('couponError').style.display = 'none';
+    }
+
+    // Hide coupon error on input
+    document.getElementById('couponEmail').addEventListener('input', hideCouponError);
+    document.getElementById('couponCode').addEventListener('input', hideCouponError);
+
+    // Coupon form submission
+    document.getElementById('couponLoginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideCouponError();
+
+        const submitButton = document.getElementById('couponSubmitButton');
+        submitButton.classList.add('loading');
+        submitButton.disabled = true;
+
+        try {
+            const response = await fetch('/pdn-diagnose/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    email: document.getElementById('couponEmail').value,
+                    coupon_code: document.getElementById('couponCode').value.toUpperCase()
+                })
+            });
+
+            if (response.ok) {
+                window.location.href = '/pdn-diagnose/user_info';
+            } else {
+                const data = await response.json();
+                showCouponError(data.error || 'קוד קופון לא תקין');
+            }
+        } catch (error) {
+            showCouponError('שגיאה בהתחברות, נסה שוב');
+            console.error('Coupon login error:', error);
         } finally {
             submitButton.classList.remove('loading');
             submitButton.disabled = false;

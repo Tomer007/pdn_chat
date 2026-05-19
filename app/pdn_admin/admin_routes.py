@@ -6,7 +6,7 @@ import secrets
 import time
 from datetime import datetime, timedelta
 
-from flask import Blueprint, request, render_template, jsonify, current_app, send_file, abort
+from flask import Blueprint, request, render_template, jsonify, current_app, send_file, abort, make_response
 from pathlib import Path
 
 from ..utils.answer_storage import load_answers
@@ -17,6 +17,7 @@ from ..utils.pdn_file_path import PDNFilePath
 from ..utils.conversation_stats import conversation_stats
 from ..version import VERSION, RELEASE_DATE, RELEASE_NOTES
 from ..pdn_chat_ai.user_manager import get_user_manager
+from .coupon_manager import get_coupon_manager
 
 
 # Configure logging
@@ -65,12 +66,12 @@ def verify_session(session_token: str):
     cleanup_expired_sessions()
 
     if not session_token or session_token not in admin_sessions:
-        abort(401, description="Invalid or expired session")
+        abort(make_response(jsonify({"error": "Invalid or expired session"}), 401))
 
     session = admin_sessions[session_token]
     if datetime.now() > session["expires_at"]:
         del admin_sessions[session_token]
-        abort(401, description="Session expired")
+        abort(make_response(jsonify({"error": "Session expired"}), 401))
 
     # Sliding window: refresh expiry on every successful verification
     session["expires_at"] = datetime.now() + SESSION_TIMEOUT
@@ -150,25 +151,26 @@ def load_user_metadata():
                             "Education Level") or "").strip(),
                     "job_title": (json_metadata.get("job_title") or row.get("Job Title") or "").strip(),
                     "birth_year": (json_metadata.get("birth_year") or row.get("Birth Year") or "").strip(),
+                    "coupon_code": (json_metadata.get("coupon_code") or "").strip(),
                     "link_to_user": f"/user/{email}",
                     "questionnaire": f"/api/user/questionnaire/{email}",
                     "voice": f"/api/user/voice/{email}"
                 }
 
-                # Calculate needs_verification from user's answers
-                needs_verification = False
-                try:
-                    user_answers = load_answers(email)
-                    if user_answers:
-                        calc_result = calculate_pdn_code(user_answers)
-                        if isinstance(calc_result, dict):
-                            needs_verification = calc_result.get('needs_verification', False)
-                        else:
-                            # String return means needs_verification is False
-                            needs_verification = False
-                except Exception as e:
-                    logger.debug("Could not calculate verification for %s: %s", email, e)
-                user_data["needs_verification"] = needs_verification
+                # # Calculate needs_verification from user's answers
+                # needs_verification = False
+                # try:
+                #     user_answers = load_answers(email)
+                #     if user_answers:
+                #         calc_result = calculate_pdn_code(user_answers)
+                #         if isinstance(calc_result, dict):
+                #             needs_verification = calc_result.get('needs_verification', False)
+                #         else:
+                #             # String return means needs_verification is False
+                #             needs_verification = False
+                # except Exception as e:
+                #     logger.debug("Could not calculate verification for %s: %s", email, e)
+                # user_data["needs_verification"] = needs_verification
 
                 metadata_list.append(user_data)
 
@@ -957,3 +959,145 @@ def download_user_json():
         logger.error("Error serving JSON file: %s", e)
         abort(500, description="Error serving JSON file")
 
+
+# --- Coupon Management Routes ---
+
+@pdn_admin_bp.route('/coupons', methods=['GET'])
+def list_coupons():
+    """GET /pdn-admin/coupons — list all coupons with status."""
+    verify_session(request.args.get('session_token'))
+    try:
+        cm = get_coupon_manager()
+        coupons = cm.get_all_coupons()
+        return jsonify({"coupons": coupons})
+    except Exception as e:
+        logger.error("Error listing coupons: %s", e)
+        return jsonify({"error": "Internal server error"}), 500
+
+
+@pdn_admin_bp.route('/coupons', methods=['POST'])
+def create_coupon():
+    """POST /pdn-admin/coupons — create a new coupon."""
+    verify_session(request.args.get('session_token'))
+
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+
+    name = data.get('name', '').strip()
+    max_usage = data.get('max_usage')
+    code = data.get('code')
+
+    if not name:
+        return jsonify({"error": "Name is required"}), 400
+
+    if max_usage is None:
+        return jsonify({"error": "max_usage is required"}), 400
+
+    try:
+        max_usage = int(max_usage)
+    except (ValueError, TypeError):
+        return jsonify({"error": "Max usage must be at least 1"}), 400
+
+    if max_usage < 1:
+        return jsonify({"error": "Max usage must be at least 1"}), 400
+
+    # Normalize optional code
+    if code is not None:
+        code = code.strip()
+        if not code:
+            code = None
+
+    try:
+        cm = get_coupon_manager()
+        coupon = cm.create_coupon(name, max_usage, code=code)
+        coupon_with_status = dict(coupon)
+        coupon_with_status["status"] = cm.get_status(coupon)
+        return jsonify({"success": True, "coupon": coupon_with_status}), 201
+    except ValueError as e:
+        error_msg = str(e)
+        if "already exists" in error_msg:
+            return jsonify({"error": "Coupon code already exists"}), 409
+        if "alphanumeric" in error_msg or "4-20" in error_msg:
+            return jsonify({"error": "Code must be 4-20 alphanumeric characters"}), 400
+        return jsonify({"error": error_msg}), 400
+    except Exception as e:
+        logger.error("Error creating coupon: %s", e)
+        return jsonify({"error": "Internal server error"}), 500
+
+
+@pdn_admin_bp.route('/coupons/<code>', methods=['PUT'])
+def update_coupon(code):
+    """PUT /pdn-admin/coupons/<code> — update a coupon (name, max_usage)."""
+    verify_session(request.args.get('session_token'))
+
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+
+    updates = {}
+    if 'name' in data:
+        updates['name'] = data['name'].strip() if isinstance(data['name'], str) else data['name']
+    if 'max_usage' in data:
+        try:
+            updates['max_usage'] = int(data['max_usage'])
+        except (ValueError, TypeError):
+            return jsonify({"error": "Max usage must be at least 1"}), 400
+        if updates['max_usage'] < 1:
+            return jsonify({"error": "Max usage must be at least 1"}), 400
+
+    if not updates:
+        return jsonify({"error": "No valid fields to update"}), 400
+
+    try:
+        cm = get_coupon_manager()
+        coupon = cm.update_coupon(code, **updates)
+        coupon_with_status = dict(coupon)
+        coupon_with_status["status"] = cm.get_status(coupon)
+        return jsonify({"success": True, "coupon": coupon_with_status})
+    except KeyError:
+        return jsonify({"error": "Coupon not found"}), 404
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        logger.error("Error updating coupon: %s", e)
+        return jsonify({"error": "Internal server error"}), 500
+
+
+@pdn_admin_bp.route('/coupons/<code>', methods=['DELETE'])
+def delete_coupon(code):
+    """DELETE /pdn-admin/coupons/<code> — delete a coupon."""
+    verify_session(request.args.get('session_token'))
+
+    try:
+        cm = get_coupon_manager()
+        cm.delete_coupon(code)
+        return jsonify({"success": True, "message": f"Coupon {code} deleted"})
+    except KeyError:
+        return jsonify({"error": "Coupon not found"}), 404
+    except Exception as e:
+        logger.error("Error deleting coupon: %s", e)
+        return jsonify({"error": "Internal server error"}), 500
+
+
+@pdn_admin_bp.route('/coupons/<code>/usage', methods=['GET'])
+def get_coupon_usage(code):
+    """GET /pdn-admin/coupons/<code>/usage — get usage details (used_by list)."""
+    verify_session(request.args.get('session_token'))
+
+    try:
+        cm = get_coupon_manager()
+        coupon = cm.get_coupon(code)
+        if coupon is None:
+            return jsonify({"error": "Coupon not found"}), 404
+        return jsonify({
+            "code": coupon["code"],
+            "name": coupon["name"],
+            "usage_count": coupon["usage_count"],
+            "max_usage": coupon["max_usage"],
+            "used_by": coupon["used_by"],
+            "status": cm.get_status(coupon)
+        })
+    except Exception as e:
+        logger.error("Error getting coupon usage: %s", e)
+        return jsonify({"error": "Internal server error"}), 500
