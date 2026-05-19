@@ -1,0 +1,40 @@
+📊 PDN Calculator Test Report
+============================================================
+Total Tests: 5
+Successful: 5
+Failed: 0
+Success Rate: 100.0%
+
+PDN Code Distribution:
+  A11: 1 (20.0%)
+  A7: 1 (20.0%)
+  E9: 1 (20.0%)
+  P6: 1 (20.0%)
+  T8: 1 (20.0%)
+
+Detailed Results:
+----------------------------------------
+1. ✅ Pure A (Analytical) Profile
+   PDN Code: A7
+   Questions: 59
+   Stages: A(26) B(11) C(5) D(14) E(3)
+
+2. ✅ Pure T (Theoretical) Profile
+   PDN Code: T8
+   Questions: 59
+   Stages: A(26) B(11) C(5) D(14) E(3)
+
+3. ✅ Pure P (Practical) Profile
+   PDN Code: P6
+   Questions: 59
+   Stages: A(26) B(11) C(5) D(14) E(3)
+
+4. ✅ Pure E (Emotional) Profile
+   PDN Code: E9
+   Questions: 59
+   Stages: A(26) B(11) C(5) D(14) E(3)
+
+5. ✅ Balanced Profile
+   PDN Code: A11
+   Questions: 59
+   Stages: A(26) B(11) C(5) D(14) E(3)
