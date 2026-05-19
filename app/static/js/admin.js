@@ -1229,6 +1229,10 @@
         <div class="text-sm text-gray-500 mb-1">שם מפנה</div>
         <div class="font-bold text-gray-900 text-lg break-all">${metadata["referral_source"] || 'לא זמין'}</div>
         </div>
+        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+        <div class="text-sm text-gray-500 mb-1">קופון</div>
+        <div class="font-bold text-gray-900 text-lg break-all" style="direction: ltr; text-align: right;">${metadata["coupon_code"] || '—'}</div>
+        </div>
         </div>
 
             <!-- System Information Section -->

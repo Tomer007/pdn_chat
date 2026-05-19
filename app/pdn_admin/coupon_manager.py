@@ -200,19 +200,23 @@ class CouponManager:
 
         Returns a copy of the updated coupon.
         Raises ValueError if coupon is full or not found.
-        Email is only added to used_by if not already present (deduplication).
+        If the email already redeemed this coupon, returns without incrementing.
         """
         with self._lock:
             if code not in self._coupons:
                 raise ValueError(f"Coupon not found: {code}")
 
             coupon = self._coupons[code]
+
+            # Already redeemed by this email — allow re-login without counting
+            if email in coupon["used_by"]:
+                return dict(coupon)
+
             if coupon["usage_count"] >= coupon["max_usage"]:
                 raise ValueError("Coupon has reached its usage limit")
 
             coupon["usage_count"] += 1
-            if email not in coupon["used_by"]:
-                coupon["used_by"].append(email)
+            coupon["used_by"].append(email)
             coupon["updated_at"] = datetime.now().strftime("%Y-%m-%d %H:%M")
             self._save_to_file()
             return dict(coupon)
@@ -222,19 +226,23 @@ class CouponManager:
 
         Returns (success, message, coupon_copy_or_none).
         Prevents race conditions between validate and redeem.
-        Email is only added to used_by if not already present (deduplication).
+        If the email already redeemed this coupon, allows login without incrementing usage.
         """
         with self._lock:
             if code not in self._coupons:
                 return False, "Invalid coupon code", None
 
             coupon = self._coupons[code]
+
+            # If user already redeemed, allow re-login without counting again
+            if email in coupon["used_by"]:
+                return True, "Valid", dict(coupon)
+
             if coupon["usage_count"] >= coupon["max_usage"]:
                 return False, "Coupon has reached its usage limit", None
 
             coupon["usage_count"] += 1
-            if email not in coupon["used_by"]:
-                coupon["used_by"].append(email)
+            coupon["used_by"].append(email)
             coupon["updated_at"] = datetime.now().strftime("%Y-%m-%d %H:%M")
             self._save_to_file()
             return True, "Valid", dict(coupon)
