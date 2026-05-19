@@ -124,10 +124,13 @@ def save_user_info_api():
 
 @pdn_diagnose_bp.route('/login', methods=['POST'])
 def login_user():
-    """User login endpoint - supports email/password or coupon code authentication"""
+    """User login endpoint - supports email/password or coupon code authentication.
+
+    Password scheme: the password is the local part of the email (before @).
+    This is intentionally simple for a low-friction questionnaire access flow,
+    not a high-security system.
+    """
     logger.debug("POST /pdn-diagnose/login called")
-    logger.info("Request: %s %s", request.method, request.url)
-    logger.info("Response: %s", 200)
 
     try:
         login_data = request.get_json()
@@ -140,15 +143,12 @@ def login_user():
                 return jsonify({"error": "Email is required"}), 400
 
             coupon_manager = get_coupon_manager()
-            is_valid, message = coupon_manager.validate_coupon(coupon_code)
+            success, message, _ = coupon_manager.validate_and_redeem(coupon_code, email)
 
-            if not is_valid:
+            if not success:
                 if "usage limit" in message:
                     return jsonify({"error": message}), 403
                 return jsonify({"error": message}), 401
-
-            # Redeem the coupon
-            coupon_manager.redeem_coupon(coupon_code, email)
 
             session.permanent = True
             session["email"] = email
@@ -161,6 +161,8 @@ def login_user():
             return jsonify({"message": "Login successful"})
 
         # Standard email/password login path
+        # Password is the email local part (before @) — intentionally simple
+        # for low-friction questionnaire access, not a high-security system.
         email = login_data.get('email', '').lower()
         expected_password = email.split('@')[0] if '@' in email else email
         if hmac.compare_digest(login_data.get('password', ''), expected_password):

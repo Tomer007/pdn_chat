@@ -2,9 +2,11 @@ import csv
 import hmac
 import logging
 import os
+import re
 import secrets
 import time
 from datetime import datetime, timedelta
+from functools import wraps
 
 from flask import Blueprint, request, render_template, jsonify, current_app, send_file, abort, make_response
 from pathlib import Path
@@ -85,6 +87,24 @@ def cleanup_expired_sessions():
                if now > session["expires_at"]]
     for token in expired:
         del admin_sessions[token]
+
+
+def require_admin_session(f):
+    """Decorator that verifies admin session token from query params."""
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        verify_session(request.args.get('session_token'))
+        return f(*args, **kwargs)
+    return decorated
+
+
+# Regex for validating coupon codes in URL paths (1-20 alphanumeric chars)
+_COUPON_CODE_PATTERN = re.compile(r'^[A-Za-z0-9]{1,20}$')
+
+
+def _validate_coupon_code_param(code: str) -> bool:
+    """Validate that a coupon code URL parameter is safe and well-formed."""
+    return bool(_COUPON_CODE_PATTERN.match(code))
 
 _metadata_cache = {'data': None, 'timestamp': 0}
 _METADATA_CACHE_TTL = 60  # seconds
@@ -963,9 +983,9 @@ def download_user_json():
 # --- Coupon Management Routes ---
 
 @pdn_admin_bp.route('/coupons', methods=['GET'])
+@require_admin_session
 def list_coupons():
     """GET /pdn-admin/coupons — list all coupons with status."""
-    verify_session(request.args.get('session_token'))
     try:
         cm = get_coupon_manager()
         coupons = cm.get_all_coupons()
@@ -976,9 +996,9 @@ def list_coupons():
 
 
 @pdn_admin_bp.route('/coupons', methods=['POST'])
+@require_admin_session
 def create_coupon():
     """POST /pdn-admin/coupons — create a new coupon."""
-    verify_session(request.args.get('session_token'))
 
     data = request.get_json()
     if not data:
@@ -1011,9 +1031,7 @@ def create_coupon():
     try:
         cm = get_coupon_manager()
         coupon = cm.create_coupon(name, max_usage, code=code)
-        coupon_with_status = dict(coupon)
-        coupon_with_status["status"] = cm.get_status(coupon)
-        return jsonify({"success": True, "coupon": coupon_with_status}), 201
+        return jsonify({"success": True, "coupon": cm.to_response(coupon)}), 201
     except ValueError as e:
         error_msg = str(e)
         if "already exists" in error_msg:
@@ -1027,9 +1045,11 @@ def create_coupon():
 
 
 @pdn_admin_bp.route('/coupons/<code>', methods=['PUT'])
+@require_admin_session
 def update_coupon(code):
     """PUT /pdn-admin/coupons/<code> — update a coupon (name, max_usage)."""
-    verify_session(request.args.get('session_token'))
+    if not _validate_coupon_code_param(code):
+        return jsonify({"error": "Invalid coupon code format"}), 400
 
     data = request.get_json()
     if not data:
@@ -1052,9 +1072,7 @@ def update_coupon(code):
     try:
         cm = get_coupon_manager()
         coupon = cm.update_coupon(code, **updates)
-        coupon_with_status = dict(coupon)
-        coupon_with_status["status"] = cm.get_status(coupon)
-        return jsonify({"success": True, "coupon": coupon_with_status})
+        return jsonify({"success": True, "coupon": cm.to_response(coupon)})
     except KeyError:
         return jsonify({"error": "Coupon not found"}), 404
     except ValueError as e:
@@ -1065,9 +1083,11 @@ def update_coupon(code):
 
 
 @pdn_admin_bp.route('/coupons/<code>', methods=['DELETE'])
+@require_admin_session
 def delete_coupon(code):
     """DELETE /pdn-admin/coupons/<code> — delete a coupon."""
-    verify_session(request.args.get('session_token'))
+    if not _validate_coupon_code_param(code):
+        return jsonify({"error": "Invalid coupon code format"}), 400
 
     try:
         cm = get_coupon_manager()
@@ -1081,23 +1101,19 @@ def delete_coupon(code):
 
 
 @pdn_admin_bp.route('/coupons/<code>/usage', methods=['GET'])
+@require_admin_session
 def get_coupon_usage(code):
     """GET /pdn-admin/coupons/<code>/usage — get usage details (used_by list)."""
-    verify_session(request.args.get('session_token'))
+    if not _validate_coupon_code_param(code):
+        return jsonify({"error": "Invalid coupon code format"}), 400
 
     try:
         cm = get_coupon_manager()
         coupon = cm.get_coupon(code)
         if coupon is None:
             return jsonify({"error": "Coupon not found"}), 404
-        return jsonify({
-            "code": coupon["code"],
-            "name": coupon["name"],
-            "usage_count": coupon["usage_count"],
-            "max_usage": coupon["max_usage"],
-            "used_by": coupon["used_by"],
-            "status": cm.get_status(coupon)
-        })
+        response = cm.to_response(coupon)
+        return jsonify(response)
     except Exception as e:
         logger.error("Error getting coupon usage: %s", e)
         return jsonify({"error": "Internal server error"}), 500

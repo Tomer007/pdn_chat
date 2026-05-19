@@ -2,29 +2,34 @@
 
 import json
 import logging
-import random
+import secrets
 import string
 import threading
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple
 
 logger = logging.getLogger("pdn_admin")
+
+_MAX_CODE_GENERATION_ATTEMPTS = 1000
+_MAX_COUPON_NAME_LENGTH = 100
 
 
 def generate_coupon_code(existing_codes: set) -> str:
     """Generate a unique 8-character alphanumeric code [A-Z0-9].
 
-    Checks against existing_codes to ensure uniqueness.
+    Uses cryptographically secure randomness to make codes unguessable.
+    Raises RuntimeError if unable to generate a unique code after max attempts.
     """
     charset = string.ascii_uppercase + string.digits
-    while True:
-        code = ''.join(random.choices(charset, k=8))
+    for _ in range(_MAX_CODE_GENERATION_ATTEMPTS):
+        code = ''.join(secrets.choice(charset) for _ in range(8))
         if code not in existing_codes:
             return code
+    raise RuntimeError("Unable to generate unique coupon code after max attempts")
 
 
-def validate_custom_code(code: str) -> tuple:
+def validate_custom_code(code: str) -> Tuple[bool, str]:
     """Validate a custom code: 4-20 alphanumeric characters.
 
     Returns (is_valid, error_message).
@@ -45,24 +50,24 @@ class CouponManager:
         self._json_path = json_path or (Path(__file__).parent.parent / "data" / "coupons.json")
         self._coupons: dict = {}
         self._lock = threading.Lock()
-        self._load_coupons()
+        # No lock needed here — instance isn't shared yet during __init__
+        self._load_initial_data()
 
     # --- Core data operations ---
 
-    def _load_coupons(self) -> None:
-        """Load coupons from JSON file. Initializes empty dict if file missing or corrupt."""
-        with self._lock:
-            if self._json_path.exists():
-                try:
-                    data = json.loads(self._json_path.read_text(encoding='utf-8'))
-                    if isinstance(data, dict):
-                        self._coupons = data
-                        return
-                except (json.JSONDecodeError, OSError):
-                    pass
-            # Initialize with empty data
-            self._coupons = {}
-            self._save_to_file()
+    def _load_initial_data(self) -> None:
+        """Load coupons from JSON file on startup. No lock needed (called from __init__ only)."""
+        if self._json_path.exists():
+            try:
+                data = json.loads(self._json_path.read_text(encoding='utf-8'))
+                if isinstance(data, dict):
+                    self._coupons = data
+                    return
+            except (json.JSONDecodeError, OSError):
+                pass
+        # Initialize with empty data
+        self._coupons = {}
+        self._save_to_file()
 
     def _save_to_file(self) -> None:
         """Persist current in-memory coupons to JSON file atomically."""
@@ -90,10 +95,13 @@ class CouponManager:
     def create_coupon(self, name: str, max_usage: int, code: Optional[str] = None) -> dict:
         """Create a new coupon. Auto-generates code if not provided.
 
-        Returns the created coupon dict.
-        Raises ValueError if code is duplicate or invalid.
+        Returns a copy of the created coupon dict.
+        Raises ValueError if code is duplicate, invalid, or name too long.
         """
         with self._lock:
+            if not name or len(name) > _MAX_COUPON_NAME_LENGTH:
+                raise ValueError(f"Name must be 1-{_MAX_COUPON_NAME_LENGTH} characters")
+
             if code is not None:
                 is_valid, error_msg = validate_custom_code(code)
                 if not is_valid:
@@ -115,12 +123,13 @@ class CouponManager:
             }
             self._coupons[code] = coupon
             self._save_to_file()
-            return coupon
+            return dict(coupon)
 
     def get_coupon(self, code: str) -> Optional[dict]:
-        """Get a single coupon by code. Returns None if not found."""
+        """Get a single coupon by code. Returns a copy, or None if not found."""
         with self._lock:
-            return self._coupons.get(code)
+            coupon = self._coupons.get(code)
+            return dict(coupon) if coupon else None
 
     def get_all_coupons(self) -> list:
         """Return all coupons as a list of dicts with status added."""
@@ -135,6 +144,7 @@ class CouponManager:
     def update_coupon(self, coupon_code: str, **updates) -> dict:
         """Update coupon fields (name, max_usage). Code is immutable.
 
+        Returns a copy of the updated coupon.
         Raises KeyError if not found, ValueError if invalid updates.
         """
         with self._lock:
@@ -150,13 +160,17 @@ class CouponManager:
                 if key not in allowed_fields:
                     raise ValueError(f"Cannot update field: {key}")
 
+            # Validate name length if being updated
+            if "name" in updates and len(updates["name"]) > _MAX_COUPON_NAME_LENGTH:
+                raise ValueError(f"Name must be 1-{_MAX_COUPON_NAME_LENGTH} characters")
+
             coupon = self._coupons[coupon_code]
             for key, value in updates.items():
                 coupon[key] = value
 
             coupon["updated_at"] = datetime.now().strftime("%Y-%m-%d %H:%M")
             self._save_to_file()
-            return coupon
+            return dict(coupon)
 
     def delete_coupon(self, code: str) -> None:
         """Delete a coupon by code. Raises KeyError if not found."""
@@ -166,29 +180,10 @@ class CouponManager:
             del self._coupons[code]
             self._save_to_file()
 
-    def redeem_coupon(self, code: str, email: str) -> dict:
-        """Record a coupon redemption. Increments usage_count, adds email to used_by.
+    def validate_coupon(self, code: str) -> Tuple[bool, str]:
+        """Check if a coupon code is valid and has remaining uses (read-only).
 
-        Raises ValueError if coupon is full or not found.
-        """
-        with self._lock:
-            if code not in self._coupons:
-                raise ValueError(f"Coupon not found: {code}")
-
-            coupon = self._coupons[code]
-            if coupon["usage_count"] >= coupon["max_usage"]:
-                raise ValueError("Coupon has reached its usage limit")
-
-            coupon["usage_count"] += 1
-            coupon["used_by"].append(email)
-            coupon["updated_at"] = datetime.now().strftime("%Y-%m-%d %H:%M")
-            self._save_to_file()
-            return coupon
-
-    def validate_coupon(self, code: str) -> tuple:
-        """Check if a coupon code is valid and has remaining uses.
-
-        Returns (is_valid, message).
+        Returns (is_valid, message). Does not modify any state.
         """
         with self._lock:
             if code not in self._coupons:
@@ -200,14 +195,67 @@ class CouponManager:
 
             return True, "Valid"
 
+    def redeem_coupon(self, code: str, email: str) -> dict:
+        """Record a coupon redemption. Increments usage_count, adds email to used_by.
 
-# Module-level singleton
+        Returns a copy of the updated coupon.
+        Raises ValueError if coupon is full or not found.
+        Email is only added to used_by if not already present (deduplication).
+        """
+        with self._lock:
+            if code not in self._coupons:
+                raise ValueError(f"Coupon not found: {code}")
+
+            coupon = self._coupons[code]
+            if coupon["usage_count"] >= coupon["max_usage"]:
+                raise ValueError("Coupon has reached its usage limit")
+
+            coupon["usage_count"] += 1
+            if email not in coupon["used_by"]:
+                coupon["used_by"].append(email)
+            coupon["updated_at"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+            self._save_to_file()
+            return dict(coupon)
+
+    def validate_and_redeem(self, code: str, email: str) -> Tuple[bool, str, Optional[dict]]:
+        """Atomically validate and redeem a coupon in a single lock acquisition.
+
+        Returns (success, message, coupon_copy_or_none).
+        Prevents race conditions between validate and redeem.
+        Email is only added to used_by if not already present (deduplication).
+        """
+        with self._lock:
+            if code not in self._coupons:
+                return False, "Invalid coupon code", None
+
+            coupon = self._coupons[code]
+            if coupon["usage_count"] >= coupon["max_usage"]:
+                return False, "Coupon has reached its usage limit", None
+
+            coupon["usage_count"] += 1
+            if email not in coupon["used_by"]:
+                coupon["used_by"].append(email)
+            coupon["updated_at"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+            self._save_to_file()
+            return True, "Valid", dict(coupon)
+
+    def to_response(self, coupon: dict) -> dict:
+        """Convert a coupon dict to an API response dict with status included."""
+        result = dict(coupon)
+        result["status"] = self.get_status(coupon)
+        return result
+
+
+# Module-level singleton with thread-safe initialization
 _coupon_manager: Optional[CouponManager] = None
+_coupon_manager_lock = threading.Lock()
 
 
 def get_coupon_manager() -> CouponManager:
-    """Get or create the singleton CouponManager instance."""
+    """Get or create the singleton CouponManager instance (thread-safe)."""
     global _coupon_manager
     if _coupon_manager is None:
-        _coupon_manager = CouponManager()
+        with _coupon_manager_lock:
+            if _coupon_manager is None:
+                _coupon_manager = CouponManager()
     return _coupon_manager
