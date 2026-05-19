@@ -124,58 +124,62 @@ def save_user_info_api():
 
 @pdn_diagnose_bp.route('/login', methods=['POST'])
 def login_user():
-    """User login endpoint - supports email/password or coupon code authentication.
+    """Unified login endpoint — auto-detects password vs coupon code.
 
-    Password scheme: the password is the local part of the email (before @).
-    This is intentionally simple for a low-friction questionnaire access flow,
-    not a high-security system.
+    The user provides email + a single credential field. The backend checks:
+    1. If the credential matches an existing coupon code → coupon login
+    2. Otherwise → treat as password (email local part before @)
+
+    This is intentionally simple for a low-friction questionnaire access flow.
     """
     logger.debug("POST /pdn-diagnose/login called")
 
     try:
         login_data = request.get_json()
-        coupon_code = login_data.get('coupon_code')
+        email = login_data.get('email', '').strip().lower()
+        credential = login_data.get('password', '').strip()
 
-        # Coupon-based login path
-        if coupon_code:
-            email = login_data.get('email', '').lower()
-            if not email:
-                return jsonify({"error": "Email is required"}), 400
+        if not email:
+            return jsonify({"error": "Email is required"}), 400
+        if not credential:
+            return jsonify({"error": "Password or coupon code is required"}), 400
 
-            coupon_manager = get_coupon_manager()
-            success, message, _ = coupon_manager.validate_and_redeem(coupon_code, email)
+        # Auto-detect: try coupon first (if credential looks like a coupon code)
+        coupon_manager = get_coupon_manager()
+        is_coupon, coupon_msg = coupon_manager.validate_coupon(credential.upper())
 
+        if is_coupon:
+            # Coupon login path
+            success, message, _ = coupon_manager.validate_and_redeem(credential.upper(), email)
             if not success:
+                logger.warning("Failed coupon login: email=%s, code=%s, reason=%s", email, credential.upper(), message)
                 if "usage limit" in message:
                     return jsonify({"error": message}), 403
                 return jsonify({"error": message}), 401
 
             session.permanent = True
             session["email"] = email
-            session["coupon_code"] = coupon_code
-            # Track active session
+            session["coupon_code"] = credential.upper()
             active_sessions[session.sid] = {
                 "email": email,
                 "login_time": datetime.now()
             }
             return jsonify({"message": "Login successful"})
 
-        # Standard email/password login path
-        # Password is the email local part (before @) — intentionally simple
-        # for low-friction questionnaire access, not a high-security system.
-        email = login_data.get('email', '').lower()
+        # Standard password login path
+        # Password is the email local part (before @)
         expected_password = email.split('@')[0] if '@' in email else email
-        if hmac.compare_digest(login_data.get('password', ''), expected_password):
+        if hmac.compare_digest(credential, expected_password):
             session.permanent = True
             session["email"] = email
-            session.pop("coupon_code", None)  # Clear any previous coupon login
-            # Track active session
+            session.pop("coupon_code", None)
             active_sessions[session.sid] = {
                 "email": email,
                 "login_time": datetime.now()
             }
             return jsonify({"message": "Login successful"})
         else:
+            logger.warning("Failed password login: email=%s, entered=%s", email, credential)
             return jsonify({"error": "Invalid credentials"}), 401
     except (ValueError, KeyError, TypeError) as e:
         logger.error("Login error: %s", e)

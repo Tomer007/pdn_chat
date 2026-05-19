@@ -43,13 +43,13 @@
 
             <div class="form-group">
                 <label for="password" class="form-label">
-                    <i class="fas fa-lock"></i>
-                    סיסמה
+                    <i class="fas fa-key"></i>
+                    סיסמה או קוד קופון
                 </label>
-                <input type="password" id="password" name="password" required
+                <input type="text" id="password" name="password" required
                        class="form-input"
-                       placeholder="הזן סיסמה"
-                       autocomplete="current-password"
+                       placeholder="הזן סיסמה או קוד קופון"
+                       autocomplete="off"
                        maxlength="50">
             </div>
 
@@ -60,51 +60,7 @@
 
         <div id="loginError" class="error-message" role="alert">
             <i class="fas fa-exclamation-triangle"></i>
-            <span>פרטים שגויים</span>
-        </div>
-
-        <!-- Coupon Login Divider -->
-        <div style="display: flex; align-items: center; margin: 28px 0 24px; gap: 12px;">
-            <div style="flex: 1; height: 1px; background: linear-gradient(to left, transparent, rgba(201, 169, 110, 0.3), transparent);"></div>
-            <span style="font-size: 13px; color: #8b6914; font-weight: 500; white-space: nowrap;">או התחבר עם קוד קופון</span>
-            <div style="flex: 1; height: 1px; background: linear-gradient(to right, transparent, rgba(201, 169, 110, 0.3), transparent);"></div>
-        </div>
-
-        <!-- Coupon Login Form -->
-        <form id="couponLoginForm">
-            <div class="form-group">
-                <label for="couponEmail" class="form-label">
-                    <i class="fas fa-envelope"></i>
-                    אימייל
-                </label>
-                <input type="email" id="couponEmail" name="couponEmail" required
-                       class="form-input"
-                       placeholder="הזן כתובת אימייל"
-                       autocomplete="email">
-            </div>
-
-            <div class="form-group">
-                <label for="couponCode" class="form-label">
-                    <i class="fas fa-ticket-alt"></i>
-                    קוד קופון
-                </label>
-                <input type="text" id="couponCode" name="couponCode" required
-                       class="form-input"
-                       placeholder="הזן קוד קופון"
-                       autocomplete="off"
-                       maxlength="20"
-                       style="text-transform: uppercase; letter-spacing: 1px;">
-            </div>
-
-            <button type="submit" class="submit-button" id="couponSubmitButton">
-                <i class="fas fa-ticket-alt"></i>
-                התחבר עם קופון
-            </button>
-        </form>
-
-        <div id="couponError" class="error-message" role="alert">
-            <i class="fas fa-exclamation-triangle"></i>
-            <span id="couponErrorText">קוד קופון לא תקין</span>
+            <span id="loginErrorText">פרטים שגויים</span>
         </div>
 
         <!-- Disclaimer -->
@@ -118,7 +74,7 @@
             </div>
         </div>
 
-        <!-- Footer - minimal -->
+        <!-- Footer -->
         <div style="text-align: center; margin-top: 24px; padding-top: 16px; border-top: 1px solid rgba(201, 169, 110, 0.1);">
             <p style="font-size: 11px; color: #8a8279; margin: 0;">&copy; 2025 PDN Center כל הזכויות שמורות</p>
         </div>
@@ -138,9 +94,10 @@
         }
     });
 
-    // === Email/Password Login ===
-    function showError() {
-        document.getElementById('loginError').style.display = 'flex';
+    function showError(message) {
+        const errorEl = document.getElementById('loginError');
+        document.getElementById('loginErrorText').textContent = message || 'פרטים שגויים';
+        errorEl.style.display = 'flex';
     }
 
     function hideError() {
@@ -173,60 +130,12 @@
             if (response.ok) {
                 window.location.href = '/pdn-diagnose/user_info';
             } else {
-                showError();
-            }
-        } catch (error) {
-            showError();
-            console.error('Login error:', error);
-        } finally {
-            submitButton.classList.remove('loading');
-            submitButton.disabled = false;
-        }
-    });
-
-    // === Coupon Login ===
-    function showCouponError(message) {
-        const errorEl = document.getElementById('couponError');
-        document.getElementById('couponErrorText').textContent = message || 'קוד קופון לא תקין';
-        errorEl.style.display = 'flex';
-    }
-
-    function hideCouponError() {
-        document.getElementById('couponError').style.display = 'none';
-    }
-
-    // Hide coupon error on input
-    document.getElementById('couponEmail').addEventListener('input', hideCouponError);
-    document.getElementById('couponCode').addEventListener('input', hideCouponError);
-
-    // Coupon form submission
-    document.getElementById('couponLoginForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        hideCouponError();
-
-        const submitButton = document.getElementById('couponSubmitButton');
-        submitButton.classList.add('loading');
-        submitButton.disabled = true;
-
-        try {
-            const response = await fetch('/pdn-diagnose/login', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    email: document.getElementById('couponEmail').value,
-                    coupon_code: document.getElementById('couponCode').value.toUpperCase()
-                })
-            });
-
-            if (response.ok) {
-                window.location.href = '/pdn-diagnose/user_info';
-            } else {
                 const data = await response.json();
-                showCouponError(data.error || 'קוד קופון לא תקין');
+                showError(data.error || 'פרטים שגויים');
             }
         } catch (error) {
-            showCouponError('שגיאה בהתחברות, נסה שוב');
-            console.error('Coupon login error:', error);
+            showError('שגיאה בהתחברות, נסה שוב');
+            console.error('Login error:', error);
         } finally {
             submitButton.classList.remove('loading');
             submitButton.disabled = false;
