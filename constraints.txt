@@ -1,4 +1,0 @@
-# Constraint file to ensure compatible package versions
-cryptography>=41.0.0,<45.0.0
-cffi>=1.15.0
-pycparser>=2.21

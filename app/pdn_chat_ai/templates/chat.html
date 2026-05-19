@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <meta http-equiv="Content-Security-Policy"
-          content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data:; connect-src 'self';">
     <title>בינת קוד המקור - שיחה עם הנווט הפנימי</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+          integrity="sha512-iecdLmaskl0HPNiecJdym183SPkwP0Gm0sR3USvBa+5m3bE9PZmoE3TA6HqDPSGt+q2LiKJ0req0t9Gy7Bfpw=="
+          crossorigin="anonymous" referrerpolicy="no-referrer">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/binat-chat.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
 </head>
@@ -36,31 +36,9 @@
     </div>
 </div>
 
-<!-- Header with improved layout -->
-<header>
-    <div class="header-content">
-        <!-- Logo and title section -->
-        <div class="header-left">
-            <a href="https://www.pdn.co.il" target="_blank" class="logo-link">
-                <img src="/static/images/pdn_logo.png" alt="PDN Logo" class="header-logo"/>
-            </a>
-            <div class="header-text">
-                <h1 class="text-2xl font-bold mb-2 text-white">בינת קוד המקור</h1>
-                <p class="text-2xl opacity-90 text-white">שיחה עם הנווט הפנימי</p>
-            </div>
-        </div>
-
-        <!-- Session Timer -->
-        <div class="session-timer" id="sessionTimer">
-            <i class="fas fa-clock"></i>
-            <span id="sessionTime">00:00</span>
-        </div>
-
-    </div>
-</header>
-
 <!-- Main container -->
 <div class="container mx-auto p-6 max-w-4xl">
+  <div class="chat-wrapper">
     <div class="chat-container" id="chatContainer">
         <!-- Chat messages will be inserted here -->
     </div>
@@ -70,7 +48,9 @@
         <i class="fas fa-chevron-down"></i> הודעות חדשות
     </button>
 
-    <!-- Enhanced input area -->
+    <div class="chat-divider"></div>
+
+    <!-- Input area -->
     <div class="input-area">
         <textarea id="userInput"
                placeholder="כתוב לי עכשיו... (Shift+Enter לשורה חדשה)"
@@ -91,6 +71,14 @@
             </button>
         </div>
     </div>
+
+    <div class="chat-divider"></div>
+
+    <!-- Footer - minimal -->
+    <div style="padding: 12px 24px; text-align: center;">
+        <p style="font-size: 11px; color: #8a8279; margin: 0;">&copy; 2025 PDN Center</p>
+    </div>
+  </div>
 </div>
 
 <!-- Custom Confirmation Modal -->
@@ -250,6 +238,5 @@
 </script>
 <script src="{{ url_for('static', filename='js/binat-chat.js') }}"></script>
 
-{% include 'partials/footer.html' %}
 </body>
 </html>

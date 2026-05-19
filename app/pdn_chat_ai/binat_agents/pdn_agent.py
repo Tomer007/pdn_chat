@@ -38,6 +38,14 @@ class PDNAgent(BasePDNAgent):
         self._prompt_cache = {}
         self._prompts_dir = Path(__file__).parent / "prompts"
 
+    @staticmethod
+    def _clean_response(text: str) -> str:
+        """Strip internal prompt markers that should not appear in user-facing responses."""
+        import re
+        # Remove [STOP — wait for user response] and similar bracketed instructions
+        text = re.sub(r'\[STOP[^\]]*\]', '', text)
+        return text.strip()
+
     def _load_prompt(self, pdn_code: str, prompt_file: str) -> str:
         """Load prompt file with caching. Raises FileNotFoundError with clear message if code is invalid."""
         if not pdn_code:
@@ -250,7 +258,7 @@ class PDNAgent(BasePDNAgent):
             HumanMessage(content=user_message)
         ])
         self._track_usage(user_name, response)
-        response_text = response.content
+        response_text = self._clean_response(response.content)
 
         # Increment count AFTER successful LLM call
         if user_name:

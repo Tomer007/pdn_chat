@@ -73,6 +73,14 @@ document.addEventListener('DOMContentLoaded', function () {
         themeIcon.className = 'fas fa-sun';
     }
 
+    // Disclaimer toggle
+    const disclaimerToggle = document.querySelector('.disclaimer-toggle');
+    if (disclaimerToggle) {
+        disclaimerToggle.addEventListener('click', function () {
+            this.closest('.disclaimer').classList.toggle('collapsed');
+        });
+    }
+
     // Check if user is already logged in
     const storedUsername = sessionStorage.getItem('binat_username');
     const storedUserId = sessionStorage.getItem('binat_user_id');
