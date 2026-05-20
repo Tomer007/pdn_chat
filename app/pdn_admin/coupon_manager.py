@@ -47,7 +47,17 @@ class CouponManager:
     """Manages coupon data with JSON file persistence and in-memory caching."""
 
     def __init__(self, json_path: Optional[Path] = None):
-        self._json_path = json_path or (Path(__file__).parent.parent / "data" / "coupons.json")
+        if json_path:
+            self._json_path = json_path
+        else:
+            # Use persistent disk path (SAVED_RESULTS_DIR) in production,
+            # fall back to app/data/coupons.json for local development
+            import os
+            saved_results_dir = os.getenv('SAVED_RESULTS_DIR')
+            if saved_results_dir:
+                self._json_path = Path(saved_results_dir) / "coupons.json"
+            else:
+                self._json_path = Path(__file__).parent.parent / "data" / "coupons.json"
         self._coupons: dict = {}
         self._lock = threading.Lock()
         # No lock needed here — instance isn't shared yet during __init__
