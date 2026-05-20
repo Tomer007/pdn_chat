@@ -796,8 +796,8 @@ class TestDesignProperty6ValidateAndRedeemAtomicity:
                 f"{num_redemptions} redemptions (expected at most 1)"
             )
 
-            # Verify usage_count was incremented for each redemption
-            assert final["usage_count"] == num_redemptions
+            # Verify usage_count was incremented only once (re-logins don't count)
+            assert final["usage_count"] == 1
 
 
 # --- Property 7: Coupon Code Immutability on Update ---

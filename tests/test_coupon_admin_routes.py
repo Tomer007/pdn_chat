@@ -663,7 +663,7 @@ class TestCouponManagerValidateAndRedeem:
         assert "prev@test.com" in coupon["used_by"]
 
     def test_validate_and_redeem_email_deduplication(self, coupon_manager):
-        """Redeeming with same email does not add duplicate to used_by."""
+        """Redeeming with same email does not increment usage_count."""
         coupon_manager._coupons["DEDUP001"] = {
             "name": "Dedup", "code": "DEDUP001", "max_usage": 10,
             "usage_count": 1, "used_by": ["same@test.com"],
@@ -674,8 +674,9 @@ class TestCouponManagerValidateAndRedeem:
             success, message, coupon = coupon_manager.validate_and_redeem("DEDUP001", "same@test.com")
 
         assert success is True
-        assert coupon["usage_count"] == 2
-        # Email should appear only once despite being used again
+        # Usage count should NOT increment for returning user
+        assert coupon["usage_count"] == 1
+        # Email should appear only once
         assert coupon["used_by"].count("same@test.com") == 1
 
     def test_validate_and_redeem_exhausted_coupon(self, coupon_manager):
@@ -1000,7 +1001,7 @@ class TestCouponManagerRedeem:
         assert "prev@test.com" in result["used_by"]
 
     def test_redeem_coupon_email_deduplication(self, coupon_manager):
-        """Redeem with same email does not add duplicate to used_by."""
+        """Redeem with same email does not increment usage_count."""
         coupon_manager._coupons["REDM0002"] = {
             "name": "Dedup", "code": "REDM0002", "max_usage": 10,
             "usage_count": 1, "used_by": ["same@test.com"],
@@ -1010,7 +1011,8 @@ class TestCouponManagerRedeem:
         with patch.object(coupon_manager, '_save_to_file'):
             result = coupon_manager.redeem_coupon("REDM0002", "same@test.com")
 
-        assert result["usage_count"] == 2
+        # Should NOT increment for returning user
+        assert result["usage_count"] == 1
         assert result["used_by"].count("same@test.com") == 1
 
     def test_redeem_coupon_exhausted_raises_value_error(self, coupon_manager):

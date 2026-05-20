@@ -144,19 +144,12 @@ def login_user():
         if not credential:
             return jsonify({"error": "Password or coupon code is required"}), 400
 
-        # Auto-detect: try coupon first (if credential looks like a coupon code)
+        # Auto-detect: try coupon redemption first
         coupon_manager = get_coupon_manager()
-        is_coupon, coupon_msg = coupon_manager.validate_coupon(credential.upper())
+        success, message, _ = coupon_manager.validate_and_redeem(credential.upper(), email)
 
-        if is_coupon:
+        if success:
             # Coupon login path
-            success, message, _ = coupon_manager.validate_and_redeem(credential.upper(), email)
-            if not success:
-                logger.warning("Failed coupon login: email=%s, code=%s, reason=%s", email, credential.upper(), message)
-                if "usage limit" in message:
-                    return jsonify({"error": message}), 403
-                return jsonify({"error": message}), 401
-
             session.permanent = True
             session["email"] = email
             session["coupon_code"] = credential.upper()
@@ -165,6 +158,13 @@ def login_user():
                 "login_time": datetime.now()
             }
             return jsonify({"message": "Login successful"})
+
+        # If coupon was found but full (and user not in used_by), return coupon error
+        if "usage limit" in message:
+            logger.warning("Failed coupon login: email=%s, code=%s, reason=%s", email, credential.upper(), message)
+            return jsonify({"error": message}), 403
+
+        # Coupon not found — fall through to password check
 
         # Standard password login path
         # Password is the email local part (before @)

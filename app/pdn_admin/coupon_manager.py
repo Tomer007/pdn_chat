@@ -102,6 +102,9 @@ class CouponManager:
             if not name or len(name) > _MAX_COUPON_NAME_LENGTH:
                 raise ValueError(f"Name must be 1-{_MAX_COUPON_NAME_LENGTH} characters")
 
+            if not isinstance(max_usage, int) or max_usage < 1:
+                raise ValueError("Max usage must be at least 1")
+
             if code is not None:
                 is_valid, error_msg = validate_custom_code(code)
                 if not is_valid:
@@ -160,11 +163,19 @@ class CouponManager:
                 if key not in allowed_fields:
                     raise ValueError(f"Cannot update field: {key}")
 
+            coupon = self._coupons[coupon_code]
+
             # Validate name length if being updated
             if "name" in updates and len(updates["name"]) > _MAX_COUPON_NAME_LENGTH:
                 raise ValueError(f"Name must be 1-{_MAX_COUPON_NAME_LENGTH} characters")
 
-            coupon = self._coupons[coupon_code]
+            # Prevent setting max_usage below current usage_count
+            if "max_usage" in updates:
+                if not isinstance(updates["max_usage"], int) or updates["max_usage"] < 1:
+                    raise ValueError("Max usage must be at least 1")
+                if updates["max_usage"] < coupon["usage_count"]:
+                    raise ValueError(f"Max usage cannot be less than current usage ({coupon['usage_count']})")
+
             for key, value in updates.items():
                 coupon[key] = value
 
