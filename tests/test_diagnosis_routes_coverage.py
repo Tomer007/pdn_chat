@@ -147,7 +147,7 @@ class TestLogin:
         mock_get_cm.return_value = mock_cm
 
         response = client.post('/pdn-diagnose/login', json={
-            'coupon_code': 'TESTCODE',
+            'password': 'TESTCODE',
             'email': 'user@example.com'
         })
         assert response.status_code == 200
@@ -166,7 +166,7 @@ class TestLogin:
         mock_get_cm.return_value = mock_cm
 
         response = client.post('/pdn-diagnose/login', json={
-            'coupon_code': 'BADCODE',
+            'password': 'BADCODE',
             'email': 'user@example.com'
         })
         assert response.status_code == 401
@@ -181,7 +181,7 @@ class TestLogin:
         mock_get_cm.return_value = mock_cm
 
         response = client.post('/pdn-diagnose/login', json={
-            'coupon_code': 'USEDCODE',
+            'password': 'USEDCODE',
             'email': 'user@example.com'
         })
         assert response.status_code == 403
@@ -191,7 +191,7 @@ class TestLogin:
     def test_login_coupon_missing_email(self, client):
         """Coupon login without email returns 400."""
         response = client.post('/pdn-diagnose/login', json={
-            'coupon_code': 'TESTCODE',
+            'password': 'TESTCODE',
             'email': ''
         })
         assert response.status_code == 400

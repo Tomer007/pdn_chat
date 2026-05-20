@@ -13,7 +13,7 @@ from pathlib import Path
 
 from ..utils.answer_storage import load_answers
 from ..utils.csv_metadata_handler import UserMetadataHandler
-from ..utils.email_sender import send_pdn_code_email, send_binat_invite_email
+from ..utils.email_sender import send_pdn_code_email, send_binat_invite_email, send_coupon_invite_email
 from ..utils.pdn_calculator import calculate_pdn_code, check_verification_needed
 from ..utils.pdn_file_path import PDNFilePath
 from ..utils.conversation_stats import conversation_stats
@@ -1116,4 +1116,40 @@ def get_coupon_usage(code):
         return jsonify(response)
     except Exception as e:
         logger.error("Error getting coupon usage: %s", e)
+        return jsonify({"error": "Internal server error"}), 500
+
+
+@pdn_admin_bp.route('/coupons/<code>/send-invite', methods=['POST'])
+@require_admin_session
+def send_coupon_invite(code):
+    """POST /pdn-admin/coupons/<code>/send-invite — send coupon invite email."""
+    if not _validate_coupon_code_param(code):
+        return jsonify({"error": "Invalid coupon code format"}), 400
+
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+
+    recipient_email = data.get('email', '').strip().lower()
+    if not recipient_email or '@' not in recipient_email:
+        return jsonify({"error": "Valid email address is required"}), 400
+
+    try:
+        cm = get_coupon_manager()
+        coupon = cm.get_coupon(code)
+        if coupon is None:
+            return jsonify({"error": "Coupon not found"}), 404
+
+        # Determine base URL from request
+        base_url = request.host_url.rstrip('/')
+
+        if not send_coupon_invite_email(recipient_email, code, base_url):
+            return jsonify({"error": "Failed to send email"}), 500
+
+        return jsonify({
+            "success": True,
+            "message": f"Coupon invite sent to {recipient_email}"
+        })
+    except Exception as e:
+        logger.error("Error sending coupon invite: %s", e)
         return jsonify({"error": "Internal server error"}), 500

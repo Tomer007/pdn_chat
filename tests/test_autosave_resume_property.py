@@ -109,7 +109,7 @@ def logged_in_client(client):
     """Create a client with an active session."""
     client.post('/pdn-diagnose/login', json={
         'email': 'test@example.com',
-        'password': 'pdn'
+        'password': 'test'
     })
     return client
 
@@ -144,10 +144,10 @@ class TestAutoSaveDualPersistence:
         **Validates: Requirements 1.1**
         """
         with app.test_client() as client:
-            # Log in
+            # Log in (password is email local part before @)
             client.post('/pdn-diagnose/login', json={
                 'email': 'proptest@example.com',
-                'password': 'pdn'
+                'password': 'proptest'
             })
 
             with patch('app.pdn_diagnose.diagnosis_routes.save_answer') as mock_save:
@@ -189,7 +189,7 @@ class TestAutoSaveDualPersistence:
         with app.test_client() as client:
             client.post('/pdn-diagnose/login', json={
                 'email': 'proptest@example.com',
-                'password': 'pdn'
+                'password': 'proptest'
             })
 
             with patch('app.pdn_diagnose.diagnosis_routes.save_answer'):
@@ -246,7 +246,7 @@ class TestResumeRestoresCorrectPosition:
         with app.test_client() as client:
             client.post('/pdn-diagnose/login', json={
                 'email': 'proptest@example.com',
-                'password': 'pdn'
+                'password': 'proptest'
             })
 
             with patch('app.pdn_diagnose.diagnosis_routes.load_answers', return_value=mock_answers):
@@ -279,7 +279,7 @@ class TestResumeRestoresCorrectPosition:
         with app.test_client() as client:
             client.post('/pdn-diagnose/login', json={
                 'email': 'proptest@example.com',
-                'password': 'pdn'
+                'password': 'proptest'
             })
 
             with patch('app.pdn_diagnose.diagnosis_routes.load_answers', return_value=mock_answers):
@@ -299,7 +299,7 @@ class TestResumeRestoresCorrectPosition:
         with app.test_client() as client:
             client.post('/pdn-diagnose/login', json={
                 'email': 'proptest@example.com',
-                'password': 'pdn'
+                'password': 'proptest'
             })
 
             with patch('app.pdn_diagnose.diagnosis_routes.load_answers', return_value=None):

@@ -309,9 +309,9 @@ class TestSummaryLLMProviderSelection:
             # ChatAnthropic should be called twice: once for main LLM, once for summary (haiku)
             haiku_calls = [
                 call for call in mock_anthropic.call_args_list
-                if call.kwargs.get("model") == "claude-3-5-haiku-latest"
+                if call.kwargs.get("model") == "claude-3-5-haiku-20241022"
             ]
-            assert len(haiku_calls) == 1, "Expected ChatAnthropic to be called with claude-3-5-haiku-latest for summary LLM"
+            assert len(haiku_calls) == 1, "Expected ChatAnthropic to be called with claude-3-5-haiku-20241022 for summary LLM"
 
     def test_openai_provider_uses_gpt4o_mini_for_summary(self):
         """When main provider is OpenAI, summary_llm should be gpt-4o-mini."""

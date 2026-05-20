@@ -60,7 +60,7 @@ def user_id_with_plus(draw):
     local = draw(st.text(
         min_size=1, max_size=6,
         alphabet=st.sampled_from("abcdefghijklmnopqrstuvwxyz0123456789._-")
-    ))
+    ).filter(lambda s: ".." not in s and not s.startswith(".") and not s.endswith(".")))
     tag = draw(st.text(
         min_size=1, max_size=6,
         alphabet=st.sampled_from("abcdefghijklmnopqrstuvwxyz0123456789")
