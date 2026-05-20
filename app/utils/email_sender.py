@@ -254,3 +254,97 @@ def send_binat_invite_email(user_email: str, first_name: str) -> bool:
     except Exception as e:
         logger.error(f"Failed to send Binat invite email: {str(e)}")
         return False
+
+
+def send_coupon_invite_email(user_email: str, coupon_code: str, base_url: str = "https://pdn-chat.onrender.com") -> bool:
+    """Send coupon invite email with a link to the diagnostic questionnaire.
+
+    Args:
+        user_email: Recipient email address
+        coupon_code: The coupon code to include in the email
+        base_url: The base URL of the application
+
+    Returns:
+        True if email sent successfully, False otherwise
+    """
+    try:
+        if not user_email:
+            logger.error("No email address provided for coupon invite")
+            return False
+
+        login_url = f"{base_url}/pdn-diagnose/?code={coupon_code}&email={user_email}"
+
+        html_content = f"""
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>הזמנה לאבחון קוד המקור</title>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; direction: rtl;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <tr>
+            <td style="background: linear-gradient(135deg, #0b2e6b, #0a2a5f); color: white; padding: 30px; text-align: center;">
+                <h1 style="margin: 0 0 10px 0; font-size: 24px; font-weight: bold;">הזמנה לאבחון קוד המקור</h1>
+                <h2 style="margin: 0; font-size: 16px; font-weight: normal; opacity: 0.9;">PDN Center</h2>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 30px;">
+                <p style="font-size: 16px; line-height: 1.8; color: #1f2937; margin: 0 0 20px 0;">
+                    שלום,<br><br>
+                    קיבלת הזמנה לבצע אבחון קוד המקור שלך במערכת PDN.<br>
+                    האבחון יחשוף את הצופן האישי שלך – כלי ייחודי לגילוי עצמי והתפתחות אישית.
+                </p>
+
+                <div style="background: linear-gradient(135deg, rgba(201, 169, 110, 0.15), rgba(201, 169, 110, 0.05)); border: 2px solid rgba(201, 169, 110, 0.4); border-radius: 12px; padding: 25px; margin: 25px 0; text-align: center;">
+                    <div style="font-size: 14px; font-weight: 600; color: #6b7280; margin-bottom: 10px;">קוד הקופון שלך</div>
+                    <div style="font-size: 32px; font-weight: bold; color: #0b2e6b; letter-spacing: 3px; margin: 10px 0; direction: ltr;">{coupon_code}</div>
+                </div>
+
+                <div style="background: rgba(11, 46, 107, 0.05); border-radius: 8px; padding: 20px; margin: 20px 0;">
+                    <p style="font-size: 15px; line-height: 1.6; color: #374151; margin: 0 0 15px 0; font-weight: 600;">כיצד להתחיל:</p>
+                    <ol style="font-size: 14px; line-height: 2; color: #4b5563; margin: 0; padding-right: 20px;">
+                        <li>לחץ על הקישור למטה לכניסה למערכת</li>
+                        <li>הזן את כתובת האימייל שלך</li>
+                        <li>הזן את קוד הקופון שלמעלה בשדה "סיסמה או קוד קופון"</li>
+                        <li>מלא את השאלון ותגלה את קוד המקור שלך</li>
+                    </ol>
+                </div>
+
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="{login_url}" style="display: inline-block; background: linear-gradient(135deg, #0b2e6b, #0a2a5f); color: white; text-decoration: none; padding: 14px 40px; border-radius: 8px; font-size: 16px; font-weight: 600;">
+                        התחל את האבחון
+                    </a>
+                </div>
+
+                <p style="font-size: 13px; color: #6b7280; text-align: center; margin-top: 20px;">
+                    הקופון תקף לשימוש מוגבל. אם נתקלת בבעיה, פנה למנהל המערכת.
+                </p>
+            </td>
+        </tr>
+        <tr>
+            <td style="background: rgba(255, 255, 255, 0.95); padding: 20px; text-align: center; border-top: 1px solid rgba(11, 46, 107, 0.1);">
+                <div style="font-size: 12px; color: #6b7280;">כל הזכויות שמורות למרכז PDN Center</div>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+"""
+
+        msg = MIMEMultipart()
+        msg['From'] = EmailConfig.FROM_EMAIL
+        msg['To'] = user_email
+        msg['Subject'] = f'הזמנה לאבחון קוד המקור - קוד קופון: {coupon_code}'
+        msg.attach(MIMEText(html_content, 'html', 'utf-8'))
+
+        if send_email_via_smtp(msg):
+            logger.info("Successfully sent coupon invite to %s (code: %s)", user_email, coupon_code)
+            return True
+        return False
+
+    except Exception as e:
+        logger.error("Failed to send coupon invite email: %s", e)
+        return False

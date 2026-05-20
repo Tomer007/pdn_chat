@@ -720,6 +720,46 @@
     </div>
 </div>
 
+<!-- Send Coupon Email Modal -->
+<div id="sendCouponEmailModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="שליחת קופון באימייל" style="display:none;">
+    <div class="card p-8 w-full mx-4 rounded-2xl" style="max-width: 480px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h2 style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0;">
+                <i class="fas fa-envelope" style="margin-left: 8px; color: #d97706;"></i> שליחת קופון באימייל
+            </h2>
+            <button onclick="closeModal('sendCouponEmailModal')" aria-label="סגור"
+                    style="color: #94a3b8; font-size: 20px; border: none; background: none; cursor: pointer; padding: 4px;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div id="sendCouponEmailInfo" style="margin-bottom: 16px; padding: 12px 16px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 13px; color: #64748b;">קוד קופון:</span>
+                <span id="sendCouponEmailCode" style="font-weight: 700; color: #0b2e6b; direction: ltr; letter-spacing: 1px;"></span>
+            </div>
+        </div>
+        <form id="sendCouponEmailForm" onsubmit="handleSendCouponEmail(event)" style="display: flex; flex-direction: column; gap: 14px;">
+            <div>
+                <label for="couponRecipientEmail" style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">אימייל הנמען</label>
+                <input type="email" id="couponRecipientEmail" required
+                       style="width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; outline: none; transition: border-color 0.2s; direction: ltr;"
+                       placeholder="user@example.com"
+                       onfocus="this.style.borderColor='#0b2e6b'" onblur="this.style.borderColor='#e2e8f0'">
+            </div>
+            <div id="sendCouponEmailError" style="display: none; padding: 10px 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; font-size: 13px; color: #dc2626;"></div>
+            <div id="sendCouponEmailSuccess" style="display: none; padding: 10px 14px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; font-size: 13px; color: #166534;"></div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-top: 8px;">
+                <button type="submit" class="header-btn primary" style="justify-content: center; padding: 12px;">
+                    <i class="fas fa-paper-plane"></i> שלח
+                </button>
+                <button type="button" onclick="closeModal('sendCouponEmailModal')" class="header-btn outline" style="justify-content: center; padding: 12px;">
+                    <i class="fas fa-times"></i> סגור
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- Questionnaire Modal -->
 <div id="questionnaireModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="נתוני שאלון">
     <div class="card p-8 w-full mx-4 rounded-2xl" style="max-width: 900px; max-height: 80vh; overflow-y: auto;">
@@ -1163,6 +1203,11 @@
                                 onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background='white'">
                             <i class="fas fa-eye"></i>
                         </button>
+                        <button onclick="openSendCouponEmailModal('${coupon.code}')" title="שלח אימייל"
+                                style="padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 6px; background: white; cursor: pointer; color: #d97706; font-size: 12px; transition: all 0.2s;"
+                                onmouseover="this.style.background='#fffbeb'" onmouseout="this.style.background='white'">
+                            <i class="fas fa-envelope"></i>
+                        </button>
                         <button onclick="openDeleteCouponModal('${coupon.code}', '${coupon.name}')" title="מחק"
                                 style="padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 6px; background: white; cursor: pointer; color: #dc2626; font-size: 12px; transition: all 0.2s;"
                                 onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='white'">
@@ -1357,6 +1402,70 @@
         } catch (error) {
             document.getElementById('couponUsageContent').innerHTML =
                 '<div style="text-align: center; padding: 32px; color: #dc2626;">שגיאה בטעינת נתוני שימוש</div>';
+        }
+    }
+
+    // --- Send Coupon Email ---
+    let sendCouponCode = null;
+
+    function openSendCouponEmailModal(code) {
+        sendCouponCode = code;
+        document.getElementById('sendCouponEmailCode').textContent = code;
+        document.getElementById('couponRecipientEmail').value = '';
+        document.getElementById('sendCouponEmailError').style.display = 'none';
+        document.getElementById('sendCouponEmailSuccess').style.display = 'none';
+        // Reset submit button state
+        const submitBtn = document.querySelector('#sendCouponEmailForm button[type="submit"]');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> שלח';
+        document.getElementById('sendCouponEmailModal').style.display = 'flex';
+        document.getElementById('couponRecipientEmail').focus();
+    }
+
+    async function handleSendCouponEmail(event) {
+        event.preventDefault();
+        const token = getCouponSessionToken();
+        if (!token || !sendCouponCode) return;
+
+        const email = document.getElementById('couponRecipientEmail').value.trim();
+        const errorEl = document.getElementById('sendCouponEmailError');
+        const successEl = document.getElementById('sendCouponEmailSuccess');
+        const submitBtn = event.target.querySelector('button[type="submit"]');
+        errorEl.style.display = 'none';
+        successEl.style.display = 'none';
+
+        // Disable button to prevent double-click
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> שולח...';
+
+        try {
+            const response = await fetch(`/pdn-admin/coupons/${encodeURIComponent(sendCouponCode)}/send-invite?session_token=${token}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                errorEl.textContent = data.error || 'שגיאה בשליחת אימייל';
+                errorEl.style.display = 'block';
+                // Re-enable on error
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> שלח';
+                return;
+            }
+
+            successEl.textContent = `האימייל נשלח בהצלחה ל-${email}`;
+            successEl.style.display = 'block';
+            document.getElementById('couponRecipientEmail').value = '';
+            // Keep button disabled after success (prevent re-send)
+            submitBtn.innerHTML = '<i class="fas fa-check"></i> נשלח';
+        } catch (error) {
+            errorEl.textContent = 'שגיאת רשת - נסה שוב';
+            errorEl.style.display = 'block';
+            // Re-enable on network error
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> שלח';
         }
     }
 </script>

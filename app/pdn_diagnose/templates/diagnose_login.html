@@ -83,6 +83,15 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        // Auto-fill from URL params (from coupon invite email)
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('code')) {
+            document.getElementById('password').value = params.get('code');
+        }
+        if (params.get('email')) {
+            document.getElementById('email').value = params.get('email');
+        }
+
         document.getElementById('email').focus();
 
         // Disclaimer toggle
