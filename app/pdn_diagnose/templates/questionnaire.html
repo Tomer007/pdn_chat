@@ -673,7 +673,7 @@
         <!-- Action button -->
         <button id="modalClose"
                 class="mx-auto block py-3 px-8 text-lg rounded-lg font-semibold shadow-lg focus:outline-none focus:ring-4 focus:ring-amber-500/30 transition duration-300">
-            יופי, אפשר להתקדם!
+            מכאן אפשר להתקדם!
         </button>
     </div>
 </div>
@@ -700,8 +700,8 @@
     <!-- Hidden fields for user data -->
     <input type="hidden" id="userName" value="{{ user_name or '' }}">
     <input type="hidden" id="userId" value="{{ user_id or '' }}">
-    <h1 class="text-4xl font-bold text-center" style="background: linear-gradient(135deg, #8b6914, #c9a96e, #e6b020); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-        המסע לגילוי הצופן המקור שלך </h1>
+    <h1 id="mainPageHeader" class="text-3xl md:text-4xl font-extrabold text-center tracking-tight mb-6" style="background: linear-gradient(135deg, #8b6914, #c9a96e, #e6b020); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.02em; line-height: 1.3;">
+        אבחון "קוד המקור" שלך <span style="font-weight: 400; opacity: 0.8;">|</span> מבית PDN</h1>
 
     <!-- Sticky sentinel for IntersectionObserver -->
     <div id="progressSentinel" aria-hidden="true" style="height: 1px; margin: 0; padding: 0; border: 0; visibility: hidden;"></div>
@@ -710,7 +710,7 @@
     <div id="progressContainer" aria-live="polite" role="progressbar">
         <div class="flex justify-between items-center mb-2">
             <span id="progressLabel" class="text-sm font-medium" style="color: #5c4a2a;"></span>
-            <span id="timeRemaining" class="text-sm font-medium" style="color: #8b6914;" aria-label="זמן משוער שנותר"></span>
+            <span id="timeRemaining" class="text-sm font-medium hidden" style="color: #8b6914;" aria-label="זמן משוער שנותר"></span>
             <span id="progressPercent" class="text-sm font-semibold" style="color: #5c4a2a;"></span>
         </div>
         <div class="w-full rounded-full h-3 overflow-hidden" style="background: rgba(30, 27, 75, 0.05);">
@@ -756,7 +756,7 @@
                 </button>
                 <button id="skipRecordBtn" aria-label="דלג על הקלטה"
                         aria-label="דלג על ההקלטה"
-                        class="btn-dismiss text-lg py-3 px-7 font-semibold ml-2">
+                        class="btn-dismiss text-lg py-3 px-7 font-semibold ml-2 {% if not config.DEBUG %}hidden{% endif %}">
                     דלג על ההקלטה
                 </button>
             </div>
@@ -807,7 +807,7 @@
             </button>
             <button id="skipRecordBtn2" aria-label="דלג על הקלטה שנייה"
                     aria-label="דלג על ההקלטה"
-                    class="btn-dismiss text-lg py-3 px-7 font-semibold ml-2">
+                    class="btn-dismiss text-lg py-3 px-7 font-semibold ml-2 {% if not config.DEBUG %}hidden{% endif %}">
                 דלג על ההקלטה
             </button>
         </div>
@@ -1000,7 +1000,7 @@
 
         /** Set initial title on page load */
         setInitialTitle() {
-            document.title = 'אבחון PDN - המסע לגילוי הצופן';
+            document.title = 'אבחון "קוד המקור" שלך | מבית PDN';
         }
 
         /** Set completion title */
@@ -1010,7 +1010,7 @@
 
         /** Format progress label */
         formatProgressLabel(currentQuestion) {
-            return `שאלה ${currentQuestion} מתוך ${this.totalQuestions}`;
+            return `שאלה ${currentQuestion}`;
         }
     }
 
@@ -1323,7 +1323,10 @@
             this.voiceArea.classList.remove('recording', 'valid', 'invalid');
             this.voiceArea.classList.add('opacity-75');
             
-            // Show continue button
+            // Show continue button and back button
+            const btnContainer = document.createElement('div');
+            btnContainer.className = 'flex gap-3 mt-3 flex-wrap';
+            
             const continueBtn = document.createElement('button');
             continueBtn.id = `continueBtn${this.areaId === '2' ? '2' : ''}`;
             continueBtn.className = 'text-lg py-3 px-7 text-white rounded-xl shadow-lg font-semibold';
@@ -1331,8 +1334,20 @@
             continueBtn.innerText = this.areaId === '2' ? 'המשך לאיבחון' : 'המשך לשאלה הבאה';
             continueBtn.onclick = () => this.handleSkipContinue();
             
-            // Insert continue button after the skip button's parent
-            this.skipBtn.parentNode.appendChild(continueBtn);
+            const backBtn = document.createElement('button');
+            backBtn.className = 'text-lg py-3 px-7 bg-white rounded-xl shadow border font-semibold';
+            backBtn.style.cssText = 'color: #5c4a2a; border-color: rgba(30, 27, 75, 0.15);';
+            backBtn.innerText = 'חזור להקלטה';
+            backBtn.onclick = () => {
+                btnContainer.remove();
+                this.voiceArea.classList.remove('opacity-75');
+                this.recordStatus.innerHTML = '';
+                this.resetUI();
+            };
+            
+            btnContainer.appendChild(continueBtn);
+            btnContainer.appendChild(backBtn);
+            this.skipBtn.parentNode.appendChild(btnContainer);
         }
 
         handleSkipContinue() {
@@ -1619,7 +1634,7 @@
             rankingInstructionShown = true;
             const tooltip = document.createElement('div');
             tooltip.className = 'ranking-tooltip';
-            tooltip.innerHTML = '<i class="fas fa-hand-pointer tooltip-icon"></i> לחצו על הפריטים לפי סדר החשיבות';
+            tooltip.innerHTML = '<i class="fas fa-hand-pointer tooltip-icon"></i> דרג לפי מידת ההתאמה אליך';
             container.appendChild(tooltip);
             // Animate tooltip in after a short delay
             requestAnimationFrame(() => {
@@ -1641,14 +1656,14 @@
         mainInstruction.style.background = 'linear-gradient(135deg, #8b6914 0%, #c9a96e 100%)';
         mainInstruction.style.border = '1px solid rgba(124, 58, 237, 0.3)';
         mainInstruction.style.boxShadow = '0 4px 12px rgba(124, 58, 237, 0.2)';
-        mainInstruction.innerHTML = 'לחץ לפי סדר החשיבות';
+        mainInstruction.innerHTML = 'דרג לפי מידת ההתאמה אליך<br><span style="font-size: 0.8em; font-weight: 500;">1 – הכי מתאימה לך &nbsp; 2 – פחות מתאימה &nbsp; 3 – הכי פחות מתאימה לך</span>';
 
         const subInstruction = document.createElement('div');
-        subInstruction.className = 'px-4 py-2 rounded-xl text-sm font-medium italic';
-        subInstruction.style.color = '#c9a96e';
+        subInstruction.className = 'px-4 py-2 rounded-xl text-sm font-medium';
+        subInstruction.style.color = '#1a1a1a';
         subInstruction.style.background = 'linear-gradient(135deg, #f5f3ff, #ede9fe)';
         subInstruction.style.border = '1px solid rgba(124, 58, 237, 0.12)';
-        subInstruction.innerHTML = 'לא בטוח? תמיד אפשר ללחוץ שוב ולשנות';
+        subInstruction.innerHTML = 'ניתן לשנות את סדר הבחירה בכל שלב';
 
         instructionContainer.appendChild(mainInstruction);
         instructionContainer.appendChild(subInstruction);
@@ -1671,7 +1686,7 @@
             numberDiv.textContent = '?';
 
             const textSpan = document.createElement('span');
-            textSpan.className = 'flex-1 text-gray-800';
+            textSpan.className = 'flex-1 text-black font-medium';
             textSpan.textContent = opt.text;
 
             li.appendChild(numberDiv);
@@ -1855,9 +1870,11 @@
         const questionArea = document.getElementById('questionArea');
         const messagesArea = document.getElementById('messages');
         const backButton = document.getElementById('backButton');
+        const mainHeader = document.getElementById('mainPageHeader');
         if (questionArea) questionArea.classList.add('hidden');
         if (messagesArea) messagesArea.classList.add('hidden');
         if (backButton) backButton.classList.add('hidden');
+        if (mainHeader) mainHeader.classList.add('hidden');
 
         // Get user first name
         const userNameEl = document.getElementById('userName');
@@ -1874,63 +1891,73 @@
         // Completion heading
         const heading = document.createElement('h2');
         heading.id = 'completionHeading';
-        heading.className = 'text-3xl font-bold mb-4';
+        heading.className = 'text-2xl md:text-3xl font-extrabold mb-4';
         heading.style.cssText = 'background: linear-gradient(135deg, #8b6914, #c9a96e, #e6b020); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;';
         heading.setAttribute('tabindex', '-1');
-        heading.textContent = 'כל הכבוד' + (firstName ? ', ' + firstName : '') + '!';
+        heading.textContent = 'אבחון "קוד המקור" שלך | מבית PDN';
         completionSection.appendChild(heading);
 
-        // Engaging congratulatory message
-        const message = document.createElement('p');
-        message.className = 'text-lg mb-6';
-        message.style.color = '#5c4a2a';
-        message.style.lineHeight = '2';
-        message.textContent = 'עשית צעד אמיץ ומשמעותי – השלמת את המסע לגילוי הצופן המקור שלך.';
+        // Congratulatory sub-heading
+        const subHeading = document.createElement('h3');
+        subHeading.className = 'text-xl font-bold mb-4';
+        subHeading.style.color = '#8b6914';
+        subHeading.textContent = 'אנו מברכים אותך על סיום האבחון.';
+        completionSection.appendChild(subHeading);
+
+        // Main message
+        const message = document.createElement('div');
+        message.className = 'text-right space-y-4 mt-4';
+        message.style.color = '#1a1a1a';
+        message.style.lineHeight = '1.9';
+        message.style.fontSize = '16px';
+
+        const p1 = document.createElement('p');
+        p1.textContent = 'עשית צעד משמעותי להשלמת תהליך אבחון קוד המקור שלך.';
+        message.appendChild(p1);
+
+        const p2 = document.createElement('p');
+        p2.textContent = 'בימים הקרובים תקבל למייל האישי שלך את מפת קוד המקור המבוססת על תוצאות האבחון והקוד הייחודי שלך.';
+        message.appendChild(p2);
+
+        const p3 = document.createElement('p');
+        p3.textContent = 'עם קבלת מפת קוד המקור שלך, תוכל להעמיק בהבנת מנגנוני ההפעלה שלך, הדרך שבה קוד המקור משפיע על חייך.';
+        message.appendChild(p3);
+
+        const p4 = document.createElement('p');
+        p4.className = 'font-semibold';
+        p4.style.color = '#8b6914';
+        p4.textContent = 'זהו צעד ראשון להיכרות עמוקה יותר עם קוד המקור שלך. מנגנוני ההפעלה והדרך הייחודית שלך לנווט מתוך בהירות, דיוק והגשמה.';
+        message.appendChild(p4);
+
         completionSection.appendChild(message);
 
-        // What's next section
-        const nextSection = document.createElement('div');
-        nextSection.className = 'text-right space-y-4 mt-6';
-        nextSection.style.color = '#5c4a2a';
-        nextSection.style.lineHeight = '2';
-        nextSection.style.fontSize = '16px';
+        // Success message
+        const successMsg = document.createElement('p');
+        successMsg.className = 'text-lg font-bold mt-6';
+        successMsg.style.color = '#059669';
+        successMsg.textContent = 'סיימת בהצלחה את האבחון – ניתן לסגור.';
+        completionSection.appendChild(successMsg);
 
-        const nextTitle = document.createElement('h3');
-        nextTitle.className = 'text-xl font-bold mb-3';
-        nextTitle.style.color = '#8b6914';
-        nextTitle.textContent = 'מה הלאה?';
-        nextSection.appendChild(nextTitle);
-
-        const nextP1 = document.createElement('p');
-        nextP1.textContent = 'בימים הקרובים נעבד את תשובותיך לעומק, ובמהלך השבוע הקרוב תישלח אליך מפת דרכים אישית המבוססת על קוד המקור הייחודי שלך.';
-        nextSection.appendChild(nextP1);
-
-        const nextP2 = document.createElement('p');
-        nextP2.textContent = 'עם קבלת הצופן המלא, במידה ורכשת קורס PDN, ישלח קישור אישי (עם סיסמה) לקורס הדיגיטלי "המנוע הראשי שלך" – לניווט בהצלחה.';
-        nextSection.appendChild(nextP2);
-
-        const nextP3 = document.createElement('p');
-        nextP3.className = 'font-semibold mt-4';
-        nextP3.style.color = '#8b6914';
-        nextP3.textContent = 'זהו צעד ראשון להיכרות עמוקה עם הקוד שלך, מנגנוני ההפעלה, והדרך הייחודית שלך לנווט מתוך בהירות, דיוק והגשמה.';
-        nextSection.appendChild(nextP3);
-
-        // CTA button to buy the course — centered within the section
+        // CTA button to PDN Center website
         const ctaWrapper = document.createElement('div');
         ctaWrapper.className = 'text-center mt-8 mb-4';
         const ctaBtn = document.createElement('a');
-        ctaBtn.href = 'https://www.pdn.co.il/mano-rashi';
+        ctaBtn.href = 'https://www.pdn.co.il';
         ctaBtn.target = '_blank';
-        ctaBtn.className = 'btn-primary inline-block text-lg py-4 px-12 rounded-xl font-semibold';
+        ctaBtn.className = 'btn-primary inline-block text-lg py-4 px-10 rounded-xl font-semibold';
         ctaBtn.style.textDecoration = 'none';
-        ctaBtn.style.color = '#2d2a26';
-        ctaBtn.style.background = 'linear-gradient(135deg, #8b6914 0%, #e6b020 100%)';
-        ctaBtn.textContent = 'לרכישת הקורס';
+        ctaBtn.style.display = 'inline-block';
+        ctaBtn.style.marginBottom = '16px';
+        ctaBtn.textContent = 'PDN Site';
         ctaWrapper.appendChild(ctaBtn);
-        nextSection.appendChild(ctaWrapper);
 
-        completionSection.appendChild(nextSection);
+        const ctaSubtext = document.createElement('p');
+        ctaSubtext.className = 'text-sm mt-3';
+        ctaSubtext.style.color = '#5c4a2a';
+        ctaSubtext.textContent = 'באתר תוכל להכיר לעומק את שיטת PDN, לקרוא המלצות של משתתפים, ולגלות כיצד קוד המקור יכול להשפיע על הבחירות, מערכות היחסים וההצלחה בחייך.';
+        ctaWrapper.appendChild(ctaSubtext);
 
+        completionSection.appendChild(ctaWrapper);
         // Insert completion screen into the main area
         const mainArea = document.getElementById('chatArea');
         const progressContainer = document.getElementById('progressContainer');
