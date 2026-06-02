@@ -580,6 +580,61 @@ select.form-input option:checked {
     }
 }
 
+@media (max-width: 480px) {
+    .login-container {
+        margin: 12px;
+        padding: 20px;
+        border-radius: 16px;
+    }
+
+    .login-heading {
+        font-size: 1.4rem;
+    }
+
+    .login-subheading {
+        font-size: 0.85rem;
+    }
+
+    .form-input {
+        padding: 14px 16px;
+        font-size: 16px; /* Prevents iOS zoom on input focus */
+        border-radius: 12px;
+    }
+
+    .submit-button {
+        padding: 14px 20px;
+        font-size: 15px;
+        border-radius: 14px;
+    }
+
+    .form-label {
+        font-size: 13px;
+    }
+
+    .form-group {
+        margin-bottom: 18px;
+    }
+
+    .disclaimer-toggle {
+        padding: 12px 16px;
+        font-size: 0.9em;
+    }
+
+    .disclaimer-content {
+        padding: 0 16px 12px;
+    }
+
+    .disclaimer p {
+        font-size: 0.75em;
+    }
+
+    .custom-select-trigger {
+        padding: 14px 16px;
+        font-size: 16px;
+        border-radius: 12px;
+    }
+}
+
 /* ===== Accessibility ===== */
 @media (prefers-contrast: high) {
     .login-container {

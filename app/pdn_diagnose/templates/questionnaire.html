@@ -142,6 +142,13 @@
         }
 
         /* ===== Recording Buttons - Gold Style ===== */
+        .recording-buttons-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
         #startRecordBtn, #startRecordBtn2 {
             background: linear-gradient(135deg, #8b6914 0%, #c9a96e 40%, #e6b020 100%);
             color: #2d2a26;
@@ -468,11 +475,155 @@
                 padding: 14px 18px;
                 font-size: 15px;
             }
+
+            /* Modals — reduce padding */
+            #instructionModal > div,
+            #resumeModal > div {
+                padding: 24px 20px;
+                margin: 16px;
+            }
+
+            /* Ranking items — allow text wrapping */
+            .ranking-item {
+                padding: 14px 16px;
+                gap: 12px;
+            }
+
+            .ranking-item span.flex-1 {
+                word-break: break-word;
+                white-space: normal;
+            }
         }
 
         @media (max-width: 600px) {
             .glass-effect {
                 padding: 1.2rem !important;
+            }
+
+            /* Scale dots — smaller on narrow screens */
+            .scale-dot {
+                width: 36px;
+                height: 36px;
+                min-width: 36px;
+                min-height: 36px;
+            }
+
+            .scale-line {
+                left: 18px;
+                right: 18px;
+            }
+
+            /* Recording buttons — stack vertically */
+            .recording-buttons-container {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .recording-buttons-container button {
+                font-size: 15px;
+                padding: 12px 16px;
+                margin-left: 0 !important;
+            }
+
+            /* Question text smaller */
+            #questionText {
+                font-size: 1rem;
+            }
+
+            /* Progress label */
+            #progressContainer .flex span {
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            /* Very small phones (iPhone SE, etc.) */
+            .glass-effect {
+                margin: 6px;
+                padding: 14px !important;
+                border-radius: 16px;
+            }
+
+            #voiceRecordArea, #voiceRecordArea2 {
+                padding: 16px;
+                border-radius: 16px;
+            }
+
+            #voiceRecordArea .bg-white,
+            #voiceRecordArea2 .bg-white {
+                padding: 12px 14px;
+                font-size: 15px;
+            }
+
+            /* Scale dots — even smaller */
+            .scale-dot {
+                width: 32px;
+                height: 32px;
+                min-width: 32px;
+                min-height: 32px;
+            }
+
+            .scale-line {
+                left: 16px;
+                right: 16px;
+            }
+
+            /* Ranking instruction — reduce font */
+            .ranking-item {
+                padding: 12px 14px;
+                gap: 10px;
+                border-radius: 12px;
+            }
+
+            .ranking-number {
+                width: 32px;
+                height: 32px;
+                min-width: 32px;
+                font-size: 13px;
+            }
+
+            /* Recording buttons — full width stack */
+            .recording-buttons-container {
+                flex-direction: column;
+            }
+
+            .recording-buttons-container button {
+                width: 100%;
+                text-align: center;
+            }
+
+            /* Modals — tight on small screens */
+            #instructionModal > div,
+            #resumeModal > div {
+                padding: 20px 16px;
+                margin: 12px;
+                border-radius: 20px;
+            }
+
+            #instructionModal > div .text-4xl {
+                font-size: 2rem;
+            }
+
+            #modalText {
+                font-size: 15px !important;
+            }
+
+            #modalClose {
+                font-size: 15px;
+                padding: 12px 24px;
+            }
+
+            /* Main title */
+            #mainPageHeader {
+                font-size: 1.4rem !important;
+            }
+
+            /* Options buttons full width */
+            #options button {
+                width: 100%;
+                padding: 14px 16px;
+                font-size: 14px;
             }
         }
 
@@ -738,24 +889,20 @@
                 <span>1.</span> ספר לי על חוויה חיובית או מרגשת שחווית בשנה האחרונה. משהו שנגע בך או שימח אותך במיוחד.
             </div>
             </br>
-            <div>
+            <div class="recording-buttons-container">
                 <button id="startRecordBtn" aria-label="התחל הקלטה"
-                        aria-label="התחל הקלטה"
                         class="text-lg py-3 px-7 text-white rounded-xl shadow-lg font-semibold" style="background: linear-gradient(135deg, #8b6914, #c9a96e, #e6b020); color: #2d2a26;">
                     התחל להקליט
                 </button>
                 <button id="stopRecordBtn" aria-label="סיים הקלטה"
-                        aria-label="סיים הקלטה"
                         class="hidden text-lg py-3 px-7 text-white rounded-xl shadow-lg font-semibold ml-2" style="background: linear-gradient(135deg, #c9a96e, #e6b020); color: #2d2a26;">
                     סיים הקלטה
                 </button>
                 <button id="reRecordBtn" aria-label="הקלט שוב"
-                        aria-label="הקלט שוב"
                         class="hidden text-lg py-3 px-7 bg-white rounded-xl shadow border font-semibold ml-2" style="color: #5c4a2a; border-color: rgba(30, 27, 75, 0.15);">
                     הקלט שוב
                 </button>
                 <button id="skipRecordBtn" aria-label="דלג על הקלטה"
-                        aria-label="דלג על ההקלטה"
                         class="btn-dismiss text-lg py-3 px-7 font-semibold ml-2 {% if not config.DEBUG %}hidden{% endif %}">
                     דלג על ההקלטה
                 </button>
@@ -789,24 +936,20 @@
             אותו?
         </div>
         </br>
-        <div>
+        <div class="recording-buttons-container">
             <button id="startRecordBtn2" aria-label="התחל הקלטה שנייה"
-                    aria-label="התחל הקלטה"
                     class="text-lg py-3 px-7 text-white rounded-xl shadow-lg font-semibold" style="background: linear-gradient(135deg, #8b6914, #c9a96e, #e6b020); color: #2d2a26;">
                 התחל להקליט
             </button>
             <button id="stopRecordBtn2" aria-label="סיים הקלטה שנייה"
-                    aria-label="סיים הקלטה"
                     class="hidden text-lg py-3 px-7 text-white rounded-xl shadow-lg font-semibold ml-2" style="background: linear-gradient(135deg, #c9a96e, #e6b020); color: #2d2a26;">
                 סיים הקלטה
             </button>
             <button id="reRecordBtn2" aria-label="הקלט שוב שנייה"
-                    aria-label="הקלט שוב"
                     class="hidden text-lg py-3 px-7 bg-white rounded-xl shadow border font-semibold ml-2" style="color: #5c4a2a; border-color: rgba(30, 27, 75, 0.15);">
                 הקלט שוב
             </button>
             <button id="skipRecordBtn2" aria-label="דלג על הקלטה שנייה"
-                    aria-label="דלג על ההקלטה"
                     class="btn-dismiss text-lg py-3 px-7 font-semibold ml-2 {% if not config.DEBUG %}hidden{% endif %}">
                 דלג על ההקלטה
             </button>
