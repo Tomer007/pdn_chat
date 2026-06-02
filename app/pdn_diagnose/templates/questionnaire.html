@@ -1025,6 +1025,27 @@
         setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(-20px)'; setTimeout(() => toast.remove(), 300); }, 4000);
     }
 
+    function showSessionExpiredModal() {
+        // Create overlay
+        const overlay = document.createElement('div');
+        overlay.id = 'sessionExpiredModal';
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(30,27,75,0.9);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+        
+        overlay.innerHTML = `
+            <div style="background:rgba(255,252,247,0.98);border-radius:24px;padding:32px 24px;max-width:400px;width:100%;text-align:center;box-shadow:0 24px 48px rgba(30,27,75,0.3);border:1px solid rgba(201,169,110,0.15);">
+                <div style="font-size:2.5rem;margin-bottom:16px;">🔒</div>
+                <h3 style="font-size:1.25rem;font-weight:700;color:#5c4a2a;margin-bottom:12px;font-family:Inter,sans-serif;">החיבור שלך פג תוקף</h3>
+                <p style="font-size:0.95rem;color:#2d2a26;line-height:1.8;margin-bottom:8px;">בוצע עדכון במערכת, ולכן החיבור שלך התנתק.</p>
+                <p style="font-size:0.95rem;color:#2d2a26;line-height:1.8;margin-bottom:20px;"><strong>התשובות שלך נשמרו.</strong> כנס מחדש והמערכת תציע לך להמשיך מאיפה שהפסקת.</p>
+                <a href="/pdn-diagnose/" style="display:inline-block;padding:14px 28px;background:linear-gradient(135deg,#e6b020,#f0c840,#f8e070);color:#2d2a26;border-radius:16px;font-weight:600;font-size:16px;text-decoration:none;box-shadow:0 4px 16px rgba(230,176,32,0.3);transition:transform 0.2s ease;">
+                    התחבר מחדש
+                </a>
+            </div>
+        `;
+        
+        document.body.appendChild(overlay);
+    }
+
     // ValidationManager — controls validation message display timing
     class ValidationManager {
         constructor() {
@@ -1986,6 +2007,11 @@
                 body: JSON.stringify(payload)
             });
             
+            if (response.status === 401) {
+                showSessionExpiredModal();
+                return;
+            }
+
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
                 throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
@@ -2025,6 +2051,11 @@
             method: 'POST',
             headers: {'Content-Type': 'application/json'}
         });
+
+        if (resp.status === 401) {
+            showSessionExpiredModal();
+            return;
+        }
 
         if (!resp.ok) {
             showToast('שגיאה בסיום השאלון, אנא נסה שוב', 'error');
@@ -2145,11 +2176,15 @@
         if (questionHistory.length > 0) {
             // Delete the answer for the current question before going back
             try {
-                await fetch('/pdn-diagnose/delete_answer', {
+                const delResp = await fetch('/pdn-diagnose/delete_answer', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({question_number: currentQuestion})
                 });
+                if (delResp.status === 401) {
+                    showSessionExpiredModal();
+                    return;
+                }
             } catch (e) {
                 console.error('Failed to delete answer:', e);
             }
@@ -2201,6 +2236,10 @@
             let sessionQuestion = 0;
             try {
                 const response = await fetch('/pdn-diagnose/get_progress');
+                if (response.status === 401) {
+                    showSessionExpiredModal();
+                    return;
+                }
                 if (response.ok) {
                     const data = await response.json();
                     sessionQuestion = data.current_question || 0;
