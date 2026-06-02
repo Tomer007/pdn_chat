@@ -2036,7 +2036,28 @@
             
         } catch (error) {
             console.error('Error submitting answer:', error);
-            showToast('שגיאה בשליחת התשובה: ' + error.message, 'error');
+            // Network error (Failed to fetch) — likely deploy or connectivity issue
+            if (error.message === 'Failed to fetch' || error.name === 'TypeError') {
+                showToast('בעיית תקשורת — בודק חיבור...', 'error');
+                // Auto-retry once after 3 seconds
+                setTimeout(async () => {
+                    try {
+                        const retryResp = await fetch('/pdn-diagnose/get_progress');
+                        if (retryResp.status === 401) {
+                            showSessionExpiredModal();
+                        } else if (retryResp.ok) {
+                            showToast('החיבור חזר! לחץ שוב על התשובה', 'success');
+                            enableAllButtons();
+                        } else {
+                            showToast('המערכת בתהליך עדכון. רענן את הדף ונסה שוב.', 'error');
+                        }
+                    } catch (retryErr) {
+                        showToast('אין חיבור לשרת. בדוק את האינטרנט ורענן את הדף.', 'error');
+                    }
+                }, 3000);
+            } else {
+                showToast('שגיאה בשליחת התשובה: ' + error.message, 'error');
+            }
             enableAllButtons(); // Re-enable buttons on error
         } finally {
             isSubmitting = false;
