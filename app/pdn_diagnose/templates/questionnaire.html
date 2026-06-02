@@ -147,6 +147,7 @@
             flex-wrap: wrap;
             gap: 8px;
             align-items: center;
+            justify-content: center;
         }
 
         #startRecordBtn, #startRecordBtn2 {
@@ -851,7 +852,7 @@
     <!-- Hidden fields for user data -->
     <input type="hidden" id="userName" value="{{ user_name or '' }}">
     <input type="hidden" id="userId" value="{{ user_id or '' }}">
-    <h1 id="mainPageHeader" class="text-3xl md:text-4xl font-extrabold text-center tracking-tight mb-6" style="background: linear-gradient(135deg, #8b6914, #c9a96e, #e6b020); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.02em; line-height: 1.3;">
+    <h1 id="mainPageHeader" class="text-3xl md:text-4xl font-extrabold text-center tracking-tight mb-6 hidden md:block" style="background: linear-gradient(135deg, #8b6914, #c9a96e, #e6b020); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.02em; line-height: 1.3;">
         אבחון "קוד המקור" שלך <span style="font-weight: 400; opacity: 0.8;">|</span> מבית PDN</h1>
 
     <!-- Sticky sentinel for IntersectionObserver -->
@@ -876,20 +877,33 @@
              class="p-6 rounded-xl border text-gray-800 shadow-sm fade-in text-right recording-validation"
              dir="rtl"
              style="border-color: rgba(30, 27, 75, 0.06); background: linear-gradient(135deg, rgba(255, 252, 247, 1), rgba(250, 245, 239, 1));">
-            <p class="text-lg mb-4">שלום {{ user_name }},</p>
-            <p class="text-lg mb-4">ברוך הבא למסע הגילוי שלך. בדקות הקרובות נצלול יחד לעומק כדי לחשוף את הצופן הייחודי שמניע אותך.</p>
-            <p class="text-lg mb-4">אין תשובות נכונות או לא נכונות, רק הכנות שלך. דבר מהלב, ותן לקול שלך לספר את הסיפור:</p>
-            <div class="rounded-lg p-3 mb-4" style="background-color: #8b6914; border: 1px solid #c9a96e;">
-                <p class="text-sm text-white font-medium">
-                    <i class="fas fa-info-circle mr-2"></i>
-                    <strong>חשוב:</strong> ההקלטה תיעצר אוטומטית לאחר דקה וחצי
+            
+            <!-- Instructions - collapsed on mobile, shown on desktop -->
+            <div class="voice-instructions hidden md:block mb-4">
+                <p class="text-lg mb-2">שלום {{ user_name }},</p>
+                <p class="text-base mb-2" style="color: #5c5650;">ברוך הבא למסע הגילוי שלך. בדקות הקרובות נצלול יחד לעומק כדי לחשוף את הצופן הייחודי שמניע אותך.</p>
+                <p class="text-base mb-4" style="color: #5c5650;">אין תשובות נכונות או לא נכונות, רק הכנות שלך. דבר מהלב, ותן לקול שלך לספר את הסיפור:</p>
+            </div>
+            <!-- Mobile: short greeting only -->
+            <div class="md:hidden mb-3">
+                <p class="text-base font-medium" style="color: #5c4a2a;">שלום {{ user_name }}, דבר מהלב ותן לקול שלך לספר:</p>
+            </div>
+
+            <!-- Question FIRST (most important content) -->
+            <div class="bg-white p-4 rounded-xl border-r-4 mb-4" style="border-right-color: #c9a96e;">
+                <span class="font-bold">1.</span> ספר לי על חוויה חיובית או מרגשת שחווית בשנה האחרונה. משהו שנגע בך או שימח אותך במיוחד.
+            </div>
+
+            <!-- Recording notice - below question, subtle color -->
+            <div class="rounded-lg p-2 mb-4" style="background: rgba(139, 105, 20, 0.06); border: 1px solid rgba(201, 169, 110, 0.3);">
+                <p class="text-xs font-medium text-center" style="color: #8b6914;">
+                    <i class="fas fa-info-circle ml-1"></i>
+                    ההקלטה תיעצר אוטומטית לאחר דקה וחצי
                 </p>
             </div>
-            <div class="bg-white p-4 rounded border-r-4" style="border-right-color: #c9a96e;">
-                <span>1.</span> ספר לי על חוויה חיובית או מרגשת שחווית בשנה האחרונה. משהו שנגע בך או שימח אותך במיוחד.
-            </div>
-            </br>
-            <div class="recording-buttons-container">
+
+            <!-- Buttons centered -->
+            <div class="recording-buttons-container justify-center">
                 <button id="startRecordBtn" aria-label="התחל הקלטה"
                         class="text-lg py-3 px-7 text-white rounded-xl shadow-lg font-semibold" style="background: linear-gradient(135deg, #8b6914, #c9a96e, #e6b020); color: #2d2a26;">
                     התחל להקליט
@@ -907,7 +921,7 @@
                     דלג על ההקלטה
                 </button>
             </div>
-            <div id="recordStatus" class="text-lg" style="color: #5c4a2a;"></div>
+            <div id="recordStatus" class="text-lg text-center" style="color: #5c4a2a;"></div>
             <div id="visualizer" class="flex justify-center items-end space-x-1 mb-1"
                  style="height:24px;direction:ltr"></div>
             <audio id="audioPlayback" controls class="hidden mx-auto" style="max-width:260px"></audio>
@@ -923,20 +937,31 @@
          class="p-6 rounded-xl border text-gray-800 shadow-sm fade-in text-right hidden recording-validation"
          dir="rtl"
          style="border-color: rgba(30, 27, 75, 0.06); background: linear-gradient(135deg, rgba(255, 252, 247, 1), rgba(250, 245, 239, 1));">
-        <p class="text-lg mb-4">תודה על התשובה הראשונה!</p>
-        <p class="text-lg mb-4">עכשיו בוא נעמיק קצת יותר. אנא ענה על השאלה הבאה:</p>
-        <div class="rounded-lg p-3 mb-4" style="background-color: #8b6914; border: 1px solid #c9a96e;">
-            <p class="text-sm text-white font-medium">
-                <i class="fas fa-info-circle mr-2"></i>
-                <strong>חשוב:</strong> ההקלטה תיעצר אוטומטית לאחר דקה וחצי
+        <!-- Desktop: full text -->
+        <div class="hidden md:block mb-3">
+            <p class="text-lg mb-2">תודה על התשובה הראשונה!</p>
+            <p class="text-base" style="color: #5c5650;">עכשיו בוא נעמיק קצת יותר. אנא ענה על השאלה הבאה:</p>
+        </div>
+        <!-- Mobile: short text -->
+        <div class="md:hidden mb-3">
+            <p class="text-base font-medium" style="color: #5c4a2a;">תודה! עכשיו ענה על השאלה הבאה:</p>
+        </div>
+
+        <!-- Question FIRST -->
+        <div class="bg-white p-4 rounded-xl border-r-4 mb-4" style="border-right-color: #c9a96e;">
+            <span class="font-bold">2.</span> ספר לי על אתגר משמעותי שהתמודדת איתו לאחרונה, משהו שהיה לך לא פשוט, ואיך הצלחת לעבור אותו?
+        </div>
+
+        <!-- Recording notice - subtle -->
+        <div class="rounded-lg p-2 mb-4" style="background: rgba(139, 105, 20, 0.06); border: 1px solid rgba(201, 169, 110, 0.3);">
+            <p class="text-xs font-medium text-center" style="color: #8b6914;">
+                <i class="fas fa-info-circle ml-1"></i>
+                ההקלטה תיעצר אוטומטית לאחר דקה וחצי
             </p>
         </div>
-        <div class="bg-white p-4 rounded border-r-4" style="border-right-color: #c9a96e;">
-            <span>2.</span> ספר לי על אתגר משמעותי שהתמודדת איתו לאחרונה, משהו שהיה לך לא פשוט, ואיך הצלחת לעבור
-            אותו?
-        </div>
-        </br>
-        <div class="recording-buttons-container">
+
+        <!-- Buttons centered -->
+        <div class="recording-buttons-container justify-center">
             <button id="startRecordBtn2" aria-label="התחל הקלטה שנייה"
                     class="text-lg py-3 px-7 text-white rounded-xl shadow-lg font-semibold" style="background: linear-gradient(135deg, #8b6914, #c9a96e, #e6b020); color: #2d2a26;">
                 התחל להקליט
@@ -954,7 +979,7 @@
                 דלג על ההקלטה
             </button>
         </div>
-        <div id="recordStatus2" class="text-lg" style="color: #5c4a2a;"></div>
+        <div id="recordStatus2" class="text-lg text-center" style="color: #5c4a2a;"></div>
         <div id="visualizer2" class="flex justify-center items-end space-x-1 mb-1"
              style="height:24px;direction:ltr"></div>
         <audio id="audioPlayback2" controls class="hidden mx-auto" style="max-width:260px"></audio>
@@ -1795,14 +1820,14 @@
         instructionContainer.className = 'text-center mb-6';
 
         const mainInstruction = document.createElement('div');
-        mainInstruction.className = 'text-white px-6 py-4 rounded-2xl text-lg font-bold shadow-sm mb-3';
+        mainInstruction.className = 'text-white px-4 md:px-6 py-3 md:py-4 rounded-2xl text-base md:text-lg font-bold shadow-sm mb-3';
         mainInstruction.style.background = 'linear-gradient(135deg, #8b6914 0%, #c9a96e 100%)';
         mainInstruction.style.border = '1px solid rgba(124, 58, 237, 0.3)';
         mainInstruction.style.boxShadow = '0 4px 12px rgba(124, 58, 237, 0.2)';
-        mainInstruction.innerHTML = 'דרג לפי מידת ההתאמה אליך<br><span style="font-size: 0.8em; font-weight: 500;">1 – הכי מתאימה לך &nbsp; 2 – פחות מתאימה &nbsp; 3 – הכי פחות מתאימה לך</span>';
+        mainInstruction.innerHTML = 'דרג לפי מידת ההתאמה אליך<br><span style="font-size: 0.75em; font-weight: 500;">1 – הכי מתאימה &nbsp; 2 – פחות &nbsp; 3 – הכי פחות</span>';
 
         const subInstruction = document.createElement('div');
-        subInstruction.className = 'px-4 py-2 rounded-xl text-sm font-medium';
+        subInstruction.className = 'hidden md:block px-4 py-2 rounded-xl text-sm font-medium';
         subInstruction.style.color = '#1a1a1a';
         subInstruction.style.background = 'linear-gradient(135deg, #f5f3ff, #ede9fe)';
         subInstruction.style.border = '1px solid rgba(124, 58, 237, 0.12)';
@@ -1821,12 +1846,12 @@
 
         randomizedOptions.forEach(opt => {
             const li = document.createElement('li');
-            li.className = 'ranking-item bg-white rounded-xl p-4 flex items-center gap-4 border cursor-pointer hover:shadow-md transition-all duration-200';
+            li.className = 'ranking-item bg-white rounded-xl p-4 flex items-center gap-3 md:gap-4 border cursor-pointer hover:shadow-md transition-all duration-200';
             li.setAttribute('data-code', opt.code);
 
             const numberDiv = document.createElement('span');
-            numberDiv.className = 'ranking-number w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-500';
-            numberDiv.textContent = '?';
+            numberDiv.className = 'ranking-number w-8 h-8 md:w-10 md:h-10 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-400 text-sm';
+            numberDiv.textContent = '·';
 
             const textSpan = document.createElement('span');
             textSpan.className = 'flex-1 text-black font-medium';
@@ -1860,14 +1885,14 @@
                 const idx = selectedOrder.indexOf(code);
                 if (idx >= 0) {
                     numberDiv.textContent = idx + 1;
-                    numberDiv.className = 'ranking-number w-10 h-10 rounded-full flex items-center justify-center font-bold selected';
+                    numberDiv.className = 'ranking-number w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-bold selected';
                     numberDiv.style.cssText = 'background: linear-gradient(135deg, #8b6914, #c9a96e, #e6b020) !important; color: white !important; border: none;';
-                    li.className = 'ranking-item bg-white rounded-xl p-4 flex items-center gap-4 border-2 border-violet-300 cursor-pointer shadow-md transition-all duration-200';
+                    li.className = 'ranking-item bg-white rounded-xl p-4 flex items-center gap-3 md:gap-4 border-2 border-violet-300 cursor-pointer shadow-md transition-all duration-200';
                 } else {
-                    numberDiv.textContent = '?';
-                    numberDiv.className = 'ranking-number w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-500';
+                    numberDiv.textContent = '·';
+                    numberDiv.className = 'ranking-number w-8 h-8 md:w-10 md:h-10 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-400 text-sm';
                     numberDiv.style.cssText = '';
-                    li.className = 'ranking-item bg-white rounded-xl p-4 flex items-center gap-4 border cursor-pointer hover:shadow-md transition-all duration-200';
+                    li.className = 'ranking-item bg-white rounded-xl p-4 flex items-center gap-3 md:gap-4 border cursor-pointer hover:shadow-md transition-all duration-200';
                 }
             });
         }
