@@ -703,28 +703,404 @@
     function displayData(data) {
         renderTable(data);
         updateDashboardSummary();
+        updateMetrics();
     }
 
     function updateDashboardSummary() {
-        const total = currentData.length;
-        // Build today string in DD/MM/YYYY format (matching CSV storage format)
+        // Now handled by updateMetrics() — keeping function for compatibility
+    }
+
+    // ===== Metrics Dashboard =====
+    let currentMetricsRange = 'week';
+
+    function setMetricsRange(range) {
+        currentMetricsRange = range;
+        document.querySelectorAll('.metrics-range-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('range' + range.charAt(0).toUpperCase() + range.slice(1)).classList.add('active');
+        updateMetrics();
+    }
+
+    function getDateRangeFilter(range) {
         const now = new Date();
-        const today = String(now.getDate()).padStart(2, '0') + '/' + String(now.getMonth() + 1).padStart(2, '0') + '/' + now.getFullYear();
-        const diagnosedToday = currentData.filter(u => u.date === today).length;
-        const anomalies = currentData.filter(u => isRedUser(u)).length;
+        now.setHours(23, 59, 59, 999);
+        let startDate = null;
+        if (range === 'week') {
+            startDate = new Date(now);
+            startDate.setDate(startDate.getDate() - 7);
+        } else if (range === 'month') {
+            startDate = new Date(now);
+            startDate.setMonth(startDate.getMonth() - 1);
+        } else if (range === 'year') {
+            startDate = new Date(now);
+            startDate.setFullYear(startDate.getFullYear() - 1);
+        }
+        // 'all' => startDate stays null
+        return startDate;
+    }
 
-        document.getElementById('summaryTotal').textContent = total;
-        document.getElementById('summaryToday').textContent = diagnosedToday;
-        document.getElementById('summaryAnomalies').textContent = anomalies;
+    function parseDateDDMMYYYY(dateStr) {
+        if (!dateStr) return null;
+        const parts = dateStr.split('/');
+        if (parts.length !== 3) return null;
+        const d = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10) - 1;
+        const y = parseInt(parts[2], 10);
+        if (isNaN(d) || isNaN(m) || isNaN(y)) return null;
+        return new Date(y, m, d);
+    }
 
-        // Fetch active users count
-        fetch(`/pdn-admin/logged-in-users?session_token=${sessionToken}`)
-            .then(r => {
-                if (r.status === 401) return {count: 0};
-                return r.ok ? r.json() : {count: 0};
-            })
-            .then(data => { document.getElementById('summaryActive').textContent = data.count || 0; })
-            .catch(() => { document.getElementById('summaryActive').textContent = '0'; });
+    function updateMetrics() {
+        const startDate = getDateRangeFilter(currentMetricsRange);
+        const filtered = currentData.filter(u => {
+            if (!startDate) return true;
+            const d = parseDateDDMMYYYY(u.date);
+            return d && d >= startDate;
+        });
+
+        // KPI: Completions
+        const completions = filtered.filter(u => u.pdn_code && u.pdn_code !== 'N/A' && u.pdn_code !== '').length;
+        document.getElementById('metricCompletions').textContent = completions;
+
+        // KPI: Peak day
+        const dayCounts = {};
+        filtered.forEach(u => {
+            if (u.date) dayCounts[u.date] = (dayCounts[u.date] || 0) + 1;
+        });
+        const peakEntry = Object.entries(dayCounts).sort((a, b) => b[1] - a[1])[0];
+        if (peakEntry) {
+            document.getElementById('metricPeakDay').textContent = peakEntry[1];
+            document.getElementById('metricPeakDayLabel').textContent = 'ביום השיא ' + peakEntry[0].slice(0, 5);
+        } else {
+            document.getElementById('metricPeakDay').textContent = '0';
+            document.getElementById('metricPeakDayLabel').textContent = 'ביום השיא';
+        }
+
+        // KPI: Diagnosed by human (has diagnose_pdn_code that is not empty/NA)
+        const diagnosed = filtered.filter(u => u.diagnose_pdn_code && u.diagnose_pdn_code !== 'N/A' && u.diagnose_pdn_code !== '').length;
+        document.getElementById('metricDiagnosed').textContent = diagnosed;
+
+        // KPI: Unique PDN codes
+        const uniqueCodes = new Set(filtered.map(u => u.pdn_code).filter(c => c && c !== 'N/A' && c !== ''));
+        document.getElementById('metricUniqueCodes').textContent = uniqueCodes.size;
+
+        // KPI: Code match (system == diagnoser)
+        const withBothCodes = filtered.filter(u => 
+            u.pdn_code && u.pdn_code !== 'N/A' && u.pdn_code !== '' &&
+            u.diagnose_pdn_code && u.diagnose_pdn_code !== 'N/A' && u.diagnose_pdn_code !== ''
+        );
+        const codeMatch = withBothCodes.filter(u => u.pdn_code === u.diagnose_pdn_code).length;
+        const codeMismatch = withBothCodes.filter(u => u.pdn_code !== u.diagnose_pdn_code).length;
+        const matchPct = withBothCodes.length > 0 ? Math.round((codeMatch / withBothCodes.length) * 100) : 0;
+        document.getElementById('metricCodeMatch').innerHTML = withBothCodes.length > 0 ? `${codeMatch}/${withBothCodes.length} <span style="font-size:0.6em;opacity:0.7;">(${matchPct}%)</span>` : '—';
+        document.getElementById('metricCodeMismatch').textContent = codeMismatch > 0 ? codeMismatch : '0';
+
+        // KPI: Diagnosed today
+        const now = new Date();
+        const todayStr = String(now.getDate()).padStart(2, '0') + '/' + String(now.getMonth() + 1).padStart(2, '0') + '/' + now.getFullYear();
+        const diagnosedToday = currentData.filter(u => u.date === todayStr).length;
+        document.getElementById('metricToday').textContent = diagnosedToday;
+
+        // KPI: Active users (fetch from server)
+        if (sessionToken) {
+            fetch(`/pdn-admin/logged-in-users?session_token=${sessionToken}`)
+                .then(r => r.ok ? r.json() : {count: 0})
+                .then(data => { document.getElementById('metricActiveUsers').textContent = data.count || 0; })
+                .catch(() => { document.getElementById('metricActiveUsers').textContent = '0'; });
+        }
+
+        // Chart 1: PDN Code Distribution — Grouped by Trait
+        const codeCount = {};
+        filtered.forEach(u => {
+            if (u.pdn_code && u.pdn_code !== 'N/A' && u.pdn_code !== '') {
+                codeCount[u.pdn_code] = (codeCount[u.pdn_code] || 0) + 1;
+            }
+        });
+        const totalCodes = Object.values(codeCount).reduce((s, c) => s + c, 0) || 1;
+
+        // Group by trait letter (A, T, P, E) + other
+        const traitGroups = { A: [], T: [], P: [], E: [] };
+        const traitColors = { A: '#0b2e6b', T: '#4a7ab5', P: '#1a3f7a', E: '#7c9fc9' };
+        const traitNames = { A: 'יצירתי', T: 'שיטתי', P: 'מבצע', E: 'מנהיג' };
+
+        Object.entries(codeCount).forEach(([code, count]) => {
+            const trait = code.charAt(0).toUpperCase();
+            if (traitGroups[trait]) {
+                traitGroups[trait].push({ code, count });
+            }
+        });
+
+        // Sort each group by count desc, and sort trait groups by total desc
+        const traitTotals = Object.entries(traitGroups).map(([trait, codes]) => ({
+            trait,
+            codes: codes.sort((a, b) => b.count - a.count),
+            total: codes.reduce((s, c) => s + c.count, 0)
+        })).filter(g => g.total > 0).sort((a, b) => b.total - a.total);
+
+        const maxTraitTotal = traitTotals.length > 0 ? traitTotals[0].total : 1;
+
+        const groupedHtml = traitTotals.length > 0 ? traitTotals.map(group => {
+            const barWidth = Math.max(8, (group.total / maxTraitTotal) * 100);
+            const color = traitColors[group.trait] || '#94a3b8';
+            const subCodes = group.codes.map(c => `${c.code}:${c.count}`).join(', ');
+            const pct = Math.round((group.total / totalCodes) * 100);
+
+            // Stacked sub-bar segments
+            const segments = group.codes.map((c, idx) => {
+                const segWidth = (c.count / group.total) * 100;
+                const opacity = 1 - (idx * 0.2);
+                return `<div style="width:${segWidth}%;height:100%;background:${color};opacity:${Math.max(0.4, opacity)};cursor:pointer;" onclick="filterByCode('${c.code}')" title="${c.code}: ${c.count}"></div>`;
+            }).join('');
+
+            return `<div style="margin-bottom:12px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="font-size:20px;font-weight:800;color:${color};min-width:20px;">${group.trait}</span>
+                        <span style="font-size:11px;color:#64748b;">${traitNames[group.trait]}</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="font-size:13px;font-weight:700;color:#1e293b;">${group.total}</span>
+                        <span style="font-size:11px;color:#94a3b8;">(${pct}%)</span>
+                    </div>
+                </div>
+                <div style="display:flex;height:24px;border-radius:6px;overflow:hidden;background:#f1f5f9;width:${barWidth}%;">
+                    ${segments}
+                </div>
+                <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap;">
+                    ${group.codes.map(c => `<span style="font-size:10px;color:#64748b;cursor:pointer;" onclick="filterByCode('${c.code}')">${c.code}:${c.count}</span>`).join('')}
+                </div>
+            </div>`;
+        }).join('') : '<div style="color:#94a3b8;font-size:12px;text-align:center;padding:16px;">אין נתונים</div>';
+
+        // Energy distribution (D, S, F) extracted from codes
+        const energyGroups = { D: 0, S: 0, F: 0 };
+        const energyCodeMap = { D: [], S: [], F: [] };
+        const codeToEnergy = { '1': 'D', '4': 'D', '7': 'D', '10': 'D',
+                               '2': 'S', '5': 'S', '8': 'S', '11': 'S',
+                               '3': 'F', '6': 'F', '9': 'F', '12': 'F' };
+        Object.entries(codeCount).forEach(([code, count]) => {
+            const num = code.replace(/[A-Z]/gi, '');
+            const energy = codeToEnergy[num];
+            if (energy) {
+                energyGroups[energy] += count;
+                energyCodeMap[energy].push({ code, count });
+            }
+        });
+
+        const energyColors = { D: '#0b2e6b', S: '#4a7ab5', F: '#7c9fc9' };
+        const energyNames = { D: 'דינמית', S: 'יציבה', F: 'גמישה' };
+        const maxEnergy = Math.max(...Object.values(energyGroups), 1);
+
+        const energyHtml = ['D', 'S', 'F'].filter(e => energyGroups[e] > 0).map(energy => {
+            const total = energyGroups[energy];
+            const pct = Math.round((total / totalCodes) * 100);
+            const barWidth = Math.max(8, (total / maxEnergy) * 100);
+            const color = energyColors[energy];
+            const subCodes = energyCodeMap[energy].sort((a, b) => b.count - a.count);
+
+            return `<div style="margin-bottom:10px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;">
+                    <div style="display:flex;align-items:center;gap:6px;">
+                        <span style="font-size:16px;font-weight:800;color:${color};">${energy}</span>
+                        <span style="font-size:11px;color:#64748b;">${energyNames[energy]}</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:6px;">
+                        <span style="font-size:12px;font-weight:700;color:#1e293b;">${total}</span>
+                        <span style="font-size:10px;color:#94a3b8;">(${pct}%)</span>
+                    </div>
+                </div>
+                <div style="height:16px;border-radius:4px;overflow:hidden;background:#f1f5f9;width:${barWidth}%;">
+                    <div style="width:100%;height:100%;background:${color};border-radius:4px;"></div>
+                </div>
+                <div style="display:flex;gap:6px;margin-top:2px;flex-wrap:wrap;">
+                    ${subCodes.map(c => `<span style="font-size:10px;color:#64748b;cursor:pointer;" onclick="filterByCode('${c.code}')">${c.code}:${c.count}</span>`).join('')}
+                </div>
+            </div>`;
+        }).join('');
+
+        document.getElementById('metricCodeDistribution').innerHTML = `
+            <div style="padding:4px 0;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+                    <span style="font-size:11px;color:#94a3b8;">סה"כ ${totalCodes} אבחונים</span>
+                </div>
+                <div style="margin-bottom:16px;">
+                    <div style="font-size:11px;font-weight:700;color:#0b2e6b;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">תכונה</div>
+                    ${groupedHtml}
+                </div>
+                <div style="border-top:1px solid #e8ecf4;padding-top:12px;">
+                    <div style="font-size:11px;font-weight:700;color:#0b2e6b;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">אנרגיה</div>
+                    ${energyHtml}
+                </div>
+            </div>
+        `;
+
+        // Chart 2: Daily Volume — vertical bar chart
+        const dayEntries = Object.entries(dayCounts).sort((a, b) => {
+            const da = parseDateDDMMYYYY(a[0]);
+            const db = parseDateDDMMYYYY(b[0]);
+            return db - da;
+        }).slice(0, 10).reverse();
+        const maxDayCount = dayEntries.length > 0 ? Math.max(...dayEntries.map(e => e[1])) : 1;
+
+        const barsHtml = dayEntries.map(([date, count]) => {
+            const heightPct = Math.max(8, (count / maxDayCount) * 100);
+            return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;min-width:0;cursor:pointer;" onclick="filterByDate('${date}')" title="${date}: ${count} אבחונים">
+                <span style="font-size:11px;font-weight:700;color:#0b2e6b;">${count}</span>
+                <div style="width:100%;max-width:28px;height:${heightPct}px;background:linear-gradient(180deg, #0b2e6b, #4a7ab5);border-radius:4px 4px 0 0;transition:height 0.4s ease;"></div>
+                <span style="font-size:10px;color:#64748b;white-space:nowrap;">${date.slice(0, 5)}</span>
+            </div>`;
+        }).join('');
+
+        const dailyHtml = dayEntries.length > 0 ? `
+            <div style="display:flex;align-items:flex-end;gap:4px;height:120px;padding-top:8px;">
+                ${barsHtml}
+            </div>
+        ` : '<div style="color:#94a3b8;font-size:12px;text-align:center;padding:16px;">אין נתונים</div>';
+        document.getElementById('metricDailyVolume').innerHTML = dailyHtml;
+
+        // Chart 3: Code Match/Mismatch breakdown
+        const matchChartEl = document.getElementById('metricCodeMatchChart');
+        if (matchChartEl) {
+            if (withBothCodes.length === 0) {
+                matchChartEl.innerHTML = '<div style="color:#94a3b8;font-size:12px;text-align:center;padding:16px;">אין נתונים (אין משתמשים עם קוד מאבחן)</div>';
+            } else {
+                const matchPctVal = Math.round((codeMatch / withBothCodes.length) * 100);
+                const mismatchPctVal = 100 - matchPctVal;
+
+                // Show which codes mismatch
+                const mismatchDetails = withBothCodes
+                    .filter(u => u.pdn_code !== u.diagnose_pdn_code)
+                    .map(u => `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #f8fafc;">
+                        <span style="font-size:11px;color:#64748b;cursor:pointer;" onclick="handleTableSearch(); document.getElementById('tableSearchInput').value='${u.email}'; handleTableSearch();">${u.email.split('@')[0]}</span>
+                        <span style="font-size:11px;"><span style="color:#0b2e6b;font-weight:700;">${u.pdn_code}</span> ← <span style="color:#dc2626;font-weight:600;">${u.diagnose_pdn_code}</span></span>
+                    </div>`).slice(0, 8).join('');
+
+                matchChartEl.innerHTML = `
+                    <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
+                        <div style="position:relative;width:80px;height:80px;">
+                            <div style="width:80px;height:80px;border-radius:50%;background:conic-gradient(#0b2e6b 0% ${matchPctVal}%, #dc2626 ${matchPctVal}% 100%);"></div>
+                            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+                                <div style="width:48px;height:48px;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center;">
+                                    <span style="font-size:14px;font-weight:800;color:#0b2e6b;">${matchPctVal}%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="flex:1;">
+                            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                                <span style="width:8px;height:8px;border-radius:2px;background:#0b2e6b;"></span>
+                                <span style="font-size:12px;color:#1e293b;font-weight:600;">התאמה: ${codeMatch}</span>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:6px;">
+                                <span style="width:8px;height:8px;border-radius:2px;background:#dc2626;"></span>
+                                <span style="font-size:12px;color:#1e293b;font-weight:600;">פער: ${codeMismatch}</span>
+                            </div>
+                            <div style="font-size:10px;color:#94a3b8;margin-top:4px;">מתוך ${withBothCodes.length} שנבדקו</div>
+                        </div>
+                    </div>
+                    ${codeMismatch > 0 ? `<div style="font-size:11px;font-weight:600;color:#64748b;margin-bottom:6px;">פירוט פערים:</div>${mismatchDetails}` : ''}
+                `;
+            }
+        }
+    }
+
+    // Track current metrics filter state + peak day value for filtering
+    let metricsFilterPeakDate = null;
+
+    function filterByMetric(metric) {
+        const startDate = getDateRangeFilter(currentMetricsRange);
+        const inRange = currentData.filter(u => {
+            if (!startDate) return true;
+            const d = parseDateDDMMYYYY(u.date);
+            return d && d >= startDate;
+        });
+
+        let filtered = [];
+        let label = '';
+
+        switch (metric) {
+            case 'completions':
+                filtered = inRange.filter(u => u.pdn_code && u.pdn_code !== 'N/A' && u.pdn_code !== '');
+                label = 'השלמות';
+                break;
+            case 'peakDay':
+                const dayCounts = {};
+                inRange.forEach(u => { if (u.date) dayCounts[u.date] = (dayCounts[u.date] || 0) + 1; });
+                const peak = Object.entries(dayCounts).sort((a, b) => b[1] - a[1])[0];
+                if (peak) {
+                    filtered = inRange.filter(u => u.date === peak[0]);
+                    label = 'ביום השיא ' + peak[0];
+                }
+                break;
+            case 'diagnosed':
+                filtered = inRange.filter(u => u.diagnose_pdn_code && u.diagnose_pdn_code !== 'N/A' && u.diagnose_pdn_code !== '');
+                label = 'נבדקו ע"י מאבחן';
+                break;
+            case 'uniqueCodes':
+                filtered = inRange.filter(u => u.pdn_code && u.pdn_code !== 'N/A' && u.pdn_code !== '');
+                label = 'בעלי קוד PDN';
+                break;
+            case 'codeMatch':
+                filtered = inRange.filter(u =>
+                    u.pdn_code && u.pdn_code !== 'N/A' && u.pdn_code !== '' &&
+                    u.diagnose_pdn_code && u.diagnose_pdn_code !== 'N/A' && u.diagnose_pdn_code !== '' &&
+                    u.pdn_code === u.diagnose_pdn_code
+                );
+                label = 'התאמה מערכת/מאבחן';
+                break;
+            case 'codeMismatch':
+                filtered = inRange.filter(u =>
+                    u.pdn_code && u.pdn_code !== 'N/A' && u.pdn_code !== '' &&
+                    u.diagnose_pdn_code && u.diagnose_pdn_code !== 'N/A' && u.diagnose_pdn_code !== '' &&
+                    u.pdn_code !== u.diagnose_pdn_code
+                );
+                label = 'פער קוד מערכת/מאבחן';
+                break;
+            default:
+                filtered = inRange;
+                label = '';
+        }
+
+        renderTable(filtered);
+        document.getElementById('rowCount').textContent = `סה"כ שורות: ${filtered.length} (${label})`;
+        // Scroll to table
+        document.getElementById('tableBody').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        showNotification(`מציג ${filtered.length} רשומות: ${label}`, 'info');
+    }
+
+    function filterByCode(code) {
+        const startDate = getDateRangeFilter(currentMetricsRange);
+        const filtered = currentData.filter(u => {
+            if (!startDate) return u.pdn_code === code;
+            const d = parseDateDDMMYYYY(u.date);
+            return d && d >= startDate && u.pdn_code === code;
+        });
+        renderTable(filtered);
+        document.getElementById('rowCount').textContent = `סה"כ שורות: ${filtered.length} (קוד ${code})`;
+        document.getElementById('tableBody').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        showNotification(`מציג ${filtered.length} רשומות: קוד ${code}`, 'info');
+    }
+
+    function filterByDate(dateStr) {
+        const filtered = currentData.filter(u => u.date === dateStr);
+        renderTable(filtered);
+        document.getElementById('rowCount').textContent = `סה"כ שורות: ${filtered.length} (${dateStr})`;
+        document.getElementById('tableBody').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        showNotification(`מציג ${filtered.length} רשומות: ${dateStr}`, 'info');
+    }
+
+    function handleTableSearch() {
+        const term = (document.getElementById('tableSearchInput').value || '').trim().toLowerCase();
+        if (!term) {
+            renderTable(currentData);
+            document.getElementById('rowCount').textContent = `סה"כ שורות: ${currentData.length}`;
+            return;
+        }
+        const filtered = currentData.filter(u => {
+            const name = ((u.first_name || '') + ' ' + (u.last_name || '')).toLowerCase();
+            const email = (u.email || '').toLowerCase();
+            return name.includes(term) || email.includes(term);
+        });
+        renderTable(filtered);
+        document.getElementById('rowCount').textContent = `סה"כ שורות: ${filtered.length} (חיפוש: "${term}")`;
     }
 
     function renderTable(data) {
@@ -1743,6 +2119,8 @@
         }
 
         function showCalculationDetails(email, data) {
+            // Store the email for the send button
+            window._currentCalcEmail = email;
             const container = document.getElementById('pdnCalculationContent');
             const stages = data.calculation_details;
             const traitLabels = { A: 'הישגיות (Achievement)', T: 'ביטחון (Trust)', P: 'הנאה (Pleasure)', E: 'אדנות (Empower)' };
@@ -1876,6 +2254,42 @@
             container.innerHTML = html;
             document.getElementById('pdnCalculationModal').style.display = 'flex';
             setTimeout(() => { document.getElementById('pdnCalculationModal').querySelector('button, input')?.focus(); }, 100);
+        }
+
+        async function sendCalculationByEmail() {
+            const email = window._currentCalcEmail;
+            if (!email) {
+                showNotification('לא נמצא אימייל', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('sendCalcEmailBtn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> שולח...';
+            btn.disabled = true;
+
+            try {
+                // Get the calculation content HTML and send it as email to admin
+                const content = document.getElementById('pdnCalculationContent').innerHTML;
+                const response = await fetch(`/pdn-admin/send_calculation_report?session_token=${sessionToken}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, html_content: content })
+                });
+
+                if (response.ok) {
+                    showNotification('דוח חישוב נשלח בהצלחה למייל', 'success');
+                } else if (response.status === 401) {
+                    redirectToLogin();
+                } else {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || 'שליחה נכשלה');
+                }
+            } catch (error) {
+                showNotification(`שגיאה בשליחה: ${error.message}`, 'error');
+            } finally {
+                btn.innerHTML = '<i class="fas fa-envelope"></i> שלח במייל';
+                btn.disabled = false;
+            }
         }
 
         function closeModal(modalId) {

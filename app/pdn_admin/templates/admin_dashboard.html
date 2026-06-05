@@ -296,6 +296,81 @@
         .version-badge:hover {
             background: rgba(11, 46, 107, 0.14);
         }
+        /* Metrics Dashboard */
+        .metrics-range-btn {
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 20px;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .metrics-range-btn:hover { background: rgba(11, 46, 107, 0.06); color: #1e293b; }
+        .metrics-range-btn.active {
+            background: #0b2e6b;
+            color: white;
+            box-shadow: 0 2px 8px rgba(11, 46, 107, 0.3);
+        }
+        .metrics-kpi {
+            background: white;
+            border-radius: 14px;
+            padding: 20px 16px;
+            text-align: center;
+            border: 1px solid #e8ecf4;
+            transition: all 0.2s ease;
+        }
+        .metrics-kpi:hover {
+            box-shadow: 0 4px 16px rgba(11, 46, 107, 0.08);
+            transform: translateY(-2px);
+        }
+        .metrics-kpi-value {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #0b2e6b;
+            line-height: 1.2;
+        }
+        .metrics-kpi-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #64748b;
+            margin-top: 6px;
+        }
+        .metrics-bar-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        .metrics-bar-label {
+            font-size: 11px;
+            font-weight: 700;
+            min-width: 32px;
+            text-align: center;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: #f1f5f9;
+            color: #475569;
+        }
+        .metrics-bar {
+            flex: 1;
+            height: 18px;
+            border-radius: 4px;
+            transition: width 0.4s ease;
+        }
+        .metrics-bar-value {
+            font-size: 11px;
+            font-weight: 600;
+            color: #475569;
+            min-width: 20px;
+            text-align: left;
+        }
+        @media (max-width: 768px) {
+            #metricsSection .dash-section-header { flex-direction: column; gap: 12px; align-items: flex-start; }
+            #metricsSection div[style*="grid-template-columns: 1fr 1fr"] { grid-template-columns: 1fr !important; }
+        }
     </style>
 </head>
 <body class="p-4 md:p-6 lg:p-8">
@@ -332,40 +407,79 @@
         </div>
     </div>
 
-    <!-- Stats Row -->
-    <div class="stats-grid" id="dashboardSummary" role="group" aria-label="סיכום נתונים">
-        <div class="stat-card blue" onclick="handleStatClick('total')" style="cursor: pointer;" role="button" tabindex="0" aria-label="סה״כ מאובחנים" onkeydown="if(event.key==='Enter')handleStatClick('total')">
-            <div class="stat-value" id="summaryTotal">—</div>
-            <div class="stat-label">סה"כ מאובחנים</div>
-        </div>
-        <div class="stat-card green" onclick="handleStatClick('today')" style="cursor: pointer;" role="button" tabindex="0" aria-label="אובחנו היום" onkeydown="if(event.key==='Enter')handleStatClick('today')">
-            <div class="stat-value" id="summaryToday">—</div>
-            <div class="stat-label">אובחנו היום</div>
-        </div>
-        <div class="stat-card red" onclick="handleStatClick('anomalies')" style="cursor: pointer;" role="button" tabindex="0" aria-label="חריגים" onkeydown="if(event.key==='Enter')handleStatClick('anomalies')">
-            <div class="stat-value" id="summaryAnomalies">—</div>
-            <div class="stat-label">חריגים</div>
-        </div>
-        <div class="stat-card purple" onclick="handleStatClick('active')" style="cursor: pointer;" role="button" tabindex="0" aria-label="משתמשים מחוברים" onkeydown="if(event.key==='Enter')handleStatClick('active')">
-            <div class="stat-value" id="summaryActive">—</div>
-            <div class="stat-label">משתמשים מחוברים</div>
-        </div>
-    </div>
+    <!-- Hidden search elements (kept for JS compatibility) -->
+    <input type="text" id="searchInput" style="display:none;">
+    <span id="searchResultCount" style="display:none;"></span>
+    <input type="checkbox" id="redUsersFilter" style="display:none;">
+    <button id="clearSearchBtn" style="display:none;"></button>
 
-    <!-- Search & Filter Bar -->
-    <div class="dash-section">
-        <div style="padding: 16px 24px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-            <div class="search-bar" style="flex: 1; min-width: 250px;">
-                <i class="fas fa-search search-icon"></i>
-                <input type="text" id="searchInput" placeholder="חיפוש לפי שם, אימייל, קוד PDN או קופון...">
-                <button id="clearSearchBtn" onclick="document.getElementById('searchInput').value=''; handleSearch();"
-                        class="hidden"
-                        style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; border: none; background: none; cursor: pointer; font-size: 14px;">
-                    <i class="fas fa-times-circle"></i>
-                </button>
+    <!-- Metrics Dashboard -->
+    <div class="dash-section" id="metricsSection">
+        <div class="dash-section-header">
+            <h3>מדדים</h3>
+            <div style="display: flex; gap: 4px; background: #f1f5f9; border-radius: 28px; padding: 4px;">
+                <button onclick="setMetricsRange('week')" class="metrics-range-btn active" id="rangeWeek">7 ימים</button>
+                <button onclick="setMetricsRange('month')" class="metrics-range-btn" id="rangeMonth">30 ימים</button>
+                <button onclick="setMetricsRange('year')" class="metrics-range-btn" id="rangeYear">שנה</button>
+                <button onclick="setMetricsRange('all')" class="metrics-range-btn" id="rangeAll">הכל</button>
             </div>
-            <span id="searchResultCount" class="hidden" style="font-size: 12px; color: #64748b; white-space: nowrap;" aria-live="polite"></span>
-            <input type="checkbox" id="redUsersFilter" style="display: none;">
+        </div>
+        <div style="padding: 24px;">
+            <!-- KPI Cards Row -->
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px;">
+                <div class="metrics-kpi" style="background: linear-gradient(135deg, #0b2e6b, #1a3f7a); cursor: pointer;" onclick="filterByMetric('completions')" title="לחץ לסינון">
+                    <div class="metrics-kpi-value" style="color: white;" id="metricCompletions">—</div>
+                    <div class="metrics-kpi-label" style="color: rgba(255,255,255,0.7);">השלמות</div>
+                </div>
+                <div class="metrics-kpi" style="cursor: pointer;" onclick="filterByMetric('today')" title="לחץ לסינון">
+                    <div class="metrics-kpi-value" id="metricToday">—</div>
+                    <div class="metrics-kpi-label">אובחנו היום</div>
+                </div>
+                <div class="metrics-kpi" style="cursor: pointer;" onclick="filterByMetric('diagnosed')" title="לחץ לסינון">
+                    <div class="metrics-kpi-value" id="metricDiagnosed">—</div>
+                    <div class="metrics-kpi-label">נבדקו ע"י מאבחן</div>
+                </div>
+                <div class="metrics-kpi">
+                    <div class="metrics-kpi-value" id="metricActiveUsers">—</div>
+                    <div class="metrics-kpi-label">משתמשים מחוברים</div>
+                </div>
+            </div>
+            <!-- Secondary KPI Row -->
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px;">
+                <div class="metrics-kpi" style="cursor: pointer;" onclick="filterByMetric('peakDay')" title="לחץ לסינון">
+                    <div class="metrics-kpi-value" id="metricPeakDay">—</div>
+                    <div class="metrics-kpi-label" id="metricPeakDayLabel">ביום השיא</div>
+                </div>
+                <div class="metrics-kpi" style="cursor: pointer;" onclick="filterByMetric('uniqueCodes')" title="לחץ לסינון">
+                    <div class="metrics-kpi-value" id="metricUniqueCodes">—</div>
+                    <div class="metrics-kpi-label">קודי PDN שונים</div>
+                </div>
+                <div class="metrics-kpi" style="cursor: pointer;" onclick="filterByMetric('codeMatch')" title="לחץ לסינון">
+                    <div class="metrics-kpi-value" id="metricCodeMatch">—</div>
+                    <div class="metrics-kpi-label">התאמה מערכת/מאבחן</div>
+                </div>
+                <div class="metrics-kpi" style="cursor: pointer;" onclick="filterByMetric('codeMismatch')" title="לחץ לסינון">
+                    <div class="metrics-kpi-value" id="metricCodeMismatch">—</div>
+                    <div class="metrics-kpi-label">פער קוד מערכת/מאבחן</div>
+                </div>
+            </div>
+            <!-- Charts Row -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div style="background: white; border-radius: 14px; padding: 20px; border: 1px solid #e8ecf4; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                    <h4 style="font-size: 13px; font-weight: 700; color: #0b2e6b; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9;">התפלגות קודי PDN</h4>
+                    <div id="metricCodeDistribution"></div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 20px;">
+                    <div style="background: white; border-radius: 14px; padding: 20px; border: 1px solid #e8ecf4; box-shadow: 0 1px 3px rgba(0,0,0,0.04); flex: 1;">
+                        <h4 style="font-size: 13px; font-weight: 700; color: #0b2e6b; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9;">נפח יומי</h4>
+                        <div id="metricDailyVolume"></div>
+                    </div>
+                    <div style="background: white; border-radius: 14px; padding: 20px; border: 1px solid #e8ecf4; box-shadow: 0 1px 3px rgba(0,0,0,0.04); flex: 1;">
+                        <h4 style="font-size: 13px; font-weight: 700; color: #0b2e6b; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9;">התאמה מערכת / מאבחן</h4>
+                        <div id="metricCodeMatchChart"></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -377,6 +491,13 @@
                 <span id="rowCount" style="font-size: 12px; color: #64748b; background: #f1f5f9; padding: 4px 10px; border-radius: 12px; font-weight: 600;" aria-live="polite">סה"כ: 0</span>
             </div>
             <div style="display: flex; gap: 8px; align-items: center;">
+                <div style="position: relative;">
+                    <i class="fas fa-search" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 12px;"></i>
+                    <input type="text" id="tableSearchInput" placeholder="חיפוש שם או אימייל..."
+                           oninput="handleTableSearch()"
+                           style="padding: 8px 36px 8px 14px; font-size: 13px; border: 1px solid #e2e8f0; border-radius: 8px; width: 200px; outline: none; transition: border-color 0.2s;"
+                           onfocus="this.style.borderColor='#0b2e6b'" onblur="this.style.borderColor='#e2e8f0'">
+                </div>
                 <button onclick="exportTableCSV()" class="header-btn outline" style="padding: 8px 14px; font-size: 12px;">
                     <i class="fas fa-file-csv"></i>
                     <span>ייצוא CSV</span>
@@ -879,10 +1000,18 @@
             <h2 style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0;">
                 <i class="fas fa-calculator" style="margin-left: 8px; color: #0b2e6b;"></i> פירוט חישוב קוד PDN
             </h2>
-            <button onclick="closeModal('pdnCalculationModal')" aria-label="סגור"
-                    style="color: #94a3b8; font-size: 20px; border: none; background: none; cursor: pointer; padding: 4px;">
-                <i class="fas fa-times"></i>
-            </button>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <button onclick="sendCalculationByEmail()" id="sendCalcEmailBtn"
+                        style="display: flex; align-items: center; gap: 6px; padding: 8px 16px; background: #0b2e6b; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;"
+                        onmouseover="this.style.background='#1a3f7a'" onmouseout="this.style.background='#0b2e6b'">
+                    <i class="fas fa-envelope"></i>
+                    שלח במייל
+                </button>
+                <button onclick="closeModal('pdnCalculationModal')" aria-label="סגור"
+                        style="color: #94a3b8; font-size: 20px; border: none; background: none; cursor: pointer; padding: 4px;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
         </div>
         <div id="pdnCalculationContent" class="space-y-4">
         </div>

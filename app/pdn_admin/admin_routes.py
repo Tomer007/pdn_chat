@@ -348,6 +348,59 @@ def send_algorithm_report():
         return jsonify({"error": str(e)}), 500
 
 
+@pdn_admin_bp.route('/send_calculation_report', methods=['POST'])
+def send_calculation_report():
+    """Send PDN calculation details (from recalculation modal) as HTML email to admin."""
+    try:
+        verify_session(request.args.get('session_token'))
+    except Exception as e:
+        logger.error("Session verification failed: %s", e)
+        return jsonify({"error": "Unauthorized"}), 401
+
+    try:
+        from email.mime.multipart import MIMEMultipart
+        from email.mime.text import MIMEText
+        from ..utils.email_sender import EmailConfig, send_email_via_smtp
+
+        data = request.get_json()
+        user_email = data.get('email', 'unknown')
+        html_content = data.get('html_content', '')
+
+        if not html_content:
+            return jsonify({"error": "No content to send"}), 400
+
+        recipient = 'tomergur@gmail.com'
+
+        msg = MIMEMultipart('alternative')
+        msg['From'] = EmailConfig.FROM_EMAIL
+        msg['To'] = recipient
+        msg['Subject'] = f'פירוט חישוב קוד PDN — {user_email}'
+
+        # Wrap the content in a full HTML document for email
+        full_html = f"""<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="font-family: Inter, -apple-system, sans-serif; background: #f8fafc; padding: 24px; direction: rtl;">
+<div style="max-width: 700px; margin: 0 auto; background: white; border-radius: 16px; padding: 32px; box-shadow: 0 4px 24px rgba(0,0,0,0.06);">
+<h2 style="color: #0b2e6b; font-size: 18px; margin-bottom: 24px;">פירוט חישוב קוד PDN — {user_email}</h2>
+{html_content}
+</div>
+</body></html>"""
+
+        msg.attach(MIMEText(full_html, 'html', 'utf-8'))
+
+        success = send_email_via_smtp(msg)
+        if success:
+            logger.info("Calculation report for %s sent to %s", user_email, recipient)
+            return jsonify({"success": True, "message": "דוח חישוב נשלח בהצלחה"})
+        else:
+            return jsonify({"error": "Failed to send email"}), 500
+
+    except Exception as e:
+        logger.error("Error sending calculation report: %s", e)
+        return jsonify({"error": str(e)}), 500
+
+
 
 def remove_none_keys(obj):
     """Recursively remove None keys from dicts/lists."""
@@ -475,6 +528,12 @@ def send_user_email(email):
         user_answers = load_answers(email)
         if not user_answers:
             return jsonify({"error": "User answers not found"}), 404
+
+        # Ensure metadata.email is set (some older records may be missing it)
+        if 'metadata' not in user_answers:
+            user_answers['metadata'] = {}
+        if not user_answers['metadata'].get('email'):
+            user_answers['metadata']['email'] = email
 
         calculation_result = calculate_pdn_code(user_answers)
 
