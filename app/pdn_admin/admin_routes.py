@@ -302,6 +302,52 @@ def get_metadata_csv():
     return jsonify({"data": load_user_metadata()})
 
 
+@pdn_admin_bp.route('/send_algorithm_report', methods=['POST'])
+def send_algorithm_report():
+    """Send PDN algorithm report HTML as email attachment to admin."""
+    try:
+        verify_session(request.args.get('session_token'))
+    except Exception as e:
+        logger.error("Session verification failed: %s", e)
+        return jsonify({"error": "Unauthorized"}), 401
+
+    try:
+        from email.mime.multipart import MIMEMultipart
+        from email.mime.text import MIMEText
+        from email.mime.application import MIMEApplication
+        from ..utils.email_sender import EmailConfig, send_email_via_smtp
+
+        recipient = 'tomergur@gmail.com'
+        report_path = Path(current_app.root_path).parent / 'docs' / 'pdn_algorithm_report.html'
+
+        if not report_path.exists():
+            return jsonify({"error": "Report file not found"}), 404
+
+        msg = MIMEMultipart()
+        msg['From'] = EmailConfig.FROM_EMAIL
+        msg['To'] = recipient
+        msg['Subject'] = 'פירוט חישוב קוד PDN — דוח אלגוריתם'
+
+        body = MIMEText('מצורף דוח מפורט על אלגוריתם חישוב קוד PDN.\n\nנשלח ממערכת הניהול של PDN.', 'plain', 'utf-8')
+        msg.attach(body)
+
+        with open(report_path, 'rb') as f:
+            attachment = MIMEApplication(f.read(), _subtype='html')
+            attachment.add_header('Content-Disposition', 'attachment', filename='pdn_algorithm_report.html')
+            msg.attach(attachment)
+
+        success = send_email_via_smtp(msg)
+        if success:
+            logger.info("Algorithm report sent to %s", recipient)
+            return jsonify({"success": True, "message": f"דוח נשלח בהצלחה ל-{recipient}"})
+        else:
+            return jsonify({"error": "Failed to send email"}), 500
+
+    except Exception as e:
+        logger.error("Error sending algorithm report: %s", e)
+        return jsonify({"error": str(e)}), 500
+
+
 
 def remove_none_keys(obj):
     """Recursively remove None keys from dicts/lists."""

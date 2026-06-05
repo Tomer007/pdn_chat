@@ -376,10 +376,16 @@
                 <h3>נתוני מאובחנים</h3>
                 <span id="rowCount" style="font-size: 12px; color: #64748b; background: #f1f5f9; padding: 4px 10px; border-radius: 12px; font-weight: 600;" aria-live="polite">סה"כ: 0</span>
             </div>
-            <button onclick="exportTableCSV()" class="header-btn outline" style="padding: 8px 14px; font-size: 12px;">
-                <i class="fas fa-file-csv"></i>
-                <span>ייצוא CSV</span>
-            </button>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <button onclick="exportTableCSV()" class="header-btn outline" style="padding: 8px 14px; font-size: 12px;">
+                    <i class="fas fa-file-csv"></i>
+                    <span>ייצוא CSV</span>
+                </button>
+                <button onclick="sendAlgorithmReport()" class="header-btn outline" style="padding: 8px 14px; font-size: 12px;">
+                    <i class="fas fa-calculator"></i>
+                    <span>פירוט חישוב קוד PDN</span>
+                </button>
+            </div>
         </div>
         <div style="padding: 0;">
             <div class="table-container overflow-x-auto">

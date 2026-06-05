@@ -2019,6 +2019,34 @@
             showNotification(`קובץ CSV יוצא בהצלחה (${exportData.length} שורות)`, 'success');
         }
 
+        async function sendAlgorithmReport() {
+            if (!sessionToken) {
+                window.location.href = '/pdn-admin/';
+                return;
+            }
+
+            try {
+                showNotification('שולח דוח אלגוריתם...', 'info');
+                const response = await fetch(`/pdn-admin/send_algorithm_report?session_token=${sessionToken}`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'}
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    showNotification(data.message || 'דוח נשלח בהצלחה', 'success');
+                } else if (response.status === 401) {
+                    redirectToLogin();
+                } else {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || 'Failed to send report');
+                }
+            } catch (error) {
+                logError('sendAlgorithmReport', error);
+                showNotification(`שגיאה בשליחת הדוח: ${error.message}`, 'error');
+            }
+        }
+
         async function viewJourney(email) {
             try {
                 const response = await fetch(`/pdn-admin/user/journey/${email}?session_token=${sessionToken}`);
