@@ -365,6 +365,7 @@ For support and questions:
 - ✅ **NEW**: PDN code distribution grouped by trait (A/T/P/E) and energy (D/S/F)
 - ✅ **NEW**: Code match/mismatch donut chart with detailed breakdown
 - ✅ **NEW**: "Needs verification" metric with clickable filter
+- ✅ **NEW**: Clickable "אימות" badge shows reason: "הפער בין הציונים קטן מ-2 נקודות"
 - ✅ **NEW**: Date range filters (7 days, 30 days, year, all)
 - ✅ **NEW**: Send calculation report via email from recalculation modal
 - ✅ **NEW**: Send algorithm report via email from dashboard
@@ -372,6 +373,7 @@ For support and questions:
 - ✅ **NEW**: PDN algorithm HTML report (`docs/pdn_algorithm_report.html`)
 - ✅ **NEW**: Admin recalculate guide (`docs/admin_recalculate_guide.html`)
 - ✅ **NEW**: `run_local.sh` script for local development
+- ✅ **NEW**: Render log review steering file (`.kiro/steering/render-log-review.md`)
 - ✅ Mobile UX improvements — hidden title, centered buttons, question-first layout
 - ✅ Session expired modal (401) with Hebrew re-login prompt
 - ✅ Network error retry with Hebrew messages
@@ -383,6 +385,7 @@ For support and questions:
 - ✅ Time remaining display completely removed
 - ✅ Question 1 rewording + question mark on Q28
 - ✅ `needs_verification` calculated and displayed in admin
+- ✅ Removed unused files: `RELEASE_NOTES.md`, `admin-dashboard.css/js`, `P-10.pdf`, flask_session
 - ✅ 19 new tests for metrics, email, and distribution logic
 
 ### Version 2.6.0 (2025-05-19)

@@ -1237,8 +1237,8 @@
                         <span class="text-xs font-mono ${user.confidence_score >= 80 ? 'text-green-700' : user.confidence_score >= 60 ? 'text-yellow-700' : 'text-red-700'}">${user.confidence_score}%</span>
                     </div>` :
                     (user.needs_verification ?
-                        '<span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium" title="נדרש אימות אנושי">אימות</span>' :
-                        '<span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">תקין</span>')
+                        `<span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium cursor-pointer" title="נדרש אימות אנושי — הפער בין הציונים קטן מ-2 נקודות" onclick="showNotification('קוד ${escapeHtml(user.pdn_code)} — נדרש אימות אנושי (הפער בין הציונים קטן מ-2 נקודות)', 'warning')">⚠️ אימות</span>` :
+                        '<span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">✓ תקין</span>')
                 }
             </td>
             <td class="px-4 py-4">
