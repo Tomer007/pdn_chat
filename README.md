@@ -88,11 +88,15 @@ SMTP_PASSWORD=your_password
 
 ### 5. Run the Application
 ```bash
-# Development mode
-python run.py
+# Quick start (recommended)
+./run_local.sh
+
+# Or manually:
+source venv/bin/activate
+python -m flask run --port 5000
 
 # Production mode
-gunicorn -w 4 -b 0.0.0.0:8001 app:app
+gunicorn app.main:app
 ```
 
 ## Application Access
@@ -356,22 +360,46 @@ For support and questions:
 
 ## Changelog
 
-### Version 1.1.0 (Latest)
-- ✅ **NEW**: 45-Day Transformation Plan feature with interactive modal
-- ✅ **NEW**: Personalized transformation programs based on user goals and PDN codes
-- ✅ **NEW**: A7Agent integration for specialized plan generation
-- ✅ **NEW**: Hebrew language support with RTL interface
-- ✅ **NEW**: Enter key support for quick form submission
-- ✅ Complete admin dashboard redesign with modern UI
-- ✅ Fixed JavaScript template literal syntax errors
-- ✅ Enhanced voice recording functionality
-- ✅ Improved questionnaire user experience
-- ✅ Added comprehensive error handling
-- ✅ Implemented PDN-specific AI agents
-- ✅ Added PDF and JSON report generation
-- ✅ Enhanced security and authentication
+### Version 2.7.1-20260606 (Latest)
+- ✅ **NEW**: Admin Metrics Dashboard — KPIs, code distribution, daily volume, match/mismatch chart
+- ✅ **NEW**: PDN code distribution grouped by trait (A/T/P/E) and energy (D/S/F)
+- ✅ **NEW**: Code match/mismatch donut chart with detailed breakdown
+- ✅ **NEW**: "Needs verification" metric with clickable filter
+- ✅ **NEW**: Date range filters (7 days, 30 days, year, all)
+- ✅ **NEW**: Send calculation report via email from recalculation modal
+- ✅ **NEW**: Send algorithm report via email from dashboard
+- ✅ **NEW**: Search by name/email in data table
+- ✅ **NEW**: PDN algorithm HTML report (`docs/pdn_algorithm_report.html`)
+- ✅ **NEW**: Admin recalculate guide (`docs/admin_recalculate_guide.html`)
+- ✅ **NEW**: `run_local.sh` script for local development
+- ✅ Mobile UX improvements — hidden title, centered buttons, question-first layout
+- ✅ Session expired modal (401) with Hebrew re-login prompt
+- ✅ Network error retry with Hebrew messages
+- ✅ Removed disclaimer from diagnose login page
+- ✅ Second recording mandatory in production
+- ✅ Question text in black, ranking items bolder
+- ✅ Completion screen: full text + "לאתר PDN CENTER" button with subtitle
+- ✅ Login button: dark gold gradient with white text
+- ✅ Time remaining display completely removed
+- ✅ Question 1 rewording + question mark on Q28
+- ✅ `needs_verification` calculated and displayed in admin
+- ✅ 19 new tests for metrics, email, and distribution logic
+
+### Version 2.6.0 (2025-05-19)
+- ✅ Complete coupon management system
+- ✅ Unified login (password or coupon code)
+- ✅ Coupon display in questionnaire and admin table
+- ✅ Refresh button in coupon management widget
+- ✅ Security improvements
+- ✅ Log cleanup
+
+### Version 1.1.0
+- ✅ 45-Day Transformation Plan feature
+- ✅ Complete admin dashboard redesign
+- ✅ Enhanced voice recording
+- ✅ PDN-specific AI agents
+- ✅ PDF and JSON report generation
 - ✅ Comprehensive test coverage
-- ✅ Production-ready deployment configuration
 
 ---
 
