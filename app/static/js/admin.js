@@ -808,6 +808,10 @@
                 .catch(() => { document.getElementById('metricActiveUsers').textContent = '0'; });
         }
 
+        // KPI: Needs verification
+        const needsVerification = filtered.filter(u => u.needs_verification === true).length;
+        document.getElementById('metricNeedsVerification').textContent = needsVerification;
+
         // Chart 1: PDN Code Distribution — Grouped by Trait
         const codeCount = {};
         filtered.forEach(u => {
@@ -1053,6 +1057,10 @@
                     u.pdn_code !== u.diagnose_pdn_code
                 );
                 label = 'פער קוד מערכת/מאבחן';
+                break;
+            case 'needsVerification':
+                filtered = inRange.filter(u => u.needs_verification === true);
+                label = 'נדרש אימות אנושי';
                 break;
             default:
                 filtered = inRange;
