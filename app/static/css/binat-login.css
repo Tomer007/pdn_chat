@@ -344,8 +344,8 @@ select.form-input option:checked {
 /* ===== Submit Button ===== */
 .submit-button {
     width: 100%;
-    background: linear-gradient(135deg, #e6b020 0%, #f0c840 40%, #f8e070 100%);
-    color: #2d2a26;
+    background: linear-gradient(90deg, #8b6914 0%, #c9a96e 50%, #d4b87a 100%);
+    color: white;
     border: none;
     padding: 16px 24px;
     border-radius: 16px;
@@ -354,7 +354,7 @@ select.form-input option:checked {
     font-weight: 600;
     font-size: 16px;
     letter-spacing: 0.3px;
-    box-shadow: 0 4px 16px rgba(230, 176, 32, 0.3);
+    box-shadow: 0 4px 16px rgba(139, 105, 20, 0.3);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -364,7 +364,7 @@ select.form-input option:checked {
 
 .submit-button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(201, 169, 110, 0.4);
+    box-shadow: 0 8px 24px rgba(139, 105, 20, 0.4);
 }
 
 .submit-button:active {

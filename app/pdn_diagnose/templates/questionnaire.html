@@ -1286,11 +1286,11 @@
     updateProgress(1, 'הקלטה 1/2');
 
     // Set initial time remaining display (15 minutes estimate)
+    // Time remaining display disabled — kept hidden per user request
     (function() {
         const timeRemainingEl = document.getElementById('timeRemaining');
         if (timeRemainingEl) {
-            const secondsLeft = progressManager.calculateTimeRemaining(0);
-            timeRemainingEl.textContent = progressManager.formatTimeRemaining(secondsLeft);
+            timeRemainingEl.classList.add('hidden');
         }
     })();
 
@@ -1606,13 +1606,9 @@
         if (data.message === "No more questions.") return completeQuestionnaire();
         // Update progress for the current question, even if an instructions modal appears
         updateProgress(2 + questionNumber, progressManager.formatProgressLabel(questionNumber));
-        // Update document title and time remaining display
+        // Update document title
         progressManager.updateTitle(questionNumber);
-        const timeRemainingEl = document.getElementById('timeRemaining');
-        if (timeRemainingEl) {
-            const secondsLeft = progressManager.calculateTimeRemaining(questionNumber);
-            timeRemainingEl.textContent = progressManager.formatTimeRemaining(secondsLeft);
-        }
+        // Time remaining display disabled
         if (data.stage !== currentStage) {
             currentStage = data.stage;
             if (data.instructions) {
@@ -1875,7 +1871,8 @@
             numberDiv.textContent = '·';
 
             const textSpan = document.createElement('span');
-            textSpan.className = 'flex-1 text-black font-medium';
+            textSpan.className = 'flex-1 font-semibold';
+            textSpan.style.cssText = 'color: #1a1a1a; font-size: 15px; line-height: 1.5;';
             textSpan.textContent = opt.text;
 
             li.appendChild(numberDiv);

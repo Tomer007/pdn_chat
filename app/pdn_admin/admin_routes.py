@@ -177,20 +177,19 @@ def load_user_metadata():
                     "voice": f"/api/user/voice/{email}"
                 }
 
-                # # Calculate needs_verification from user's answers
-                # needs_verification = False
-                # try:
-                #     user_answers = load_answers(email)
-                #     if user_answers:
-                #         calc_result = calculate_pdn_code(user_answers)
-                #         if isinstance(calc_result, dict):
-                #             needs_verification = calc_result.get('needs_verification', False)
-                #         else:
-                #             # String return means needs_verification is False
-                #             needs_verification = False
-                # except Exception as e:
-                #     logger.debug("Could not calculate verification for %s: %s", email, e)
-                # user_data["needs_verification"] = needs_verification
+                # Calculate needs_verification from user's answers
+                needs_verification = False
+                try:
+                    user_answers = load_answers(email)
+                    if user_answers:
+                        calc_result = calculate_pdn_code(user_answers)
+                        if isinstance(calc_result, dict):
+                            needs_verification = calc_result.get('needs_verification', False)
+                        else:
+                            needs_verification = False
+                except Exception as e:
+                    logger.debug("Could not calculate verification for %s: %s", email, e)
+                user_data["needs_verification"] = needs_verification
 
                 metadata_list.append(user_data)
 
