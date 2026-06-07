@@ -308,6 +308,9 @@ def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) ->
         })
 
     # Stage E: Strengthen Dominant Trait
+    # Save dominant trait BEFORE Stage E for comparison
+    dominant_before_stage_e = dominant_trait
+
     for i in range(57, 61):
         if str(i) in answers:
             ranking = answers[str(i)]['ranking']
@@ -329,6 +332,13 @@ def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) ->
         dominant_trait = 'Undetermined'
     result['trait'] = dominant_trait
 
+    # Check if Stage E flipped the dominant trait (override detection)
+    stage_e_override = False
+    if dominant_before_stage_e != 'Undetermined' and dominant_trait != dominant_before_stage_e:
+        stage_e_override = True
+        logger.warning("Stage E override: dominant trait changed from %s to %s", dominant_before_stage_e, dominant_trait)
+    result['stage_e_override'] = stage_e_override
+
     logger.debug("Stage E: Trait Calculation for A %s", result['scores']['A'])
     logger.debug("Stage E: Trait Calculation for T %s", result['scores']['T'])
     logger.debug("Stage E: Trait Calculation for P %s", result['scores']['P'])
@@ -349,7 +359,9 @@ def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) ->
                 'S': result['scores']['S'],
                 'F': result['scores']['F']
             },
-            'dominant': dominant_trait
+            'dominant': dominant_trait,
+            'stage_e_override': stage_e_override,
+            'dominant_before_stage_e': dominant_before_stage_e
         })
 
     # Check if verification is needed based on E, P, A, T scores
@@ -385,12 +397,26 @@ def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) ->
             'energy': result['energy'],
             'scores': result['scores'].copy(),
             'needs_verification': result['needs_verification'],
+            'stage_e_override': result.get('stage_e_override', False),
+            'dominant_before_stage_e': dominant_before_stage_e if stage_e_override else None,
             'confidence_score': confidence_score
         })
         return {
             'pdn_code': pdn_code,
             'needs_verification': result['needs_verification'],
+            'stage_e_override': result.get('stage_e_override', False),
             'calculation_details': calculation_details
+        }
+
+    # If stage E overrode the dominant trait, flag it for review
+    if result.get('stage_e_override'):
+        return {
+            'pdn_code': pdn_code,
+            'needs_verification': result['needs_verification'],
+            'stage_e_override': True,
+            'dominant_before_stage_e': dominant_before_stage_e,
+            'scores': result['scores'],
+            'confidence_score': confidence_score
         }
 
     # If verification is needed, return the full result object instead of just the code

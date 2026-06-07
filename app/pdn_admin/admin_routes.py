@@ -179,17 +179,23 @@ def load_user_metadata():
 
                 # Calculate needs_verification from user's answers
                 needs_verification = False
+                stage_e_override = False
+                dominant_before_stage_e = None
                 try:
                     user_answers = load_answers(email)
                     if user_answers:
                         calc_result = calculate_pdn_code(user_answers)
                         if isinstance(calc_result, dict):
                             needs_verification = calc_result.get('needs_verification', False)
+                            stage_e_override = calc_result.get('stage_e_override', False)
+                            dominant_before_stage_e = calc_result.get('dominant_before_stage_e')
                         else:
                             needs_verification = False
                 except Exception as e:
                     logger.debug("Could not calculate verification for %s: %s", email, e)
                 user_data["needs_verification"] = needs_verification
+                user_data["stage_e_override"] = stage_e_override
+                user_data["dominant_before_stage_e"] = dominant_before_stage_e
 
                 metadata_list.append(user_data)
 

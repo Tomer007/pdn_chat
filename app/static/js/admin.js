@@ -1095,6 +1095,55 @@
         showNotification(`מציג ${filtered.length} רשומות: ${dateStr}`, 'info');
     }
 
+    function showVerificationPopup(email, pdnCode) {
+        // Find user data to get stage_e_override info
+        const user = currentData.find(u => u.email === email);
+        const stageEOverride = user && user.stage_e_override;
+        const dominantBefore = user && user.dominant_before_stage_e;
+        const trait = pdnCode ? pdnCode.charAt(0) : '?';
+
+        // Create a modal popup with verification details
+        const existing = document.getElementById('verificationPopup');
+        if (existing) existing.remove();
+
+        const overrideHtml = stageEOverride && dominantBefore ? `
+            <div style="background:#fee2e2;border:1px solid #fca5a5;border-radius:8px;padding:10px;margin-top:10px;text-align:right;">
+                <p style="font-size:13px;color:#991b1b;font-weight:600;">
+                    <i class="fas fa-exchange-alt"></i>
+                    שלב E שינה דומיננטית: ${dominantBefore} → ${trait} — נדרש אימות
+                </p>
+            </div>
+        ` : '';
+
+        const overlay = document.createElement('div');
+        overlay.id = 'verificationPopup';
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+        overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+        overlay.innerHTML = `
+            <div style="background:white;border-radius:16px;padding:28px;max-width:420px;width:100%;box-shadow:0 24px 48px rgba(0,0,0,0.2);text-align:center;direction:rtl;">
+                <div style="font-size:2.5rem;margin-bottom:12px;">⚠️</div>
+                <h3 style="font-size:1.1rem;font-weight:700;color:#991b1b;margin-bottom:16px;">נדרש אימות אנושי</h3>
+                <div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:10px;padding:14px;margin-bottom:16px;text-align:right;">
+                    <p style="font-size:14px;color:#92400e;font-weight:600;margin-bottom:8px;">קוד: <span style="font-size:18px;color:#991b1b;">${pdnCode}</span></p>
+                    <p style="font-size:13px;color:#92400e;line-height:1.7;">פער ניקוד קטן מ-2 נקודות בין התכונות הדומיננטיות.</p>
+                    <p style="font-size:13px;color:#92400e;line-height:1.7;">יש לבדוק את ההקלטות הקוליות ולאמת את הקוד ידנית.</p>
+                    ${overrideHtml}
+                </div>
+                <div style="display:flex;gap:8px;justify-content:center;">
+                    <button onclick="recalculatePdnCode('${email}'); document.getElementById('verificationPopup').remove();" style="padding:10px 20px;background:#0b2e6b;color:white;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">
+                        <i class="fas fa-calculator"></i> חשב מחדש
+                    </button>
+                    <button onclick="document.getElementById('verificationPopup').remove();" style="padding:10px 20px;background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">
+                        סגור
+                    </button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+    }
+
     function handleTableSearch() {
         const term = (document.getElementById('tableSearchInput').value || '').trim().toLowerCase();
         if (!term) {
@@ -1237,7 +1286,7 @@
                         <span class="text-xs font-mono ${user.confidence_score >= 80 ? 'text-green-700' : user.confidence_score >= 60 ? 'text-yellow-700' : 'text-red-700'}">${user.confidence_score}%</span>
                     </div>` :
                     (user.needs_verification ?
-                        `<span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium cursor-pointer" title="נדרש אימות אנושי — הפער בין הציונים קטן מ-2 נקודות" onclick="showNotification('קוד ${escapeHtml(user.pdn_code)} — נדרש אימות אנושי (הפער בין הציונים קטן מ-2 נקודות)', 'warning')">⚠️ אימות</span>` :
+                        `<span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium cursor-pointer" onclick="showVerificationPopup('${escapeHtml(user.email)}', '${escapeHtml(user.pdn_code)}')" title="לחץ לפרטים">⚠️ אימות</span>` :
                         '<span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">✓ תקין</span>')
                 }
             </td>
@@ -2149,8 +2198,12 @@
             // Final result card at top
             if (finalStage) {
                 const verifyBadge = finalStage.needs_verification
-                    ? '<div style="margin-top: 12px; display: inline-flex; align-items: center; gap: 8px; background: #fef3c7; color: #92400e; font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 8px;"><i class="fas fa-exclamation-triangle"></i> נדרש אימות אנושי</div>'
+                    ? '<div style="margin-top: 12px; display: inline-flex; align-items: center; gap: 8px; background: #fef3c7; color: #92400e; font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 8px;"><i class="fas fa-exclamation-triangle"></i> נדרש אימות אנושי — הפער בין הציונים קטן מ-2 נקודות</div>'
                     : '<div style="margin-top: 12px; display: inline-flex; align-items: center; gap: 8px; background: #d1fae5; color: #065f46; font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 8px;"><i class="fas fa-check-circle"></i> תקין</div>';
+
+                const overrideBadge = finalStage.stage_e_override
+                    ? `<div style="margin-top: 8px; display: inline-flex; align-items: center; gap: 8px; background: #fee2e2; color: #991b1b; font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 8px;"><i class="fas fa-exchange-alt"></i> שלב E שינה תכונה דומיננטית: ${finalStage.dominant_before_stage_e || '?'} → ${finalStage.trait} — נדרש אימות</div>`
+                    : '';
 
                 html += `
                 <div style="padding: 28px; background: linear-gradient(135deg, #0b2e6b 0%, #1a3f7a 100%); border-radius: 16px; color: white; text-align: center; box-shadow: 0 8px 32px rgba(11, 46, 107, 0.3);">
@@ -2170,6 +2223,7 @@
                         </div>
                     </div>
                     ${verifyBadge}
+                    ${overrideBadge}
                 </div>`; 
             }
 
