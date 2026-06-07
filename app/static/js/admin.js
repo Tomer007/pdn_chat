@@ -1160,6 +1160,58 @@
         document.getElementById('rowCount').textContent = `סה"כ שורות: ${filtered.length} (חיפוש: "${term}")`;
     }
 
+    async function bulkRecalculateVerification() {
+        const usersNeedingVerification = currentData.filter(u => u.needs_verification === true);
+        if (usersNeedingVerification.length === 0) {
+            showNotification('אין משתמשים הדורשים אימות', 'info');
+            return;
+        }
+
+        const password = await requestAdminPassword(`חשב מחדש ${usersNeedingVerification.length} משתמשים הדורשים אימות?`);
+        if (!password) return;
+
+        showNotification(`מתחיל חישוב מחדש ל-${usersNeedingVerification.length} משתמשים...`, 'info');
+
+        let success = 0;
+        let failed = 0;
+
+        for (const user of usersNeedingVerification) {
+            try {
+                const response = await fetch(`/pdn-admin/user/recalculate_pdn/${user.email}?session_token=${sessionToken}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    // Update local data
+                    const idx = currentData.findIndex(u => u.email === user.email);
+                    if (idx !== -1) {
+                        currentData[idx].pdn_code = data.pdn_code;
+                        currentData[idx].needs_verification = data.needs_verification || false;
+                        if (data.confidence_score !== undefined) {
+                            currentData[idx].confidence_score = data.confidence_score;
+                        }
+                    }
+                    success++;
+                } else if (response.status === 401) {
+                    redirectToLogin();
+                    return;
+                } else {
+                    failed++;
+                }
+            } catch (error) {
+                failed++;
+            }
+        }
+
+        // Refresh display
+        renderTable(currentData);
+        updateMetrics();
+        showNotification(`חישוב מחדש הושלם: ${success} הצליחו, ${failed} נכשלו`, success > 0 ? 'success' : 'error');
+    }
+
     function renderTable(data) {
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '';
