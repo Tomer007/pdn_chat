@@ -1160,6 +1160,45 @@
         document.getElementById('rowCount').textContent = `סה"כ שורות: ${filtered.length} (חיפוש: "${term}")`;
     }
 
+    async function showActiveUsers() {
+        if (!sessionToken) return;
+        try {
+            const response = await fetch(`/pdn-admin/logged-in-users?session_token=${sessionToken}`);
+            if (!response.ok) {
+                showNotification('לא ניתן לטעון משתמשים מחוברים', 'error');
+                return;
+            }
+            const data = await response.json();
+            const users = data.users || [];
+
+            if (users.length === 0) {
+                showNotification('אין משתמשים מחוברים כרגע', 'info');
+                return;
+            }
+
+            // Show in the loggedInUsersModal
+            const content = document.getElementById('loggedInUsersContent');
+            if (content) {
+                content.innerHTML = users.map(u => `
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f1f5f9;">
+                        <div>
+                            <span style="font-weight:600;color:#1e293b;">${u.email || 'unknown'}</span>
+                            <span style="font-size:11px;color:#94a3b8;margin-right:8px;">${u.type || ''}</span>
+                        </div>
+                        <span style="font-size:11px;color:#64748b;">${u.login_time || ''}</span>
+                    </div>
+                `).join('');
+                document.getElementById('loggedInUsersModal').style.display = 'flex';
+            } else {
+                // Fallback: show as notification
+                const names = users.map(u => u.email || 'unknown').join(', ');
+                showNotification(`מחוברים (${users.length}): ${names}`, 'info');
+            }
+        } catch (error) {
+            showNotification('שגיאה בטעינת משתמשים מחוברים', 'error');
+        }
+    }
+
     async function bulkRecalculateVerification() {
         const usersNeedingVerification = currentData.filter(u => u.needs_verification === true);
         if (usersNeedingVerification.length === 0) {
