@@ -109,6 +109,33 @@ def _validate_coupon_code_param(code: str) -> bool:
 _metadata_cache = {'data': None, 'timestamp': 0}
 _METADATA_CACHE_TTL = 60  # seconds
 
+# Error tracker for health monitoring
+_error_tracker = {'count_24h': 0, 'last_error': None, 'last_error_time': None, 'errors': []}
+
+
+def _track_error(message: str):
+    """Track an error for health monitoring."""
+    from datetime import datetime
+    now = datetime.now()
+    _error_tracker['count_24h'] += 1
+    _error_tracker['last_error'] = message[:100]
+    _error_tracker['last_error_time'] = now.strftime('%H:%M:%S')
+    _error_tracker['errors'].append({'msg': message[:80], 'time': now.strftime('%H:%M')})
+    # Keep only last 20 errors
+    if len(_error_tracker['errors']) > 20:
+        _error_tracker['errors'] = _error_tracker['errors'][-20:]
+
+
+class _ErrorTrackingHandler(logging.Handler):
+    """Custom logging handler that counts errors for health monitoring."""
+    def emit(self, record):
+        if record.levelno >= logging.ERROR:
+            _track_error(record.getMessage())
+
+
+# Attach the error tracking handler to the admin logger
+logger.addHandler(_ErrorTrackingHandler())
+
 def load_user_metadata():
     """
     Load user metadata from the CSV file and JSON files.
@@ -406,6 +433,97 @@ def send_calculation_report():
         return jsonify({"error": str(e)}), 500
 
 
+@pdn_admin_bp.route('/compress_old_audio', methods=['POST'])
+def compress_old_audio():
+    """Compress WAV audio files older than 30 days to MP3."""
+    try:
+        verify_session(request.args.get('session_token'))
+    except Exception as e:
+        logger.error("Session verification failed: %s", e)
+        return jsonify({"error": "Unauthorized"}), 401
+
+    try:
+        import subprocess
+        saved_results_dir = Path(os.getenv('SAVED_RESULTS_DIR', 'saved_results'))
+
+        if not saved_results_dir.exists():
+            return jsonify({"error": "saved_results directory not found"}), 404
+
+        # Calculate current storage usage
+        total_size = sum(f.stat().st_size for f in saved_results_dir.rglob('*') if f.is_file())
+        wav_total = sum(f.stat().st_size for f in saved_results_dir.rglob('*.wav'))
+        mp3_total = sum(f.stat().st_size for f in saved_results_dir.rglob('*.mp3'))
+
+        # Find WAV files older than 30 days
+        cutoff = time.time() - (30 * 86400)
+        wav_files = []
+        for wav_file in saved_results_dir.rglob('*.wav'):
+            if wav_file.stat().st_mtime < cutoff:
+                wav_files.append(wav_file)
+
+        storage_info = {
+            "total_mb": round(total_size / (1024 * 1024), 1),
+            "wav_mb": round(wav_total / (1024 * 1024), 1),
+            "mp3_mb": round(mp3_total / (1024 * 1024), 1),
+            "wav_old_count": len(wav_files),
+            "wav_old_mb": round(sum(f.stat().st_size for f in wav_files) / (1024 * 1024), 1),
+            "disk_limit_mb": 1024
+        }
+
+        # If GET-like check (no actual compression requested)
+        data = request.get_json(silent=True) or {}
+        if data.get('check_only'):
+            return jsonify({"success": True, "storage": storage_info})
+
+        if not wav_files:
+            return jsonify({"success": True, "message": "אין קבצי WAV ישנים מ-30 יום", "compressed": 0, "saved_mb": 0, "storage": storage_info})
+
+        success = 0
+        failed = 0
+        bytes_saved = 0
+
+        for wav_file in wav_files:
+            mp3_file = wav_file.with_suffix('.mp3')
+            wav_size = wav_file.stat().st_size
+
+            try:
+                result = subprocess.run(
+                    ['ffmpeg', '-i', str(wav_file), '-b:a', '64k', '-y', str(mp3_file)],
+                    capture_output=True, text=True, timeout=30
+                )
+                if result.returncode == 0 and mp3_file.exists():
+                    mp3_size = mp3_file.stat().st_size
+                    bytes_saved += wav_size - mp3_size
+                    wav_file.unlink()  # Delete original WAV
+                    success += 1
+                else:
+                    failed += 1
+                    logger.warning("ffmpeg failed for %s: %s", wav_file.name, result.stderr[:100])
+            except Exception as e:
+                failed += 1
+                logger.warning("Error compressing %s: %s", wav_file.name, e)
+
+        saved_mb = round(bytes_saved / (1024 * 1024), 1)
+        logger.info("Audio compression complete: %d compressed, %d failed, %.1f MB saved", success, failed, saved_mb)
+
+        # Recalculate storage after compression
+        total_after = sum(f.stat().st_size for f in saved_results_dir.rglob('*') if f.is_file())
+        storage_info["total_mb"] = round(total_after / (1024 * 1024), 1)
+
+        return jsonify({
+            "success": True,
+            "message": f"דחיסה הושלמה: {success} קבצים דוחסו, חסכון {saved_mb} MB",
+            "compressed": success,
+            "failed": failed,
+            "saved_mb": saved_mb,
+            "storage": storage_info
+        })
+
+    except Exception as e:
+        logger.error("Error in audio compression: %s", e)
+        return jsonify({"error": str(e)}), 500
+
+
 
 def remove_none_keys(obj):
     """Recursively remove None keys from dicts/lists."""
@@ -415,6 +533,77 @@ def remove_none_keys(obj):
         return [remove_none_keys(item) for item in obj]
     else:
         return obj
+
+
+@pdn_admin_bp.route('/health_status')
+def get_health_status():
+    """Get system health status for admin dashboard."""
+    try:
+        verify_session(request.args.get('session_token'))
+    except Exception as e:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    try:
+        import psutil
+        saved_results_dir = Path(os.getenv('SAVED_RESULTS_DIR', 'saved_results'))
+
+        # CPU and Memory from psutil
+        cpu_percent = psutil.cpu_percent(interval=0.5)
+        memory = psutil.virtual_memory()
+
+        # Storage
+        storage_total = 0
+        if saved_results_dir.exists():
+            storage_total = sum(f.stat().st_size for f in saved_results_dir.rglob('*') if f.is_file())
+
+        # Active sessions count
+        active_count = len(admin_sessions)
+        try:
+            from ..pdn_diagnose.diagnosis_routes import active_sessions as diag_sessions
+            active_count += len(diag_sessions)
+        except Exception:
+            pass
+
+        # Error logs — count from internal error tracker
+        error_count_24h = _error_tracker.get('count_24h', 0)
+        last_error = _error_tracker.get('last_error', None)
+        last_error_time = _error_tracker.get('last_error_time', None)
+
+        # Uptime
+        import datetime as dt
+        boot_time = dt.datetime.fromtimestamp(psutil.boot_time())
+        uptime_seconds = (dt.datetime.now() - boot_time).total_seconds()
+        uptime_hours = int(uptime_seconds / 3600)
+
+        health = {
+            "status": "operational",
+            "cpu_percent": round(cpu_percent, 1),
+            "memory_used_mb": round(memory.used / (1024 * 1024)),
+            "memory_total_mb": round(memory.total / (1024 * 1024)),
+            "memory_percent": round(memory.percent, 1),
+            "storage_used_mb": round(storage_total / (1024 * 1024), 1),
+            "storage_limit_mb": 1024,
+            "active_sessions": active_count,
+            "uptime_hours": uptime_hours,
+            "errors_24h": error_count_24h,
+            "last_error": last_error,
+            "last_error_time": last_error_time,
+            "service_url": "https://pdn-chat.onrender.com",
+            "region": "Frankfurt",
+            "plan": "Starter"
+        }
+
+        # Determine overall status
+        if cpu_percent > 90 or memory.percent > 95 or error_count_24h > 50:
+            health["status"] = "critical"
+        elif cpu_percent > 70 or memory.percent > 80 or error_count_24h > 10:
+            health["status"] = "warning"
+
+        return jsonify(health)
+
+    except Exception as e:
+        logger.error("Error getting health status: %s", e)
+        return jsonify({"status": "unknown", "error": str(e)})
 
 
 @pdn_admin_bp.route('/user/questionnaire/<email>')
@@ -463,7 +652,10 @@ def get_user_voice(email):
         voice_recordings = {}
 
         for question_num in ['question1', 'question2']:
+            # Try WAV first, then MP3
             filename = pdn_file_path.find_user_file(email, f"{question_num}.wav")
+            if not filename or not filename.exists():
+                filename = pdn_file_path.find_user_file(email, f"{question_num}.mp3")
             if filename and filename.exists():
                 try:
                     if filename.is_file() and filename.stat().st_size > 0:
@@ -701,17 +893,31 @@ def serve_audio(file_path):
         logger.error("Path resolution error: %s", e)
         abort(400, description="Invalid file path")
 
-    # Check if file exists
+    # Check if file exists (try .mp3 fallback if .wav not found)
     if not audio_path.exists():
-        logger.warning("File not found: %s", audio_path)
-        abort(404, description="Audio file not found")
+        # Try MP3 version if WAV was requested
+        if audio_path.suffix.lower() == '.wav':
+            mp3_path = audio_path.with_suffix('.mp3')
+            if mp3_path.exists():
+                audio_path = mp3_path
+            else:
+                logger.warning("File not found: %s (also tried .mp3)", audio_path)
+                abort(404, description="Audio file not found")
+        else:
+            logger.warning("File not found: %s", audio_path)
+            abort(404, description="Audio file not found")
 
     logger.debug("File found, serving: %s", audio_path)
 
     try:
+        # Detect mimetype based on file extension
+        ext = audio_path.suffix.lower()
+        mimetypes = {'.wav': 'audio/wav', '.mp3': 'audio/mpeg', '.webm': 'audio/webm', '.ogg': 'audio/ogg'}
+        mimetype = mimetypes.get(ext, 'audio/wav')
+
         return send_file(
             audio_path,
-            mimetype='audio/wav',
+            mimetype=mimetype,
             as_attachment=False,
             download_name=audio_path.name
         )
