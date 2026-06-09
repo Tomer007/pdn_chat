@@ -6,10 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
     <script src="https://unpkg.com/@alpinejs/collapse@3.14.9/dist/cdn.min.js" defer></script>
+    <script src="https://unpkg.com/@alpinejs/focus@3.14.9/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/alpinejs@3.14.9/dist/cdn.min.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}?v=250">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}?v=251">
     <style>
         /* Dashboard-specific overrides for better UX */
         .dash-section {
@@ -277,6 +278,20 @@
             .secondary-panels {
                 grid-template-columns: 1fr !important;
             }
+            /* Mobile KPI grid fix */
+            #metricsSection div[style*="grid-template-columns: repeat(4"] {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            #metricsSection div[style*="grid-template-columns: repeat(2"] {
+                grid-template-columns: 1fr !important;
+            }
+            #metricsSection div[style*="grid-template-columns: 1fr 1fr"] {
+                grid-template-columns: 1fr !important;
+            }
+            .metrics-range-btn {
+                padding: 6px 10px;
+                font-size: 11px;
+            }
         }
 
         /* Version badge */
@@ -392,6 +407,10 @@
             </div>
         </div>
         <div class="header-actions">
+            <button id="healthBtn" class="header-btn outline" aria-label="בריאות מערכת" onclick="showHealthStatus()" style="position:relative;">
+                <span id="healthDot" style="position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:#22c55e;"></span>
+                <i class="fas fa-heartbeat" aria-hidden="true"></i>
+            </button>
             <button id="refreshBtn" class="header-btn primary" aria-label="רענן נתונים" onclick="refreshAllData()">
                 <i class="fas fa-sync-alt" aria-hidden="true"></i>
                 <span>רענן נתונים</span>
@@ -407,11 +426,10 @@
         </div>
     </div>
 
-    <!-- Hidden search elements (kept for JS compatibility) -->
-    <input type="text" id="searchInput" style="display:none;">
-    <span id="searchResultCount" style="display:none;"></span>
-    <input type="checkbox" id="redUsersFilter" style="display:none;">
-    <button id="clearSearchBtn" style="display:none;"></button>
+    <!-- Legacy compat elements (referenced by metrics JS) -->
+    <div id="metricUniqueCodes" hidden aria-hidden="true"></div>
+    <div id="metricCodeMismatch" hidden aria-hidden="true"></div>
+    <div id="metricCodeMatch" hidden aria-hidden="true"></div>
 
     <!-- Metrics Dashboard -->
     <div class="dash-section" id="metricsSection">
@@ -445,22 +463,10 @@
                 </div>
             </div>
             <!-- Secondary KPI Row -->
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px;">
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 28px;">
                 <div class="metrics-kpi" style="cursor: pointer;" onclick="filterByMetric('peakDay')" title="לחץ לסינון">
                     <div class="metrics-kpi-value" id="metricPeakDay">—</div>
                     <div class="metrics-kpi-label" id="metricPeakDayLabel">ביום השיא</div>
-                </div>
-                <div class="metrics-kpi" style="cursor: pointer;" onclick="filterByMetric('uniqueCodes')" title="לחץ לסינון">
-                    <div class="metrics-kpi-value" id="metricUniqueCodes">—</div>
-                    <div class="metrics-kpi-label">קודי PDN שונים</div>
-                </div>
-                <div class="metrics-kpi" style="cursor: pointer;" onclick="filterByMetric('codeMatch')" title="לחץ לסינון">
-                    <div class="metrics-kpi-value" id="metricCodeMatch">—</div>
-                    <div class="metrics-kpi-label">התאמה מערכת/מאבחן</div>
-                </div>
-                <div class="metrics-kpi" style="cursor: pointer;" onclick="filterByMetric('codeMismatch')" title="לחץ לסינון">
-                    <div class="metrics-kpi-value" id="metricCodeMismatch">—</div>
-                    <div class="metrics-kpi-label">פער קוד מערכת/מאבחן</div>
                 </div>
                 <div class="metrics-kpi" style="cursor: pointer;" onclick="filterByMetric('needsVerification')" title="לחץ לסינון">
                     <div class="metrics-kpi-value" id="metricNeedsVerification">—</div>
@@ -516,26 +522,51 @@
             </div>
         </div>
         <div style="padding: 0;">
+            <!-- Bulk Action Bar (hidden until rows are selected) -->
+            <div id="bulkActionBar" style="display:none;padding:10px 20px;background:linear-gradient(135deg,#0b2e6b,#1a3f7a);border-bottom:1px solid #e2e8f0;display:none;align-items:center;justify-content:space-between;gap:12px;animation:fadeIn 0.2s ease;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <span style="font-size:13px;font-weight:600;color:white;" id="bulkSelectedCount">0 נבחרו</span>
+                    <button onclick="bulkSendEmail('pdn')" style="padding:6px 14px;border-radius:8px;border:none;background:rgba(255,255,255,0.15);color:white;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+                        <i class="fas fa-envelope"></i> שלח PDN
+                    </button>
+                    <button onclick="bulkSendEmail('binat')" style="padding:6px 14px;border-radius:8px;border:none;background:rgba(255,255,255,0.15);color:white;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+                        <i class="fas fa-comments"></i> שלח בינת
+                    </button>
+                    <button onclick="bulkRecalculate()" style="padding:6px 14px;border-radius:8px;border:none;background:rgba(255,255,255,0.15);color:white;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+                        <i class="fas fa-calculator"></i> חשב מחדש
+                    </button>
+                    <button onclick="bulkExportSelected()" style="padding:6px 14px;border-radius:8px;border:none;background:rgba(255,255,255,0.15);color:white;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+                        <i class="fas fa-file-csv"></i> ייצוא CSV
+                    </button>
+                </div>
+                <button onclick="clearSelection()" style="padding:6px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.3);background:transparent;color:white;font-size:12px;font-weight:600;cursor:pointer;">
+                    <i class="fas fa-times"></i> נקה בחירה
+                </button>
+            </div>
             <div class="table-container overflow-x-auto">
                 <table class="w-full">
                     <thead class="table-header sticky top-0">
                     <tr>
+                        <th class="px-2 py-4 text-center" style="width:40px;">
+                            <input type="checkbox" id="selectAllRows" onchange="toggleSelectAll(this)" title="בחר הכל"
+                                   style="width:16px;height:16px;cursor:pointer;accent-color:#0b2e6b;">
+                        </th>
                         <th class="px-4 py-4 text-right font-semibold text-gray-700" title="מזהה מערכת">מזהה מערכת</th>
                         <th class="px-4 py-4 text-right font-semibold text-gray-700" title="פעולות">פעולות</th>
                         <th class="px-4 py-4 text-right font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"
-                            title="שם" onclick="sortTable('name')">
+                            title="שם" onclick="sortTable('name')" aria-sort="none" id="th-name">
                             שם <span class="sort-indicator text-blue-600 text-sm" data-col="name"></span>
                         </th>
                         <th class="px-4 py-4 text-right font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"
-                            title="אימייל" onclick="sortTable('email')">
+                            title="אימייל" onclick="sortTable('email')" aria-sort="none" id="th-email">
                             אימייל <span class="sort-indicator text-blue-600 text-sm" data-col="email"></span>
                         </th>
                         <th class="px-4 py-4 text-right font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"
-                            title="תאריך איבחון" onclick="sortTable('date')">
+                            title="תאריך איבחון" onclick="sortTable('date')" aria-sort="descending" id="th-date">
                             תאריך <span class="sort-indicator text-blue-600 text-sm" data-col="date">↓</span>
                         </th>
                         <th class="px-4 py-4 text-right font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"
-                            title="קוד המערכת" onclick="sortTable('pdn_code')">
+                            title="קוד המערכת" onclick="sortTable('pdn_code')" aria-sort="none" id="th-pdn_code">
                             קוד מערכת <span class="sort-indicator text-blue-600 text-sm" data-col="pdn_code"></span>
                         </th>
                         <th class="px-4 py-4 text-right font-semibold text-gray-700" title="סטטוס אימות">אימות</th>
@@ -544,7 +575,7 @@
                         <th class="px-4 py-4 text-right font-semibold text-gray-700" title="הערות המאבחן">הערות</th>
                         <th class="px-4 py-4 text-right font-semibold text-gray-700" title="הערות עדכון קוד פדן">עדכון קוד פדן</th>
                         <th class="px-4 py-4 text-right font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"
-                            title="קופון" onclick="sortTable('coupon_code')">
+                            title="קופון" onclick="sortTable('coupon_code')" aria-sort="none" id="th-coupon_code">
                             קופון <span class="sort-indicator text-blue-600 text-sm" data-col="coupon_code"></span>
                         </th>
                     </tr>
@@ -598,9 +629,9 @@
         </div>
 
         <!-- Conversation Stats -->
-        <div class="dash-section" x-data="{ open: false }">
+        <div class="dash-section" x-data="{ open: false, loaded: false }">
             <div class="accordion-trigger" style="cursor: default;">
-                <button @click="open = !open" style="display: flex; align-items: center; gap: 8px; border: none; background: none; cursor: pointer; padding: 0;">
+                <button @click="open = !open; if(open && !loaded) { loaded = true; loadConversationStats(); }" style="display: flex; align-items: center; gap: 8px; border: none; background: none; cursor: pointer; padding: 0;">
                     <h3 style="font-size: 15px; font-weight: 700; color: #1e293b; margin: 0;">סטטיסטיקות שיחות בינת קוד המקור</h3>
                     <i class="fas fa-chevron-down accordion-chevron" :class="{ 'rotate-180': open }" style="transition: transform 0.2s;"></i>
                 </button>

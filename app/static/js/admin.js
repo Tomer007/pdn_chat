@@ -21,6 +21,66 @@
         window.location.href = '/pdn-admin/';
     }
 
+    // ===== URL State Management =====
+    function updateUrlState(params) {
+        const url = new URL(window.location);
+        Object.entries(params).forEach(([key, value]) => {
+            if (value !== null && value !== undefined && value !== '') {
+                url.searchParams.set(key, value);
+            } else {
+                url.searchParams.delete(key);
+            }
+        });
+        history.pushState(null, '', url);
+    }
+
+    function getUrlState() {
+        const params = new URLSearchParams(window.location.search);
+        return {
+            filter: params.get('filter'),
+            range: params.get('range'),
+            search: params.get('search'),
+            sort: params.get('sort'),
+            order: params.get('order'),
+            code: params.get('code')
+        };
+    }
+
+    function restoreUrlState() {
+        const state = getUrlState();
+        if (state.range && ['week', 'month', 'year', 'all'].includes(state.range)) {
+            setMetricsRange(state.range);
+        }
+        if (state.filter) {
+            filterByMetric(state.filter);
+        } else if (state.code) {
+            filterByCode(state.code);
+        } else if (state.search) {
+            const searchEl = document.getElementById('tableSearchInput');
+            if (searchEl) { searchEl.value = state.search; handleTableSearch(); }
+        }
+        if (state.sort) {
+            sortColumn = state.sort;
+            sortDirection = state.order || 'asc';
+        }
+    }
+
+    // ===== Loading Skeleton =====
+    function showTableSkeleton(rows = 8) {
+        const tbody = document.getElementById('tableBody');
+        const cols = 13;
+        let html = '';
+        for (let i = 0; i < rows; i++) {
+            html += '<tr class="skeleton-row">';
+            for (let j = 0; j < cols; j++) {
+                const width = 40 + Math.random() * 50;
+                html += `<td class="px-4 py-4"><div class="skeleton-cell" style="width:${width}%"></div></td>`;
+            }
+            html += '</tr>';
+        }
+        tbody.innerHTML = html;
+    }
+
     // Password modal state
     let _passwordResolve = null;
     let _passwordReject = null;
@@ -360,16 +420,19 @@
     });
 
     function setupEventListeners() {
-        // Search functionality with debounce
-        document.getElementById('searchInput').addEventListener('input', debounce(handleSearch, 300));
+        // Search functionality with debounce (legacy element - may not exist)
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('input', debounce(handleSearch, 300));
+            searchInput.addEventListener('input', function() {
+                const clearBtn = document.getElementById('clearSearchBtn');
+                if (clearBtn) clearBtn.style.display = this.value ? 'block' : 'none';
+            });
+        }
 
-        // Clear search button visibility
-        document.getElementById('searchInput').addEventListener('input', function() {
-            document.getElementById('clearSearchBtn').style.display = this.value ? 'block' : 'none';
-        });
-
-        // Red users filter
-        document.getElementById('redUsersFilter').addEventListener('change', handleFilter);
+        // Red users filter (legacy element - may not exist)
+        const redFilter = document.getElementById('redUsersFilter');
+        if (redFilter) redFilter.addEventListener('change', handleFilter);
 
         // Refresh button
         document.getElementById('refreshBtn').addEventListener('click', () => {
@@ -386,6 +449,8 @@
         // Edit diagnose form
         document.getElementById('editDiagnoseForm').addEventListener('submit', handleEditDiagnose);
 
+        // Restore URL state on popstate (back/forward navigation)
+        window.addEventListener('popstate', restoreUrlState);
     }
 
     async function handleLogout() {
@@ -471,7 +536,7 @@
             }
         }, 30000);
 
-        showLoading();
+        showTableSkeleton();
         try {
             const response = await fetch('/pdn-admin/metadata/csv?session_token=' + sessionToken);
             if (response.ok) {
@@ -482,6 +547,9 @@
                 currentData.sort((a, b) => parseDate(b.date) - parseDate(a.date));
 
                 displayData(currentData);
+
+                // Restore URL state after data is loaded
+                restoreUrlState();
             } else if (response.status === 401) {
                 redirectToLogin();
             } else {
@@ -490,7 +558,6 @@
         } catch (error) {
             showNotification('שגיאה בטעינת נתונים', 'error');
         } finally {
-            hideLoading();
             // Clear safety timeout and re-enable refresh button
             clearTimeout(safetyTimeout);
             refreshBtn.disabled = false;
@@ -1062,13 +1129,21 @@
                 filtered = inRange.filter(u => u.needs_verification === true);
                 label = 'נדרש אימות אנושי';
                 break;
+            case 'today':
+                const now = new Date();
+                const todayStr = String(now.getDate()).padStart(2, '0') + '/' + String(now.getMonth() + 1).padStart(2, '0') + '/' + now.getFullYear();
+                filtered = currentData.filter(u => u.date === todayStr);
+                label = 'אובחנו היום';
+                break;
             default:
                 filtered = inRange;
                 label = '';
         }
 
         renderTable(filtered);
-        document.getElementById('rowCount').textContent = `סה"כ שורות: ${filtered.length} (${label})`;
+        showFilterBanner(label, filtered.length);
+        updateUrlState({ filter: metric, range: currentMetricsRange });
+
         // Scroll to table
         document.getElementById('tableBody').scrollIntoView({ behavior: 'smooth', block: 'start' });
         showNotification(`מציג ${filtered.length} רשומות: ${label}`, 'info');
@@ -1082,7 +1157,8 @@
             return d && d >= startDate && u.pdn_code === code;
         });
         renderTable(filtered);
-        document.getElementById('rowCount').textContent = `סה"כ שורות: ${filtered.length} (קוד ${code})`;
+        showFilterBanner(`קוד ${code}`, filtered.length);
+        updateUrlState({ code: code, filter: null, range: currentMetricsRange });
         document.getElementById('tableBody').scrollIntoView({ behavior: 'smooth', block: 'start' });
         showNotification(`מציג ${filtered.length} רשומות: קוד ${code}`, 'info');
     }
@@ -1090,9 +1166,172 @@
     function filterByDate(dateStr) {
         const filtered = currentData.filter(u => u.date === dateStr);
         renderTable(filtered);
-        document.getElementById('rowCount').textContent = `סה"כ שורות: ${filtered.length} (${dateStr})`;
+        showFilterBanner(dateStr, filtered.length);
         document.getElementById('tableBody').scrollIntoView({ behavior: 'smooth', block: 'start' });
         showNotification(`מציג ${filtered.length} רשומות: ${dateStr}`, 'info');
+    }
+
+    function showFilterBanner(label, count) {
+        // Remove existing banner
+        const existing = document.getElementById('filterBanner');
+        if (existing) existing.remove();
+
+        document.getElementById('rowCount').textContent = `סה"כ שורות: ${count} (${label})`;
+
+        // Add filter banner above the table
+        const tableSection = document.getElementById('tableBody').closest('.dash-section');
+        const tableContainer = tableSection.querySelector('.table-container');
+        if (tableContainer) {
+            const banner = document.createElement('div');
+            banner.id = 'filterBanner';
+            banner.className = 'filter-banner';
+            banner.innerHTML = `
+                <span><i class="fas fa-filter" style="margin-left:6px;"></i> מסנן פעיל: ${escapeHtml(label)} (${count} תוצאות)</span>
+                <button onclick="clearFilter()"><i class="fas fa-times" style="margin-left:4px;"></i> נקה מסנן</button>
+            `;
+            tableContainer.parentNode.insertBefore(banner, tableContainer);
+        }
+    }
+
+    function clearFilter() {
+        const banner = document.getElementById('filterBanner');
+        if (banner) banner.remove();
+        renderTable(currentData);
+        document.getElementById('rowCount').textContent = `סה"כ שורות: ${currentData.length}`;
+        updateUrlState({ filter: null, code: null });
+    }
+
+    // ===== Bulk Selection =====
+    function getSelectedEmails() {
+        return Array.from(document.querySelectorAll('.row-select-cb:checked')).map(cb => cb.dataset.email);
+    }
+
+    function updateBulkSelection() {
+        const selected = getSelectedEmails();
+        const bar = document.getElementById('bulkActionBar');
+        const countEl = document.getElementById('bulkSelectedCount');
+        const selectAll = document.getElementById('selectAllRows');
+
+        if (selected.length > 0) {
+            bar.style.display = 'flex';
+            countEl.textContent = `${selected.length} נבחרו`;
+        } else {
+            bar.style.display = 'none';
+        }
+
+        // Update select-all checkbox state
+        const allCheckboxes = document.querySelectorAll('.row-select-cb');
+        if (selectAll) {
+            selectAll.checked = allCheckboxes.length > 0 && selected.length === allCheckboxes.length;
+            selectAll.indeterminate = selected.length > 0 && selected.length < allCheckboxes.length;
+        }
+    }
+
+    function toggleSelectAll(checkbox) {
+        document.querySelectorAll('.row-select-cb').forEach(cb => {
+            cb.checked = checkbox.checked;
+        });
+        updateBulkSelection();
+    }
+
+    function clearSelection() {
+        document.querySelectorAll('.row-select-cb').forEach(cb => { cb.checked = false; });
+        const selectAll = document.getElementById('selectAllRows');
+        if (selectAll) { selectAll.checked = false; selectAll.indeterminate = false; }
+        updateBulkSelection();
+    }
+
+    async function bulkSendEmail(type) {
+        const emails = getSelectedEmails();
+        if (emails.length === 0) { showNotification('לא נבחרו משתמשים', 'error'); return; }
+
+        const typeLabel = type === 'pdn' ? 'קוד PDN' : 'הזמנת בינת';
+        const password = await requestAdminPassword(`שלח ${typeLabel} ל-${emails.length} משתמשים?`);
+        if (!password) return;
+
+        showNotification(`שולח ${typeLabel} ל-${emails.length} משתמשים...`, 'info');
+        let success = 0, failed = 0;
+
+        for (const email of emails) {
+            try {
+                const response = await fetch(`/pdn-admin/user/send_email/${email}?session_token=${sessionToken}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type, password })
+                });
+                if (response.ok) success++;
+                else failed++;
+            } catch (e) { failed++; }
+        }
+
+        clearSelection();
+        showNotification(`${typeLabel}: ${success} הצליחו, ${failed} נכשלו`, success > 0 ? 'success' : 'error');
+    }
+
+    async function bulkRecalculate() {
+        const emails = getSelectedEmails();
+        if (emails.length === 0) { showNotification('לא נבחרו משתמשים', 'error'); return; }
+
+        const password = await requestAdminPassword(`חשב מחדש קוד PDN ל-${emails.length} משתמשים?`);
+        if (!password) return;
+
+        showNotification(`מחשב מחדש ל-${emails.length} משתמשים...`, 'info');
+        let success = 0, failed = 0;
+
+        for (const email of emails) {
+            try {
+                const response = await fetch(`/pdn-admin/user/recalculate_pdn/${email}?session_token=${sessionToken}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    const idx = currentData.findIndex(u => u.email === email);
+                    if (idx !== -1) {
+                        currentData[idx].pdn_code = data.pdn_code;
+                        currentData[idx].needs_verification = data.needs_verification || false;
+                        if (data.confidence_score !== undefined) currentData[idx].confidence_score = data.confidence_score;
+                    }
+                    success++;
+                } else failed++;
+            } catch (e) { failed++; }
+        }
+
+        clearSelection();
+        renderTable(currentData);
+        updateMetrics();
+        showNotification(`חישוב מחדש: ${success} הצליחו, ${failed} נכשלו`, success > 0 ? 'success' : 'error');
+    }
+
+    function bulkExportSelected() {
+        const emails = getSelectedEmails();
+        if (emails.length === 0) { showNotification('לא נבחרו משתמשים', 'error'); return; }
+
+        const exportData = currentData.filter(u => emails.includes(u.email));
+        const headers = ['מזהה מערכת', 'שם', 'אימייל', 'תאריך', 'קוד מערכת', 'אימות', 'ניתוח קול', 'קוד מאבחן', 'הערות', 'עדכון קוד פדן', 'קופון'];
+        const rows = exportData.map(u => [
+            u.user_id || '', ((u.first_name || '') + ' ' + (u.last_name || '')).trim(),
+            u.email, u.date, u.pdn_code || '',
+            u.needs_verification ? 'נדרש אימות' : 'תקין',
+            u.pdn_voice_code || '',
+            u.diagnose_pdn_code || '', u.diagnose_comments || '', u.pdn_update_comments || '',
+            u.coupon_code || ''
+        ]);
+
+        const bom = '\uFEFF';
+        const csvContent = bom + [headers.join(','), ...rows.map(r => r.map(c => `"${(c || '').replace(/"/g, '""')}"`).join(','))].join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `pdn_selected_${emails.length}_${new Date().toISOString().slice(0,10)}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        showNotification(`ייצוא ${emails.length} רשומות הושלם`, 'success');
     }
 
     function showVerificationPopup(email, pdnCode) {
@@ -1147,8 +1386,12 @@
     function handleTableSearch() {
         const term = (document.getElementById('tableSearchInput').value || '').trim().toLowerCase();
         if (!term) {
+            // Remove filter banner when clearing search
+            const banner = document.getElementById('filterBanner');
+            if (banner) banner.remove();
             renderTable(currentData);
             document.getElementById('rowCount').textContent = `סה"כ שורות: ${currentData.length}`;
+            updateUrlState({ search: null });
             return;
         }
         const filtered = currentData.filter(u => {
@@ -1158,6 +1401,7 @@
         });
         renderTable(filtered);
         document.getElementById('rowCount').textContent = `סה"כ שורות: ${filtered.length} (חיפוש: "${term}")`;
+        updateUrlState({ search: term, filter: null, code: null });
     }
 
     async function showActiveUsers() {
@@ -1259,7 +1503,7 @@
         document.getElementById('rowCount').textContent = `סה"כ שורות: ${data.length}`;
 
         if (data.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="12" class="text-center py-12 text-gray-500">
+            tbody.innerHTML = `<tr><td colspan="13" class="text-center py-12 text-gray-500">
                 <i class="fas fa-inbox text-4xl mb-3 block"></i>
                 <p class="text-lg">לא נמצאו נתונים</p>
             </td></tr>`;
@@ -1275,6 +1519,10 @@
             }
 
             row.innerHTML = `
+            <td class="px-2 py-4 text-center">
+                <input type="checkbox" class="row-select-cb" data-email="${escapeHtml(user.email)}" onchange="updateBulkSelection()"
+                       style="width:16px;height:16px;cursor:pointer;accent-color:#0b2e6b;">
+            </td>
             <td class="px-4 py-4">
                 <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium font-mono">${user.user_id || 'N/A'}</span>
             </td>
@@ -1377,8 +1625,8 @@
                         <span class="text-xs font-mono ${user.confidence_score >= 80 ? 'text-green-700' : user.confidence_score >= 60 ? 'text-yellow-700' : 'text-red-700'}">${user.confidence_score}%</span>
                     </div>` :
                     (user.needs_verification ?
-                        `<span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium cursor-pointer" onclick="showVerificationPopup('${escapeHtml(user.email)}', '${escapeHtml(user.pdn_code)}')" title="לחץ לפרטים">⚠️ אימות</span>` :
-                        '<span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">✓ תקין</span>')
+                        `<span class="verification-badge needs-review" onclick="showVerificationPopup('${escapeHtml(user.email)}', '${escapeHtml(user.pdn_code)}')" title="לחץ לפרטים" style="cursor:pointer;"><i class="fas fa-exclamation-triangle"></i> אימות</span>` :
+                        '<span class="verification-badge verified"><i class="fas fa-check-circle"></i> תקין</span>')
                 }
             </td>
             <td class="px-4 py-4">
@@ -1472,8 +1720,10 @@
     }
 
     function applyFilters() {
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-        const showRedUsersOnly = document.getElementById('redUsersFilter').checked;
+        const searchInput = document.getElementById('searchInput');
+        const redFilter = document.getElementById('redUsersFilter');
+        const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+        const showRedUsersOnly = redFilter ? redFilter.checked : false;
 
         let filteredData = currentData.filter(user => {
             // Search filter - check both email and name
@@ -1503,16 +1753,14 @@
             : `סה"כ שורות: ${currentData.length}`;
 
         // Update search result count and clear button visibility
-        const searchInput = document.getElementById('searchInput');
         const clearBtn = document.getElementById('clearSearchBtn');
         const countEl = document.getElementById('searchResultCount');
         if (searchTerm) {
-            clearBtn.classList.remove('hidden');
-            countEl.classList.remove('hidden');
-            countEl.textContent = `נמצאו ${filteredData.length} תוצאות`;
+            if (clearBtn) clearBtn.classList.remove('hidden');
+            if (countEl) { countEl.classList.remove('hidden'); countEl.textContent = `נמצאו ${filteredData.length} תוצאות`; }
         } else {
-            clearBtn.classList.add('hidden');
-            countEl.classList.add('hidden');
+            if (clearBtn) clearBtn.classList.add('hidden');
+            if (countEl) countEl.classList.add('hidden');
         }
     }
 
@@ -2451,10 +2699,79 @@
             if (modalId === 'editDiagnoseModal') {
                 currentEditEmail = null;
             }
+            // Release focus trap
+            releaseFocusTrap(modal);
             // Return focus to the previously focused element
-            if (document.activeElement) {
-                document.activeElement.blur();
+            if (_lastFocusedElement) {
+                _lastFocusedElement.focus();
+                _lastFocusedElement = null;
             }
+        }
+
+        function openModal(modalId) {
+            _lastFocusedElement = document.activeElement;
+            const modal = document.getElementById(modalId);
+            modal.style.display = 'flex';
+            trapFocus(modal);
+            // Focus first focusable element
+            const focusable = modal.querySelector('input:not([type="hidden"]), button, select, textarea, [tabindex]:not([tabindex="-1"])');
+            if (focusable) setTimeout(() => focusable.focus(), 100);
+        }
+
+        // ===== Focus Trap for Modals (Accessibility) =====
+        // Auto-apply focus trap when any modal-backdrop becomes visible
+        (function initModalFocusTraps() {
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                        const el = mutation.target;
+                        if (el.classList.contains('modal-backdrop')) {
+                            if (el.style.display === 'flex') {
+                                trapFocus(el);
+                            } else if (el.style.display === 'none') {
+                                releaseFocusTrap(el);
+                            }
+                        }
+                    }
+                });
+            });
+            // Observe all modal backdrops
+            setTimeout(() => {
+                document.querySelectorAll('.modal-backdrop').forEach(modal => {
+                    observer.observe(modal, { attributes: true, attributeFilter: ['style'] });
+                });
+            }, 500);
+        })();
+
+        // ===== Focus Trap for Modals (Accessibility) =====
+        function trapFocus(modal) {
+            modal._trapHandler = function(e) {
+                if (e.key !== 'Tab') return;
+                const focusables = modal.querySelectorAll('input:not([type="hidden"]), button:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])');
+                if (focusables.length === 0) return;
+                const first = focusables[0];
+                const last = focusables[focusables.length - 1];
+                if (e.shiftKey && document.activeElement === first) {
+                    e.preventDefault();
+                    last.focus();
+                } else if (!e.shiftKey && document.activeElement === last) {
+                    e.preventDefault();
+                    first.focus();
+                }
+            };
+            modal.addEventListener('keydown', modal._trapHandler);
+            // Close on Escape
+            modal._escHandler = function(e) {
+                if (e.key === 'Escape') {
+                    closeModal(modal.id);
+                }
+            };
+            modal.addEventListener('keydown', modal._escHandler);
+        }
+
+        function releaseFocusTrap(modal) {
+            if (modal._trapHandler) modal.removeEventListener('keydown', modal._trapHandler);
+            if (modal._escHandler) modal.removeEventListener('keydown', modal._escHandler);
         }
 
         function showLoading() {
@@ -2540,7 +2857,17 @@
                 }
             });
 
+            // Update aria-sort attributes for accessibility
+            document.querySelectorAll('th[aria-sort]').forEach(th => {
+                if (th.id === 'th-' + column) {
+                    th.setAttribute('aria-sort', sortDirection === 'asc' ? 'ascending' : 'descending');
+                } else {
+                    th.setAttribute('aria-sort', 'none');
+                }
+            });
+
             renderTable(currentData);
+            updateUrlState({ sort: column, order: sortDirection });
         }
 
         async function exportTableCSV() {
@@ -2548,20 +2875,15 @@
             if (!password) return;
 
             // Apply current filters to export only visible data
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const showRedUsersOnly = document.getElementById('redUsersFilter').checked;
+            const searchTerm = (document.getElementById('tableSearchInput')?.value || '').toLowerCase();
 
             const exportData = currentData.filter(user => {
+                if (!searchTerm) return true;
                 const fullName = ((user.first_name || '') + ' ' + (user.last_name || '')).trim().toLowerCase();
-                const matchesSearch = user.email.toLowerCase().includes(searchTerm) ||
+                return user.email.toLowerCase().includes(searchTerm) ||
                     fullName.includes(searchTerm) ||
                     (user.first_name && user.first_name.toLowerCase().includes(searchTerm)) ||
                     (user.last_name && user.last_name.toLowerCase().includes(searchTerm));
-
-                if (showRedUsersOnly) {
-                    return matchesSearch && user.needs_verification === true;
-                }
-                return matchesSearch;
             });
 
             const headers = ['מזהה מערכת', 'שם', 'אימייל', 'תאריך', 'קוד מערכת', 'אימות', 'ניתוח קול', 'קוד מאבחן', 'הערות', 'עדכון קוד פדן', 'קופון'];
@@ -2611,6 +2933,238 @@
             } catch (error) {
                 logError('sendAlgorithmReport', error);
                 showNotification(`שגיאה בשליחת הדוח: ${error.message}`, 'error');
+            }
+        }
+
+        async function showHealthStatus() {
+            if (!sessionToken) return;
+
+            try {
+                const resp = await fetch(`/pdn-admin/health_status?session_token=${sessionToken}`);
+                if (!resp.ok) { if (resp.status === 401) redirectToLogin(); return; }
+                const h = resp.json ? await resp.json() : {};
+
+                const statusColor = h.status === 'critical' ? '#dc2626' : h.status === 'warning' ? '#f59e0b' : '#22c55e';
+                const statusEmoji = h.status === 'critical' ? '🔴' : h.status === 'warning' ? '🟡' : '🟢';
+                const statusText = h.status === 'critical' ? 'CRITICAL' : h.status === 'warning' ? 'WARNING' : 'ALL SYSTEMS OPERATIONAL';
+
+                // Update health dot in header
+                const dot = document.getElementById('healthDot');
+                if (dot) dot.style.background = statusColor;
+
+                const cpuBar = Math.min(100, h.cpu_percent || 0);
+                const memBar = Math.min(100, h.memory_percent || 0);
+                const storBar = Math.min(100, ((h.storage_used_mb || 0) / (h.storage_limit_mb || 1024)) * 100);
+
+                const existing = document.getElementById('healthPopup');
+                if (existing) existing.remove();
+
+                const overlay = document.createElement('div');
+                overlay.id = 'healthPopup';
+                overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+                overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+                overlay.innerHTML = `
+                    <div style="background:white;border-radius:16px;padding:28px;max-width:500px;width:100%;box-shadow:0 24px 48px rgba(0,0,0,0.2);direction:rtl;max-height:90vh;overflow-y:auto;">
+                        <!-- Header -->
+                        <div style="text-align:center;margin-bottom:20px;">
+                            <div style="font-size:2rem;margin-bottom:8px;">${statusEmoji}</div>
+                            <h3 style="font-size:1rem;font-weight:700;color:${statusColor};margin-bottom:4px;">${statusText}</h3>
+                            <p style="font-size:11px;color:#64748b;">PDN Chat — Production | ${h.region || 'Frankfurt'} | ${h.plan || 'Starter'}</p>
+                            <p style="font-size:11px;color:#94a3b8;">${new Date().toLocaleDateString('he-IL')} | ${h.service_url || ''}</p>
+                        </div>
+
+                        <!-- CPU -->
+                        <div style="margin-bottom:16px;">
+                            <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                                <span style="font-size:12px;font-weight:600;color:#1e293b;">CPU</span>
+                                <span style="font-size:12px;color:#64748b;">${h.cpu_percent || 0}%</span>
+                            </div>
+                            <div style="height:8px;background:#f1f5f9;border-radius:4px;overflow:hidden;">
+                                <div style="height:100%;width:${cpuBar}%;background:${cpuBar > 70 ? '#f59e0b' : '#0b2e6b'};border-radius:4px;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Memory -->
+                        <div style="margin-bottom:16px;">
+                            <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                                <span style="font-size:12px;font-weight:600;color:#1e293b;">Memory</span>
+                                <span style="font-size:12px;color:#64748b;">${h.memory_used_mb || 0} MB / ${h.memory_total_mb || 512} MB (${h.memory_percent || 0}%)</span>
+                            </div>
+                            <div style="height:8px;background:#f1f5f9;border-radius:4px;overflow:hidden;">
+                                <div style="height:100%;width:${memBar}%;background:${memBar > 80 ? '#f59e0b' : '#0b2e6b'};border-radius:4px;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Storage -->
+                        <div style="margin-bottom:16px;">
+                            <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                                <span style="font-size:12px;font-weight:600;color:#1e293b;">Storage</span>
+                                <span style="font-size:12px;color:#64748b;">${h.storage_used_mb || 0} MB / ${h.storage_limit_mb || 1024} MB (${Math.round(storBar)}%)</span>
+                            </div>
+                            <div style="height:8px;background:#f1f5f9;border-radius:4px;overflow:hidden;">
+                                <div style="height:100%;width:${storBar}%;background:${storBar > 70 ? '#f59e0b' : '#0b2e6b'};border-radius:4px;"></div>
+                            </div>
+                            <button onclick="document.getElementById('healthPopup').remove(); compressOldAudio();" style="margin-top:8px;padding:5px 12px;font-size:10px;font-weight:600;background:#0b2e6b;color:white;border:none;border-radius:6px;cursor:pointer;">
+                                <i class="fas fa-compress-alt"></i> דחס הקלטות ישנות
+                            </button>
+                        </div>
+
+                        <!-- Info Grid -->
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;">
+                            <div style="background:#f8fafc;border-radius:8px;padding:10px;text-align:center;">
+                                <div style="font-size:1.2rem;font-weight:800;color:#0b2e6b;">${h.active_sessions || 0}</div>
+                                <div style="font-size:10px;color:#64748b;">Sessions</div>
+                            </div>
+                            <div style="background:#f8fafc;border-radius:8px;padding:10px;text-align:center;">
+                                <div style="font-size:1.2rem;font-weight:800;color:#0b2e6b;">${h.uptime_hours || 0}h</div>
+                                <div style="font-size:10px;color:#64748b;">Uptime</div>
+                            </div>
+                        </div>
+
+                        <!-- Error Logs -->
+                        <div style="margin-top:16px;background:${(h.errors_24h || 0) > 0 ? '#fef2f2' : '#f0fdf4'};border:1px solid ${(h.errors_24h || 0) > 0 ? '#fecaca' : '#bbf7d0'};border-radius:8px;padding:12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                <span style="font-size:12px;font-weight:600;color:${(h.errors_24h || 0) > 0 ? '#991b1b' : '#065f46'};">
+                                    ${(h.errors_24h || 0) > 0 ? '⚠️' : '✓'} Errors (24h)
+                                </span>
+                                <span style="font-size:14px;font-weight:800;color:${(h.errors_24h || 0) > 0 ? '#dc2626' : '#065f46'};">${h.errors_24h || 0}</span>
+                            </div>
+                            ${h.last_error ? `<div style="font-size:10px;color:#64748b;margin-top:4px;word-break:break-all;">Last: ${h.last_error} (${h.last_error_time || ''})</div>` : '<div style="font-size:10px;color:#065f46;">No errors</div>'}
+                        </div>
+
+                        <!-- Close -->
+                        <div style="text-align:center;margin-top:16px;">
+                            <button onclick="document.getElementById('healthPopup').remove();" style="padding:8px 20px;background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">סגור</button>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(overlay);
+            } catch (error) {
+                showNotification('לא ניתן לטעון נתוני בריאות', 'error');
+            }
+        }
+
+        async function compressOldAudio() {
+            if (!sessionToken) {
+                window.location.href = '/pdn-admin/';
+                return;
+            }
+
+            // First check storage info
+            try {
+                showNotification('בודק נפח אחסון...', 'info');
+                const checkResp = await fetch(`/pdn-admin/compress_old_audio?session_token=${sessionToken}`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ check_only: true })
+                });
+
+                if (!checkResp.ok) {
+                    if (checkResp.status === 401) { redirectToLogin(); return; }
+                    throw new Error('Failed to check storage');
+                }
+
+                const checkData = await checkResp.json();
+                const s = checkData.storage;
+                const usagePct = Math.round((s.total_mb / s.disk_limit_mb) * 100);
+
+                // Show storage info in a popup instead of plain text prompt
+                const existing = document.getElementById('storagePopup');
+                if (existing) existing.remove();
+
+                const overlay = document.createElement('div');
+                overlay.id = 'storagePopup';
+                overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+
+                const barColor = usagePct > 80 ? '#dc2626' : usagePct > 50 ? '#f59e0b' : '#0b2e6b';
+
+                overlay.innerHTML = `
+                    <div style="background:white;border-radius:16px;padding:28px;max-width:440px;width:100%;box-shadow:0 24px 48px rgba(0,0,0,0.2);direction:rtl;">
+                        <h3 style="font-size:1.1rem;font-weight:700;color:#0b2e6b;margin-bottom:20px;text-align:center;">
+                            <i class="fas fa-hdd" style="margin-left:8px;"></i> נפח אחסון
+                        </h3>
+
+                        <!-- Usage bar -->
+                        <div style="margin-bottom:20px;">
+                            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                                <span style="font-size:13px;font-weight:600;color:#1e293b;">${s.total_mb} MB</span>
+                                <span style="font-size:13px;color:#64748b;">מתוך ${s.disk_limit_mb} MB</span>
+                            </div>
+                            <div style="height:12px;background:#f1f5f9;border-radius:6px;overflow:hidden;">
+                                <div style="height:100%;width:${usagePct}%;background:${barColor};border-radius:6px;transition:width 0.3s;"></div>
+                            </div>
+                            <div style="text-align:left;margin-top:4px;font-size:11px;color:#64748b;">${usagePct}% בשימוש</div>
+                        </div>
+
+                        <!-- Breakdown -->
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
+                            <div style="background:#f8fafc;border-radius:10px;padding:12px;text-align:center;">
+                                <div style="font-size:1.2rem;font-weight:800;color:#0b2e6b;">${s.wav_mb} MB</div>
+                                <div style="font-size:11px;color:#64748b;">WAV קבצי</div>
+                            </div>
+                            <div style="background:#f8fafc;border-radius:10px;padding:12px;text-align:center;">
+                                <div style="font-size:1.2rem;font-weight:800;color:#0b2e6b;">${s.mp3_mb} MB</div>
+                                <div style="font-size:11px;color:#64748b;">MP3 קבצי</div>
+                            </div>
+                        </div>
+
+                        <!-- Old files info -->
+                        <div style="background:${s.wav_old_count > 0 ? '#fef3c7' : '#f0fdf4'};border:1px solid ${s.wav_old_count > 0 ? '#f59e0b' : '#86efac'};border-radius:10px;padding:12px;margin-bottom:20px;text-align:center;">
+                            <div style="font-size:14px;font-weight:600;color:${s.wav_old_count > 0 ? '#92400e' : '#065f46'};">
+                                ${s.wav_old_count > 0
+                                    ? `<i class="fas fa-compress-alt"></i> ${s.wav_old_count} קבצי WAV ישנים (${s.wav_old_mb} MB) לדחיסה`
+                                    : '<i class="fas fa-check-circle"></i> אין קבצים לדחיסה — הכל מעודכן'}
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div style="display:flex;gap:8px;justify-content:center;">
+                            ${s.wav_old_count > 0 ? `
+                                <button id="storageCompressBtn" style="padding:10px 20px;background:#0b2e6b;color:white;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">
+                                    <i class="fas fa-compress-alt"></i> דחס ${s.wav_old_count} קבצים
+                                </button>
+                            ` : ''}
+                            <button onclick="document.getElementById('storagePopup').remove();" style="padding:10px 20px;background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">
+                                סגור
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(overlay);
+                overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+                // If there are files to compress, wire up the button
+                if (s.wav_old_count > 0) {
+                    document.getElementById('storageCompressBtn').onclick = async () => {
+                        const btn = document.getElementById('storageCompressBtn');
+                        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> דוחס...';
+                        btn.disabled = true;
+
+                        const response = await fetch(`/pdn-admin/compress_old_audio?session_token=${sessionToken}`, {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({})
+                        });
+
+                        overlay.remove();
+
+                        if (response.ok) {
+                            const data = await response.json();
+                            const newUsage = Math.round((data.storage.total_mb / data.storage.disk_limit_mb) * 100);
+                            showNotification(`${data.message} | אחסון: ${data.storage.total_mb} MB (${newUsage}%)`, 'success');
+                        } else {
+                            const errorData = await response.json().catch(() => ({}));
+                            showNotification(`שגיאה: ${errorData.error || 'Compression failed'}`, 'error');
+                        }
+                    };
+                }
+
+            } catch (error) {
+                logError('compressOldAudio', error);
+                showNotification(`שגיאה: ${error.message}`, 'error');
             }
         }
 
