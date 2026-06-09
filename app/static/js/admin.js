@@ -1471,16 +1471,22 @@
         updateUrlState({ search: term, filter: null, code: null });
     }
 
-    // --- Quick Tag Filter ---
-    let activeQuickTag = null;
+    // --- Quick Filter Dropdowns ---
+    function quickTagFilter(value, type) {
+        // Clear other dropdowns when one is selected
+        if (type === 'trait') {
+            document.getElementById('quickFilterEnergy').value = '';
+            document.getElementById('quickFilterStatus').value = '';
+        } else if (type === 'energy') {
+            document.getElementById('quickFilterTrait').value = '';
+            document.getElementById('quickFilterStatus').value = '';
+        } else if (type === 'status') {
+            document.getElementById('quickFilterTrait').value = '';
+            document.getElementById('quickFilterEnergy').value = '';
+        }
 
-    function quickTagFilter(tag) {
-        const tagBtns = document.querySelectorAll('.quick-tag');
-
-        // Toggle off if clicking the same tag
-        if (activeQuickTag === tag) {
-            activeQuickTag = null;
-            tagBtns.forEach(b => b.classList.remove('active'));
+        // If cleared (empty value), show all
+        if (!value) {
             renderTable(currentData);
             document.getElementById('rowCount').textContent = `סה"כ שורות: ${currentData.length}`;
             const banner = document.getElementById('filterBanner');
@@ -1489,40 +1495,27 @@
             return;
         }
 
-        activeQuickTag = tag;
-        tagBtns.forEach(b => {
-            b.classList.toggle('active', b.textContent.trim() === tag || 
-                (tag === 'needs_verification' && b.textContent.trim() === 'אימות') ||
-                (tag === 'no_code' && b.textContent.trim() === 'ללא קוד'));
-        });
-
         let filtered;
         let label;
 
-        if (tag === 'needs_verification') {
+        if (value === 'needs_verification') {
             filtered = currentData.filter(u => u.needs_verification);
             label = 'נדרש אימות';
-        } else if (tag === 'no_code') {
+        } else if (value === 'no_code') {
             filtered = currentData.filter(u => !u.pdn_code || u.pdn_code === '');
             label = 'ללא קוד PDN';
-        } else if (['A', 'T', 'P', 'E'].includes(tag)) {
-            // Filter by trait letter (first char of pdn_code)
-            filtered = currentData.filter(u => u.pdn_code && u.pdn_code.toUpperCase().startsWith(tag));
-            label = `תכונה ${tag}`;
-        } else if (['D', 'S', 'F'].includes(tag)) {
-            // Filter by energy — need to check the energy field or derive from code number
-            // Energy mapping: D codes=[7,4,10,1], S codes=[11,8,2,5], F codes=[3,12,6,9]
+        } else if (['A', 'T', 'P', 'E'].includes(value)) {
+            filtered = currentData.filter(u => u.pdn_code && u.pdn_code.toUpperCase().startsWith(value));
+            label = `תכונה ${value}`;
+        } else if (['D', 'S', 'F'].includes(value)) {
             const energyMap = { 'D': [7,4,10,1], 'S': [11,8,2,5], 'F': [3,12,6,9] };
-            const codes = energyMap[tag] || [];
+            const codes = energyMap[value] || [];
             filtered = currentData.filter(u => {
                 if (!u.pdn_code) return false;
                 const num = parseInt(u.pdn_code.replace(/[^0-9]/g, ''));
                 return codes.includes(num);
             });
-            label = `אנרגיה ${tag}`;
-        } else {
-            filtered = currentData.filter(u => u.pdn_code === tag);
-            label = `קוד ${tag}`;
+            label = `אנרגיה ${value}`;
         }
 
         renderTable(filtered);

@@ -117,54 +117,13 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Quick Tags */
-        .quick-tag {
-            padding: 3px 8px;
-            font-size: 11px;
-            font-weight: 600;
-            border-radius: 6px;
-            border: 1px solid #e2e8f0;
-            background: #f8fafc;
-            color: #475569;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            white-space: nowrap;
+        /* Quick Filter Dropdowns */
+        #quickFilterTrait, #quickFilterEnergy, #quickFilterStatus {
+            transition: border-color 0.2s ease;
         }
-        .quick-tag:hover {
-            background: #e2e8f0;
-            border-color: #cbd5e1;
-        }
-        .quick-tag.active {
-            background: #0b2e6b;
-            color: white;
+        #quickFilterTrait:focus, #quickFilterEnergy:focus, #quickFilterStatus:focus {
             border-color: #0b2e6b;
-        }
-        .quick-tag.tag-code {
-            color: #8b6914;
-            border-color: rgba(201, 169, 110, 0.3);
-        }
-        .quick-tag.tag-code:hover, .quick-tag.tag-code.active {
-            background: #8b6914;
-            color: white;
-            border-color: #8b6914;
-        }
-        .quick-tag.tag-energy {
-            color: #166534;
-            border-color: rgba(22, 101, 52, 0.2);
-        }
-        .quick-tag.tag-energy:hover, .quick-tag.tag-energy.active {
-            background: #166534;
-            color: white;
-            border-color: #166534;
-        }
-        .quick-tag.tag-special {
-            color: #9a3412;
-            border-color: rgba(154, 52, 18, 0.2);
-        }
-        .quick-tag.tag-special:hover, .quick-tag.tag-special.active {
-            background: #9a3412;
-            color: white;
-            border-color: #9a3412;
+            box-shadow: 0 0 0 3px rgba(11, 46, 107, 0.08);
         }
 
         /* Better search bar */
@@ -589,20 +548,25 @@
                            style="padding: 8px 36px 8px 14px; font-size: 13px; border: 1px solid #e2e8f0; border-radius: 8px; width: 200px; outline: none; transition: border-color 0.2s;"
                            onfocus="this.style.borderColor='#0b2e6b'" onblur="this.style.borderColor='#e2e8f0'">
                 </div>
-                <!-- Quick Tags -->
-                <div id="quickTags" style="display: flex; gap: 4px; flex-wrap: wrap; align-items: center;">
-                    <button onclick="quickTagFilter('needs_verification')" class="quick-tag tag-special" title="נדרש אימות">אימות</button>
-                    <button onclick="quickTagFilter('no_code')" class="quick-tag tag-special" title="ללא קוד PDN">ללא קוד</button>
-                    <span style="width:1px;height:16px;background:#e2e8f0;margin:0 2px;"></span>
-                    <button onclick="quickTagFilter('A')" class="quick-tag tag-code">A</button>
-                    <button onclick="quickTagFilter('T')" class="quick-tag tag-code">T</button>
-                    <button onclick="quickTagFilter('P')" class="quick-tag tag-code">P</button>
-                    <button onclick="quickTagFilter('E')" class="quick-tag tag-code">E</button>
-                    <span style="width:1px;height:16px;background:#e2e8f0;margin:0 2px;"></span>
-                    <button onclick="quickTagFilter('D')" class="quick-tag tag-energy">D</button>
-                    <button onclick="quickTagFilter('S')" class="quick-tag tag-energy">S</button>
-                    <button onclick="quickTagFilter('F')" class="quick-tag tag-energy">F</button>
-                </div>
+                <!-- Quick Filter Dropdowns -->
+                <select id="quickFilterTrait" onchange="quickTagFilter(this.value, 'trait')" style="padding: 6px 10px; font-size: 12px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; color: #475569; cursor: pointer; outline: none;">
+                    <option value="">תכונה</option>
+                    <option value="A">A</option>
+                    <option value="T">T</option>
+                    <option value="P">P</option>
+                    <option value="E">E</option>
+                </select>
+                <select id="quickFilterEnergy" onchange="quickTagFilter(this.value, 'energy')" style="padding: 6px 10px; font-size: 12px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; color: #475569; cursor: pointer; outline: none;">
+                    <option value="">אנרגיה</option>
+                    <option value="D">D</option>
+                    <option value="S">S</option>
+                    <option value="F">F</option>
+                </select>
+                <select id="quickFilterStatus" onchange="quickTagFilter(this.value, 'status')" style="padding: 6px 10px; font-size: 12px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; color: #475569; cursor: pointer; outline: none;">
+                    <option value="">סטטוס</option>
+                    <option value="needs_verification">נדרש אימות</option>
+                    <option value="no_code">ללא קוד</option>
+                </select>
                 <button onclick="exportTableCSV()" class="header-btn outline" style="padding: 8px 14px; font-size: 12px;">
                     <i class="fas fa-file-csv"></i>
                     <span>ייצוא CSV</span>
