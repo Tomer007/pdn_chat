@@ -121,9 +121,9 @@
         .table-toolbar {
             display: flex;
             align-items: center;
-            gap: 16px;
-            padding: 12px 0;
-            flex-wrap: wrap;
+            justify-content: space-between;
+            padding: 14px 0;
+            gap: 12px;
         }
         .toolbar-right {
             display: flex;
@@ -143,13 +143,13 @@
         .toolbar-center {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             flex: 1;
             justify-content: center;
         }
         .toolbar-search {
             position: relative;
-            width: 220px;
+            width: 200px;
         }
         .toolbar-search i {
             position: absolute;
@@ -178,60 +178,63 @@
         .toolbar-filters {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 0;
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 3px;
         }
         .toolbar-filters select {
-            padding: 7px 10px;
-            font-size: 12px;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 8px;
-            background: #f8fafc;
-            color: #475569;
+            padding: 5px 8px;
+            font-size: 11px;
+            border: none;
+            border-radius: 6px;
+            background: transparent;
+            color: #64748b;
             cursor: pointer;
             outline: none;
-            transition: all 0.2s ease;
+            transition: all 0.15s ease;
+            font-weight: 500;
             appearance: auto;
         }
-        .toolbar-filters select:focus {
-            border-color: #0b2e6b;
-            box-shadow: 0 0 0 3px rgba(11, 46, 107, 0.06);
+        .toolbar-filters select:hover {
+            color: #1e293b;
         }
         .toolbar-filters select.active-filter {
-            border-color: #0b2e6b;
-            background: #eef2ff;
+            background: white;
             color: #0b2e6b;
-            font-weight: 600;
+            font-weight: 700;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
         }
         .toolbar-clear-btn {
-            padding: 5px 10px;
+            padding: 5px 8px;
             font-size: 11px;
-            border: 1px solid #fca5a5;
+            border: none;
             border-radius: 6px;
-            background: #fef2f2;
-            color: #dc2626;
+            background: transparent;
+            color: #94a3b8;
             cursor: pointer;
             font-weight: 600;
             transition: all 0.15s ease;
             white-space: nowrap;
         }
         .toolbar-clear-btn:hover {
-            background: #fee2e2;
-            border-color: #f87171;
+            background: white;
+            color: #dc2626;
         }
         .toolbar-left {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             flex-shrink: 0;
         }
         .toolbar-action-btn {
-            padding: 7px 12px;
-            font-size: 12px;
+            padding: 6px 10px;
+            font-size: 11px;
             font-weight: 500;
             border: 1.5px solid #e2e8f0;
             border-radius: 8px;
             background: white;
-            color: #334155;
+            color: #64748b;
             cursor: pointer;
             transition: all 0.15s ease;
             white-space: nowrap;
@@ -239,9 +242,10 @@
         .toolbar-action-btn:hover {
             background: #f1f5f9;
             border-color: #cbd5e1;
+            color: #334155;
         }
         .toolbar-action-btn i {
-            margin-left: 4px;
+            margin-left: 3px;
         }
 
         /* Row hover highlight */
