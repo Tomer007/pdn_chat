@@ -117,13 +117,131 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Quick Filter Dropdowns */
-        #quickFilterTrait, #quickFilterEnergy, #quickFilterStatus {
-            transition: border-color 0.2s ease;
+        /* Unified Table Toolbar */
+        .table-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 0;
+            flex-wrap: wrap;
         }
-        #quickFilterTrait:focus, #quickFilterEnergy:focus, #quickFilterStatus:focus {
+        .toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        .toolbar-badge {
+            font-size: 11px;
+            color: #64748b;
+            background: #f1f5f9;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .toolbar-center {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            justify-content: center;
+        }
+        .toolbar-search {
+            position: relative;
+            width: 220px;
+        }
+        .toolbar-search i {
+            position: absolute;
+            right: 11px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 12px;
+            pointer-events: none;
+        }
+        .toolbar-search input {
+            width: 100%;
+            padding: 7px 34px 7px 12px;
+            font-size: 13px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 8px;
+            outline: none;
+            transition: all 0.2s ease;
+            background: #f8fafc;
+        }
+        .toolbar-search.focused input {
             border-color: #0b2e6b;
-            box-shadow: 0 0 0 3px rgba(11, 46, 107, 0.08);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(11, 46, 107, 0.06);
+        }
+        .toolbar-filters {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .toolbar-filters select {
+            padding: 7px 10px;
+            font-size: 12px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 8px;
+            background: #f8fafc;
+            color: #475569;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s ease;
+            appearance: auto;
+        }
+        .toolbar-filters select:focus {
+            border-color: #0b2e6b;
+            box-shadow: 0 0 0 3px rgba(11, 46, 107, 0.06);
+        }
+        .toolbar-filters select.active-filter {
+            border-color: #0b2e6b;
+            background: #eef2ff;
+            color: #0b2e6b;
+            font-weight: 600;
+        }
+        .toolbar-clear-btn {
+            padding: 5px 10px;
+            font-size: 11px;
+            border: 1px solid #fca5a5;
+            border-radius: 6px;
+            background: #fef2f2;
+            color: #dc2626;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+        .toolbar-clear-btn:hover {
+            background: #fee2e2;
+            border-color: #f87171;
+        }
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .toolbar-action-btn {
+            padding: 7px 12px;
+            font-size: 12px;
+            font-weight: 500;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            color: #334155;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+        .toolbar-action-btn:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+        .toolbar-action-btn i {
+            margin-left: 4px;
         }
 
         /* Better search bar */
@@ -535,46 +653,53 @@
     <div class="tab-content" id="tab-users" role="tabpanel" aria-labelledby="navUsers">
     <!-- Main Data Table -->
     <div class="dash-section">
-        <div class="dash-section-header">
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <h3>נתוני מאובחנים</h3>
-                <span id="rowCount" style="font-size: 12px; color: #64748b; background: #f1f5f9; padding: 4px 10px; border-radius: 12px; font-weight: 600;" aria-live="polite">סה"כ: 0</span>
-            </div>
-            <div style="display: flex; gap: 8px; align-items: center;">
-                <div style="position: relative;">
-                    <i class="fas fa-search" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 12px;"></i>
-                    <input type="text" id="tableSearchInput" placeholder="חיפוש שם או אימייל..."
-                           oninput="handleTableSearch()"
-                           style="padding: 8px 36px 8px 14px; font-size: 13px; border: 1px solid #e2e8f0; border-radius: 8px; width: 200px; outline: none; transition: border-color 0.2s;"
-                           onfocus="this.style.borderColor='#0b2e6b'" onblur="this.style.borderColor='#e2e8f0'">
+        <div class="dash-section-header" style="flex-direction: column; align-items: stretch; gap: 0;">
+            <!-- Single unified toolbar row -->
+            <div class="table-toolbar">
+                <div class="toolbar-right">
+                    <h3 style="margin: 0; font-size: 15px;">נתוני מאובחנים</h3>
+                    <span id="rowCount" class="toolbar-badge" aria-live="polite">סה"כ: 0</span>
                 </div>
-                <!-- Quick Filter Dropdowns -->
-                <select id="quickFilterTrait" onchange="quickTagFilter(this.value, 'trait')" style="padding: 6px 10px; font-size: 12px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; color: #475569; cursor: pointer; outline: none;">
-                    <option value="">תכונה</option>
-                    <option value="A">A</option>
-                    <option value="T">T</option>
-                    <option value="P">P</option>
-                    <option value="E">E</option>
-                </select>
-                <select id="quickFilterEnergy" onchange="quickTagFilter(this.value, 'energy')" style="padding: 6px 10px; font-size: 12px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; color: #475569; cursor: pointer; outline: none;">
-                    <option value="">אנרגיה</option>
-                    <option value="D">D</option>
-                    <option value="S">S</option>
-                    <option value="F">F</option>
-                </select>
-                <select id="quickFilterStatus" onchange="quickTagFilter(this.value, 'status')" style="padding: 6px 10px; font-size: 12px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; color: #475569; cursor: pointer; outline: none;">
-                    <option value="">סטטוס</option>
-                    <option value="needs_verification">נדרש אימות</option>
-                    <option value="no_code">ללא קוד</option>
-                </select>
-                <button onclick="exportTableCSV()" class="header-btn outline" style="padding: 8px 14px; font-size: 12px;">
-                    <i class="fas fa-file-csv"></i>
-                    <span>ייצוא CSV</span>
-                </button>
-                <button onclick="sendAlgorithmReport()" class="header-btn outline" style="padding: 8px 14px; font-size: 12px;">
-                    <i class="fas fa-calculator"></i>
-                    <span>פירוט חישוב קוד PDN</span>
-                </button>
+                <div class="toolbar-center">
+                    <div class="toolbar-search">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="tableSearchInput" placeholder="חיפוש שם או אימייל..."
+                               oninput="handleTableSearch()"
+                               onfocus="this.parentElement.classList.add('focused')"
+                               onblur="this.parentElement.classList.remove('focused')">
+                    </div>
+                    <div class="toolbar-filters">
+                        <select id="quickFilterTrait" onchange="quickTagFilter(this.value, 'trait')" aria-label="סינון לפי תכונה">
+                            <option value="">תכונה</option>
+                            <option value="A">A</option>
+                            <option value="T">T</option>
+                            <option value="P">P</option>
+                            <option value="E">E</option>
+                        </select>
+                        <select id="quickFilterEnergy" onchange="quickTagFilter(this.value, 'energy')" aria-label="סינון לפי אנרגיה">
+                            <option value="">אנרגיה</option>
+                            <option value="D">D</option>
+                            <option value="S">S</option>
+                            <option value="F">F</option>
+                        </select>
+                        <select id="quickFilterStatus" onchange="quickTagFilter(this.value, 'status')" aria-label="סינון לפי סטטוס">
+                            <option value="">סטטוס</option>
+                            <option value="needs_verification">נדרש אימות</option>
+                            <option value="no_code">ללא קוד</option>
+                        </select>
+                        <button id="clearFiltersBtn" onclick="clearAllFilters()" class="toolbar-clear-btn" style="display: none;">
+                            <i class="fas fa-times"></i> נקה
+                        </button>
+                    </div>
+                </div>
+                <div class="toolbar-left">
+                    <button onclick="exportTableCSV()" class="toolbar-action-btn">
+                        <i class="fas fa-file-csv"></i> CSV
+                    </button>
+                    <button onclick="sendAlgorithmReport()" class="toolbar-action-btn">
+                        <i class="fas fa-calculator"></i> חישוב PDN
+                    </button>
+                </div>
             </div>
         </div>
         <div style="padding: 0;">
