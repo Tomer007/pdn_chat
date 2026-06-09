@@ -694,15 +694,17 @@
                                onblur="this.parentElement.classList.remove('focused')">
                     </div>
                     <div class="toolbar-filters">
+                        <select id="quickFilterStatus" onchange="quickTagFilter(this.value, 'status')" aria-label="סינון לפי סטטוס">
+                            <option value="">סטטוס</option>
+                            <option value="needs_verification">נדרש אימות</option>
+                            <option value="no_code">ללא קוד</option>
+                        </select>
                         <select id="quickFilterTrait" onchange="quickTagFilter(this.value, 'trait')" aria-label="סינון לפי תכונה">
                             <option value="">תכונה</option>
                             <option value="A">A</option>
                             <option value="T">T</option>
                             <option value="P">P</option>
                             <option value="E">E</option>
-                            <option disabled>──────</option>
-                            <option value="needs_verification">נדרש אימות</option>
-                            <option value="no_code">ללא קוד</option>
                         </select>
                         <select id="quickFilterEnergy" onchange="quickTagFilter(this.value, 'energy')" aria-label="סינון לפי אנרגיה">
                             <option value="">אנרגיה</option>
