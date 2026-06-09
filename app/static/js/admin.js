@@ -1476,27 +1476,20 @@
         // Clear other dropdowns when one is selected
         const traitEl = document.getElementById('quickFilterTrait');
         const energyEl = document.getElementById('quickFilterEnergy');
-        const statusEl = document.getElementById('quickFilterStatus');
 
         if (type === 'trait') {
             energyEl.value = '';
-            statusEl.value = '';
         } else if (type === 'energy') {
             traitEl.value = '';
-            statusEl.value = '';
-        } else if (type === 'status') {
-            traitEl.value = '';
-            energyEl.value = '';
         }
 
         // Update active states
         traitEl.classList.toggle('active-filter', !!traitEl.value);
         energyEl.classList.toggle('active-filter', !!energyEl.value);
-        statusEl.classList.toggle('active-filter', !!statusEl.value);
 
         // Show/hide clear button
         const clearBtn = document.getElementById('clearFiltersBtn');
-        const anyActive = traitEl.value || energyEl.value || statusEl.value;
+        const anyActive = traitEl.value || energyEl.value;
         if (clearBtn) clearBtn.style.display = anyActive ? 'inline-flex' : 'none';
 
         // If cleared (empty value), show all
@@ -1541,10 +1534,8 @@
     function clearAllFilters() {
         document.getElementById('quickFilterTrait').value = '';
         document.getElementById('quickFilterEnergy').value = '';
-        document.getElementById('quickFilterStatus').value = '';
         document.getElementById('quickFilterTrait').classList.remove('active-filter');
         document.getElementById('quickFilterEnergy').classList.remove('active-filter');
-        document.getElementById('quickFilterStatus').classList.remove('active-filter');
         const clearBtn = document.getElementById('clearFiltersBtn');
         if (clearBtn) clearBtn.style.display = 'none';
         document.getElementById('tableSearchInput').value = '';

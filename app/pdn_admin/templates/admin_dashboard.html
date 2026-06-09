@@ -688,6 +688,7 @@
                     <div class="toolbar-search">
                         <i class="fas fa-search"></i>
                         <input type="text" id="tableSearchInput" placeholder="חיפוש שם או אימייל..."
+                               autocomplete="off"
                                oninput="handleTableSearch()"
                                onfocus="this.parentElement.classList.add('focused')"
                                onblur="this.parentElement.classList.remove('focused')">
@@ -699,17 +700,15 @@
                             <option value="T">T</option>
                             <option value="P">P</option>
                             <option value="E">E</option>
+                            <option disabled>──────</option>
+                            <option value="needs_verification">נדרש אימות</option>
+                            <option value="no_code">ללא קוד</option>
                         </select>
                         <select id="quickFilterEnergy" onchange="quickTagFilter(this.value, 'energy')" aria-label="סינון לפי אנרגיה">
                             <option value="">אנרגיה</option>
                             <option value="D">D</option>
                             <option value="S">S</option>
                             <option value="F">F</option>
-                        </select>
-                        <select id="quickFilterStatus" onchange="quickTagFilter(this.value, 'status')" aria-label="סינון לפי סטטוס">
-                            <option value="">סטטוס</option>
-                            <option value="needs_verification">נדרש אימות</option>
-                            <option value="no_code">ללא קוד</option>
                         </select>
                         <button id="clearFiltersBtn" onclick="clearAllFilters()" class="toolbar-clear-btn" style="display: none;">
                             <i class="fas fa-times"></i> נקה
