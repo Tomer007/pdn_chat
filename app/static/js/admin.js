@@ -408,8 +408,13 @@
 
         setupEventListeners();
         loadMetadata();
-        loadConversationStats();
         loadVersion();
+
+        // Initialize tab from URL or default to metrics
+        const urlTab = new URLSearchParams(window.location.search).get('tab');
+        if (urlTab && document.getElementById('tab-' + urlTab)) {
+            switchTab(urlTab, true);
+        }
 
         // Add global error handler for 401 responses
         window.addEventListener('unhandledrejection', function (event) {
@@ -417,6 +422,64 @@
                 redirectToLogin();
             }
         });
+    });
+
+    // ===== Tab Navigation =====
+    let _tabLoaded = { metrics: true }; // Track which tabs have loaded their data
+
+    function switchTab(tabId, skipPush) {
+        // Hide all tab contents
+        document.querySelectorAll('.tab-content').forEach(el => {
+            el.classList.remove('active');
+        });
+        // Deactivate all nav tabs and update ARIA
+        document.querySelectorAll('.nav-tab').forEach(el => {
+            el.classList.remove('active');
+            el.setAttribute('aria-selected', 'false');
+        });
+        // Show the target tab
+        const tabEl = document.getElementById('tab-' + tabId);
+        if (tabEl) tabEl.classList.add('active');
+        // Activate the nav button
+        const navEl = document.getElementById('nav' + tabId.charAt(0).toUpperCase() + tabId.slice(1));
+        if (navEl) {
+            navEl.classList.add('active');
+            navEl.setAttribute('aria-selected', 'true');
+        }
+
+        // Lazy-load data for tabs that haven't been loaded yet
+        if (!_tabLoaded[tabId]) {
+            _tabLoaded[tabId] = true;
+            switch (tabId) {
+                case 'stats':
+                    loadConversationStats();
+                    break;
+                case 'costs':
+                    loadTokenUsage();
+                    break;
+                case 'coupons':
+                    loadCoupons();
+                    break;
+                case 'chatusers':
+                    loadChatUsers();
+                    break;
+            }
+        }
+
+        // Update URL
+        if (!skipPush) {
+            updateUrlState({ tab: tabId === 'metrics' ? null : tabId });
+        }
+    }
+
+    // Keyboard shortcuts: Ctrl+1..6 for tabs
+    document.addEventListener('keydown', function(e) {
+        if (!e.ctrlKey && !e.metaKey) return;
+        const tabMap = { '1': 'metrics', '2': 'users', '3': 'stats', '4': 'costs', '5': 'coupons', '6': 'chatusers' };
+        if (tabMap[e.key]) {
+            e.preventDefault();
+            switchTab(tabMap[e.key]);
+        }
     });
 
     function setupEventListeners() {
@@ -1144,6 +1207,8 @@
         showFilterBanner(label, filtered.length);
         updateUrlState({ filter: metric, range: currentMetricsRange });
 
+        // Auto-switch to Users tab to show filtered results
+        switchTab('users', true);
         // Scroll to table
         document.getElementById('tableBody').scrollIntoView({ behavior: 'smooth', block: 'start' });
         showNotification(`מציג ${filtered.length} רשומות: ${label}`, 'info');
@@ -1159,6 +1224,7 @@
         renderTable(filtered);
         showFilterBanner(`קוד ${code}`, filtered.length);
         updateUrlState({ code: code, filter: null, range: currentMetricsRange });
+        switchTab('users', true);
         document.getElementById('tableBody').scrollIntoView({ behavior: 'smooth', block: 'start' });
         showNotification(`מציג ${filtered.length} רשומות: קוד ${code}`, 'info');
     }
@@ -1167,6 +1233,7 @@
         const filtered = currentData.filter(u => u.date === dateStr);
         renderTable(filtered);
         showFilterBanner(dateStr, filtered.length);
+        switchTab('users', true);
         document.getElementById('tableBody').scrollIntoView({ behavior: 'smooth', block: 'start' });
         showNotification(`מציג ${filtered.length} רשומות: ${dateStr}`, 'info');
     }
@@ -2941,7 +3008,14 @@
 
             try {
                 const resp = await fetch(`/pdn-admin/health_status?session_token=${sessionToken}`);
-                if (!resp.ok) { if (resp.status === 401) redirectToLogin(); return; }
+                if (!resp.ok) {
+                    if (resp.status === 401) { redirectToLogin(); return; }
+                    // Graceful degradation for 404 or other errors
+                    const dot = document.getElementById('healthDot');
+                    if (dot) dot.style.background = '#94a3b8';
+                    showNotification('בדיקת בריאות לא זמינה כרגע', 'warning');
+                    return;
+                }
                 const h = resp.json ? await resp.json() : {};
 
                 const statusColor = h.status === 'critical' ? '#dc2626' : h.status === 'warning' ? '#f59e0b' : '#22c55e';

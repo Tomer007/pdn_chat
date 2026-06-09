@@ -431,7 +431,32 @@
     <div id="metricCodeMismatch" hidden aria-hidden="true"></div>
     <div id="metricCodeMatch" hidden aria-hidden="true"></div>
 
-    <!-- Metrics Dashboard -->
+    <!-- Navigation Bar -->
+    <nav class="dash-section" style="padding: 0; overflow-x: auto;" aria-label="ניווט ראשי">
+        <div role="tablist" style="display: flex; border-bottom: none; gap: 0; min-width: max-content;">
+            <button class="nav-tab active" onclick="switchTab('metrics')" id="navMetrics" role="tab" aria-selected="true" aria-controls="tab-metrics">
+                <i class="fas fa-chart-pie" style="margin-left: 6px;" aria-hidden="true"></i>מדדים
+            </button>
+            <button class="nav-tab" onclick="switchTab('users')" id="navUsers" role="tab" aria-selected="false" aria-controls="tab-users">
+                <i class="fas fa-users" style="margin-left: 6px;" aria-hidden="true"></i>מאובחנים
+            </button>
+            <button class="nav-tab" onclick="switchTab('stats')" id="navStats" role="tab" aria-selected="false" aria-controls="tab-stats">
+                <i class="fas fa-comments" style="margin-left: 6px;" aria-hidden="true"></i>שיחות
+            </button>
+            <button class="nav-tab" onclick="switchTab('costs')" id="navCosts" role="tab" aria-selected="false" aria-controls="tab-costs">
+                <i class="fas fa-dollar-sign" style="margin-left: 6px;" aria-hidden="true"></i>עלויות
+            </button>
+            <button class="nav-tab" onclick="switchTab('coupons')" id="navCoupons" role="tab" aria-selected="false" aria-controls="tab-coupons">
+                <i class="fas fa-ticket-alt" style="margin-left: 6px;" aria-hidden="true"></i>קופונים
+            </button>
+            <button class="nav-tab" onclick="switchTab('chatusers')" id="navChatusers" role="tab" aria-selected="false" aria-controls="tab-chatusers">
+                <i class="fas fa-user-cog" style="margin-left: 6px;" aria-hidden="true"></i>משתמשי בינת
+            </button>
+        </div>
+    </nav>
+
+    <!-- Tab: Metrics (default/landing) -->
+    <div class="tab-content active" id="tab-metrics" role="tabpanel" aria-labelledby="navMetrics">
     <div class="dash-section" id="metricsSection">
         <div class="dash-section-header">
             <h3>מדדים</h3>
@@ -495,8 +520,11 @@
             </div>
         </div>
     </div>
+    </div><!-- end tab-metrics -->
 
-    <!-- Main Data Table (always visible, primary content) -->
+    <!-- Tab: Users (Data Table) -->
+    <div class="tab-content" id="tab-users" role="tabpanel" aria-labelledby="navUsers">
+    <!-- Main Data Table -->
     <div class="dash-section">
         <div class="dash-section-header">
             <div style="display: flex; align-items: center; gap: 12px;">
@@ -587,54 +615,14 @@
             </div>
         </div>
     </div>
+    </div><!-- end tab-users -->
 
-    <!-- Secondary Panels (Accordions) -->
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;" class="secondary-panels">
-
-        <!-- User Management -->
-        <div class="dash-section" x-data="{ open: false }" style="grid-column: 1 / -1;">
-            <button @click="open = !open; if(open) loadChatUsers();" class="accordion-trigger">
-                <h3>ניהול משתמשים בינת קוד המקור</h3>
-                <i class="fas fa-chevron-down accordion-chevron" :class="{ 'rotate-180': open }" style="transition: transform 0.2s;"></i>
-            </button>
-            <div x-show="open" x-collapse>
-                <div style="padding: 20px 24px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                        <span id="chatUserCount" style="font-size: 13px; color: #64748b; background: #f1f5f9; padding: 4px 12px; border-radius: 12px; font-weight: 600;">סה"כ: 0</span>
-                        <button onclick="openAddUserModal()" class="header-btn primary" style="padding: 8px 16px; font-size: 12px;">
-                            <i class="fas fa-user-plus"></i>
-                            <span>הוסף משתמש</span>
-                        </button>
-                    </div>
-                    <div style="overflow-x: auto; border-radius: 10px; border: 1px solid #e2e8f0;">
-                        <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
-                            <thead>
-                                <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
-                                    <th style="padding: 12px 16px; text-align: right; font-weight: 600; color: #475569;">אימייל</th>
-                                    <th style="padding: 12px 16px; text-align: right; font-weight: 600; color: #475569;">שם</th>
-                                    <th style="padding: 12px 16px; text-align: center; font-weight: 600; color: #475569;">מין</th>
-                                    <th style="padding: 12px 16px; text-align: center; font-weight: 600; color: #475569;">קוד PDN</th>
-                                    <th style="padding: 12px 16px; text-align: center; font-weight: 600; color: #475569;">מגבלת שיחות</th>
-                                    <th style="padding: 12px 16px; text-align: center; font-weight: 600; color: #475569;">תאריך יצירה</th>
-                                    <th style="padding: 12px 16px; text-align: center; font-weight: 600; color: #475569;">פעולות</th>
-                                </tr>
-                            </thead>
-                            <tbody id="chatUsersTableBody">
-                                <tr><td colspan="7" style="text-align: center; padding: 32px; color: #94a3b8;"><i class="fas fa-spinner fa-spin" style="margin-left: 8px;"></i> טוען...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+    <!-- Tab: Stats (Conversation Statistics) -->
+    <div class="tab-content" id="tab-stats" role="tabpanel" aria-labelledby="navStats">
         <!-- Conversation Stats -->
-        <div class="dash-section" x-data="{ open: false, loaded: false }">
-            <div class="accordion-trigger" style="cursor: default;">
-                <button @click="open = !open; if(open && !loaded) { loaded = true; loadConversationStats(); }" style="display: flex; align-items: center; gap: 8px; border: none; background: none; cursor: pointer; padding: 0;">
-                    <h3 style="font-size: 15px; font-weight: 700; color: #1e293b; margin: 0;">סטטיסטיקות שיחות בינת קוד המקור</h3>
-                    <i class="fas fa-chevron-down accordion-chevron" :class="{ 'rotate-180': open }" style="transition: transform 0.2s;"></i>
-                </button>
+        <div class="dash-section">
+            <div class="dash-section-header">
+                <h3><i class="fas fa-comments" style="margin-left: 8px; color: #0b2e6b;"></i>סטטיסטיקות שיחות בינת קוד המקור</h3>
                 <div style="display: flex; gap: 4px; background: #f1f5f9; border-radius: 8px; padding: 3px;">
                     <button class="stats-period-btn" data-days="7" onclick="loadConversationStats(7)"
                             style="padding: 5px 12px; border-radius: 6px; border: none; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: #0b2e6b; color: white;">7 ימים</button>
@@ -644,20 +632,17 @@
                             style="padding: 5px 12px; border-radius: 6px; border: none; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: transparent; color: #64748b;">הכל</button>
                 </div>
             </div>
-            <div x-show="open" x-collapse>
-                <div style="padding: 20px 24px;">
-                    <div id="conversationStats" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-                </div>
+            <div style="padding: 20px 24px;">
+                <div id="conversationStats" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
             </div>
         </div>
+    </div><!-- end tab-stats -->
 
-        <!-- Token Usage / Cost Calculator -->
-        <div class="dash-section" x-data="{ open: false }">
-            <div class="accordion-trigger" style="cursor: default;">
-                <button @click="open = !open; if(open) loadTokenUsage();" style="display: flex; align-items: center; gap: 8px; border: none; background: none; cursor: pointer; padding: 0;">
-                    <h3 style="font-size: 15px; font-weight: 700; color: #1e293b; margin: 0;">מחשבון עלויות בינת קוד המקור</h3>
-                    <i class="fas fa-chevron-down accordion-chevron" :class="{ 'rotate-180': open }" style="transition: transform 0.2s;"></i>
-                </button>
+    <!-- Tab: Costs (Token Usage) -->
+    <div class="tab-content" id="tab-costs" role="tabpanel" aria-labelledby="navCosts">
+        <div class="dash-section">
+            <div class="dash-section-header">
+                <h3><i class="fas fa-dollar-sign" style="margin-left: 8px; color: #0b2e6b;"></i>מחשבון עלויות בינת קוד המקור</h3>
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <div style="display: flex; gap: 4px; background: #f1f5f9; border-radius: 8px; padding: 3px;">
                         <button class="token-period-btn" data-days="7" onclick="loadTokenUsage(7)"
@@ -672,63 +657,94 @@
                     </button>
                 </div>
             </div>
-            <div x-show="open" x-collapse>
-                <div style="padding: 20px 24px;">
-                    <!-- Average Cost Per Call -->
-                    <div id="tokenUsageContent">
-                        <div style="text-align: center; padding: 32px 16px; background: #f8fafc; border-radius: 12px; border: 1px dashed #cbd5e1;">
-                            <i class="fas fa-chart-line" style="font-size: 24px; color: #94a3b8; margin-bottom: 8px; display: block;"></i>
-                            <p style="font-size: 13px; color: #64748b; margin: 0;">לחץ על "רענן" לטעינת נתוני עלויות</p>
-                        </div>
+            <div style="padding: 20px 24px;">
+                <div id="tokenUsageContent">
+                    <div style="text-align: center; padding: 32px 16px; background: #f8fafc; border-radius: 12px; border: 1px dashed #cbd5e1;">
+                        <i class="fas fa-chart-line" style="font-size: 24px; color: #94a3b8; margin-bottom: 8px; display: block;"></i>
+                        <p style="font-size: 13px; color: #64748b; margin: 0;">טוען נתוני עלויות...</p>
                     </div>
-
-                    <!-- Average cost highlight -->
-                    <div id="avgCostHighlight" style="display: none; margin-top: 16px; padding: 16px 20px; background: linear-gradient(135deg, #0b2e6b 0%, #1a3f7a 100%); border-radius: 12px; text-align: center;">
-                        <div style="font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 4px;">עלות ממוצעת לקריאה</div>
-                        <div id="avgCostValue" style="font-size: 24px; font-weight: 800; color: white;">—</div>
-                    </div>
+                </div>
+                <div id="avgCostHighlight" style="display: none; margin-top: 16px; padding: 16px 20px; background: linear-gradient(135deg, #0b2e6b 0%, #1a3f7a 100%); border-radius: 12px; text-align: center;">
+                    <div style="font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 4px;">עלות ממוצעת לקריאה</div>
+                    <div id="avgCostValue" style="font-size: 24px; font-weight: 800; color: white;">—</div>
                 </div>
             </div>
         </div>
+    </div><!-- end tab-costs -->
 
-        <!-- Coupon Management -->
-        <div class="dash-section" x-data="{ open: false }" style="grid-column: 1 / -1;">
-            <button @click="open = !open; if(open) loadCoupons();" class="accordion-trigger">
+    <!-- Tab: Coupons -->
+    <div class="tab-content" id="tab-coupons" role="tabpanel" aria-labelledby="navCoupons">
+        <div class="dash-section">
+            <div class="dash-section-header">
                 <h3><i class="fas fa-ticket-alt" style="margin-left: 8px; color: #0b2e6b;"></i>ניהול קופונים</h3>
-                <i class="fas fa-chevron-down accordion-chevron" :class="{ 'rotate-180': open }" style="transition: transform 0.2s;"></i>
-            </button>
-            <div x-show="open" x-collapse>
-                <div style="padding: 20px 24px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                        <span id="couponCount" style="font-size: 13px; color: #64748b; background: #f1f5f9; padding: 4px 12px; border-radius: 12px; font-weight: 600;">סה"כ: 0</span>
-                        <div style="display: flex; gap: 8px;">
-                            <button onclick="openCreateCouponModal()" class="header-btn primary" style="padding: 8px 16px; font-size: 12px;">
-                                <i class="fas fa-plus"></i>
-                                <span>צור קופון</span>
-                            </button>
-                        </div>
-                    </div>
-                    <div style="overflow-x: auto; border-radius: 10px; border: 1px solid #e2e8f0;">
-                        <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
-                            <thead>
-                                <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
-                                    <th style="padding: 12px 16px; text-align: right; font-weight: 600; color: #475569;">קוד</th>
-                                    <th style="padding: 12px 16px; text-align: right; font-weight: 600; color: #475569;">שם</th>
-                                    <th style="padding: 12px 16px; text-align: center; font-weight: 600; color: #475569;">שימוש</th>
-                                    <th style="padding: 12px 16px; text-align: center; font-weight: 600; color: #475569;">סטטוס</th>
-                                    <th style="padding: 12px 16px; text-align: center; font-weight: 600; color: #475569;">פעולות</th>
-                                </tr>
-                            </thead>
-                            <tbody id="couponsTableBody">
-                                <tr><td colspan="5" style="text-align: center; padding: 32px; color: #94a3b8;"><i class="fas fa-spinner fa-spin" style="margin-left: 8px;"></i> טוען...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
+                <div style="display: flex; gap: 8px;">
+                    <button onclick="openCreateCouponModal()" class="header-btn primary" style="padding: 8px 16px; font-size: 12px;">
+                        <i class="fas fa-plus"></i>
+                        <span>צור קופון</span>
+                    </button>
+                </div>
+            </div>
+            <div style="padding: 20px 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <span id="couponCount" style="font-size: 13px; color: #64748b; background: #f1f5f9; padding: 4px 12px; border-radius: 12px; font-weight: 600;">סה"כ: 0</span>
+                </div>
+                <div style="overflow-x: auto; border-radius: 10px; border: 1px solid #e2e8f0;">
+                    <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+                                <th style="padding: 12px 16px; text-align: right; font-weight: 600; color: #475569;">קוד</th>
+                                <th style="padding: 12px 16px; text-align: right; font-weight: 600; color: #475569;">שם</th>
+                                <th style="padding: 12px 16px; text-align: center; font-weight: 600; color: #475569;">שימוש</th>
+                                <th style="padding: 12px 16px; text-align: center; font-weight: 600; color: #475569;">סטטוס</th>
+                                <th style="padding: 12px 16px; text-align: center; font-weight: 600; color: #475569;">פעולות</th>
+                            </tr>
+                        </thead>
+                        <tbody id="couponsTableBody">
+                            <tr><td colspan="5" style="text-align: center; padding: 32px; color: #94a3b8;"><i class="fas fa-spinner fa-spin" style="margin-left: 8px;"></i> טוען...</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
-    </div>
-</div>
+    </div><!-- end tab-coupons -->
+
+    <!-- Tab: Chat Users -->
+    <div class="tab-content" id="tab-chatusers" role="tabpanel" aria-labelledby="navChatusers">
+        <div class="dash-section">
+            <div class="dash-section-header">
+                <h3><i class="fas fa-user-cog" style="margin-left: 8px; color: #0b2e6b;"></i>ניהול משתמשים בינת קוד המקור</h3>
+                <button onclick="openAddUserModal()" class="header-btn primary" style="padding: 8px 16px; font-size: 12px;">
+                    <i class="fas fa-user-plus"></i>
+                    <span>הוסף משתמש</span>
+                </button>
+            </div>
+            <div style="padding: 20px 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <span id="chatUserCount" style="font-size: 13px; color: #64748b; background: #f1f5f9; padding: 4px 12px; border-radius: 12px; font-weight: 600;">סה"כ: 0</span>
+                </div>
+                <div style="overflow-x: auto; border-radius: 10px; border: 1px solid #e2e8f0;">
+                    <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+                                <th style="padding: 12px 16px; text-align: right; font-weight: 600; color: #475569;">אימייל</th>
+                                <th style="padding: 12px 16px; text-align: right; font-weight: 600; color: #475569;">שם</th>
+                                <th style="padding: 12px 16px; text-align: center; font-weight: 600; color: #475569;">מין</th>
+                                <th style="padding: 12px 16px; text-align: center; font-weight: 600; color: #475569;">קוד PDN</th>
+                                <th style="padding: 12px 16px; text-align: center; font-weight: 600; color: #475569;">מגבלת שיחות</th>
+                                <th style="padding: 12px 16px; text-align: center; font-weight: 600; color: #475569;">תאריך יצירה</th>
+                                <th style="padding: 12px 16px; text-align: center; font-weight: 600; color: #475569;">פעולות</th>
+                            </tr>
+                        </thead>
+                        <tbody id="chatUsersTableBody">
+                            <tr><td colspan="7" style="text-align: center; padding: 32px; color: #94a3b8;"><i class="fas fa-spinner fa-spin" style="margin-left: 8px;"></i> טוען...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div><!-- end tab-chatusers -->
+
+</div><!-- end dashboard -->
 
 
 <!-- Create Coupon Modal -->
@@ -1360,7 +1376,14 @@
                 : '<span style="display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; background: #fef2f2; color: #dc2626;">מלא</span>';
 
             return `<tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
-                <td style="padding: 12px 16px; font-weight: 600; color: #0b2e6b; direction: ltr; text-align: right; letter-spacing: 0.5px;">${coupon.code}</td>
+                <td style="padding: 12px 16px; font-weight: 600; color: #0b2e6b; direction: ltr; text-align: right; letter-spacing: 0.5px;">
+                    <span style="display: inline-flex; align-items: center; gap: 6px;">
+                        ${coupon.code}
+                        <button onclick="copyToClipboard('${coupon.code}')" title="העתק קוד" style="padding: 3px 6px; border: none; background: transparent; cursor: pointer; color: #94a3b8; font-size: 11px; transition: color 0.2s;" onmouseover="this.style.color='#0b2e6b'" onmouseout="this.style.color='#94a3b8'">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </span>
+                </td>
                 <td style="padding: 12px 16px; color: #374151;">${coupon.name}</td>
                 <td style="padding: 12px 16px; text-align: center; color: #64748b; direction: ltr;">${coupon.usage_count}/${coupon.max_usage}</td>
                 <td style="padding: 12px 16px; text-align: center;">${statusBadge}</td>
@@ -1564,18 +1587,80 @@
                     '<div style="text-align: center; padding: 32px; color: #94a3b8;"><i class="fas fa-inbox" style="font-size: 24px; margin-bottom: 8px; display: block;"></i>אין שימושים עדיין</div>';
             } else {
                 document.getElementById('couponUsageContent').innerHTML =
-                    '<div style="border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden;">' +
+                    `<div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                        <button onclick="copyCouponUsageList('${code}')" style="padding: 6px 14px; border-radius: 8px; border: 1px solid #e2e8f0; background: white; cursor: pointer; font-size: 12px; font-weight: 600; color: #0b2e6b; transition: all 0.2s;" onmouseover="this.style.background='#f0f4ff'" onmouseout="this.style.background='white'">
+                            <i class="fas fa-copy"></i> העתק רשימה
+                        </button>
+                        <button onclick="exportCouponUsageCSV('${code}')" style="padding: 6px 14px; border-radius: 8px; border: 1px solid #e2e8f0; background: white; cursor: pointer; font-size: 12px; font-weight: 600; color: #059669; transition: all 0.2s;" onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background='white'">
+                            <i class="fas fa-file-csv"></i> ייצוא CSV
+                        </button>
+                    </div>` +
+                    '<div id="couponUsageList" style="border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden;">' +
                     usedBy.map((email, idx) =>
                         `<div style="padding: 10px 16px; font-size: 13px; color: #374151; border-bottom: ${idx < usedBy.length - 1 ? '1px solid #f1f5f9' : 'none'}; display: flex; align-items: center; gap: 8px;">
                             <i class="fas fa-envelope" style="color: #94a3b8; font-size: 11px;"></i>
-                            <span style="direction: ltr;">${email}</span>
+                            <span style="direction: ltr; flex: 1;">${email}</span>
+                            <button onclick="copyToClipboard('${email}')" title="העתק" style="padding: 4px 8px; border: none; background: transparent; cursor: pointer; color: #94a3b8; font-size: 11px; transition: color 0.2s;" onmouseover="this.style.color='#0b2e6b'" onmouseout="this.style.color='#94a3b8'">
+                                <i class="fas fa-copy"></i>
+                            </button>
                         </div>`
                     ).join('') + '</div>';
+                // Store for export
+                window._couponUsageEmails = { code, emails: usedBy };
             }
         } catch (error) {
             document.getElementById('couponUsageContent').innerHTML =
                 '<div style="text-align: center; padding: 32px; color: #dc2626;">שגיאה בטעינת נתוני שימוש</div>';
         }
+    }
+
+    function copyCouponUsageList(code) {
+        const data = window._couponUsageEmails;
+        if (!data || data.code !== code) return;
+        const text = data.emails.join('\n');
+        navigator.clipboard.writeText(text).then(() => {
+            showNotification(`${data.emails.length} כתובות הועתקו ללוח`, 'success');
+        }).catch(() => {
+            // Fallback for older browsers
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            showNotification(`${data.emails.length} כתובות הועתקו ללוח`, 'success');
+        });
+    }
+
+    function exportCouponUsageCSV(code) {
+        const data = window._couponUsageEmails;
+        if (!data || data.code !== code) return;
+        const bom = '\uFEFF';
+        const csv = bom + 'אימייל\n' + data.emails.join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `coupon_${code}_users_${new Date().toISOString().slice(0,10)}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        showNotification(`ייצוא ${data.emails.length} כתובות הושלם`, 'success');
+    }
+
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            showNotification('הועתק ללוח', 'success');
+        }).catch(() => {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            showNotification('הועתק ללוח', 'success');
+        });
     }
 
     // --- Send Coupon Email ---
