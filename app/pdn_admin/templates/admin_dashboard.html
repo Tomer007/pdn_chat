@@ -244,6 +244,30 @@
             margin-left: 4px;
         }
 
+        /* Row hover highlight */
+        #tableBody tr {
+            transition: background-color 0.1s ease;
+            cursor: pointer;
+        }
+        #tableBody tr:hover {
+            background-color: #f8fafc;
+        }
+        #tableBody tr.highlight-difference:hover {
+            background-color: #fef2f2;
+        }
+
+        /* Secondary columns — hidden by default */
+        .cols-hidden .col-secondary {
+            display: none;
+        }
+
+        /* PDN code emphasis */
+        .pdn-code-cell {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
         /* Better search bar */
         .search-bar {
             position: relative;
@@ -693,6 +717,9 @@
                     </div>
                 </div>
                 <div class="toolbar-left">
+                    <button onclick="toggleSecondaryColumns()" class="toolbar-action-btn" id="toggleColsBtn" title="הצג/הסתר עמודות נוספות">
+                        <i class="fas fa-columns"></i> עמודות
+                    </button>
                     <button onclick="exportTableCSV()" class="toolbar-action-btn">
                         <i class="fas fa-file-csv"></i> CSV
                     </button>
@@ -725,14 +752,14 @@
                 </button>
             </div>
             <div class="table-container overflow-x-auto">
-                <table class="w-full">
+                <table class="w-full cols-hidden" id="usersTable">
                     <thead class="table-header sticky top-0">
                     <tr>
                         <th class="px-2 py-4 text-center" style="width:40px;">
                             <input type="checkbox" id="selectAllRows" onchange="toggleSelectAll(this)" title="בחר הכל"
                                    style="width:16px;height:16px;cursor:pointer;accent-color:#0b2e6b;">
                         </th>
-                        <th class="px-4 py-4 text-right font-semibold text-gray-700" title="מזהה מערכת">מזהה מערכת</th>
+                        <th class="px-4 py-4 text-right font-semibold text-gray-700 col-secondary" title="מזהה מערכת">מזהה מערכת</th>
                         <th class="px-4 py-4 text-right font-semibold text-gray-700" title="פעולות">פעולות</th>
                         <th class="px-4 py-4 text-right font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"
                             title="שם" onclick="sortTable('name')" aria-sort="none" id="th-name">
@@ -751,10 +778,10 @@
                             קוד מערכת <span class="sort-indicator text-blue-600 text-sm" data-col="pdn_code"></span>
                         </th>
                         <th class="px-4 py-4 text-right font-semibold text-gray-700" title="סטטוס אימות">אימות</th>
-                        <th class="px-4 py-4 text-right font-semibold text-gray-700" title="ניתוח קול">ניתוח קול</th>
+                        <th class="px-4 py-4 text-right font-semibold text-gray-700 col-secondary" title="ניתוח קול">ניתוח קול</th>
                         <th class="px-4 py-4 text-right font-semibold text-gray-700" title="קוד מאבחן">קוד מאבחן</th>
                         <th class="px-4 py-4 text-right font-semibold text-gray-700" title="הערות המאבחן">הערות</th>
-                        <th class="px-4 py-4 text-right font-semibold text-gray-700" title="הערות עדכון קוד פדן">עדכון קוד פדן</th>
+                        <th class="px-4 py-4 text-right font-semibold text-gray-700 col-secondary" title="הערות עדכון קוד פדן">עדכון קוד פדן</th>
                         <th class="px-4 py-4 text-right font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"
                             title="קופון" onclick="sortTable('coupon_code')" aria-sort="none" id="th-coupon_code">
                             קופון <span class="sort-indicator text-blue-600 text-sm" data-col="coupon_code"></span>

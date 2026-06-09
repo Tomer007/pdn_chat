@@ -1555,6 +1555,16 @@
         updateUrlState({ code: null, filter: null, search: null });
     }
 
+    function toggleSecondaryColumns() {
+        const table = document.getElementById('usersTable');
+        const btn = document.getElementById('toggleColsBtn');
+        table.classList.toggle('cols-hidden');
+        const isHidden = table.classList.contains('cols-hidden');
+        btn.innerHTML = isHidden
+            ? '<i class="fas fa-columns"></i> עמודות'
+            : '<i class="fas fa-columns"></i> פחות';
+    }
+
     async function showActiveUsers() {
         if (!sessionToken) return;
         try {
@@ -1669,13 +1679,21 @@
                 row.classList.add('highlight-difference');
             }
 
+            // Click row to open user journey (except on buttons/inputs)
+            row.addEventListener('click', function(e) {
+                if (e.target.closest('button, input, select, a, .action-btn')) return;
+                viewJourney(user.email);
+            });
+
+            const displayName = ((user.first_name || '') + ' ' + (user.last_name || '')).trim();
+
             row.innerHTML = `
             <td class="px-2 py-4 text-center">
                 <input type="checkbox" class="row-select-cb" data-email="${escapeHtml(user.email)}" onchange="updateBulkSelection()"
                        style="width:16px;height:16px;cursor:pointer;accent-color:#0b2e6b;">
             </td>
-            <td class="px-4 py-4">
-                <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium font-mono">${user.user_id || 'N/A'}</span>
+            <td class="px-4 py-4 col-secondary">
+                <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium font-mono">${user.user_id || '—'}</span>
             </td>
             <td class="px-4 py-4">
                 <div class="relative" x-data="{ open: false, loadingBtn: '', modalText: '', showModal: false }">
@@ -1757,15 +1775,15 @@
                     </div>
                 </div>
             </td>
-            <td class="px-4 py-4 font-medium text-gray-900">${escapeHtml(((user.first_name || '') + ' ' + (user.last_name || '')).trim()) || 'N/A'}</td>
+            <td class="px-4 py-4 font-medium text-gray-900">${escapeHtml(displayName) || '—'}</td>
             <td class="px-4 py-4 font-medium text-gray-900">
-                <span class="cursor-pointer hover:text-blue-700 transition-colors" onclick="navigator.clipboard.writeText('${escapeHtml(user.email)}').then(() => showNotification('אימייל הועתק', 'success'))" title="לחץ להעתקה">
+                <span class="cursor-pointer hover:text-blue-700 transition-colors" onclick="event.stopPropagation(); navigator.clipboard.writeText('${escapeHtml(user.email)}').then(() => showNotification('אימייל הועתק', 'success'))" title="לחץ להעתקה">
                     ${escapeHtml(user.email)} <i class="fas fa-copy text-gray-300 text-xs mr-1"></i>
                 </span>
             </td>
-            <td class="px-4 py-4 text-gray-700">${escapeHtml(user.date)}</td>
+            <td class="px-4 py-4 text-gray-700">${escapeHtml(user.date) || '—'}</td>
             <td class="px-4 py-4">
-                <span class="px-2 py-1 rounded-full text-xs font-medium ${getPdnBadgeColor(user.pdn_code)}">${escapeHtml(user.pdn_code)}</span>
+                <span class="pdn-code-cell px-3 py-1 rounded-full text-sm ${getPdnBadgeColor(user.pdn_code)}">${escapeHtml(user.pdn_code) || '—'}</span>
             </td>
             <td class="px-4 py-4">
                 ${user.confidence_score !== undefined && user.confidence_score !== null ?
@@ -1776,18 +1794,18 @@
                         <span class="text-xs font-mono ${user.confidence_score >= 80 ? 'text-green-700' : user.confidence_score >= 60 ? 'text-yellow-700' : 'text-red-700'}">${user.confidence_score}%</span>
                     </div>` :
                     (user.needs_verification ?
-                        `<span class="verification-badge needs-review" onclick="showVerificationPopup('${escapeHtml(user.email)}', '${escapeHtml(user.pdn_code)}')" title="לחץ לפרטים" style="cursor:pointer;"><i class="fas fa-exclamation-triangle"></i> אימות</span>` :
+                        `<span class="verification-badge needs-review" onclick="event.stopPropagation(); showVerificationPopup('${escapeHtml(user.email)}', '${escapeHtml(user.pdn_code)}')" title="לחץ לפרטים" style="cursor:pointer;"><i class="fas fa-exclamation-triangle"></i> אימות</span>` :
                         '<span class="verification-badge verified"><i class="fas fa-check-circle"></i> תקין</span>')
                 }
             </td>
-            <td class="px-4 py-4">
-                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">${escapeHtml(user.pdn_voice_code) || 'N/A'}</span>
+            <td class="px-4 py-4 col-secondary">
+                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">${escapeHtml(user.pdn_voice_code) || '—'}</span>
             </td>
             <td class="px-4 py-4">
-                <span class="px-2 py-1 rounded-full text-xs font-medium ${getPdnBadgeColor(user.diagnose_pdn_code)}">${escapeHtml(user.diagnose_pdn_code) || 'N/A'}</span>
+                <span class="px-2 py-1 rounded-full text-xs font-medium ${getPdnBadgeColor(user.diagnose_pdn_code)}">${escapeHtml(user.diagnose_pdn_code) || '—'}</span>
             </td>
-            <td class="px-4 py-4 text-gray-700 max-w-xs truncate" title="${escapeHtml(user.diagnose_comments || '')}">${escapeHtml(user.diagnose_comments || '')}</td>
-            <td class="px-4 py-4 text-gray-700 max-w-xs truncate" title="${user.pdn_update_comments || ''}">${user.pdn_update_comments || ''}</td>
+            <td class="px-4 py-4 text-gray-700 max-w-xs truncate" title="${escapeHtml(user.diagnose_comments || '')}">${escapeHtml(user.diagnose_comments || '') || '—'}</td>
+            <td class="px-4 py-4 text-gray-700 max-w-xs truncate col-secondary" title="${user.pdn_update_comments || ''}">${user.pdn_update_comments || '—'}</td>
             <td class="px-4 py-4 text-gray-700">
                 ${user.coupon_code ? `<span class="px-2 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-medium font-mono">${escapeHtml(user.coupon_code)}</span>` : '—'}
             </td>
