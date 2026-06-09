@@ -1492,8 +1492,7 @@
 
         // Show/hide clear button
         const clearBtn = document.getElementById('clearFiltersBtn');
-        const anyActive = statusEl.value || traitEl.value || energyEl.value;
-        if (clearBtn) clearBtn.style.display = anyActive ? 'inline-flex' : 'none';
+        // Always visible — no toggle needed
 
         // If cleared (empty value), show all
         if (!value) {
@@ -1541,14 +1540,12 @@
         document.getElementById('quickFilterStatus').classList.remove('active-filter');
         document.getElementById('quickFilterTrait').classList.remove('active-filter');
         document.getElementById('quickFilterEnergy').classList.remove('active-filter');
-        const clearBtn = document.getElementById('clearFiltersBtn');
-        if (clearBtn) clearBtn.style.display = 'none';
         document.getElementById('tableSearchInput').value = '';
         renderTable(currentData);
         document.getElementById('rowCount').textContent = `סה"כ שורות: ${currentData.length}`;
         const banner = document.getElementById('filterBanner');
         if (banner) banner.remove();
-        updateUrlState({ code: null, filter: null, search: null });
+        updateUrlState({ code: null, filter: null });
     }
 
     function toggleSecondaryColumns() {
