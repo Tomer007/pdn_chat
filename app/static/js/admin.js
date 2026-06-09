@@ -56,8 +56,7 @@
         } else if (state.code) {
             filterByCode(state.code);
         } else if (state.search) {
-            const searchEl = document.getElementById('tableSearchInput');
-            if (searchEl) { searchEl.value = state.search; handleTableSearch(); }
+            // Don't restore search from URL — start fresh each time
         }
         if (state.sort) {
             sortColumn = state.sort;
@@ -1458,7 +1457,6 @@
             if (banner) banner.remove();
             renderTable(currentData);
             document.getElementById('rowCount').textContent = `סה"כ שורות: ${currentData.length}`;
-            updateUrlState({ search: null });
             return;
         }
         const filtered = currentData.filter(u => {
@@ -1468,7 +1466,6 @@
         });
         renderTable(filtered);
         document.getElementById('rowCount').textContent = `סה"כ שורות: ${filtered.length} (חיפוש: "${term}")`;
-        updateUrlState({ search: term, filter: null, code: null });
     }
 
     // --- Quick Filter Dropdowns ---
