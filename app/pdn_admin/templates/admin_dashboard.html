@@ -692,6 +692,12 @@
                                onblur="this.parentElement.classList.remove('focused')">
                     </div>
                     <div class="toolbar-filters">
+                        <select id="quickFilterTime" onchange="quickTagFilter(this.value, 'time')" aria-label="סינון לפי זמן">
+                            <option value="">תקופה</option>
+                            <option value="day">יום אחרון</option>
+                            <option value="week">שבוע</option>
+                            <option value="month">חודש</option>
+                        </select>
                         <select id="quickFilterStatus" onchange="quickTagFilter(this.value, 'status')" aria-label="סינון לפי סטטוס">
                             <option value="">סטטוס</option>
                             <option value="needs_verification">נדרש אימות</option>

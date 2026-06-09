@@ -1470,11 +1470,15 @@
 
     // --- Quick Filter Dropdowns ---
     function quickTagFilter(value, type) {
+        const timeEl = document.getElementById('quickFilterTime');
         const statusEl = document.getElementById('quickFilterStatus');
         const traitEl = document.getElementById('quickFilterTrait');
         const energyEl = document.getElementById('quickFilterEnergy');
 
-        if (type === 'status') {
+        // Time filter can combine with others; trait/energy/status are mutually exclusive
+        if (type === 'time') {
+            // Time doesn't clear others — it combines
+        } else if (type === 'status') {
             traitEl.value = '';
             energyEl.value = '';
         } else if (type === 'trait') {
@@ -1486,6 +1490,7 @@
         }
 
         // Update active states
+        timeEl.classList.toggle('active-filter', !!timeEl.value);
         statusEl.classList.toggle('active-filter', !!statusEl.value);
         traitEl.classList.toggle('active-filter', !!traitEl.value);
         energyEl.classList.toggle('active-filter', !!energyEl.value);
@@ -1494,39 +1499,83 @@
         const clearBtn = document.getElementById('clearFiltersBtn');
         // Always visible — no toggle needed
 
-        // If cleared (empty value), show all
-        if (!value) {
+        // Apply combined filters
+        applyFilters();
+    }
+
+    function applyFilters() {
+        const timeEl = document.getElementById('quickFilterTime');
+        const statusEl = document.getElementById('quickFilterStatus');
+        const traitEl = document.getElementById('quickFilterTrait');
+        const energyEl = document.getElementById('quickFilterEnergy');
+
+        const timeVal = timeEl.value;
+        const statusVal = statusEl.value;
+        const traitVal = traitEl.value;
+        const energyVal = energyEl.value;
+
+        // If nothing selected, show all
+        if (!timeVal && !statusVal && !traitVal && !energyVal) {
             renderTable(currentData);
             document.getElementById('rowCount').textContent = `סה"כ שורות: ${currentData.length}`;
             const banner = document.getElementById('filterBanner');
             if (banner) banner.remove();
-            updateUrlState({ code: null, filter: null });
             return;
         }
 
-        let filtered;
-        let label;
+        let filtered = currentData;
+        let labels = [];
 
-        if (value === 'needs_verification') {
-            filtered = currentData.filter(u => u.needs_verification);
-            label = 'נדרש אימות';
-        } else if (value === 'no_code') {
-            filtered = currentData.filter(u => !u.pdn_code || u.pdn_code === '');
-            label = 'ללא קוד PDN';
-        } else if (['A', 'T', 'P', 'E'].includes(value)) {
-            filtered = currentData.filter(u => u.pdn_code && u.pdn_code.toUpperCase().startsWith(value));
-            label = `תכונה ${value}`;
-        } else if (['D', 'S', 'F'].includes(value)) {
+        // Time filter
+        if (timeVal) {
+            const now = new Date();
+            let cutoff;
+            if (timeVal === 'day') {
+                cutoff = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+                labels.push('יום אחרון');
+            } else if (timeVal === 'week') {
+                cutoff = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                labels.push('שבוע');
+            } else if (timeVal === 'month') {
+                cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                labels.push('חודש');
+            }
+            if (cutoff) {
+                filtered = filtered.filter(u => {
+                    const d = parseDate(u.date);
+                    return d && d >= cutoff;
+                });
+            }
+        }
+
+        // Status filter
+        if (statusVal === 'needs_verification') {
+            filtered = filtered.filter(u => u.needs_verification);
+            labels.push('נדרש אימות');
+        } else if (statusVal === 'no_code') {
+            filtered = filtered.filter(u => !u.pdn_code || u.pdn_code === '');
+            labels.push('ללא קוד');
+        }
+
+        // Trait filter
+        if (traitVal && ['A', 'T', 'P', 'E'].includes(traitVal)) {
+            filtered = filtered.filter(u => u.pdn_code && u.pdn_code.toUpperCase().startsWith(traitVal));
+            labels.push(`תכונה ${traitVal}`);
+        }
+
+        // Energy filter
+        if (energyVal && ['D', 'S', 'F'].includes(energyVal)) {
             const energyMap = { 'D': [7,4,10,1], 'S': [11,8,2,5], 'F': [3,12,6,9] };
-            const codes = energyMap[value] || [];
-            filtered = currentData.filter(u => {
+            const codes = energyMap[energyVal] || [];
+            filtered = filtered.filter(u => {
                 if (!u.pdn_code) return false;
                 const num = parseInt(u.pdn_code.replace(/[^0-9]/g, ''));
                 return codes.includes(num);
             });
-            label = `אנרגיה ${value}`;
+            labels.push(`אנרגיה ${energyVal}`);
         }
 
+        const label = labels.join(' + ');
         renderTable(filtered);
         showFilterBanner(label, filtered.length);
         document.getElementById('rowCount').textContent = `סה"כ שורות: ${filtered.length} (${label})`;
@@ -1534,9 +1583,11 @@
     }
 
     function clearAllFilters() {
+        document.getElementById('quickFilterTime').value = '';
         document.getElementById('quickFilterStatus').value = '';
         document.getElementById('quickFilterTrait').value = '';
         document.getElementById('quickFilterEnergy').value = '';
+        document.getElementById('quickFilterTime').classList.remove('active-filter');
         document.getElementById('quickFilterStatus').classList.remove('active-filter');
         document.getElementById('quickFilterTrait').classList.remove('active-filter');
         document.getElementById('quickFilterEnergy').classList.remove('active-filter');
