@@ -406,6 +406,7 @@
         }
 
         setupEventListeners();
+        resetFilterDropdowns();
         loadMetadata();
         loadVersion();
 
@@ -1583,20 +1584,24 @@
     }
 
     function clearAllFilters() {
-        document.getElementById('quickFilterTime').value = '';
-        document.getElementById('quickFilterStatus').value = '';
-        document.getElementById('quickFilterTrait').value = '';
-        document.getElementById('quickFilterEnergy').value = '';
-        document.getElementById('quickFilterTime').classList.remove('active-filter');
-        document.getElementById('quickFilterStatus').classList.remove('active-filter');
-        document.getElementById('quickFilterTrait').classList.remove('active-filter');
-        document.getElementById('quickFilterEnergy').classList.remove('active-filter');
+        resetFilterDropdowns();
         document.getElementById('tableSearchInput').value = '';
         renderTable(currentData);
         document.getElementById('rowCount').textContent = `סה"כ שורות: ${currentData.length}`;
         const banner = document.getElementById('filterBanner');
         if (banner) banner.remove();
         updateUrlState({ code: null, filter: null });
+    }
+
+    function resetFilterDropdowns() {
+        const ids = ['quickFilterTime', 'quickFilterStatus', 'quickFilterTrait', 'quickFilterEnergy'];
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.value = '';
+                el.classList.remove('active-filter');
+            }
+        });
     }
 
     function toggleSecondaryColumns() {

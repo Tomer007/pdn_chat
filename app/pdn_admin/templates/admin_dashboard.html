@@ -696,25 +696,25 @@
                                onblur="this.parentElement.classList.remove('focused')">
                     </div>
                     <div class="toolbar-filters">
-                        <select id="quickFilterTime" onchange="quickTagFilter(this.value, 'time')" aria-label="סינון לפי זמן">
+                        <select id="quickFilterTime" onchange="quickTagFilter(this.value, 'time')" aria-label="סינון לפי זמן" autocomplete="off">
                             <option value="">תקופה</option>
                             <option value="day">יום אחרון</option>
                             <option value="week">שבוע</option>
                             <option value="month">חודש</option>
                         </select>
-                        <select id="quickFilterStatus" onchange="quickTagFilter(this.value, 'status')" aria-label="סינון לפי סטטוס">
+                        <select id="quickFilterStatus" onchange="quickTagFilter(this.value, 'status')" aria-label="סינון לפי סטטוס" autocomplete="off">
                             <option value="">סטטוס</option>
                             <option value="needs_verification">נדרש אימות</option>
                             <option value="no_code">ללא קוד</option>
                         </select>
-                        <select id="quickFilterTrait" onchange="quickTagFilter(this.value, 'trait')" aria-label="סינון לפי תכונה">
+                        <select id="quickFilterTrait" onchange="quickTagFilter(this.value, 'trait')" aria-label="סינון לפי תכונה" autocomplete="off">
                             <option value="">תכונה</option>
                             <option value="A">A</option>
                             <option value="T">T</option>
                             <option value="P">P</option>
                             <option value="E">E</option>
                         </select>
-                        <select id="quickFilterEnergy" onchange="quickTagFilter(this.value, 'energy')" aria-label="סינון לפי אנרגיה">
+                        <select id="quickFilterEnergy" onchange="quickTagFilter(this.value, 'energy')" aria-label="סינון לפי אנרגיה" autocomplete="off">
                             <option value="">אנרגיה</option>
                             <option value="D">D</option>
                             <option value="S">S</option>
