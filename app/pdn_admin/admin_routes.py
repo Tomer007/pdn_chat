@@ -212,7 +212,7 @@ def load_user_metadata():
                 try:
                     user_answers = load_answers(email)
                     if user_answers:
-                        calc_result = calculate_pdn_code(user_answers, return_details=True)
+                        calc_result = calculate_pdn_code(user_answers, return_details=True, user_id=email)
                         if isinstance(calc_result, dict):
                             needs_verification = calc_result.get('needs_verification', False)
                             stage_e_override = calc_result.get('stage_e_override', False)
@@ -744,7 +744,7 @@ def send_user_email(email):
         if not user_answers['metadata'].get('email'):
             user_answers['metadata']['email'] = email
 
-        calculation_result = calculate_pdn_code(user_answers)
+        calculation_result = calculate_pdn_code(user_answers, user_id=email)
 
         if isinstance(calculation_result, dict):
             pdn_code = calculation_result['pdn_code']
@@ -813,7 +813,7 @@ def recalculate_user_pdn(email):
         if not user_answers:
             return jsonify({"error": "User answers not found"}), 404
 
-        calculation_result = calculate_pdn_code(user_answers, return_details=True)
+        calculation_result = calculate_pdn_code(user_answers, return_details=True, user_id=email)
 
         if isinstance(calculation_result, dict):
             pdn_code = calculation_result['pdn_code']

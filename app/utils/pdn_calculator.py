@@ -139,13 +139,14 @@ def _resolve_energy_tie(energy_scores: Dict[str, int]) -> str:
     return tied_energies[0]
 
 
-def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) -> str:
+def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False, user_id: str = None) -> str:
     """
     Calculate the PDN code based on user's answers.
     
     Args:
         answers (dict): Dictionary containing user's answers with question numbers as keys
         return_details (bool): If True, returns detailed calculation steps along with the PDN code
+        user_id (str): Optional user identifier for log messages
         
     Returns:
         str or dict: The calculated PDN code (e.g., 'A7', 'P10', 'T4', etc.) or dict with details if return_details=True
@@ -383,7 +384,7 @@ def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) ->
     )
     
     if not stage_e_answered:
-        logger.warning("Stage E (questions 57-60) has NO answers - result based on stages A-D only")
+        logger.warning("[%s] Stage E (questions 57-60) has NO answers - result based on stages A-D only", user_id or '?')
 
     for i in range(57, 61):
         if str(i) in answers:
@@ -414,7 +415,7 @@ def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) ->
     stage_e_override = False
     if dominant_before_stage_e != 'Undetermined' and dominant_trait != dominant_before_stage_e:
         stage_e_override = True
-        logger.warning("Stage E override: dominant trait changed from %s to %s", dominant_before_stage_e, dominant_trait)
+        logger.warning("[%s] Stage E override: dominant trait changed from %s to %s", user_id or '?', dominant_before_stage_e, dominant_trait)
     result['stage_e_override'] = stage_e_override
     result['missing_stage_e'] = not stage_e_answered
     result['stage_e_answer_count'] = stage_e_answer_count
@@ -452,10 +453,10 @@ def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) ->
     # Also flag for verification if Stage E is missing (incomplete questionnaire)
     if not stage_e_answered:
         result['needs_verification'] = True
-        logger.warning("Flagging for verification: Stage E (self-scoring) was not answered")
+        logger.warning("[%s] Flagging for verification: Stage E (self-scoring) was not answered", user_id or '?')
     
     if result['needs_verification']:
-        logger.warning("PDN calculation requires human verification due to close scores")
+        logger.warning("[%s] PDN calculation requires human verification due to close scores", user_id or '?')
     
     # Calculate confidence score
     confidence_score = calculate_confidence_score(result['scores'])

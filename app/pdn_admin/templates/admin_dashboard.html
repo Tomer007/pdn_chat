@@ -1540,7 +1540,7 @@
                 const redCbAnom = document.getElementById('redUsersFilter');
                 if (redCbAnom) redCbAnom.checked = true;
                 if (redUsersFilterChip) redUsersFilterChip.classList.add('active');
-                applyFilters();
+                applyChatUserFilters();
                 document.querySelector('.table-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
                 break;
             case 'active':
@@ -1956,6 +1956,6 @@
         }
     }
 </script>
-<script src="{{ url_for('static', filename='js/admin.js') }}?v=256"></script>
+<script src="{{ url_for('static', filename='js/admin.js') }}?v=257"></script>
 </body>
 </html>

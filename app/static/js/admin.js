@@ -1886,12 +1886,6 @@
                 row.classList.add('highlight-difference');
             }
 
-            // Click row to open user journey (except on buttons/inputs)
-            row.addEventListener('click', function(e) {
-                if (e.target.closest('button, input, select, a, .action-btn')) return;
-                viewJourney(user.email);
-            });
-
             const displayName = ((user.first_name || '') + ' ' + (user.last_name || '')).trim();
 
             row.innerHTML = `
@@ -1994,12 +1988,13 @@
             </td>
             <td class="px-4 py-4">
                 ${user.confidence_score !== undefined && user.confidence_score !== null ?
-                    `<div class="flex items-center gap-2 cursor-pointer" onclick="event.stopPropagation(); showConfidencePopup('${escapeHtml(user.email)}', ${user.confidence_score}, ${user.needs_verification || false}, ${user.missing_stage_e || false})" title="לחץ לפרטים">
-                        <div class="w-12 bg-gray-200 rounded-full h-2 overflow-hidden">
-                            <div class="h-2 rounded-full ${user.confidence_score >= 80 ? 'bg-green-500' : user.confidence_score >= 60 ? 'bg-yellow-500' : 'bg-red-500'}" style="width: ${user.confidence_score}%"></div>
-                        </div>
-                        <span class="text-xs font-mono ${user.confidence_score >= 80 ? 'text-green-700' : user.confidence_score >= 60 ? 'text-yellow-700' : 'text-red-700'}">${user.confidence_score}%</span>
-                    </div>` :
+                    (user.confidence_score < 25 ?
+                        `<div class="flex items-center gap-2 cursor-pointer" onclick="event.stopPropagation(); showConfidencePopup('${escapeHtml(user.email)}', ${user.confidence_score}, ${user.needs_verification || false}, ${user.missing_stage_e || false})" title="לחץ לפרטים">
+                            <span class="text-xs font-mono text-red-700 font-bold">${user.confidence_score}%</span>
+                            <i class="fas fa-exclamation-triangle text-red-500 text-xs"></i>
+                        </div>` :
+                        `<span class="verification-badge verified cursor-pointer" onclick="event.stopPropagation(); showConfidencePopup('${escapeHtml(user.email)}', ${user.confidence_score}, ${user.needs_verification || false}, ${user.missing_stage_e || false})" title="לחץ לפרטים"><i class="fas fa-check-circle"></i> תקין</span>`
+                    ) :
                     (user.needs_verification ?
                         `<span class="verification-badge needs-review" onclick="event.stopPropagation(); showVerificationPopup('${escapeHtml(user.email)}', '${escapeHtml(user.pdn_code)}')" title="לחץ לפרטים" style="cursor:pointer;"><i class="fas fa-exclamation-triangle"></i> אימות</span>` :
                         '<span class="verification-badge verified"><i class="fas fa-check-circle"></i> תקין</span>')
@@ -2088,14 +2083,14 @@
     }
 
     function handleSearch(e) {
-        applyFilters();
+        applyChatUserFilters();
     }
 
     function handleFilter(e) {
-        applyFilters();
+        applyChatUserFilters();
     }
 
-    function applyFilters() {
+    function applyChatUserFilters() {
         const searchInput = document.getElementById('searchInput');
         const redFilter = document.getElementById('redUsersFilter');
         const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
