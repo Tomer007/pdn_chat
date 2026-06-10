@@ -208,14 +208,21 @@ def load_user_metadata():
                 needs_verification = False
                 stage_e_override = False
                 dominant_before_stage_e = None
+                confidence_score = None
                 try:
                     user_answers = load_answers(email)
                     if user_answers:
-                        calc_result = calculate_pdn_code(user_answers)
+                        calc_result = calculate_pdn_code(user_answers, return_details=True)
                         if isinstance(calc_result, dict):
                             needs_verification = calc_result.get('needs_verification', False)
                             stage_e_override = calc_result.get('stage_e_override', False)
                             dominant_before_stage_e = calc_result.get('dominant_before_stage_e')
+                            # Extract confidence from calculation_details Final stage
+                            details = calc_result.get('calculation_details', [])
+                            for d in details:
+                                if d.get('stage') == 'Final':
+                                    confidence_score = d.get('confidence_score')
+                                    break
                         else:
                             needs_verification = False
                 except Exception as e:
@@ -223,6 +230,8 @@ def load_user_metadata():
                 user_data["needs_verification"] = needs_verification
                 user_data["stage_e_override"] = stage_e_override
                 user_data["dominant_before_stage_e"] = dominant_before_stage_e
+                if confidence_score is not None:
+                    user_data["confidence_score"] = confidence_score
 
                 metadata_list.append(user_data)
 
