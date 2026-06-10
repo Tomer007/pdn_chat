@@ -136,8 +136,8 @@
         switch(prefix) {
             case 'E': return 'bg-blue-100 text-blue-800';
             case 'A': return 'bg-green-100 text-green-800';
-            case 'T': return 'bg-orange-100 text-orange-800';
-            case 'P': return 'bg-purple-100 text-purple-800';
+            case 'T': return 'pdn-badge-t';
+            case 'P': return 'pdn-badge-p';
             default: return 'bg-gray-100 text-gray-800';
         }
     }
