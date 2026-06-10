@@ -757,6 +757,9 @@
                             <option value="S">S</option>
                             <option value="F">F</option>
                         </select>
+                        <select id="quickFilterCoupon" onchange="quickTagFilter(this.value, 'coupon')" aria-label="סינון לפי קופון" autocomplete="off">
+                            <option value="">קופון</option>
+                        </select>
                         <button id="clearFiltersBtn" onclick="clearAllFilters()" class="toolbar-clear-btn">
                             <i class="fas fa-times"></i> נקה
                         </button>

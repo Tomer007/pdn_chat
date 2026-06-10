@@ -330,6 +330,7 @@ def get_metadata_csv():
         verify_session(request.args.get('session_token'))
     except Exception as e:
         logger.error("Session verification failed: %s", e)
+        return jsonify({"error": "Unauthorized"}), 401
 
     return jsonify({"data": load_user_metadata()})
 
@@ -614,6 +615,7 @@ def get_user_questionnaire(email):
         verify_session(request.args.get('session_token'))
     except Exception as e:
         logger.error("Session verification failed: %s", e)
+        return jsonify({"error": "Unauthorized"}), 401
 
     try:
         csv_metadata_handler = UserMetadataHandler()
@@ -646,6 +648,7 @@ def get_user_voice(email):
         verify_session(request.args.get('session_token'))
     except Exception as e:
         logger.error("Session verification failed: %s", e)
+        return jsonify({"error": "Unauthorized"}), 401
 
     try:
         pdn_file_path = PDNFilePath()
@@ -862,6 +865,7 @@ def serve_audio(file_path):
         verify_session(request.args.get('session_token'))
     except Exception as e:
         logger.error("Session verification failed: %s", e)
+        return jsonify({"error": "Unauthorized"}), 401
 
     # Use the environment variable for saved_results directory
     saved_results_dir = os.getenv('SAVED_RESULTS_DIR', 'saved_results')
@@ -1227,6 +1231,7 @@ def download_user_json():
         verify_session(request.args.get('session_token'))
     except Exception as e:
         logger.error("Session verification failed: %s", e)
+        return jsonify({"error": "Unauthorized"}), 401
 
     # Extract admin password from query parameters
     admin_password = request.args.get('admin_password')

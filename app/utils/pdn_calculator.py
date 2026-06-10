@@ -92,6 +92,53 @@ def check_verification_needed(scores: Dict[str, int]) -> bool:
     return False
 
 
+def _resolve_trait_tie(trait_scores: Dict[str, int]) -> str:
+    """
+    Resolve ties between trait scores deterministically.
+    
+    When multiple traits have the same highest score, this function flags it
+    as a tie rather than silently picking one based on dictionary order.
+    The tie is resolved by returning the first tied trait alphabetically,
+    but the caller should always check for ties separately.
+    
+    Args:
+        trait_scores: Dictionary of trait -> score (keys: A, T, P, E)
+    
+    Returns:
+        str: The dominant trait letter
+    """
+    max_score = max(trait_scores.values())
+    tied_traits = sorted([k for k, v in trait_scores.items() if v == max_score])
+    
+    if len(tied_traits) == 1:
+        return tied_traits[0]
+    
+    # When tied, return first alphabetically but log the tie
+    # The tie will be detected by check_verification_needed (gap=0)
+    logger.info("Trait tie detected: %s all have score %d", tied_traits, max_score)
+    return tied_traits[0]
+
+
+def _resolve_energy_tie(energy_scores: Dict[str, int]) -> str:
+    """
+    Resolve ties between energy scores deterministically.
+    
+    Args:
+        energy_scores: Dictionary of energy -> score (keys: D, S, F)
+    
+    Returns:
+        str: The dominant energy letter
+    """
+    max_score = max(energy_scores.values())
+    tied_energies = sorted([k for k, v in energy_scores.items() if v == max_score])
+    
+    if len(tied_energies) == 1:
+        return tied_energies[0]
+    
+    logger.info("Energy tie detected: %s all have score %d", tied_energies, max_score)
+    return tied_energies[0]
+
+
 def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) -> str:
     """
     Calculate the PDN code based on user's answers.
@@ -134,7 +181,7 @@ def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) ->
     # Find dominant trait, but only if there are actual scores > 0
     trait_scores = {k: v for k, v in result['scores'].items() if k in ['A', 'T', 'P', 'E']}
     if any(score > 0 for score in trait_scores.values()):
-        dominant_trait: str = max(trait_scores, key=trait_scores.get)
+        dominant_trait: str = _resolve_trait_tie(trait_scores)
     else:
         dominant_trait: str = 'Undetermined'
     result['trait'] = dominant_trait
@@ -164,7 +211,11 @@ def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) ->
     energy_counts: Dict[str, int] = {'D': 0, 'S': 0, 'F': 0}
     for i in range(27, 38):
         if str(i) in answers:
-            ranking = answers[str(i)]['ranking']
+            answer_data = answers[str(i)]
+            if 'ranking' not in answer_data:
+                logger.warning("Question %d has no 'ranking' key, skipping.", i)
+                continue
+            ranking = answer_data['ranking']
             for energy, rank in ranking.items():
                 if rank == 1:
                     energy_counts[energy] += 3
@@ -176,7 +227,7 @@ def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) ->
     result['scores'].update(energy_counts)
     # Find dominant energy, but only if there are actual scores > 0
     if any(score > 0 for score in energy_counts.values()):
-        dominant_energy = max(energy_counts, key=energy_counts.get)
+        dominant_energy = _resolve_energy_tie(energy_counts)
     else:
         dominant_energy = 'Undetermined'
     result['energy'] = dominant_energy
@@ -203,8 +254,14 @@ def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) ->
     # Stage C: Validation and Tie-Breaking
     for i in range(38, 43):
         if str(i) in answers:
-            ranking = answers[str(i)]['ranking']
+            answer_data = answers[str(i)]
+            if 'ranking' not in answer_data:
+                logger.warning("Question %d has no 'ranking' key, skipping.", i)
+                continue
+            ranking = answer_data['ranking']
             traits = list(ranking.keys())
+            if len(traits) < 2:
+                continue
             trait1, trait2 = traits
             value1, value2 = ranking[trait1], ranking[trait2]
 
@@ -221,7 +278,7 @@ def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) ->
     # Find dominant trait, but only if there are actual scores > 0
     trait_scores = {k: v for k, v in result['scores'].items() if k in ['A', 'T', 'P', 'E']}
     if any(score > 0 for score in trait_scores.values()):
-        dominant_trait = max(trait_scores, key=trait_scores.get)
+        dominant_trait = _resolve_trait_tie(trait_scores)
     else:
         dominant_trait = 'Undetermined'
     result['trait'] = dominant_trait
@@ -250,7 +307,11 @@ def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) ->
     # Stage D: Validation and Tie-Breaking
     for i in range(43, 57):
         if str(i) in answers:
-            ranking = answers[str(i)]['ranking']
+            answer_data = answers[str(i)]
+            if 'ranking' not in answer_data:
+                logger.warning("Question %d has no 'ranking' key, skipping.", i)
+                continue
+            ranking = answer_data['ranking']
             # Get the trait combinations and their rankings
             trait_combinations = list(ranking.keys())
             if len(trait_combinations) == 2:
@@ -278,7 +339,7 @@ def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) ->
     # Recalculate dominant trait after all adjustments
     trait_scores = {k: v for k, v in result['scores'].items() if k in ['A', 'T', 'P', 'E']}
     if any(score > 0 for score in trait_scores.values()):
-        dominant_trait = max(trait_scores, key=trait_scores.get)
+        dominant_trait = _resolve_trait_tie(trait_scores)
     else:
         dominant_trait = 'Undetermined'
     result['trait'] = dominant_trait
@@ -311,9 +372,26 @@ def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) ->
     # Save dominant trait BEFORE Stage E for comparison
     dominant_before_stage_e = dominant_trait
 
+    # Track whether Stage E was actually answered
+    stage_e_answered = any(
+        str(i) in answers and 'ranking' in answers[str(i)]
+        for i in range(57, 61)
+    )
+    stage_e_answer_count = sum(
+        1 for i in range(57, 61)
+        if str(i) in answers and 'ranking' in answers[str(i)]
+    )
+    
+    if not stage_e_answered:
+        logger.warning("Stage E (questions 57-60) has NO answers - result based on stages A-D only")
+
     for i in range(57, 61):
         if str(i) in answers:
-            ranking = answers[str(i)]['ranking']
+            answer_data = answers[str(i)]
+            if 'ranking' not in answer_data:
+                logger.warning("Question %d has no 'ranking' key, skipping. Data: %s", i, list(answer_data.keys()))
+                continue
+            ranking = answer_data['ranking']
             for trait, rank in ranking.items():
                 if rank == 1:
                     result['scores'][trait] += 8
@@ -327,7 +405,7 @@ def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) ->
     # Find dominant trait, but only if there are actual scores > 0
     trait_scores = {k: v for k, v in result['scores'].items() if k in ['A', 'T', 'P', 'E']}
     if any(score > 0 for score in trait_scores.values()):
-        dominant_trait = max(trait_scores, key=trait_scores.get)
+        dominant_trait = _resolve_trait_tie(trait_scores)
     else:
         dominant_trait = 'Undetermined'
     result['trait'] = dominant_trait
@@ -338,6 +416,8 @@ def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) ->
         stage_e_override = True
         logger.warning("Stage E override: dominant trait changed from %s to %s", dominant_before_stage_e, dominant_trait)
     result['stage_e_override'] = stage_e_override
+    result['missing_stage_e'] = not stage_e_answered
+    result['stage_e_answer_count'] = stage_e_answer_count
 
     logger.debug("Stage E: Trait Calculation for A %s", result['scores']['A'])
     logger.debug("Stage E: Trait Calculation for T %s", result['scores']['T'])
@@ -361,11 +441,18 @@ def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) ->
             },
             'dominant': dominant_trait,
             'stage_e_override': stage_e_override,
-            'dominant_before_stage_e': dominant_before_stage_e
+            'dominant_before_stage_e': dominant_before_stage_e,
+            'missing_stage_e': not stage_e_answered,
+            'stage_e_answer_count': stage_e_answer_count
         })
 
     # Check if verification is needed based on E, P, A, T scores
     result['needs_verification'] = check_verification_needed(result['scores'])
+    
+    # Also flag for verification if Stage E is missing (incomplete questionnaire)
+    if not stage_e_answered:
+        result['needs_verification'] = True
+        logger.warning("Flagging for verification: Stage E (self-scoring) was not answered")
     
     if result['needs_verification']:
         logger.warning("PDN calculation requires human verification due to close scores")
@@ -399,12 +486,15 @@ def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) ->
             'needs_verification': result['needs_verification'],
             'stage_e_override': result.get('stage_e_override', False),
             'dominant_before_stage_e': dominant_before_stage_e if stage_e_override else None,
-            'confidence_score': confidence_score
+            'confidence_score': confidence_score,
+            'missing_stage_e': not stage_e_answered,
+            'stage_e_answer_count': stage_e_answer_count
         })
         return {
             'pdn_code': pdn_code,
             'needs_verification': result['needs_verification'],
             'stage_e_override': result.get('stage_e_override', False),
+            'missing_stage_e': not stage_e_answered,
             'calculation_details': calculation_details
         }
 
@@ -414,6 +504,7 @@ def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) ->
             'pdn_code': pdn_code,
             'needs_verification': result['needs_verification'],
             'stage_e_override': True,
+            'missing_stage_e': not stage_e_answered,
             'dominant_before_stage_e': dominant_before_stage_e,
             'scores': result['scores'],
             'confidence_score': confidence_score
@@ -424,6 +515,7 @@ def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False) ->
         return {
             'pdn_code': pdn_code,
             'needs_verification': True,
+            'missing_stage_e': not stage_e_answered,
             'scores': result['scores'],
             'confidence_score': confidence_score
         }

@@ -834,6 +834,37 @@
         renderTable(data);
         updateDashboardSummary();
         updateMetrics();
+        populateCouponFilter(data);
+    }
+
+    function populateCouponFilter(data) {
+        const couponEl = document.getElementById('quickFilterCoupon');
+        if (!couponEl) return;
+        
+        // Collect unique coupon codes from data
+        const coupons = new Set();
+        data.forEach(u => {
+            if (u.coupon_code && u.coupon_code.trim()) {
+                coupons.add(u.coupon_code.trim().toUpperCase());
+            }
+        });
+        
+        // Keep current selection if valid
+        const currentVal = couponEl.value;
+        
+        // Clear and rebuild options
+        couponEl.innerHTML = '<option value="">קופון</option>';
+        [...coupons].sort().forEach(code => {
+            const opt = document.createElement('option');
+            opt.value = code;
+            opt.textContent = code;
+            couponEl.appendChild(opt);
+        });
+        
+        // Restore selection if still valid
+        if (currentVal && coupons.has(currentVal.toUpperCase())) {
+            couponEl.value = currentVal;
+        }
     }
 
     function updateDashboardSummary() {
@@ -1475,6 +1506,7 @@
         const statusEl = document.getElementById('quickFilterStatus');
         const traitEl = document.getElementById('quickFilterTrait');
         const energyEl = document.getElementById('quickFilterEnergy');
+        const couponEl = document.getElementById('quickFilterCoupon');
 
         // Time filter can combine with others; trait/energy/status are mutually exclusive
         if (type === 'time') {
@@ -1488,6 +1520,8 @@
         } else if (type === 'energy') {
             statusEl.value = '';
             traitEl.value = '';
+        } else if (type === 'coupon') {
+            // Coupon combines with time but not others
         }
 
         // Update active states
@@ -1495,6 +1529,7 @@
         statusEl.classList.toggle('active-filter', !!statusEl.value);
         traitEl.classList.toggle('active-filter', !!traitEl.value);
         energyEl.classList.toggle('active-filter', !!energyEl.value);
+        if (couponEl) couponEl.classList.toggle('active-filter', !!couponEl.value);
 
         // Show/hide clear button
         const clearBtn = document.getElementById('clearFiltersBtn');
@@ -1509,14 +1544,16 @@
         const statusEl = document.getElementById('quickFilterStatus');
         const traitEl = document.getElementById('quickFilterTrait');
         const energyEl = document.getElementById('quickFilterEnergy');
+        const couponEl = document.getElementById('quickFilterCoupon');
 
         const timeVal = timeEl.value;
         const statusVal = statusEl.value;
         const traitVal = traitEl.value;
         const energyVal = energyEl.value;
+        const couponVal = couponEl ? couponEl.value : '';
 
         // If nothing selected, show all
-        if (!timeVal && !statusVal && !traitVal && !energyVal) {
+        if (!timeVal && !statusVal && !traitVal && !energyVal && !couponVal) {
             renderTable(currentData);
             document.getElementById('rowCount').textContent = `סה"כ שורות: ${currentData.length}`;
             const banner = document.getElementById('filterBanner');
@@ -1576,6 +1613,15 @@
             labels.push(`אנרגיה ${energyVal}`);
         }
 
+        // Coupon filter
+        if (couponVal) {
+            filtered = filtered.filter(u => {
+                const userCoupon = (u.coupon_code || '').toUpperCase();
+                return userCoupon === couponVal.toUpperCase();
+            });
+            labels.push(`קופון ${couponVal}`);
+        }
+
         const label = labels.join(' + ');
         renderTable(filtered);
         showFilterBanner(label, filtered.length);
@@ -1594,7 +1640,7 @@
     }
 
     function resetFilterDropdowns() {
-        const ids = ['quickFilterTime', 'quickFilterStatus', 'quickFilterTrait', 'quickFilterEnergy'];
+        const ids = ['quickFilterTime', 'quickFilterStatus', 'quickFilterTrait', 'quickFilterEnergy', 'quickFilterCoupon'];
         ids.forEach(id => {
             const el = document.getElementById(id);
             if (el) {
