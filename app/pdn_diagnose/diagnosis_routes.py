@@ -76,7 +76,6 @@ def user_info_page():
     questions = current_app.config.get('QUESTIONS_FILE', {})
 
     personal_instructions = questions.get("phases", {}).get("PersonalDetails", {}).get("instructions", "")
-    logger.info(" /user_info  personal_instructions: %s", personal_instructions)
     coupon_code = session.get('coupon_code', '')
     return render_template("user_form.html",
                            include_menu=True,
