@@ -1481,6 +1481,118 @@
         document.body.appendChild(overlay);
     }
 
+    function showConfidencePopup(email, score, needsVerification, missingStageE) {
+        const user = currentData.find(u => u.email === email);
+        const pdnCode = user ? user.pdn_code : '?';
+        const name = user ? ((user.first_name || '') + ' ' + (user.last_name || '')).trim() || email : email;
+
+        const existing = document.getElementById('confidencePopup');
+        if (existing) existing.remove();
+
+        // Determine confidence level and explanation
+        let levelText, levelColor, levelBg, explanation;
+        if (score >= 80) {
+            levelText = 'ביטחון גבוה';
+            levelColor = '#166534';
+            levelBg = '#dcfce7';
+            explanation = 'פער גדול בין התכונה והאנרגיה הדומיננטיות לשאר. התוצאה אמינה מאוד.';
+        } else if (score >= 60) {
+            levelText = 'ביטחון בינוני';
+            levelColor = '#854d0e';
+            levelBg = '#fef9c3';
+            explanation = 'יש פער סביר בין הניקוד המוביל לשאר. התוצאה סבירה אבל כדאי לוודא עם שיחה.';
+        } else if (score >= 40) {
+            levelText = 'ביטחון נמוך';
+            levelColor = '#c2410c';
+            levelBg = '#ffedd5';
+            explanation = 'הפער בין התכונות קטן. יכול להיות שהתכונה שנבחרה לא מדויקת - מומלץ אימות בשיחה.';
+        } else {
+            levelText = 'ביטחון נמוך מאוד';
+            levelColor = '#991b1b';
+            levelBg = '#fee2e2';
+            explanation = 'הניקוד כמעט שווה בין כמה תכונות. קשה לקבוע בוודאות - חובה לאמת בשיחה אישית.';
+        }
+
+        // Build flags section
+        let flagsHtml = '';
+        if (needsVerification || missingStageE || (user && user.stage_e_override)) {
+            const flags = [];
+            if (missingStageE) flags.push('<span style="background:#fee2e2;color:#991b1b;padding:3px 8px;border-radius:6px;font-size:11px;">חלק 5 חסר</span>');
+            if (user && user.stage_e_override) flags.push('<span style="background:#fef3c7;color:#92400e;padding:3px 8px;border-radius:6px;font-size:11px;">שלב E שינה תוצאה</span>');
+            if (needsVerification && !missingStageE) flags.push('<span style="background:#ffedd5;color:#c2410c;padding:3px 8px;border-radius:6px;font-size:11px;">ניקוד קרוב</span>');
+            flagsHtml = `<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:12px;">${flags.join('')}</div>`;
+        }
+
+        const overlay = document.createElement('div');
+        overlay.id = 'confidencePopup';
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+        overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+        overlay.innerHTML = `
+            <div style="background:white;border-radius:16px;padding:28px;max-width:400px;width:100%;box-shadow:0 24px 48px rgba(0,0,0,0.2);direction:rtl;">
+                <div style="text-align:center;margin-bottom:16px;">
+                    <div style="font-size:2.5rem;font-weight:800;color:${levelColor};">${score}%</div>
+                    <div style="font-size:0.85rem;font-weight:600;color:${levelColor};margin-top:4px;">${levelText}</div>
+                </div>
+                <div style="background:${levelBg};border-radius:10px;padding:14px;margin-bottom:14px;text-align:right;">
+                    <p style="font-size:13px;color:${levelColor};line-height:1.7;">${explanation}</p>
+                </div>
+                <div style="background:#f8fafc;border-radius:10px;padding:12px;text-align:right;margin-bottom:14px;">
+                    <p style="font-size:12px;color:#64748b;margin-bottom:6px;font-weight:600;">איך מחושב?</p>
+                    <p style="font-size:12px;color:#64748b;line-height:1.7;">הציון מבוסס על הפער בין התכונה הדומיננטית לשנייה (50%) והפער בין האנרגיה הדומיננטית לשנייה (50%). ככל שהפער גדול יותר - הביטחון גבוה יותר.</p>
+                </div>
+                ${flagsHtml}
+                <div style="text-align:center;margin-top:16px;">
+                    <button onclick="document.getElementById('confidencePopup').remove();" style="padding:10px 24px;background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">
+                        סגור
+                    </button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+    }
+
+    function showCommentsPopup(email) {
+        const user = currentData.find(u => u.email === email);
+        if (!user) return;
+
+        const comments = user.diagnose_comments || '';
+        const name = ((user.first_name || '') + ' ' + (user.last_name || '')).trim() || email;
+        const pdnCode = user.pdn_code || '—';
+        const diagnoseCode = user.diagnose_pdn_code || '—';
+
+        const existing = document.getElementById('commentsPopup');
+        if (existing) existing.remove();
+
+        const overlay = document.createElement('div');
+        overlay.id = 'commentsPopup';
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+        overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+        overlay.innerHTML = `
+            <div style="background:white;border-radius:16px;padding:28px;max-width:480px;width:100%;box-shadow:0 24px 48px rgba(0,0,0,0.2);direction:rtl;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                    <h3 style="font-size:1rem;font-weight:700;color:#1e293b;">${escapeHtml(name)}</h3>
+                    <div style="display:flex;gap:8px;">
+                        <span style="padding:3px 10px;border-radius:6px;font-size:12px;font-weight:600;background:#e0e7ff;color:#3730a3;">מערכת: ${escapeHtml(pdnCode)}</span>
+                        ${diagnoseCode !== '—' ? `<span style="padding:3px 10px;border-radius:6px;font-size:12px;font-weight:600;background:#dcfce7;color:#166534;">מאבחן: ${escapeHtml(diagnoseCode)}</span>` : ''}
+                    </div>
+                </div>
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;min-height:60px;text-align:right;">
+                    <p style="font-size:14px;color:#334155;line-height:1.8;white-space:pre-wrap;">${comments ? escapeHtml(comments) : '<span style="color:#94a3b8;font-style:italic;">אין הערות</span>'}</p>
+                </div>
+                <div style="text-align:center;margin-top:16px;">
+                    <button onclick="document.getElementById('commentsPopup').remove();" style="padding:10px 24px;background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">
+                        סגור
+                    </button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+    }
+
     function handleTableSearch() {
         const term = (document.getElementById('tableSearchInput').value || '').trim().toLowerCase();
         if (!term) {
@@ -1882,7 +1994,7 @@
             </td>
             <td class="px-4 py-4">
                 ${user.confidence_score !== undefined && user.confidence_score !== null ?
-                    `<div class="flex items-center gap-2">
+                    `<div class="flex items-center gap-2 cursor-pointer" onclick="event.stopPropagation(); showConfidencePopup('${escapeHtml(user.email)}', ${user.confidence_score}, ${user.needs_verification || false}, ${user.missing_stage_e || false})" title="לחץ לפרטים">
                         <div class="w-12 bg-gray-200 rounded-full h-2 overflow-hidden">
                             <div class="h-2 rounded-full ${user.confidence_score >= 80 ? 'bg-green-500' : user.confidence_score >= 60 ? 'bg-yellow-500' : 'bg-red-500'}" style="width: ${user.confidence_score}%"></div>
                         </div>
@@ -1899,7 +2011,7 @@
             <td class="px-4 py-4">
                 <span class="px-2 py-1 rounded-full text-xs font-medium ${getPdnBadgeColor(user.diagnose_pdn_code)}">${escapeHtml(user.diagnose_pdn_code) || '—'}</span>
             </td>
-            <td class="px-4 py-4 text-gray-700 max-w-xs truncate" title="${escapeHtml(user.diagnose_comments || '')}">${escapeHtml(user.diagnose_comments || '') || '—'}</td>
+            <td class="px-4 py-4 text-gray-700 max-w-xs truncate cursor-pointer" title="${escapeHtml(user.diagnose_comments || '')}" onclick="event.stopPropagation(); showCommentsPopup('${escapeHtml(user.email)}')">${escapeHtml(user.diagnose_comments || '') || '—'}</td>
             <td class="px-4 py-4 text-gray-700 max-w-xs truncate col-secondary" title="${user.pdn_update_comments || ''}">${user.pdn_update_comments || '—'}</td>
             <td class="px-4 py-4 text-gray-700">
                 ${user.coupon_code ? `<span class="px-2 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-medium font-mono">${escapeHtml(user.coupon_code)}</span>` : '—'}
