@@ -150,6 +150,8 @@
         .toolbar-search {
             position: relative;
             width: 200px;
+            flex-shrink: 1;
+            min-width: 120px;
         }
         .toolbar-search i {
             position: absolute;
@@ -182,6 +184,7 @@
             background: #f1f5f9;
             border-radius: 8px;
             padding: 3px;
+            flex-shrink: 0;
         }
         .toolbar-filters select {
             padding: 5px 8px;
@@ -246,6 +249,40 @@
         }
         .toolbar-action-btn i {
             margin-left: 3px;
+        }
+
+        /* Mobile toolbar */
+        @media (max-width: 768px) {
+            .table-toolbar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+            .toolbar-right {
+                justify-content: space-between;
+            }
+            .toolbar-center {
+                flex-direction: column;
+                gap: 8px;
+            }
+            .toolbar-search {
+                width: 100%;
+                max-width: none;
+            }
+            .toolbar-filters {
+                width: 100%;
+                justify-content: space-between;
+                flex-wrap: wrap;
+            }
+            .toolbar-filters select {
+                flex: 1;
+                min-width: 0;
+                text-align: center;
+            }
+            .toolbar-left {
+                justify-content: flex-start;
+                gap: 6px;
+            }
         }
 
         /* Row hover highlight */
