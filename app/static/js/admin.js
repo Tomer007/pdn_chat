@@ -1912,7 +1912,9 @@
                          x-transition:leave="transition ease-in duration-75"
                          x-transition:leave-start="transform opacity-100 scale-100"
                          x-transition:leave-end="transform opacity-0 scale-95"
-                         class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-blue-200 z-50">
+                         class="fixed w-48 bg-white rounded-lg shadow-lg border border-blue-200 z-50"
+                         x-init="$nextTick(() => { let rect = $el.previousElementSibling.getBoundingClientRect(); let top = rect.bottom + 4; if (top + 300 > window.innerHeight) top = rect.top - $el.offsetHeight - 4; $el.style.top = top + 'px'; $el.style.left = rect.left + 'px'; })"
+                         x-effect="if(open) { $nextTick(() => { let rect = $el.previousElementSibling.getBoundingClientRect(); let top = rect.bottom + 4; if (top + 300 > window.innerHeight) top = rect.top - $el.offsetHeight - 4; $el.style.top = top + 'px'; $el.style.left = rect.left + 'px'; }) }">
 
                         <div class="py-1">
                             <button @click="viewJourney('${user.email}'); open = false"
@@ -2330,7 +2332,9 @@
                          x-transition:leave="transition ease-in duration-75"
                          x-transition:leave-start="transform opacity-100 scale-100"
                          x-transition:leave-end="transform opacity-0 scale-95"
-                         class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-blue-200 z-50">
+                         class="fixed w-48 bg-white rounded-lg shadow-lg border border-blue-200 z-50"
+                         x-init="$nextTick(() => { let rect = $el.previousElementSibling.getBoundingClientRect(); let top = rect.bottom + 4; if (top + 300 > window.innerHeight) top = rect.top - $el.offsetHeight - 4; $el.style.top = top + 'px'; $el.style.left = rect.left + 'px'; })"
+                         x-effect="if(open) { $nextTick(() => { let rect = $el.previousElementSibling.getBoundingClientRect(); let top = rect.bottom + 4; if (top + 300 > window.innerHeight) top = rect.top - $el.offsetHeight - 4; $el.style.top = top + 'px'; $el.style.left = rect.left + 'px'; }) }">
 
                         <div class="py-1">
                             <button @click="open = false; downloadReport('pdf')"
