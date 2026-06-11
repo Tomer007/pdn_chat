@@ -321,7 +321,13 @@ def complete_questionnaire():
             return jsonify({"error": "No answers found"}), 400
 
         # Calculate PDN code
-        pdn_code = calculate_pdn_code(user_answers_data, user_id=email)
+        pdn_code_result = calculate_pdn_code(user_answers_data, user_id=email)
+        
+        # Extract code string from result (may be dict if needs_verification/override)
+        if isinstance(pdn_code_result, dict):
+            pdn_code = pdn_code_result.get('pdn_code', 'NA')
+        else:
+            pdn_code = pdn_code_result
 
         logger.info("PDN code for %s: %s", email, pdn_code)
 
@@ -386,7 +392,13 @@ def get_report_data():
             return jsonify({'error': 'No answers found'}), 400
         
         # Calculate PDN code
-        pdn_code = calculate_pdn_code(user_answers_data, user_id=email)
+        pdn_code_result = calculate_pdn_code(user_answers_data, user_id=email)
+        
+        # Extract code string from result (may be dict if needs_verification/override)
+        if isinstance(pdn_code_result, dict):
+            pdn_code = pdn_code_result.get('pdn_code', 'NA')
+        else:
+            pdn_code = pdn_code_result
 
         # Get user metadata
         user_data = session.get('user_data', {})
