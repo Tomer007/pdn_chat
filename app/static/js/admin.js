@@ -1987,10 +1987,9 @@
             <td class="px-4 py-4">
                 ${user.confidence_score !== undefined && user.confidence_score !== null ?
                     (user.confidence_score < 25 ?
-                        `<div class="flex items-center gap-2 cursor-pointer" onclick="event.stopPropagation(); showConfidencePopup('${escapeHtml(user.email)}', ${user.confidence_score}, ${user.needs_verification || false}, ${user.missing_stage_e || false})" title="לחץ לפרטים">
-                            <span class="text-xs font-mono text-red-700 font-bold">${user.confidence_score}%</span>
-                            <i class="fas fa-exclamation-triangle text-red-500 text-xs"></i>
-                        </div>` :
+                        `<span class="cursor-pointer" onclick="event.stopPropagation(); showConfidencePopup('${escapeHtml(user.email)}', ${user.confidence_score}, ${user.needs_verification || false}, ${user.missing_stage_e || false})" title="לחץ לפרטים" style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:8px;background:#fef3c7;color:#92400e;font-size:11px;font-weight:600;">
+                            <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#f59e0b;"></span> לבדיקה
+                        </span>` :
                         `<span class="verification-badge verified cursor-pointer" onclick="event.stopPropagation(); showConfidencePopup('${escapeHtml(user.email)}', ${user.confidence_score}, ${user.needs_verification || false}, ${user.missing_stage_e || false})" title="לחץ לפרטים"><i class="fas fa-check-circle"></i> תקין</span>`
                     ) :
                     (user.needs_verification ?
