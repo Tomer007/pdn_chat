@@ -567,6 +567,34 @@ class TestCompleteQuestionnaireCSVUpdate:
         data = response.get_json()
         assert data['pdn_code'] == 'e5'
 
+    @patch('app.pdn_diagnose.diagnosis_routes.threading.Thread')
+    @patch('app.utils.csv_metadata_handler.UserMetadataHandler')
+    @patch('app.pdn_diagnose.diagnosis_routes.calculate_pdn_code')
+    @patch('app.pdn_diagnose.diagnosis_routes.load_answers')
+    def test_complete_questionnaire_dict_result_extracts_code(self, mock_load, mock_calc, mock_handler_cls, mock_thread, logged_in_client):
+        """POST /complete_questionnaire extracts pdn_code when calculator returns dict (stage_e_override/needs_verification)."""
+        mock_load.return_value = {'1': {'selected_option_code': 'a'}, '2': {'selected_option_code': 'b'}}
+        # Simulate the dict return when needs_verification or stage_e_override is True
+        mock_calc.return_value = {
+            'pdn_code': 'P6',
+            'needs_verification': True,
+            'stage_e_override': True,
+            'dominant_before_stage_e': 'T',
+            'scores': {'A': 10, 'T': 15, 'P': 16, 'E': 8, 'D': 10, 'S': 10, 'F': 20},
+            'confidence_score': 12
+        }
+        mock_handler = MagicMock()
+        mock_handler_cls.return_value = mock_handler
+
+        response = logged_in_client.post('/pdn-diagnose/complete_questionnaire')
+        assert response.status_code == 200
+        data = response.get_json()
+        # Must return the string code, NOT the entire dict
+        assert data['pdn_code'] == 'P6'
+        assert isinstance(data['pdn_code'], str)
+        # CSV must be updated with the string code, not the dict
+        mock_handler.update_pdn_code.assert_called_once_with('test@example.com', 'P6')
+
 
 class TestSubmitAnswerSaveError:
     """Tests for save error returning HTTP 500."""
