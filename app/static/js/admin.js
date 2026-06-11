@@ -1378,7 +1378,7 @@
                 const response = await fetch(`/pdn-admin/user/recalculate_pdn/${email}?session_token=${sessionToken}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password })
+                    body: JSON.stringify({})
                 });
                 if (response.ok) {
                     const data = await response.json();
@@ -1827,7 +1827,7 @@
                 const response = await fetch(`/pdn-admin/user/recalculate_pdn/${user.email}?session_token=${sessionToken}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password: password })
+                    body: JSON.stringify({})
                 });
 
                 if (response.ok) {
@@ -2781,7 +2781,7 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({password: password})
+                    body: JSON.stringify({})
                 });
 
                 if (response.ok) {
