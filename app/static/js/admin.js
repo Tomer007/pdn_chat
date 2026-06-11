@@ -1482,6 +1482,7 @@
         const user = currentData.find(u => u.email === email);
         const pdnCode = user ? user.pdn_code : '?';
         const name = user ? ((user.first_name || '') + ' ' + (user.last_name || '')).trim() || email : email;
+        const diagnoseCode = user ? user.diagnose_pdn_code : '';
 
         const existing = document.getElementById('confidencePopup');
         if (existing) existing.remove();
@@ -1497,17 +1498,17 @@
             levelText = 'ביטחון בינוני';
             levelColor = '#854d0e';
             levelBg = '#fef9c3';
-            explanation = 'יש פער סביר בין הניקוד המוביל לשאר. התוצאה סבירה אבל כדאי לוודא עם שיחה.';
+            explanation = 'יש פער סביר בין הניקוד המוביל לשאר. התוצאה סבירה אבל כדאי לוודא.';
         } else if (score >= 40) {
             levelText = 'ביטחון נמוך';
             levelColor = '#c2410c';
             levelBg = '#ffedd5';
-            explanation = 'הפער בין התכונות קטן. יכול להיות שהתכונה שנבחרה לא מדויקת - מומלץ אימות בשיחה.';
+            explanation = 'הפער בין התכונות קטן. מומלץ אימות בשיחה.';
         } else {
             levelText = 'ביטחון נמוך מאוד';
             levelColor = '#991b1b';
             levelBg = '#fee2e2';
-            explanation = 'הניקוד כמעט שווה בין כמה תכונות. קשה לקבוע בוודאות - חובה לאמת בשיחה אישית.';
+            explanation = 'הניקוד כמעט שווה. חובה לאמת בשיחה אישית.';
         }
 
         // Build flags section
@@ -1515,9 +1516,21 @@
         if (needsVerification || missingStageE || (user && user.stage_e_override)) {
             const flags = [];
             if (missingStageE) flags.push('<span style="background:#fee2e2;color:#991b1b;padding:3px 8px;border-radius:6px;font-size:11px;">חלק 5 חסר</span>');
-            if (user && user.stage_e_override) flags.push('<span style="background:#fef3c7;color:#92400e;padding:3px 8px;border-radius:6px;font-size:11px;">שלב E שינה תוצאה</span>');
+            if (user && user.stage_e_override) flags.push('<span style="background:#fef3c7;color:#92400e;padding:3px 8px;border-radius:6px;font-size:11px;">שלב 5 שינה תוצאה</span>');
             if (needsVerification && !missingStageE) flags.push('<span style="background:#ffedd5;color:#c2410c;padding:3px 8px;border-radius:6px;font-size:11px;">ניקוד קרוב</span>');
-            flagsHtml = `<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:12px;">${flags.join('')}</div>`;
+            flagsHtml = `<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:10px;">${flags.join('')}</div>`;
+        }
+
+        // Diagnose comparison
+        let diagnoseHtml = '';
+        if (diagnoseCode && diagnoseCode !== pdnCode) {
+            diagnoseHtml = `<div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:8px;padding:8px;margin-top:10px;text-align:center;font-size:12px;color:#92400e;">
+                <b>פער מאבחן:</b> מערכת ${pdnCode} / מאבחן ${diagnoseCode}
+            </div>`;
+        } else if (diagnoseCode) {
+            diagnoseHtml = `<div style="background:#dcfce7;border-radius:8px;padding:8px;margin-top:10px;text-align:center;font-size:12px;color:#166534;">
+                <b>מאבחן אישר:</b> ${diagnoseCode}
+            </div>`;
         }
 
         const overlay = document.createElement('div');
@@ -1526,21 +1539,31 @@
         overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
 
         overlay.innerHTML = `
-            <div style="background:white;border-radius:16px;padding:28px;max-width:400px;width:100%;box-shadow:0 24px 48px rgba(0,0,0,0.2);direction:rtl;">
-                <div style="text-align:center;margin-bottom:16px;">
-                    <div style="font-size:2.5rem;font-weight:800;color:${levelColor};">${score}%</div>
-                    <div style="font-size:0.85rem;font-weight:600;color:${levelColor};margin-top:4px;">${levelText}</div>
+            <div style="background:white;border-radius:16px;padding:24px;max-width:420px;width:100%;box-shadow:0 24px 48px rgba(0,0,0,0.2);direction:rtl;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                    <div>
+                        <div style="font-size:0.9rem;font-weight:700;color:#1e293b;">${escapeHtml(name)}</div>
+                        <div style="font-size:0.75rem;color:#64748b;">${escapeHtml(email)}</div>
+                    </div>
+                    <div style="text-align:center;">
+                        <div style="font-size:1.8rem;font-weight:800;color:${levelColor};">${score}%</div>
+                        <div style="font-size:0.7rem;font-weight:600;color:${levelColor};">${levelText}</div>
+                    </div>
                 </div>
-                <div style="background:${levelBg};border-radius:10px;padding:14px;margin-bottom:14px;text-align:right;">
-                    <p style="font-size:13px;color:${levelColor};line-height:1.7;">${explanation}</p>
+                <div style="display:flex;gap:8px;margin-bottom:12px;">
+                    <span style="padding:4px 12px;border-radius:8px;font-size:13px;font-weight:700;background:#e0e7ff;color:#3730a3;">קוד: ${escapeHtml(pdnCode)}</span>
+                    <span style="padding:4px 12px;border-radius:8px;font-size:13px;font-weight:500;background:#f1f5f9;color:#64748b;">תכונה: ${pdnCode ? pdnCode[0] : '?'} | אנרגיה: ${pdnCode && pdnCode.length > 1 ? ({'3':'F','6':'F','9':'F','12':'F','7':'D','4':'D','10':'D','1':'D','11':'S','8':'S','2':'S','5':'S'}[pdnCode.slice(1)] || '?') : '?'}</span>
                 </div>
-                <div style="background:#f8fafc;border-radius:10px;padding:12px;text-align:right;margin-bottom:14px;">
-                    <p style="font-size:12px;color:#64748b;margin-bottom:6px;font-weight:600;">איך מחושב?</p>
-                    <p style="font-size:12px;color:#64748b;line-height:1.7;">הציון מבוסס על הפער בין התכונה הדומיננטית לשנייה (50%) והפער בין האנרגיה הדומיננטית לשנייה (50%). ככל שהפער גדול יותר - הביטחון גבוה יותר.</p>
+                <div style="background:${levelBg};border-radius:10px;padding:12px;margin-bottom:10px;text-align:right;">
+                    <p style="font-size:12px;color:${levelColor};line-height:1.6;">${explanation}</p>
+                </div>
+                <div id="confidenceScoresArea" style="background:#f8fafc;border-radius:10px;padding:12px;text-align:right;margin-bottom:10px;">
+                    <p style="font-size:11px;color:#94a3b8;text-align:center;"><i class="fas fa-spinner fa-spin"></i> טוען ניקוד...</p>
                 </div>
                 ${flagsHtml}
-                <div style="text-align:center;margin-top:16px;">
-                    <button onclick="document.getElementById('confidencePopup').remove();" style="padding:10px 24px;background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">
+                ${diagnoseHtml}
+                <div style="text-align:center;margin-top:14px;">
+                    <button onclick="document.getElementById('confidencePopup').remove();" style="padding:8px 20px;background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">
                         סגור
                     </button>
                 </div>
@@ -1548,6 +1571,48 @@
         `;
 
         document.body.appendChild(overlay);
+
+        // Fetch actual scores from recalculate endpoint
+        fetch(`/pdn-admin/user/recalculate_pdn/${email}?session_token=${sessionToken}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({})
+        }).then(r => r.json()).then(data => {
+            const area = document.getElementById('confidenceScoresArea');
+            if (!area) return;
+            if (data.calculation_details) {
+                const final = data.calculation_details.find(d => d.stage === 'Final');
+                const stageD = data.calculation_details.find(d => d.stage === 'D');
+                const stageE = data.calculation_details.find(d => d.stage === 'E');
+                if (final && final.scores) {
+                    const s = final.scores;
+                    const traits = [['A', s.A], ['T', s.T], ['P', s.P], ['E', s.E]].sort((a,b) => b[1] - a[1]);
+                    const energies = [['D', s.D], ['S', s.S], ['F', s.F]].sort((a,b) => b[1] - a[1]);
+                    const traitGap = traits[0][1] - traits[1][1];
+                    const energyGap = energies[0][1] - energies[1][1];
+                    area.innerHTML = `
+                        <div style="font-size:11px;font-weight:600;color:#475569;margin-bottom:8px;">ניקוד סופי (אחרי כל השלבים):</div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                            <div style="background:white;border-radius:8px;padding:8px;border:1px solid #e2e8f0;">
+                                <div style="font-size:10px;color:#94a3b8;margin-bottom:4px;">תכונות</div>
+                                ${traits.map((t,i) => `<div style="display:flex;justify-content:space-between;font-size:12px;${i===0?'font-weight:700;color:#0b2e6b;':'color:#64748b;'}"><span>${t[0]}</span><span>${t[1]}</span></div>`).join('')}
+                                <div style="margin-top:4px;font-size:10px;color:#94a3b8;">פער: ${traitGap} נק'</div>
+                            </div>
+                            <div style="background:white;border-radius:8px;padding:8px;border:1px solid #e2e8f0;">
+                                <div style="font-size:10px;color:#94a3b8;margin-bottom:4px;">אנרגיה</div>
+                                ${energies.map((e,i) => `<div style="display:flex;justify-content:space-between;font-size:12px;${i===0?'font-weight:700;color:#0b2e6b;':'color:#64748b;'}"><span>${e[0]}</span><span>${e[1]}</span></div>`).join('')}
+                                <div style="margin-top:4px;font-size:10px;color:#94a3b8;">פער: ${energyGap} נק'</div>
+                            </div>
+                        </div>
+                    `;
+                }
+            } else {
+                area.innerHTML = '<p style="font-size:11px;color:#94a3b8;text-align:center;">לא ניתן לטעון ניקוד</p>';
+            }
+        }).catch(() => {
+            const area = document.getElementById('confidenceScoresArea');
+            if (area) area.innerHTML = '<p style="font-size:11px;color:#94a3b8;text-align:center;">שגיאה בטעינת ניקוד</p>';
+        });
     }
 
     function showCommentsPopup(email) {
