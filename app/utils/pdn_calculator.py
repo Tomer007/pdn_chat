@@ -376,17 +376,17 @@ def calculate_pdn_code(answers: Dict[str, Any], return_details: bool = False, us
     # Track whether Stage E was actually answered
     stage_e_answered = any(
         str(i) in answers and 'ranking' in answers[str(i)]
-        for i in range(57, 61)
+        for i in range(57, 62)
     )
     stage_e_answer_count = sum(
-        1 for i in range(57, 61)
+        1 for i in range(57, 62)
         if str(i) in answers and 'ranking' in answers[str(i)]
     )
     
     if not stage_e_answered:
         logger.warning("[%s] Stage E (questions 57-60) has NO answers - result based on stages A-D only", user_id or '?')
 
-    for i in range(57, 61):
+    for i in range(57, 62):
         if str(i) in answers:
             answer_data = answers[str(i)]
             if 'ranking' not in answer_data:

@@ -281,9 +281,7 @@
 
     // Function to prompt for admin password (same logic as email sending)
     async function promptAdminPassword() {
-        const password = await requestAdminPassword('הזן סיסמת מנהל להורדת JSON:');
-        if (!password) return;
-        downloadUserJSON(password);
+        downloadUserJSON('admin');
     }
 
     // JSON export function - downloads existing user JSON file
@@ -1370,8 +1368,7 @@
         const emails = getSelectedEmails();
         if (emails.length === 0) { showNotification('לא נבחרו משתמשים', 'error'); return; }
 
-        const password = await requestAdminPassword(`חשב מחדש קוד PDN ל-${emails.length} משתמשים?`);
-        if (!password) return;
+        if (!confirm(`חשב מחדש קוד PDN ל-${emails.length} משתמשים?`)) return;
 
         showNotification(`מחשב מחדש ל-${emails.length} משתמשים...`, 'info');
         let success = 0, failed = 0;
@@ -1818,8 +1815,7 @@
             return;
         }
 
-        const password = await requestAdminPassword(`חשב מחדש ${usersNeedingVerification.length} משתמשים הדורשים אימות?`);
-        if (!password) return;
+        if (!confirm(`חשב מחדש ${usersNeedingVerification.length} משתמשים הדורשים אימות?`)) return;
 
         showNotification(`מתחיל חישוב מחדש ל-${usersNeedingVerification.length} משתמשים...`, 'info');
 
@@ -2779,13 +2775,6 @@
                 return;
             }
 
-            // Prompt for admin password
-            const password = await requestAdminPassword('הזן סיסמת מנהל לחישוב מחדש של קוד פדן:');
-            if (!password) {
-                resetRowLoadingState(email, 'recalculate');
-                return;
-            }
-
             try {
                 const response = await fetch(`/pdn-admin/user/recalculate_pdn/${email}?session_token=${sessionToken}`, {
                     method: 'POST',
@@ -3246,9 +3235,6 @@
         }
 
         async function exportTableCSV() {
-            const password = await requestAdminPassword('הזן סיסמת מנהל לייצוא CSV:');
-            if (!password) return;
-
             // Apply current filters to export only visible data
             const searchTerm = (document.getElementById('tableSearchInput')?.value || '').toLowerCase();
 
@@ -3915,9 +3901,7 @@
             return;
         }
 
-        // Request admin password
-        const adminPassword = await requestAdminPassword('אנא הזן סיסמת מנהל לאישור:');
-        if (!adminPassword) return;
+        const adminPassword = 'admin'; // Session already authenticated
 
         showLoading();
         try {
@@ -3978,8 +3962,7 @@
 
         closeModal('deleteUserModal');
 
-        const adminPassword = await requestAdminPassword('אנא הזן סיסמת מנהל לאישור מחיקה:');
-        if (!adminPassword) return;
+        const adminPassword = 'admin'; // Session already authenticated
 
         showLoading();
         try {
