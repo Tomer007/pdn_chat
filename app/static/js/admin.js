@@ -1986,7 +1986,7 @@
             </td>
             <td class="px-4 py-4">
                 ${user.confidence_score !== undefined && user.confidence_score !== null ?
-                    (user.confidence_score < 25 ?
+                    (user.confidence_score < 20 ?
                         `<span class="cursor-pointer" onclick="event.stopPropagation(); showConfidencePopup('${escapeHtml(user.email)}', ${user.confidence_score}, ${user.needs_verification || false}, ${user.missing_stage_e || false})" title="לחץ לפרטים" style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:8px;background:#fef3c7;color:#92400e;font-size:11px;font-weight:600;">
                             <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#f59e0b;"></span> לבדיקה
                         </span>` :
