@@ -15,3 +15,6 @@ pdn_rag.log
 a7_agent.log
 .hypothesis/
 .coverage
+
+# Kiro IDE settings
+.kiro/
