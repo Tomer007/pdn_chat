@@ -1400,10 +1400,15 @@
                 if (response.ok) {
                     const data = await response.json();
                     const idx = currentData.findIndex(u => u.email === email);
+                    const previousCode = idx !== -1 ? currentData[idx].pdn_code : '';
                     if (idx !== -1) {
                         currentData[idx].pdn_code = data.pdn_code;
                         currentData[idx].needs_verification = data.needs_verification || false;
                         if (data.confidence_score !== undefined) currentData[idx].confidence_score = data.confidence_score;
+                    }
+                    // Show calculation details for single user recalculation
+                    if (emails.length === 1 && data.calculation_details) {
+                        showCalculationDetails(email, data, previousCode);
                     }
                     success++;
                 } else failed++;
@@ -2792,7 +2797,7 @@
 
                     // Display calculation details in modal if available
                     if (data.calculation_details) {
-                        showCalculationDetails(email, data);
+                        showCalculationDetails(email, data, user.pdn_code);
                     }
 
                     // Update local data
@@ -2874,7 +2879,7 @@
             setTimeout(() => { document.getElementById('releaseNotesModal').querySelector('button, input')?.focus(); }, 100);
         }
 
-        function showCalculationDetails(email, data) {
+        function showCalculationDetails(email, data, previousCode) {
             // Store the email for the send button
             window._currentCalcEmail = email;
             const container = document.getElementById('pdnCalculationContent');
@@ -2907,7 +2912,7 @@
                 html += `
                 <div style="padding: 28px; background: linear-gradient(135deg, #0b2e6b 0%, #1a3f7a 100%); border-radius: 16px; color: white; text-align: center; box-shadow: 0 8px 32px rgba(11, 46, 107, 0.3);">
                     <div style="font-size: 13px; opacity: 0.7; margin-bottom: 4px;">${email}</div>
-                    <div style="font-size: 48px; font-weight: 800; margin: 16px 0; letter-spacing: 2px;">${finalStage.pdn_code}</div>
+                    ${previousCode && previousCode !== finalStage.pdn_code ? `<div style="font-size: 13px; opacity: 0.7; margin: 8px 0;"><span style="text-decoration:line-through;opacity:0.5;">${previousCode}</span> → <span style="font-weight:700;">${finalStage.pdn_code}</span></div><div style="font-size: 48px; font-weight: 800; margin: 8px 0; letter-spacing: 2px;">${finalStage.pdn_code}</div>` : `<div style="font-size: 48px; font-weight: 800; margin: 16px 0; letter-spacing: 2px;">${finalStage.pdn_code}</div>`}
                     <div style="display: flex; justify-content: center; gap: 40px; font-size: 14px; opacity: 0.9;">
                         <div>
                             <div style="font-size: 11px; opacity: 0.6; margin-bottom: 4px;">תכונה</div>
