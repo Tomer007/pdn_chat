@@ -1564,16 +1564,13 @@
                     </div>
                     <div style="text-align:center;">
                         <div style="font-size:1.8rem;font-weight:800;color:${levelColor};">${score}%</div>
-                        <div style="font-size:0.7rem;font-weight:600;color:${levelColor};">${levelText}</div>
                     </div>
                 </div>
                 <div style="display:flex;gap:8px;margin-bottom:12px;">
                     <span style="padding:4px 12px;border-radius:8px;font-size:13px;font-weight:700;background:#e0e7ff;color:#3730a3;">קוד: ${escapeHtml(pdnCode)}</span>
                     <span style="padding:4px 12px;border-radius:8px;font-size:13px;font-weight:500;background:#f1f5f9;color:#64748b;">תכונה: ${pdnCode ? pdnCode[0] : '?'} | אנרגיה: ${pdnCode && pdnCode.length > 1 ? ({'3':'F','6':'F','9':'F','12':'F','7':'D','4':'D','10':'D','1':'D','11':'S','8':'S','2':'S','5':'S'}[pdnCode.slice(1)] || '?') : '?'}</span>
                 </div>
-                <div style="background:${levelBg};border-radius:10px;padding:12px;margin-bottom:10px;text-align:right;">
-                    <p style="font-size:12px;color:${levelColor};line-height:1.6;">${explanation}</p>
-                </div>
+
                 <div id="confidenceScoresArea" style="background:#f8fafc;border-radius:10px;padding:12px;text-align:right;margin-bottom:10px;">
                     <p style="font-size:11px;color:#94a3b8;text-align:center;"><i class="fas fa-spinner fa-spin"></i> טוען ניקוד...</p>
                 </div>
@@ -1778,12 +1775,12 @@
         }
 
         // Status filter
-        if (statusVal === 'needs_verification') {
-            filtered = filtered.filter(u => u.needs_verification);
-            labels.push('נדרש אימות');
-        } else if (statusVal === 'no_code') {
-            filtered = filtered.filter(u => !u.pdn_code || u.pdn_code === '');
-            labels.push('ללא קוד');
+        if (statusVal === 'valid') {
+            filtered = filtered.filter(u => !u.needs_verification && u.pdn_code && u.pdn_code !== '' && u.pdn_code !== 'NA');
+            labels.push('תקין');
+        } else if (statusVal === 'needs_verification') {
+            filtered = filtered.filter(u => u.needs_verification || !u.pdn_code || u.pdn_code === '' || u.pdn_code === 'NA');
+            labels.push('לבדיקה');
         }
 
         // Trait filter
