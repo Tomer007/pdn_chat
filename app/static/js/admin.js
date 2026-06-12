@@ -1307,10 +1307,15 @@
         const bar = document.getElementById('bulkActionBar');
         const countEl = document.getElementById('bulkSelectedCount');
         const selectAll = document.getElementById('selectAllRows');
+        const singleActions = document.getElementById('singleUserActions');
 
         if (selected.length > 0) {
             bar.style.display = 'flex';
             countEl.textContent = `${selected.length} נבחרו`;
+            // Show per-user actions only when exactly 1 is selected
+            if (singleActions) {
+                singleActions.style.display = selected.length === 1 ? 'contents' : 'none';
+            }
         } else {
             bar.style.display = 'none';
         }
@@ -1328,6 +1333,18 @@
             cb.checked = checkbox.checked;
         });
         updateBulkSelection();
+    }
+
+    function singleAction(action) {
+        const emails = getSelectedEmails();
+        if (emails.length !== 1) return;
+        const email = emails[0];
+        switch (action) {
+            case 'journey': viewJourney(email); break;
+            case 'questionnaire': viewQuestionnaire(email); break;
+            case 'voice': playVoice(email); break;
+            case 'diagnose': editDiagnose(email); break;
+        }
     }
 
     function clearSelection() {
@@ -1957,88 +1974,6 @@
             <td class="px-4 py-4 col-secondary">
                 <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium font-mono">${user.user_id || '—'}</span>
             </td>
-            <td class="px-4 py-4">
-                <div class="relative" x-data="{ open: false, loadingBtn: '', modalText: '', showModal: false }">
-                    <button @click.stop="open = !open"
-                            class="action-btn bg-blue-900 hover:bg-blue-900 text-white px-4 py-2 rounded-lg transition-all duration-300 flex items-center">
-                        פעולות
-                        <i class="fas fa-chevron-down mr-2 transition-transform" :class="{ 'rotate-180': open }"></i>
-                    </button>
-
-                    <div x-show="open"
-                         @click.away="open = false"
-                         x-transition:enter="transition ease-out duration-100"
-                         x-transition:enter-start="transform opacity-0 scale-95"
-                         x-transition:enter-end="transform opacity-100 scale-100"
-                         x-transition:leave="transition ease-in duration-75"
-                         x-transition:leave-start="transform opacity-100 scale-100"
-                         x-transition:leave-end="transform opacity-0 scale-95"
-                         class="fixed w-48 bg-white rounded-lg shadow-lg border border-blue-200 z-50"
-                         x-init="$nextTick(() => { let rect = $el.previousElementSibling.getBoundingClientRect(); let top = rect.bottom + 4; if (top + 300 > window.innerHeight) top = rect.top - $el.offsetHeight - 4; $el.style.top = top + 'px'; $el.style.left = rect.left + 'px'; })"
-                         x-effect="if(open) { $nextTick(() => { let rect = $el.previousElementSibling.getBoundingClientRect(); let top = rect.bottom + 4; if (top + 300 > window.innerHeight) top = rect.top - $el.offsetHeight - 4; $el.style.top = top + 'px'; $el.style.left = rect.left + 'px'; }) }">
-
-                        <div class="py-1">
-                            <button @click="viewJourney('${user.email}'); open = false"
-                                    class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center">
-                                <i class="fas fa-route ml-2"></i>
-                                מסע משתמש
-                            </button>
-
-                            <button @click="loadingBtn = 'questionnaire'; modalText = 'טוען נתוני שאלון...'; showModal = true; viewQuestionnaire('${user.email}'); open = false"
-                                    class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center"
-                                    :disabled="loadingBtn === 'questionnaire'">
-                                <i class="fas fa-clipboard-list ml-2"></i>
-                                צפה בשאלון
-                            </button>
-
-                            <button @click="loadingBtn = 'voice'; modalText = 'טוען הקלטה קולית...'; showModal = true; playVoice('${user.email}'); open = false"
-                                    class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center"
-                                    :disabled="loadingBtn === 'voice'">
-                                <i class="fas fa-microphone ml-2"></i>
-                                האזן להקלטה
-                            </button>
-
-                            <button @click="loadingBtn = 'edit'; modalText = 'ערוך איבחון...'; showModal = true; editDiagnose('${user.email}'); open = false"
-                                    class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center"
-                                    :disabled="loadingBtn === 'edit'">
-                                <i class="fas fa-edit ml-2"></i>
-                                ערוך אבחון
-                            </button>
-
-                            <div class="relative" x-data="{ emailOpen: false }">
-                                <button @click="emailOpen = !emailOpen"
-                                        class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center justify-between"
-                                        :disabled="loadingBtn === 'email'">
-                                    <span class="flex items-center">
-                                        <i class="fas fa-envelope ml-2"></i>
-                                        שלח אימייל
-                                    </span>
-                                    <i class="fas fa-chevron-left text-xs transition-transform" :class="{ 'rotate-90': emailOpen }"></i>
-                                </button>
-                                <div x-show="emailOpen" class="pr-6 border-r border-blue-200 mr-2">
-                                    <button @click="loadingBtn = 'email'; modalText = 'שולח אימייל קוד PDN...'; showModal = true; sendEmail('${user.email}', 'pdn'); open = false; emailOpen = false"
-                                            class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center">
-                                        <i class="fas fa-file-alt ml-2 text-blue-500"></i>
-                                        קוד PDN
-                                    </button>
-                                    <button @click="loadingBtn = 'email'; modalText = 'שולח הזמנה לבינת...'; showModal = true; sendEmail('${user.email}', 'binat'); open = false; emailOpen = false"
-                                            class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center">
-                                        <i class="fas fa-comments ml-2 text-green-500"></i>
-                                        בינת
-                                    </button>
-                                </div>
-                            </div>
-
-                            <button @click="loadingBtn = 'recalculate'; modalText = 'מחשב מחדש קוד פדן...'; showModal = true; recalculatePdnCode('${user.email}'); open = false"
-                                    class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center"
-                                    :disabled="loadingBtn === 'recalculate'">
-                                <i class="fas fa-calculator ml-2"></i>
-                                חשב מחדש קוד פדן
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </td>
             <td class="px-4 py-4 font-medium text-gray-900">${escapeHtml(displayName) || '—'}</td>
             <td class="px-4 py-4 font-medium text-gray-900">
                 <span class="cursor-pointer hover:text-blue-700 transition-colors" onclick="event.stopPropagation(); navigator.clipboard.writeText('${escapeHtml(user.email)}').then(() => showNotification('אימייל הועתק', 'success'))" title="לחץ להעתקה">
@@ -2071,7 +2006,7 @@
             <td class="px-4 py-4 text-gray-700 max-w-xs truncate cursor-pointer" title="${escapeHtml(user.diagnose_comments || '')}" onclick="event.stopPropagation(); showCommentsPopup('${escapeHtml(user.email)}')">${escapeHtml(user.diagnose_comments || '') || '—'}</td>
             <td class="px-4 py-4 text-gray-700 max-w-xs truncate col-secondary" title="${user.pdn_update_comments || ''}">${user.pdn_update_comments || '—'}</td>
             <td class="px-4 py-4 text-gray-700">
-                ${user.coupon_code ? `<span class="px-2 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-medium font-mono">${escapeHtml(user.coupon_code)}</span>` : '—'}
+                ${user.coupon_code ? `<span class="text-xs font-mono text-gray-600">${escapeHtml(user.coupon_code)}</span>` : '—'}
             </td>
         `;
             tbody.appendChild(row);

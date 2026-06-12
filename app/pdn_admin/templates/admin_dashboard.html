@@ -785,8 +785,26 @@
         <div style="padding: 0;">
             <!-- Bulk Action Bar (hidden until rows are selected) -->
             <div id="bulkActionBar" style="display:none;padding:10px 20px;background:linear-gradient(135deg,#0b2e6b,#1a3f7a);border-bottom:1px solid #e2e8f0;display:none;align-items:center;justify-content:space-between;gap:12px;animation:fadeIn 0.2s ease;">
-                <div style="display:flex;align-items:center;gap:12px;">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                     <span style="font-size:13px;font-weight:600;color:white;" id="bulkSelectedCount">0 נבחרו</span>
+                    <span style="width:1px;height:20px;background:rgba(255,255,255,0.3);"></span>
+                    <!-- Per-user actions (visible when exactly 1 selected) -->
+                    <span id="singleUserActions" style="display:none;display:contents;">
+                        <button onclick="singleAction('journey')" style="padding:5px 10px;border-radius:6px;border:none;background:rgba(255,255,255,0.12);color:white;font-size:11px;cursor:pointer;" title="מסע משתמש">
+                            <i class="fas fa-route"></i>
+                        </button>
+                        <button onclick="singleAction('questionnaire')" style="padding:5px 10px;border-radius:6px;border:none;background:rgba(255,255,255,0.12);color:white;font-size:11px;cursor:pointer;" title="צפה בשאלון">
+                            <i class="fas fa-clipboard-list"></i>
+                        </button>
+                        <button onclick="singleAction('voice')" style="padding:5px 10px;border-radius:6px;border:none;background:rgba(255,255,255,0.12);color:white;font-size:11px;cursor:pointer;" title="האזן להקלטה">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                        <button onclick="singleAction('diagnose')" style="padding:5px 10px;border-radius:6px;border:none;background:rgba(255,255,255,0.12);color:white;font-size:11px;cursor:pointer;" title="ערוך אבחון">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <span style="width:1px;height:20px;background:rgba(255,255,255,0.3);"></span>
+                    </span>
+                    <!-- Bulk actions (always visible) -->
                     <button onclick="bulkSendEmail('pdn')" style="padding:6px 14px;border-radius:8px;border:none;background:rgba(255,255,255,0.15);color:white;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
                         <i class="fas fa-envelope"></i> שלח PDN
                     </button>
@@ -801,7 +819,7 @@
                     </button>
                 </div>
                 <button onclick="clearSelection()" style="padding:6px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.3);background:transparent;color:white;font-size:12px;font-weight:600;cursor:pointer;">
-                    <i class="fas fa-times"></i> נקה בחירה
+                    <i class="fas fa-times"></i> נקה
                 </button>
             </div>
             <div class="table-container overflow-x-auto">
@@ -813,7 +831,6 @@
                                    style="width:16px;height:16px;cursor:pointer;accent-color:#0b2e6b;">
                         </th>
                         <th class="px-4 py-4 text-right font-semibold text-gray-700 col-secondary" title="מזהה מערכת">מזהה מערכת</th>
-                        <th class="px-4 py-4 text-right font-semibold text-gray-700" title="פעולות">פעולות</th>
                         <th class="px-4 py-4 text-right font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"
                             title="שם" onclick="sortTable('name')" aria-sort="none" id="th-name">
                             שם <span class="sort-indicator text-blue-600 text-sm" data-col="name"></span>
@@ -1960,6 +1977,6 @@
         }
     }
 </script>
-<script src="{{ url_for('static', filename='js/admin.js') }}?v=264"></script>
+<script src="{{ url_for('static', filename='js/admin.js') }}?v=265"></script>
 </body>
 </html>
