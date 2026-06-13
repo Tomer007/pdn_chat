@@ -591,9 +591,10 @@
 
         // RED: Stage E override or very low confidence
         if (stageEOverride) {
-            const before = user.dominant_before_stage_e || '?';
-            const after = user.pdn_code ? user.pdn_code[0] : '?';
-            return { priority: 1, label: 'red', recommendation: `שלב 5 הפך: ${before} → ${after} — שקול שיחה` };
+            const before = user.dominant_before_stage_e || '';
+            const after = user.pdn_code || '';
+            const changeText = before ? `לפני: <b>${before}</b>, קוד מעודכן: <b>${after}</b>` : `קוד מעודכן: <b>${after}</b>`;
+            return { priority: 1, label: 'red', recommendation: `שלב 5 שינה תוצאה ${changeText} שקול שיחה` };
         }
         if (score !== undefined && score !== null && score < 10) {
             return { priority: 1, label: 'red', recommendation: 'ניקוד כמעט שווה — שקול שיחה' };
@@ -2111,12 +2112,12 @@
 
             // Add inline recommendation row if the user needs attention
             if (user._recommendation) {
-                const recColor = user._priorityLabel === 'red' ? '#991b1b' : user._priorityLabel === 'yellow' ? '#92400e' : '#64748b';
-                const recBg = user._priorityLabel === 'red' ? '#fef2f2' : user._priorityLabel === 'yellow' ? '#fffbeb' : '#f8fafc';
-                const stageEInfo = user.stage_e_override && user.dominant_before_stage_e
-                    ? ` | <strong>שלבים A-D:</strong> ${user.dominant_before_stage_e} → <strong>שלב E:</strong> ${user.pdn_code ? user.pdn_code[0] : '?'}`
+                const recColor = user._priorityLabel === 'red' ? '#1e293b' : user._priorityLabel === 'yellow' ? '#92400e' : '#64748b';
+                const recBg = user._priorityLabel === 'red' ? '#f8fafc' : user._priorityLabel === 'yellow' ? '#fffbeb' : '#f8fafc';
+                const stageEInfo = (user.stage_e_override && user.dominant_before_stage_e)
+                    ? ` | לפני שלב 5: ${user.dominant_before_stage_e} → אחרי: ${user.pdn_code || ''}`
                     : '';
-                const voiceBtn = `<span class="cursor-pointer" onclick="event.stopPropagation(); playVoice('${escapeHtml(user.email)}')" style="margin-right:8px;color:#0b2e6b;font-size:11px;"><i class="fas fa-volume-up"></i> האזן</span>`;
+                const voiceBtn = `<span class="cursor-pointer" onclick="event.stopPropagation(); playVoice('${escapeHtml(user.email)}')" style="margin-left:12px;color:#0b2e6b;font-size:13px;" title="האזן להקלטה"><i class="fas fa-headphones"></i></span>`;
                 const recRow = document.createElement('tr');
                 recRow.style.cssText = 'border-bottom:2px solid #e2e8f0;';
                 recRow.innerHTML = `<td colspan="13" style="padding:4px 16px 8px;background:${recBg};font-size:11px;color:${recColor};">
