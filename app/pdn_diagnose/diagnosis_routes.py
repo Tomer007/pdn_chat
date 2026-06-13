@@ -102,19 +102,6 @@ def save_user_info_api():
         save_user_metadata(user_data, email)
         session["user_data"] = user_data
 
-        # Notify admin about new user registration
-        name = f"{user_data.get('first_name', '')} {user_data.get('last_name', '')}".strip()
-        _send_admin_notification(
-            subject=f"🆕 משתמש חדש נרשם לשאלון: {name}",
-            body=(
-                f"משתמש חדש נרשם לשאלון PDN\n\n"
-                f"שם: {name}\n"
-                f"אימייל: {email}\n"
-                f"טלפון: {user_data.get('phone', 'לא צוין')}\n"
-                f"תאריך: {datetime.now().strftime('%d/%m/%Y %H:%M')}\n"
-            ),
-        )
-
         return jsonify({"message": "User information saved successfully."})
     except (ValueError, KeyError, TypeError) as e:
         logger.error("Error saving user info: %s", e)

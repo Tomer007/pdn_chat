@@ -143,10 +143,7 @@
     }
 
     function logError(context, error) {
-        // Centralized error logging - can be extended to send to a remote service
-        if (typeof error === 'object' && error.message) {
-            // Keep minimal error logging for debugging
-        }
+        console.error(`[${context}]`, error?.message || error);
     }
 
     function getDiagnosisUserEmail() {
@@ -277,11 +274,6 @@
 
         // Use html2pdf
         html2pdf().set(opt).from(reportContainer).save();
-    }
-
-    // Function to prompt for admin password (same logic as email sending)
-    async function promptAdminPassword() {
-        downloadUserJSON('admin');
     }
 
     // JSON export function - downloads existing user JSON file
@@ -579,6 +571,54 @@
         }
     }
 
+    // Priority scoring and inline recommendation for Pnina's review queue
+    function calculatePriority(user) {
+        const score = user.confidence_score;
+        const hasCode = user.pdn_code && user.pdn_code !== 'NA' && user.pdn_code !== '';
+        const needsVerification = user.needs_verification;
+        const stageEOverride = user.stage_e_override;
+        const hasDiagnose = user.diagnose_pdn_code && user.diagnose_pdn_code.length > 0;
+
+        // Already diagnosed by human - lowest priority (done)
+        if (hasDiagnose) {
+            return { priority: 4, label: 'done', recommendation: '' };
+        }
+
+        // No code at all
+        if (!hasCode) {
+            return { priority: 3, label: 'gray', recommendation: 'ללא קוד - ייתכן שאלון לא הושלם' };
+        }
+
+        // RED: Stage E override or very low confidence
+        if (stageEOverride) {
+            const before = user.dominant_before_stage_e || '?';
+            const after = user.pdn_code ? user.pdn_code[0] : '?';
+            return { priority: 1, label: 'red', recommendation: `שלב 5 הפך: ${before} → ${after} — שקול שיחה` };
+        }
+        if (score !== undefined && score !== null && score < 10) {
+            return { priority: 1, label: 'red', recommendation: 'ניקוד כמעט שווה — שקול שיחה' };
+        }
+
+        // YELLOW: Low confidence or needs verification
+        if (needsVerification && score !== undefined && score < 50) {
+            // Generate smart recommendation based on the code
+            const trait = user.pdn_code ? user.pdn_code[0] : '?';
+            const energyNum = user.pdn_code ? user.pdn_code.slice(1) : '';
+            const energyMap = {'3':'F','6':'F','9':'F','12':'F','7':'D','4':'D','10':'D','1':'D','11':'S','8':'S','2':'S','5':'S'};
+            const energy = energyMap[energyNum] || '?';
+            let rec = `ככל הנראה ${user.pdn_code}`;
+            if (score < 30) rec += ' - פער קטן בתכונות, בדוק קול';
+            else rec += ` - פער אנרגיה קטן (${energy}), בדוק קצב דיבור`;
+            return { priority: 2, label: 'yellow', recommendation: rec };
+        }
+        if (needsVerification) {
+            return { priority: 2, label: 'yellow', recommendation: `${user.pdn_code} - פער קטן, מומלץ האזנה להקלטה` };
+        }
+
+        // GREEN: High confidence, no issues
+        return { priority: 3, label: 'green', recommendation: '' };
+    }
+
     async function loadMetadata() {
         const refreshBtn = document.getElementById('refreshBtn');
 
@@ -604,8 +644,19 @@
                 const data = await response.json();
                 currentData = data.data;
 
-                // Sort by date (newest first)
-                currentData.sort((a, b) => parseDate(b.date) - parseDate(a.date));
+                // Enrich each user with priority score and recommendation
+                currentData.forEach(u => {
+                    const pr = calculatePriority(u);
+                    u._priority = pr.priority;
+                    u._priorityLabel = pr.label;
+                    u._recommendation = pr.recommendation;
+                });
+
+                // Sort by priority (red first), then by date within same priority
+                currentData.sort((a, b) => {
+                    if (a._priority !== b._priority) return a._priority - b._priority;
+                    return parseDate(b.date) - parseDate(a.date);
+                });
 
                 displayData(currentData);
 
@@ -1511,26 +1562,21 @@
 
         // Determine confidence level and explanation
         let levelText, levelColor, levelBg, explanation;
-        if (score >= 80) {
+        if (score >= 50) {
             levelText = 'ביטחון גבוה';
             levelColor = '#166534';
             levelBg = '#dcfce7';
             explanation = 'פער גדול בין התכונה והאנרגיה הדומיננטיות לשאר. התוצאה אמינה מאוד.';
-        } else if (score >= 60) {
+        } else if (score >= 10) {
             levelText = 'ביטחון בינוני';
-            levelColor = '#854d0e';
-            levelBg = '#fef9c3';
+            levelColor = '#475569';
+            levelBg = '#f1f5f9';
             explanation = 'יש פער סביר בין הניקוד המוביל לשאר. התוצאה סבירה אבל כדאי לוודא.';
-        } else if (score >= 40) {
-            levelText = 'ביטחון נמוך';
-            levelColor = '#c2410c';
-            levelBg = '#ffedd5';
-            explanation = 'הפער בין התכונות קטן. מומלץ אימות בשיחה.';
         } else {
             levelText = 'ביטחון נמוך מאוד';
             levelColor = '#991b1b';
             levelBg = '#fee2e2';
-            explanation = 'הניקוד כמעט שווה. חובה לאמת בשיחה אישית.';
+            explanation = 'הניקוד כמעט שווה. שקול שיחה אישית.';
         }
 
         // Build flags section
@@ -1579,9 +1625,13 @@
                 <div id="confidenceScoresArea" style="background:#f8fafc;border-radius:10px;padding:12px;text-align:right;margin-bottom:10px;">
                     <p style="font-size:11px;color:#94a3b8;text-align:center;"><i class="fas fa-spinner fa-spin"></i> טוען ניקוד...</p>
                 </div>
+                <div id="confidenceVoiceArea" style="margin-bottom:10px;"></div>
                 ${flagsHtml}
                 ${diagnoseHtml}
-                <div style="text-align:center;margin-top:14px;">
+                <div style="display:flex;gap:8px;justify-content:center;margin-top:14px;">
+                    <button onclick="document.getElementById('confidencePopup').remove(); recalculatePdnCode('${escapeHtml(email)}');" style="padding:8px 20px;background:#0b2e6b;color:white;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">
+                        <i class="fas fa-list-ol"></i> פירוט מלא
+                    </button>
                     <button onclick="document.getElementById('confidencePopup').remove();" style="padding:8px 20px;background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">
                         סגור
                     </button>
@@ -1628,10 +1678,37 @@
             } else {
                 area.innerHTML = '<p style="font-size:11px;color:#94a3b8;text-align:center;">לא ניתן לטעון ניקוד</p>';
             }
+            // Auto-load voice snippet player
+            loadVoiceSnippet(email);
         }).catch(() => {
             const area = document.getElementById('confidenceScoresArea');
             if (area) area.innerHTML = '<p style="font-size:11px;color:#94a3b8;text-align:center;">שגיאה בטעינת ניקוד</p>';
         });
+    }
+
+    // Load voice snippet into the confidence popup
+    function loadVoiceSnippet(email) {
+        const voiceArea = document.getElementById('confidenceVoiceArea');
+        if (!voiceArea) return;
+        fetch(`/pdn-admin/user/voice/${email}?session_token=${sessionToken}`)
+            .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+            .then(data => {
+                if (data && data.voice_recordings && Object.keys(data.voice_recordings).length > 0) {
+                    const recordings = data.voice_recordings;
+                    const firstKey = Object.keys(recordings)[0];
+                    const firstFile = recordings[firstKey];
+                    let audioPath = firstFile;
+                    if (audioPath.startsWith('saved_results/')) audioPath = audioPath.substring('saved_results/'.length);
+                    const audioUrl = `/pdn-admin/audio/${audioPath}?session_token=${sessionToken}`;
+                    voiceArea.innerHTML = `
+                        <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:8px 12px;">
+                            <div style="font-size:10px;color:#0369a1;font-weight:600;margin-bottom:4px;"><i class="fas fa-volume-up"></i> הקלטה קולית</div>
+                            <audio controls preload="auto" style="width:100%;height:28px;" src="${audioUrl}"></audio>
+                        </div>
+                    `;
+                }
+            })
+            .catch(() => { /* No voice - leave empty */ });
     }
 
     function showCommentsPopup(email) {
@@ -1843,6 +1920,26 @@
         });
     }
 
+    let _sortByPriority = true;
+    function toggleSortMode() {
+        _sortByPriority = !_sortByPriority;
+        const btn = document.getElementById('sortModeBtn');
+        if (_sortByPriority) {
+            currentData.sort((a, b) => {
+                if (a._priority !== b._priority) return a._priority - b._priority;
+                return parseDate(b.date) - parseDate(a.date);
+            });
+            btn.innerHTML = '<i class="fas fa-sort-amount-down"></i> דחיפות';
+            btn.classList.add('active-filter');
+        } else {
+            currentData.sort((a, b) => parseDate(b.date) - parseDate(a.date));
+            btn.innerHTML = '<i class="fas fa-calendar-alt"></i> תאריך';
+            btn.classList.remove('active-filter');
+        }
+        renderTable(currentData);
+        showNotification(_sortByPriority ? 'מיון לפי דחיפות' : 'מיון לפי תאריך', 'info');
+    }
+
     function toggleSecondaryColumns() {
         const table = document.getElementById('usersTable');
         const btn = document.getElementById('toggleColsBtn');
@@ -2011,7 +2108,25 @@
                 ${user.coupon_code ? `<span class="text-xs font-mono text-gray-600">${escapeHtml(user.coupon_code)}</span>` : '—'}
             </td>
         `;
-            tbody.appendChild(row);
+
+            // Add inline recommendation row if the user needs attention
+            if (user._recommendation) {
+                const recColor = user._priorityLabel === 'red' ? '#991b1b' : user._priorityLabel === 'yellow' ? '#92400e' : '#64748b';
+                const recBg = user._priorityLabel === 'red' ? '#fef2f2' : user._priorityLabel === 'yellow' ? '#fffbeb' : '#f8fafc';
+                const stageEInfo = user.stage_e_override && user.dominant_before_stage_e
+                    ? ` | <strong>שלבים A-D:</strong> ${user.dominant_before_stage_e} → <strong>שלב E:</strong> ${user.pdn_code ? user.pdn_code[0] : '?'}`
+                    : '';
+                const voiceBtn = `<span class="cursor-pointer" onclick="event.stopPropagation(); playVoice('${escapeHtml(user.email)}')" style="margin-right:8px;color:#0b2e6b;font-size:11px;"><i class="fas fa-volume-up"></i> האזן</span>`;
+                const recRow = document.createElement('tr');
+                recRow.style.cssText = 'border-bottom:2px solid #e2e8f0;';
+                recRow.innerHTML = `<td colspan="13" style="padding:4px 16px 8px;background:${recBg};font-size:11px;color:${recColor};">
+                    ${voiceBtn}<span>${user._recommendation}${stageEInfo}</span>
+                </td>`;
+                tbody.appendChild(row);
+                tbody.appendChild(recRow);
+            } else {
+                tbody.appendChild(row);
+            }
         });
 
         // Initialize tooltips after rendering
@@ -3167,11 +3282,6 @@
             }
         });
 
-        // Function to re-sort data by date (legacy, now delegates to sortTable)
-        function resortByDate() {
-            sortTable('date');
-        }
-
         let sortColumn = 'date';
         let sortDirection = 'desc';
 
@@ -3722,34 +3832,10 @@
             }
         }
 
-        // Add this new function to reset loading state for a specific row
+        // Reset loading state for a specific row (no-op, kept for call compatibility)
         function resetRowLoadingState(email, buttonType) {
-            // Find the row for this email
-            const rows = document.querySelectorAll('#tableBody tr');
-            rows.forEach(row => {
-                const emailCell = row.querySelector('td:first-child');
-                if (emailCell && emailCell.textContent.trim() === email) {
-                    // Find the Alpine component in this row
-                    const alpineComponent = row.querySelector('[x-data]');
-                    if (alpineComponent && alpineComponent._x_dataStack && alpineComponent._x_dataStack[0]) {
-                        alpineComponent._x_dataStack[0].loadingBtn = '';
-                        alpineComponent._x_dataStack[0].showModal = false;
-                    }
-                }
-            });
+            // Previously used Alpine.js - now handled by re-render
         }
-
-        // Update the existing resetAlpineLoadingState function
-        function resetAlpineLoadingState() {
-            // Reset all Alpine components
-            document.querySelectorAll('[x-data]').forEach(element => {
-                if (element._x_dataStack && element._x_dataStack[0]) {
-                    element._x_dataStack[0].loadingBtn = '';
-                    element._x_dataStack[0].showModal = false;
-                }
-            });
-        }
-
 
     // =============================================
     // User Management (Chat Users CRUD)
