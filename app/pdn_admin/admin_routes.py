@@ -1242,20 +1242,6 @@ def download_user_json():
         logger.error("Session verification failed: %s", e)
         return jsonify({"error": "Unauthorized"}), 401
 
-    # Extract admin password from query parameters
-    admin_password = request.args.get('admin_password')
-    if not admin_password:
-        logger.warning("No admin password provided")
-        abort(401, description="Admin password required")
-
-    # Verify admin password (same as email sending functionality)
-    if admin_password.lower() != current_app.config.get('ADMIN_PASSWORD', 'pdn').lower():
-        logger.warning("Invalid admin password provided")
-        resp = jsonify({"error": "Invalid admin password"})
-        resp.status_code = 401
-        resp.headers['X-Error-Type'] = 'invalid_password'
-        return resp
-
     # Get file path from query parameters
     file_path = request.args.get('file_path')
     if not file_path:
