@@ -1251,9 +1251,10 @@ def download_user_json():
     # Verify admin password (same as email sending functionality)
     if admin_password.lower() != current_app.config.get('ADMIN_PASSWORD', 'pdn').lower():
         logger.warning("Invalid admin password provided")
-        response = jsonify({"error": "Invalid admin password"}), 401
-        response.headers['X-Error-Type'] = 'invalid_password'
-        return response
+        resp = jsonify({"error": "Invalid admin password"})
+        resp.status_code = 401
+        resp.headers['X-Error-Type'] = 'invalid_password'
+        return resp
 
     # Get file path from query parameters
     file_path = request.args.get('file_path')
