@@ -850,8 +850,14 @@
                             title="קוד המערכת" onclick="sortTable('pdn_code')" aria-sort="none" id="th-pdn_code">
                             קוד מערכת <span class="sort-indicator text-blue-600 text-sm" data-col="pdn_code"></span>
                         </th>
-                        <th class="px-4 py-4 text-right font-semibold text-gray-700" title="סטטוס אימות">אימות</th>
-                        <th class="px-4 py-4 text-right font-semibold text-gray-700" title="קוד מאבחן">קוד מאבחן</th>
+                        <th class="px-4 py-4 text-right font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"
+                            title="סטטוס אימות" onclick="sortTable('needs_verification')" aria-sort="none" id="th-needs_verification">
+                            אימות <span class="sort-indicator text-blue-600 text-sm" data-col="needs_verification"></span>
+                        </th>
+                        <th class="px-4 py-4 text-right font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"
+                            title="קוד מאבחן" onclick="sortTable('diagnose_pdn_code')" aria-sort="none" id="th-diagnose_pdn_code">
+                            קוד מאבחן <span class="sort-indicator text-blue-600 text-sm" data-col="diagnose_pdn_code"></span>
+                        </th>
                         <th class="px-4 py-4 text-right font-semibold text-gray-700" title="הערות המאבחן">הערות</th>
                         <th class="px-4 py-4 text-right font-semibold text-gray-700 col-secondary" title="הערות עדכון קוד פדן">עדכון קוד פדן</th>
                         <th class="px-4 py-4 text-right font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"

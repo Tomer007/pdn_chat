@@ -3301,6 +3301,14 @@
                         valA = (a.pdn_code || '').toLowerCase();
                         valB = (b.pdn_code || '').toLowerCase();
                         break;
+                    case 'needs_verification':
+                        valA = a.needs_verification ? '1' : '0';
+                        valB = b.needs_verification ? '1' : '0';
+                        break;
+                    case 'diagnose_pdn_code':
+                        valA = (a.diagnose_pdn_code || '').toLowerCase();
+                        valB = (b.diagnose_pdn_code || '').toLowerCase();
+                        break;
                     case 'coupon_code':
                         valA = (a.coupon_code || '').toLowerCase();
                         valB = (b.coupon_code || '').toLowerCase();
