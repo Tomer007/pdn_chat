@@ -2428,35 +2428,24 @@
                 <h3 class="text-2xl font-bold text-gray-800">
                     פרטי משתמש
                 </h3>
-                <div class="relative" x-data="{ open: false }">
+                <div class="relative">
                     <button id="downloadPdfBtn"
-                        @click="open = !open"
+                        onclick="this.nextElementSibling.classList.toggle('hidden')"
                         class="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-900 to-blue-900 text-white font-bold rounded-xl shadow-lg hover:from-blue-900 hover:to-blue-900 transition-all duration-300 text-base transform hover:scale-105">
                         <i class="fas fa-file-arrow-down mr-2 text-lg"></i>
                         הורד דוח
-                        <i class="fas fa-chevron-down mr-2 transition-transform" :class="{ 'rotate-180': open }"></i>
+                        <i class="fas fa-chevron-down mr-2"></i>
                     </button>
 
-                    <div x-show="open"
-                         @click.away="open = false"
-                         x-transition:enter="transition ease-out duration-100"
-                         x-transition:enter-start="transform opacity-0 scale-95"
-                         x-transition:enter-end="transform opacity-100 scale-100"
-                         x-transition:leave="transition ease-in duration-75"
-                         x-transition:leave-start="transform opacity-100 scale-100"
-                         x-transition:leave-end="transform opacity-0 scale-95"
-                         class="fixed w-48 bg-white rounded-lg shadow-lg border border-blue-200 z-50"
-                         x-init="$nextTick(() => { let rect = $el.previousElementSibling.getBoundingClientRect(); let top = rect.bottom + 4; if (top + 300 > window.innerHeight) top = rect.top - $el.offsetHeight - 4; $el.style.top = top + 'px'; $el.style.left = rect.left + 'px'; })"
-                         x-effect="if(open) { $nextTick(() => { let rect = $el.previousElementSibling.getBoundingClientRect(); let top = rect.bottom + 4; if (top + 300 > window.innerHeight) top = rect.top - $el.offsetHeight - 4; $el.style.top = top + 'px'; $el.style.left = rect.left + 'px'; }) }">
-
+                    <div class="absolute top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-blue-200 z-50 hidden">
                         <div class="py-1">
-                            <button @click="open = false; downloadReport('pdf')"
+                            <button onclick="this.closest('.relative').querySelector('.absolute').classList.add('hidden'); downloadReport('pdf')"
                                     class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center">
                                 <i class="fas fa-file-pdf ml-2 text-red-500"></i>
                                 הורד PDF
                             </button>
 
-                            <button @click="open = false; promptAdminPassword()"
+                            <button onclick="this.closest('.relative').querySelector('.absolute').classList.add('hidden'); downloadUserJSON('admin')"
                                     class="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center">
                                 <i class="fas fa-file-code ml-2 text-green-500"></i>
                                 הורד JSON
