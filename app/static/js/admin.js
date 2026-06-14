@@ -1698,7 +1698,8 @@
                     const recordings = data.voice_recordings;
                     const firstKey = Object.keys(recordings)[0];
                     const firstFile = recordings[firstKey];
-                    let audioPath = firstFile;
+                    let audioPath = firstFile.path || firstFile.filename || firstFile;
+                    if (typeof audioPath !== 'string') return;
                     if (audioPath.startsWith('saved_results/')) audioPath = audioPath.substring('saved_results/'.length);
                     const audioUrl = `/pdn-admin/audio/${audioPath}?session_token=${sessionToken}`;
                     voiceArea.innerHTML = `
