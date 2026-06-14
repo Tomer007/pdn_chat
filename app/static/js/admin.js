@@ -1864,6 +1864,9 @@
         } else if (statusVal === 'needs_verification') {
             filtered = filtered.filter(u => u.needs_verification || !u.pdn_code || u.pdn_code === '' || u.pdn_code === 'NA');
             labels.push('לבדיקה');
+        } else if (statusVal === 'diagnosed') {
+            filtered = filtered.filter(u => u.diagnose_pdn_code && u.diagnose_pdn_code.length > 0);
+            labels.push('נבדק ע"י מאבחן');
         }
 
         // Trait filter
@@ -2096,9 +2099,6 @@
                         `<span class="verification-badge needs-review" onclick="event.stopPropagation(); showVerificationPopup('${escapeHtml(user.email)}', '${escapeHtml(user.pdn_code)}')" title="לחץ לפרטים" style="cursor:pointer;"><i class="fas fa-exclamation-triangle"></i> אימות</span>` :
                         '<span class="verification-badge verified"><i class="fas fa-check-circle"></i> תקין</span>')
                 }
-            </td>
-            <td class="px-4 py-4 col-secondary">
-                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">${escapeHtml(user.pdn_voice_code) || '—'}</span>
             </td>
             <td class="px-4 py-4">
                 <span class="px-2 py-1 rounded-full text-xs font-medium ${getPdnBadgeColor(user.diagnose_pdn_code)}">${escapeHtml(user.diagnose_pdn_code) || '—'}</span>
