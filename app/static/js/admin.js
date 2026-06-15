@@ -3302,8 +3302,11 @@
                         valB = (b.pdn_code || '').toLowerCase();
                         break;
                     case 'needs_verification':
-                        valA = a.needs_verification ? '1' : '0';
-                        valB = b.needs_verification ? '1' : '0';
+                        // Sort by displayed status: לבדיקה (needs attention) first
+                        const aNeeds = (a.confidence_score !== undefined && a.confidence_score < 20) || a.needs_verification;
+                        const bNeeds = (b.confidence_score !== undefined && b.confidence_score < 20) || b.needs_verification;
+                        valA = aNeeds ? '0' : '1';
+                        valB = bNeeds ? '0' : '1';
                         break;
                     case 'diagnose_pdn_code':
                         valA = (a.diagnose_pdn_code || '').toLowerCase();
