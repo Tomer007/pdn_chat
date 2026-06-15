@@ -962,21 +962,9 @@ class TestDownloadJson:
         response = client.get('/pdn-admin/download-json')
         assert response.status_code == 401
 
-    def test_download_json_no_admin_password(self, client, valid_session_token):
-        """Returns 401 without admin password."""
-        response = client.get(f'/pdn-admin/download-json?session_token={valid_session_token}')
-        assert response.status_code == 401
-
-    def test_download_json_invalid_admin_password(self, client, valid_session_token, app):
-        """Triggers the invalid admin password path (source has a bug with tuple headers)."""
-        # Source code bug on line 878: tries to set .headers on a tuple response
-        # This causes AttributeError which propagates in test mode
-        with pytest.raises(AttributeError):
-            client.get(f'/pdn-admin/download-json?session_token={valid_session_token}&admin_password=wrong&file_path=test.json')
-
     def test_download_json_no_file_path(self, client, valid_session_token):
         """Returns 400 without file_path."""
-        response = client.get(f'/pdn-admin/download-json?session_token={valid_session_token}&admin_password=pdn')
+        response = client.get(f'/pdn-admin/download-json?session_token={valid_session_token}')
         assert response.status_code == 400
 
     def test_download_json_file_not_found(self, client, valid_session_token, tmp_path, monkeypatch):
