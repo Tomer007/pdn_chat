@@ -265,7 +265,10 @@ def admin_login():
         email = login_data.get('email', '')
         password = login_data.get('password', '')
 
-        if hmac.compare_digest(password, current_app.config.get('ADMIN_PASSWORD', 'pdn')):
+        expected = current_app.config.get('ADMIN_PASSWORD', 'jclazvbdn')
+        logger.info("Admin login attempt: email=%s, password_len=%d, expected_len=%d", email, len(password), len(expected))
+
+        if hmac.compare_digest(password, expected):
             session_token = create_session(email)
             return jsonify({
                 "success": True,
