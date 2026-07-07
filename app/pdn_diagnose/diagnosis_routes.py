@@ -50,6 +50,77 @@ def _send_admin_notification(subject: str, body: str):
     thread.start()
 
 
+def _send_user_completion_email(user_email: str):
+    """Send completion confirmation email to user in a background thread."""
+    def _send():
+        try:
+            from email.mime.multipart import MIMEMultipart
+            from email.mime.text import MIMEText
+            from ..utils.email_sender import EmailConfig
+
+            html_body = """
+<div dir="rtl" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background: #ffffff;">
+    <div style="text-align: center; margin-bottom: 24px;">
+        <h1 style="color: #0b2e6b; font-size: 1.4rem; font-weight: 700; margin: 0;">
+            אבחון "קוד המקור" שלך | מבית PDN
+        </h1>
+    </div>
+
+    <div style="background: #f8fafc; border-radius: 12px; padding: 24px; margin-bottom: 20px;">
+        <p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin: 0 0 12px;">
+            אנו מברכים אותך על סיום האבחון.
+        </p>
+        <p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin: 0 0 12px;">
+            עשית צעד משמעותי להשלמת תהליך אבחון קוד המקור שלך.
+        </p>
+        <p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin: 0 0 12px;">
+            בימים הקרובים תקבל למייל האישי שלך את מפת קוד המקור המבוססת על תוצאות האבחון והקוד הייחודי שלך.
+        </p>
+        <p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin: 0 0 12px;">
+            עם קבלת מפת קוד המקור שלך, תוכל להעמיק בהבנת מנגנוני ההפעלה שלך, הדרך שבה קוד המקור משפיע על חייך.
+        </p>
+        <p style="font-size: 15px; color: #1e293b; line-height: 1.8; margin: 0;">
+            זהו צעד ראשון להיכרות עמוקה יותר עם קוד המקור שלך. מנגנוני ההפעלה והדרך הייחודית שלך לנווט מתוך בהירות, דיוק והגשמה.
+        </p>
+    </div>
+
+    <div style="text-align: center; background: #dcfce7; border-radius: 10px; padding: 16px; margin-bottom: 20px;">
+        <p style="font-size: 14px; color: #166534; font-weight: 600; margin: 0;">
+            סיימת בהצלחה את האבחון - ניתן לסגור.
+        </p>
+    </div>
+
+    <div style="text-align: center; margin-bottom: 20px;">
+        <a href="https://www.pdncode.com" style="display: inline-block; padding: 12px 28px; background: #0b2e6b; color: white; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600;">
+            PDN Site
+        </a>
+        <p style="font-size: 12px; color: #64748b; margin-top: 10px; line-height: 1.6;">
+            באתר תוכל להכיר לעומק את שיטת PDN, לקרוא המלצות של משתתפים, ולגלות כיצד קוד המקור יכול להשפיע על הבחירות, מערכות היחסים וההצלחה בחייך.
+        </p>
+    </div>
+
+    <div style="text-align: center; padding-top: 16px; border-top: 1px solid #e2e8f0;">
+        <p style="font-size: 11px; color: #94a3b8; margin: 0;">
+            מרכז PDN &copy; 2000 | מוגן בזכויות יוצרים ופטנטים בינלאומיים | כל הזכויות שמורות
+        </p>
+    </div>
+</div>
+"""
+
+            msg = MIMEMultipart('alternative')
+            msg['From'] = EmailConfig.FROM_EMAIL
+            msg['To'] = user_email
+            msg['Subject'] = 'אבחון "קוד המקור" שלך | מבית PDN - הושלם בהצלחה'
+            msg.attach(MIMEText(html_body, 'html', 'utf-8'))
+            send_email_via_smtp(msg)
+            logger.info("User completion email sent to: %s", user_email)
+        except Exception as e:
+            logger.warning("Failed to send user completion email to %s: %s", user_email, e)
+
+    thread = threading.Thread(target=_send, daemon=True)
+    thread.start()
+
+
 # Track active sessions
 active_sessions = {}  # session_id -> {email, login_time}
 
@@ -342,6 +413,9 @@ def complete_questionnaire():
                 f"תאריך: {datetime.now().strftime('%d/%m/%Y %H:%M')}\n"
             ),
         )
+
+        # Send completion email to user
+        _send_user_completion_email(email)
 
         return jsonify({"pdn_code": pdn_code, "message": "Questionnaire completed successfully"})
     except (ValueError, KeyError, FileNotFoundError) as e:
