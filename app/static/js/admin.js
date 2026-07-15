@@ -18,6 +18,7 @@
     // Shared helpers
     function redirectToLogin() {
         localStorage.removeItem('adminSessionToken');
+        localStorage.removeItem('adminEmail');
         window.location.href = '/pdn-admin/';
     }
 
@@ -515,8 +516,9 @@
             }
         }
         sessionToken = null;
-        // Clear session token from localStorage
+        // Clear session data from localStorage
         localStorage.removeItem('adminSessionToken');
+        localStorage.removeItem('adminEmail');
         // Redirect to login page
         window.location.replace('/pdn-admin/');
     }

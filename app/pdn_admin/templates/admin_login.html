@@ -149,8 +149,9 @@
             if (response.ok) {
                 const data = await response.json();
                 sessionToken = data.session_token;
-                // Store session token in localStorage
+                // Store session token and email in localStorage
                 localStorage.setItem('adminSessionToken', sessionToken);
+                localStorage.setItem('adminEmail', document.getElementById('email').value.toLowerCase());
                 // Redirect to dashboard
                 await new Promise(resolve => setTimeout(resolve, 100));
                 window.location.href = '/pdn-admin/dashboard';

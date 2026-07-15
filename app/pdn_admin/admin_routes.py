@@ -1,15 +1,18 @@
 import csv
 import hmac
+import json
 import logging
 import os
 import re
 import secrets
+import threading
 import time
 from datetime import datetime, timedelta
 from functools import wraps
 
 from flask import Blueprint, request, render_template, jsonify, current_app, send_file, abort, make_response
 from pathlib import Path
+from werkzeug.exceptions import HTTPException
 
 from ..utils.answer_storage import load_answers
 from ..utils.csv_metadata_handler import UserMetadataHandler
@@ -1472,4 +1475,194 @@ def send_coupon_invite(code):
         })
     except Exception as e:
         logger.error("Error sending coupon invite: %s", e)
+        return jsonify({"error": "Internal server error"}), 500
+
+
+# --- PDN Code Analysis Report ---
+
+_PDN_12_CODES_LIST = ["E1", "E5", "E9", "A3", "A7", "A11", "T4", "T8", "T12", "P2", "P6", "P10"]
+_PDN_12_CODES_SET = frozenset(_PDN_12_CODES_LIST)
+_APP_DATA_DIR = Path(__file__).resolve().parent.parent / 'data'
+
+# Cache for questions and test emails (read once per process, thread-safe via GIL for reads).
+# NOTE: Cache invalidates only on process restart. If questions.json or test_users.json change,
+# restart the Gunicorn workers to pick up new data.
+_cache_lock = threading.Lock()
+_questions_cache = None
+_test_emails_cache = None
+
+
+def _load_test_emails():
+    """Load test user emails from config file. Thread-safe cached after first load."""
+    global _test_emails_cache
+    if _test_emails_cache is not None:
+        return _test_emails_cache
+
+    with _cache_lock:
+        # Double-check after acquiring lock
+        if _test_emails_cache is not None:
+            return _test_emails_cache
+
+        test_users_file = _APP_DATA_DIR / 'test_users.json'
+        if not test_users_file.exists():
+            _test_emails_cache = frozenset()
+            return _test_emails_cache
+        try:
+            with open(test_users_file, 'r', encoding='utf-8') as f:
+                test_data = json.load(f)
+            _test_emails_cache = frozenset(e.lower() for e in test_data.get('test_emails', []))
+        except (json.JSONDecodeError, IOError) as e:
+            logger.warning("Failed to load test_users.json: %s", e)
+            _test_emails_cache = frozenset()
+    return _test_emails_cache
+
+
+def _load_questions_cached():
+    """Load and cache questions (excluding PersonalDetails and PartF). Thread-safe."""
+    global _questions_cache
+    if _questions_cache is not None:
+        return _questions_cache
+
+    with _cache_lock:
+        # Double-check after acquiring lock
+        if _questions_cache is not None:
+            return _questions_cache
+
+        questions_file = _APP_DATA_DIR / 'questions.json'
+        questions = {}
+        try:
+            with open(questions_file, 'r', encoding='utf-8') as f:
+                q_data = json.load(f)
+            for phase_name, phase_data in q_data.get('phases', {}).items():
+                if phase_name in ('PersonalDetails', 'PartF'):
+                    continue
+                for q_num, q_info in phase_data.get('questions', {}).items():
+                    codes = set()
+                    for opt in q_info.get('options', []):
+                        if opt.get('code'):
+                            codes.add(opt['code'])
+                    questions[q_num] = {
+                        'text': q_info.get('text', ''),
+                        'codes': '/'.join(sorted(codes)) if codes else '-',
+                        'phase': phase_name,
+                        'options': q_info.get('options', []),
+                    }
+        except (json.JSONDecodeError, IOError) as e:
+            logger.error("Failed to load questions.json: %s", e)
+        _questions_cache = questions
+    return _questions_cache
+
+
+@pdn_admin_bp.route('/pdn-analysis')
+def pdn_analysis_page():
+    """PDN Code Analysis report page. Restricted to authorized admin only."""
+    return render_template("pdn_analysis.html")
+
+
+_PDN_ANALYSIS_ALLOWED_EMAILS = frozenset(['tomergur@gmail.com'])
+
+
+@pdn_admin_bp.route('/api/pdn-analysis/data', methods=['GET', 'POST'])
+def pdn_analysis_data():
+    """
+    Get all data needed for PDN analysis report.
+
+    Returns JSON with: users (filtered), answers (per user), questions, pdn_codes.
+    Accepts optional 'emails' filter (POST body or query param) to limit data loading.
+    Restricted to authorized admins only.
+
+    NOTE: All user-facing text in answers comes from controlled JSON files (questions.json)
+    authored by admins. The trust boundary is the admin panel itself.
+    """
+    # Support token from Authorization header, POST body, or query param (fallback)
+    token = None
+    auth_header = request.headers.get('Authorization', '')
+    if auth_header.startswith('Bearer '):
+        token = auth_header[7:]
+    elif request.is_json and request.json:
+        token = request.json.get('session_token')
+    if not token:
+        token = request.args.get('session_token')
+
+    try:
+        session = verify_session(token)
+    except HTTPException:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    # Check if this admin is allowed to access PDN analysis
+    session_email = (session.get('email') or '').lower()
+    if session_email not in _PDN_ANALYSIS_ALLOWED_EMAILS:
+        return jsonify({"error": "Access denied"}), 403
+
+    try:
+        # Get email filter (from POST body or query param)
+        emails_filter = None
+        if request.is_json and request.json:
+            emails_raw = request.json.get('emails')
+        else:
+            emails_raw = request.args.get('emails')
+        if emails_raw:
+            emails_filter = frozenset(e.strip().lower() for e in emails_raw.split(',') if e.strip())
+
+        csv_metadata_handler = UserMetadataHandler()
+        users_metadata = load_user_metadata()
+        test_emails = _load_test_emails()
+
+        # Filter: only valid PDN codes, exclude test users, apply email filter
+        valid_users = []
+        for u in users_metadata:
+            email = u.get('email', '').strip()
+            pdn_code = u.get('pdn_code', '').strip()
+            if pdn_code not in _PDN_12_CODES_SET:
+                continue
+            if email.lower() in test_emails:
+                continue
+            if emails_filter and email.lower() not in emails_filter:
+                continue
+            valid_users.append({
+                'uid': u.get('user_id', ''),
+                'email': email,
+                'pdn_code': pdn_code,
+                'first_name': u.get('first_name', ''),
+                'last_name': u.get('last_name', ''),
+            })
+
+        # Fetch answers - only selected_option_code and ranking (no question_options)
+        user_answers = {}
+        for user in valid_users:
+            email = user['email']
+            try:
+                answers = csv_metadata_handler.get_user_files(email, "answers")
+                if answers and isinstance(answers, dict):
+                    filtered = {}
+                    for k, v in answers.items():
+                        if k == 'metadata':
+                            continue
+                        if not isinstance(v, dict):
+                            continue
+                        if 'selected_option_code' in v or 'ranking' in v:
+                            entry = {}
+                            if 'selected_option_code' in v:
+                                entry['selected_option_code'] = v['selected_option_code']
+                            if 'ranking' in v:
+                                entry['ranking'] = v['ranking']
+                            filtered[k] = entry
+                    if filtered:
+                        user_answers[email] = filtered
+            except Exception as e:
+                logger.debug("Could not load answers for %s: %s", email, e)
+
+        questions = _load_questions_cached()
+
+        response = jsonify({
+            'users': valid_users,
+            'answers': user_answers,
+            'questions': questions,
+            'pdn_codes': _PDN_12_CODES_LIST,
+        })
+        response.headers['Cache-Control'] = 'private, max-age=60'
+        return response
+
+    except Exception as e:
+        logger.error("Error in PDN analysis: %s", e, exc_info=True)
         return jsonify({"error": "Internal server error"}), 500

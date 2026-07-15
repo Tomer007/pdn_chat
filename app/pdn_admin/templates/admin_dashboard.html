@@ -820,6 +820,9 @@
                     <button onclick="bulkExportSelected()" style="padding:6px 14px;border-radius:8px;border:none;background:rgba(255,255,255,0.15);color:white;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
                         <i class="fas fa-file-csv"></i> ייצוא CSV
                     </button>
+                    <button id="pdnAnalysisBtn" onclick="openPdnAnalysis()" style="display:none;padding:6px 14px;border-radius:8px;border:none;background:rgba(255,255,255,0.15);color:white;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+                        <i class="fas fa-chart-bar"></i> דוח תשובות ומטריצות
+                    </button>
                 </div>
                 <button onclick="clearSelection()" style="padding:6px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.3);background:transparent;color:white;font-size:12px;font-weight:600;cursor:pointer;">
                     <i class="fas fa-times"></i> נקה
@@ -1980,5 +1983,93 @@
     }
 </script>
 <script src="{{ url_for('static', filename='js/admin.js') }}?v=265"></script>
+
+<!-- PDN Analysis Modal -->
+<div id="pdnAnalysisModal" role="dialog" aria-modal="true" aria-label="דוח תשובות ומטריצות" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.6);padding:20px;">
+    <div style="position:relative;width:100%;height:100%;background:white;border-radius:12px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+        <iframe id="pdnAnalysisFrame" title="דוח תשובות ומטריצות" style="width:100%;height:100%;border:none;"></iframe>
+    </div>
+</div>
+<script>
+var _previouslyFocusedElement = null;
+
+function openPdnAnalysis() {
+    var modal = document.getElementById('pdnAnalysisModal');
+    var frame = document.getElementById('pdnAnalysisFrame');
+    var token = localStorage.getItem('adminSessionToken') || '';
+    
+    // Get emails from SELECTED (checked) users only
+    var selectedEmails = [];
+    var checked = document.querySelectorAll('#tableBody .row-select-cb:checked');
+    checked.forEach(function(cb) {
+        var email = cb.getAttribute('data-email');
+        if (email) selectedEmails.push(email);
+    });
+    
+    if (selectedEmails.length === 0) {
+        alert('יש לבחור משתמשים תחילה');
+        return;
+    }
+    
+    // Pass emails via postMessage to avoid URL length limits
+    var url = '/pdn-admin/pdn-analysis';
+    frame.src = url;
+    frame.onload = function() {
+        frame.contentWindow.postMessage({ type: 'pdnEmails', emails: selectedEmails.join(',') }, window.location.origin);
+    };
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+
+    // Focus trap: save previous focus and move focus into modal
+    _previouslyFocusedElement = document.activeElement;
+    frame.focus();
+}
+
+function closePdnAnalysis() {
+    var modal = document.getElementById('pdnAnalysisModal');
+    var frame = document.getElementById('pdnAnalysisFrame');
+    modal.style.display = 'none';
+    frame.src = '';
+    document.body.style.overflow = '';
+
+    // Restore focus to the element that opened the modal
+    if (_previouslyFocusedElement) {
+        _previouslyFocusedElement.focus();
+        _previouslyFocusedElement = null;
+    }
+}
+
+document.getElementById('pdnAnalysisModal').addEventListener('click', function(e) {
+    if (e.target === this) closePdnAnalysis();
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        var modal = document.getElementById('pdnAnalysisModal');
+        if (modal && modal.style.display === 'block') {
+            closePdnAnalysis();
+        }
+    }
+    // Focus trap: keep Tab within the modal when open
+    if (e.key === 'Tab') {
+        var modal = document.getElementById('pdnAnalysisModal');
+        if (modal && modal.style.display === 'block') {
+            var frame = document.getElementById('pdnAnalysisFrame');
+            e.preventDefault();
+            frame.focus();
+        }
+    }
+});
+
+// Show PDN analysis button only for authorized admin
+(function() {
+    var allowedEmail = 'tomergur@gmail.com';
+    var adminEmail = (localStorage.getItem('adminEmail') || '').toLowerCase();
+    if (adminEmail === allowedEmail) {
+        var btn = document.getElementById('pdnAnalysisBtn');
+        if (btn) btn.style.display = '';
+    }
+})();
+</script>
 </body>
 </html>
