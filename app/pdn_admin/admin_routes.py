@@ -1608,11 +1608,12 @@ def pdn_analysis_data():
         users_metadata = load_user_metadata()
         test_emails = _load_test_emails()
 
-        # Filter: only valid PDN codes, exclude test users, apply email filter
+        # Filter: only valid diagnosed PDN codes (human-validated), exclude test users
         valid_users = []
         for u in users_metadata:
             email = u.get('email', '').strip()
-            pdn_code = u.get('pdn_code', '').strip()
+            # Use diagnose_pdn_code (human-validated) instead of pdn_code (system calc)
+            pdn_code = u.get('diagnose_pdn_code', '').strip()
             if pdn_code not in _PDN_12_CODES_SET:
                 continue
             if email.lower() in test_emails:
