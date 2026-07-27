@@ -1820,6 +1820,18 @@ def pdn_analysis_excel():
         # questions_data: {q_num: {text, codes, phase, options}}
         sorted_q_nums = sorted(questions_data.keys(), key=_sort_key)
 
+        # Build answer-code -> text lookup per question
+        # e.g. q_code_text['27']['AP'] = 'פחות מאורגן'
+        q_code_text = {}
+        for q_num, q in questions_data.items():
+            mapping = {}
+            for opt in q.get('options', []):
+                code = opt.get('code', '')
+                text = (opt.get('text') or '').strip()
+                if code and text:
+                    mapping[code] = text
+            q_code_text[q_num] = mapping
+
         # Group users by PDN code
         users_by_code = {}
         for code in PDN_12:
@@ -1881,9 +1893,16 @@ def pdn_analysis_excel():
             for col_idx, q_num in enumerate(sorted_q_nums, start=2):
                 ans = answers.get(str(q_num))
                 val = _get_dominant_answer(ans) if ans else None
-                c = ws1.cell(row_idx, col_idx, val or "")
-                c.alignment = CENTER
+                # Show "CODE (text)" e.g. "AP (פחות מאורגן)"
+                text = q_code_text.get(q_num, {}).get(val, '') if val else ''
+                display = f"{val} ({text[:20]})" if text else (val or "")
+                c = ws1.cell(row_idx, col_idx, display)
+                c.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
                 c.border = _border()
+                ws1.column_dimensions[get_column_letter(col_idx)].width = max(
+                    ws1.column_dimensions[get_column_letter(col_idx)].width or 7,
+                    min(len(display) + 2, 22)
+                )
                 if val and val in ANSWER_FILLS:
                     c.fill = ANSWER_FILLS[val]
 
@@ -1903,7 +1922,7 @@ def pdn_analysis_excel():
             c.font = _font(bold=True, color="000000", size=10)
             c.alignment = CENTER
             c.border = _border()
-            ws2.column_dimensions[get_column_letter(col_idx)].width = 16
+            ws2.column_dimensions[get_column_letter(col_idx)].width = 24
 
         ws2.row_dimensions[1].height = 36
         ws2.freeze_panes = "B2"
@@ -1930,7 +1949,7 @@ def pdn_analysis_excel():
             lc = ws2.cell(row_idx, 1, f"Q{q_num} [{codes_str}]\n{short_text}")
             lc.alignment = RIGHT
             lc.border = _border()
-            ws2.row_dimensions[row_idx].height = 36
+            ws2.row_dimensions[row_idx].height = 50
 
             for col_idx, code in enumerate(PDN_12, start=2):
                 s = stats[q_num].get(code, {"counts": {}, "total": 0})
@@ -1942,7 +1961,14 @@ def pdn_analysis_excel():
                     col_idx += 1
                     continue
                 sorted_ans = sorted(s["counts"].items(), key=lambda x: -x[1])
-                lines = [f"{a}: {round(n/total*100)}%" for a, n in sorted_ans[:3]]
+                lines = []
+                for a, n in sorted_ans[:3]:
+                    pct = round(n / total * 100)
+                    text = q_code_text.get(q_num, {}).get(a, '')
+                    if text:
+                        lines.append(f"{a}: {pct}% ({text[:20]})")
+                    else:
+                        lines.append(f"{a}: {pct}%")
                 c = ws2.cell(row_idx, col_idx, "\n".join(lines))
                 c.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
                 c.border = _border()
