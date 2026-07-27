@@ -1667,3 +1667,325 @@ def pdn_analysis_data():
     except Exception as e:
         logger.error("Error in PDN analysis: %s", e, exc_info=True)
         return jsonify({"error": "Internal server error"}), 500
+
+
+@pdn_admin_bp.route('/api/pdn-analysis/excel', methods=['GET', 'POST'])
+def pdn_analysis_excel():
+    """
+    Generate and stream an Excel (.xlsx) file for the PDN analysis report.
+    Same auth/filter logic as pdn_analysis_data.
+    Restricted to authorized admins only.
+    """
+    import io
+    try:
+        import openpyxl
+        from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+        from openpyxl.utils import get_column_letter
+    except ImportError:
+        return jsonify({"error": "openpyxl is not installed on this server"}), 500
+
+    # --- Auth ---
+    token = None
+    auth_header = request.headers.get('Authorization', '')
+    if auth_header.startswith('Bearer '):
+        token = auth_header[7:]
+    elif request.is_json and request.json:
+        token = request.json.get('session_token')
+    if not token:
+        token = request.args.get('session_token')
+
+    try:
+        session = verify_session(token)
+    except Exception:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    session_email = (session.get('email') or '').lower()
+    if session_email not in _PDN_ANALYSIS_ALLOWED_EMAILS:
+        return jsonify({"error": "Access denied"}), 403
+
+    try:
+        # --- Load same data as pdn_analysis_data ---
+        emails_filter = None
+        if request.is_json and request.json:
+            emails_raw = request.json.get('emails')
+        else:
+            emails_raw = request.args.get('emails')
+        if emails_raw:
+            emails_filter = frozenset(e.strip().lower() for e in emails_raw.split(',') if e.strip())
+
+        csv_metadata_handler = UserMetadataHandler()
+        users_metadata = load_user_metadata()
+        test_emails = _load_test_emails()
+
+        valid_users = []
+        for u in users_metadata:
+            email = u.get('email', '').strip()
+            pdn_code = u.get('diagnose_pdn_code', '').strip()
+            if pdn_code not in _PDN_12_CODES_SET:
+                continue
+            if email.lower() in test_emails:
+                continue
+            if emails_filter and email.lower() not in emails_filter:
+                continue
+            valid_users.append({
+                'uid': u.get('user_id', ''),
+                'email': email,
+                'pdn_code': pdn_code,
+                'first_name': u.get('first_name', ''),
+                'last_name': u.get('last_name', ''),
+            })
+
+        user_answers = {}
+        for user in valid_users:
+            email = user['email']
+            try:
+                answers = csv_metadata_handler.get_user_files(email, "answers")
+                if answers and isinstance(answers, dict):
+                    filtered = {}
+                    for k, v in answers.items():
+                        if k == 'metadata':
+                            continue
+                        if not isinstance(v, dict):
+                            continue
+                        if 'selected_option_code' in v or 'ranking' in v:
+                            entry = {}
+                            if 'selected_option_code' in v:
+                                entry['selected_option_code'] = v['selected_option_code']
+                            if 'ranking' in v:
+                                entry['ranking'] = v['ranking']
+                            filtered[k] = entry
+                    if filtered:
+                        user_answers[email] = filtered
+            except Exception:
+                pass
+
+        questions_data = _load_questions_cached()
+
+        # --- Build workbook ---
+        PDN_12 = ["E1", "E5", "E9", "A3", "A7", "A11", "T4", "T8", "T12", "P2", "P6", "P10"]
+
+        def _fill(hex_color):
+            return PatternFill("solid", fgColor=hex_color)
+
+        def _font(bold=False, color="000000", size=10):
+            return Font(bold=bold, color=color, size=size)
+
+        def _border():
+            thin = Side(style="thin", color="CCCCCC")
+            return Border(left=thin, right=thin, top=thin, bottom=thin)
+
+        CODE_FILLS = {"E": _fill("D6EAF8"), "A": _fill("D4EFDF"), "T": _fill("FDEBD0"), "P": _fill("FADBD8")}
+        ANSWER_FILLS = {
+            "AP": _fill("D4EFDF"), "ET": _fill("D6EAF8"), "AE": _fill("FADBD8"), "TP": _fill("FDEBD0"),
+            "A": _fill("D4EFDF"), "E": _fill("D6EAF8"), "P": _fill("FADBD8"), "T": _fill("FDEBD0"),
+        }
+        HEADER_FILL = _fill("2C3E50")
+        HEADER_FONT = _font(bold=True, color="FFFFFF", size=10)
+        PHASE_FILL  = _fill("7F8C8D")
+        PHASE_FONT  = _font(bold=True, color="FFFFFF", size=10)
+        CENTER = Alignment(horizontal="center", vertical="center", wrap_text=True)
+        RIGHT  = Alignment(horizontal="right",  vertical="center", wrap_text=True)
+
+        def _get_dominant_answer(answer_entry):
+            """Return the dominant answer code from an answer entry."""
+            if not isinstance(answer_entry, dict):
+                return None
+            if 'selected_option_code' in answer_entry:
+                return answer_entry['selected_option_code']
+            if 'ranking' in answer_entry:
+                ranking = answer_entry['ranking']
+                if isinstance(ranking, dict) and ranking:
+                    return max(ranking, key=ranking.get)
+            return None
+
+        # Sort questions numerically
+        def _sort_key(q):
+            try:
+                return int(q)
+            except ValueError:
+                return 999
+
+        sorted_phases = ["PartA", "PartB", "PartC", "PartD", "PartE"]
+        phase_labels = {
+            "PartA": "חלק א - בחירה בינארית",
+            "PartB": "חלק ב - דירוג",
+            "PartC": "חלק ג - סולם",
+            "PartD": "חלק ד - ילדות/בגרות",
+            "PartE": "חלק ה - דירוג 4",
+        }
+
+        # Build sorted question list from questions_data dict
+        # questions_data: {q_num: {text, codes, phase, options}}
+        sorted_q_nums = sorted(questions_data.keys(), key=_sort_key)
+
+        # Group users by PDN code
+        users_by_code = {}
+        for code in PDN_12:
+            users_by_code[code] = [u for u in valid_users if u['pdn_code'] == code]
+
+        # Compute stats: for each question, for each code, count dominant answers
+        from collections import defaultdict
+        stats = {}
+        for q_num in sorted_q_nums:
+            stats[q_num] = {}
+            for code in PDN_12:
+                counts = defaultdict(int)
+                total = 0
+                for user in users_by_code[code]:
+                    ans = user_answers.get(user['email'], {}).get(str(q_num))
+                    if ans:
+                        dom = _get_dominant_answer(ans)
+                        if dom:
+                            counts[dom] += 1
+                            total += 1
+                stats[q_num][code] = {"counts": dict(counts), "total": total}
+
+        wb = openpyxl.Workbook()
+
+        # ---- Sheet 1: User Answers ----
+        ws1 = wb.active
+        ws1.title = "תשובות משתמשים"
+        ws1.sheet_view.rightToLeft = True
+
+        ws1.cell(1, 1, "משתמש (PDN | UID | שם)").fill = HEADER_FILL
+        ws1.cell(1, 1).font = HEADER_FONT
+        ws1.cell(1, 1).alignment = RIGHT
+        ws1.column_dimensions["A"].width = 28
+
+        for col_idx, q_num in enumerate(sorted_q_nums, start=2):
+            c = ws1.cell(1, col_idx, f"Q{q_num}")
+            c.font = HEADER_FONT
+            c.fill = HEADER_FILL
+            c.alignment = CENTER
+            c.border = _border()
+            ws1.column_dimensions[get_column_letter(col_idx)].width = 7
+
+        ws1.row_dimensions[1].height = 30
+        ws1.freeze_panes = "B2"
+
+        for row_idx, user in enumerate(valid_users, start=2):
+            email  = user['email']
+            answers = user_answers.get(email, {})
+            pdn    = user['pdn_code'] or "NA"
+            name   = f"{user.get('first_name','')} {user.get('last_name','')}".strip()
+            label  = f"{pdn} | {user['uid']}" + (f" | {name}" if name else "")
+
+            uc = ws1.cell(row_idx, 1, label)
+            uc.alignment = RIGHT
+            uc.border = _border()
+            if pdn and pdn[0] in CODE_FILLS:
+                uc.fill = CODE_FILLS[pdn[0]]
+
+            for col_idx, q_num in enumerate(sorted_q_nums, start=2):
+                ans = answers.get(str(q_num))
+                val = _get_dominant_answer(ans) if ans else None
+                c = ws1.cell(row_idx, col_idx, val or "")
+                c.alignment = CENTER
+                c.border = _border()
+                if val and val in ANSWER_FILLS:
+                    c.fill = ANSWER_FILLS[val]
+
+        # ---- Sheet 2: Stats per PDN code ----
+        ws2 = wb.create_sheet("סטטיסטיקה לפי קוד")
+        ws2.sheet_view.rightToLeft = True
+
+        ws2.cell(1, 1, "שאלה").fill = HEADER_FILL
+        ws2.cell(1, 1).font = HEADER_FONT
+        ws2.cell(1, 1).alignment = RIGHT
+        ws2.column_dimensions["A"].width = 40
+
+        for col_idx, code in enumerate(PDN_12, start=2):
+            count = len(users_by_code.get(code, []))
+            c = ws2.cell(1, col_idx, f"{code}\n({count})")
+            c.fill = CODE_FILLS.get(code[0], HEADER_FILL)
+            c.font = _font(bold=True, color="000000", size=10)
+            c.alignment = CENTER
+            c.border = _border()
+            ws2.column_dimensions[get_column_letter(col_idx)].width = 16
+
+        ws2.row_dimensions[1].height = 36
+        ws2.freeze_panes = "B2"
+
+        row_idx = 2
+        current_phase = None
+        for q_num in sorted_q_nums:
+            q = questions_data.get(q_num, {})
+            phase = q.get('phase', '')
+            if phase != current_phase:
+                current_phase = phase
+                label = phase_labels.get(phase, phase)
+                for col in range(1, len(PDN_12) + 2):
+                    c = ws2.cell(row_idx, col, label if col == 1 else "")
+                    c.fill = PHASE_FILL
+                    c.font = PHASE_FONT
+                    c.alignment = CENTER
+                    c.border = _border()
+                ws2.row_dimensions[row_idx].height = 18
+                row_idx += 1
+
+            codes_str = q.get('codes', '')
+            short_text = (q.get('text', '') or '')[:55]
+            lc = ws2.cell(row_idx, 1, f"Q{q_num} [{codes_str}]\n{short_text}")
+            lc.alignment = RIGHT
+            lc.border = _border()
+            ws2.row_dimensions[row_idx].height = 36
+
+            for col_idx, code in enumerate(PDN_12, start=2):
+                s = stats[q_num].get(code, {"counts": {}, "total": 0})
+                total = s["total"]
+                if total == 0:
+                    c = ws2.cell(row_idx, col_idx, "-")
+                    c.alignment = CENTER
+                    c.border = _border()
+                    col_idx += 1
+                    continue
+                sorted_ans = sorted(s["counts"].items(), key=lambda x: -x[1])
+                lines = [f"{a}: {round(n/total*100)}%" for a, n in sorted_ans[:3]]
+                c = ws2.cell(row_idx, col_idx, "\n".join(lines))
+                c.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+                c.border = _border()
+                if sorted_ans and sorted_ans[0][0] in ANSWER_FILLS:
+                    c.fill = ANSWER_FILLS[sorted_ans[0][0]]
+
+            row_idx += 1
+
+        # ---- Sheet 3: Summary ----
+        ws3 = wb.create_sheet("סיכום קודים")
+        ws3.sheet_view.rightToLeft = True
+        ws3.cell(1, 1, "קוד PDN").fill = HEADER_FILL
+        ws3.cell(1, 1).font = HEADER_FONT
+        ws3.cell(1, 1).alignment = CENTER
+        ws3.cell(1, 2, "מספר מאובחנים").fill = HEADER_FILL
+        ws3.cell(1, 2).font = HEADER_FONT
+        ws3.cell(1, 2).alignment = CENTER
+        ws3.column_dimensions["A"].width = 14
+        ws3.column_dimensions["B"].width = 20
+
+        for r, code in enumerate(PDN_12, start=2):
+            count = len(users_by_code.get(code, []))
+            c1, c2 = ws3.cell(r, 1, code), ws3.cell(r, 2, count)
+            c1.alignment = CENTER
+            c2.alignment = CENTER
+            c1.border = _border()
+            c2.border = _border()
+            if code[0] in CODE_FILLS:
+                c1.fill = CODE_FILLS[code[0]]
+                c2.fill = CODE_FILLS[code[0]]
+
+        ws3.cell(len(PDN_12) + 2, 1, 'סה"כ').font = _font(bold=True)
+        ws3.cell(len(PDN_12) + 2, 2, len(valid_users)).font = _font(bold=True)
+
+        # --- Stream response ---
+        buf = io.BytesIO()
+        wb.save(buf)
+        buf.seek(0)
+
+        filename = f"pdn_matrix_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx"
+        response = make_response(buf.read())
+        response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+
+    except Exception as e:
+        logger.error("Error generating PDN Excel: %s", e, exc_info=True)
+        return jsonify({"error": "Internal server error"}), 500

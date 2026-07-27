@@ -109,6 +109,7 @@ tr.hidden { display: none; }
     <a href="#matrix1" id="navMatrix1">מטריצת משתמשים</a>
     <a href="#matrix2" id="navMatrix2">מטריצת קודים</a>
     <a id="downloadBtn" class="disabled" style="background:#27ae60;">הורד כ-HTML</a>
+    <a id="excelBtn" class="disabled" style="background:#1d6f42;">הורד כ-Excel</a>
     <a id="closeBtn">סגור דוח</a>
 </nav>
 
@@ -160,8 +161,9 @@ function formatAnswer(ans) {
     if (!ans) return '';
     if (ans.selected_option_code) return ans.selected_option_code;
     if (ans.ranking && typeof ans.ranking === 'object') {
+        // Higher score = stronger identification - sort descending
         return Object.entries(ans.ranking)
-            .sort((a, b) => a[1] - b[1])
+            .sort((a, b) => b[1] - a[1])
             .map(([k, v]) => k + ':' + v)
             .join(' ');
     }
@@ -174,7 +176,8 @@ function getAnswerCode(ans) {
     if (ans.ranking && typeof ans.ranking === 'object') {
         const entries = Object.entries(ans.ranking);
         if (!entries.length) return null;
-        entries.sort((a, b) => a[1] - b[1]);
+        // Higher score = stronger identification - pick highest
+        entries.sort((a, b) => b[1] - a[1]);
         return entries[0][0];
     }
     return null;
@@ -193,7 +196,8 @@ function getAnswerText(ans, qNum) {
         return opt ? opt.text.trim() : '';
     }
     if (ans.ranking) {
-        const entries = Object.entries(ans.ranking).sort((a, b) => a[1] - b[1]);
+        // Higher score = stronger identification - pick highest
+        const entries = Object.entries(ans.ranking).sort((a, b) => b[1] - a[1]);
         if (entries.length) {
             const opt = opts.find(o => o.code === entries[0][0]);
             return opt ? opt.text.trim() : '';
@@ -390,6 +394,7 @@ function buildReport() {
     // Enable download button now that data is ready
     reportReady = true;
     document.getElementById('downloadBtn').classList.remove('disabled');
+    document.getElementById('excelBtn').classList.remove('disabled');
 }
 
 let _filterDebounce = null;
@@ -525,6 +530,14 @@ function closeReport() {
 document.getElementById('downloadBtn').addEventListener('click', function(e) {
     e.preventDefault();
     downloadReport();
+});
+document.getElementById('excelBtn').addEventListener('click', function(e) {
+    e.preventDefault();
+    if (!reportReady) return;
+    const token = localStorage.getItem('adminSessionToken') || '';
+    const emails = DATA && DATA.users ? DATA.users.map(u => u.email).join(',') : '';
+    const url = `/pdn-admin/api/pdn-analysis/excel?session_token=${encodeURIComponent(token)}&emails=${encodeURIComponent(emails)}`;
+    window.location.href = url;
 });
 document.getElementById('closeBtn').addEventListener('click', function(e) {
     e.preventDefault();
