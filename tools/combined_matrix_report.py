@@ -730,7 +730,7 @@ tr.hidden {{ display: none; }}
             cell_class = ""
             if formatted in ("AP", "A"):
                 cell_class = "answer-ap"
-            elif formatted in ("ET", "E"):
+            elif formatted in ("ET", "TE", "E"):
                 cell_class = "answer-et"
             elif formatted in ("TP", "T"):
                 cell_class = "answer-tp"
@@ -825,7 +825,7 @@ tr.hidden {{ display: none; }}
                 cell_parts.append(f'<span class="{cls}">{display}</span>')
 
             color_map = {
-                "AP": "bar-ap", "ET": "bar-et", "TP": "bar-tp", "AE": "bar-ae",
+                "AP": "bar-ap", "ET": "bar-et", "TE": "bar-et", "TP": "bar-tp", "AE": "bar-ae",
                 "D": "bar-d", "S": "bar-s", "F": "bar-f",
                 "A": "bar-ap", "T": "bar-tp", "E": "bar-et", "P": "bar-ae",
             }
@@ -994,6 +994,7 @@ def generate_excel(users, questions, all_answers, stats, users_by_code, answer_t
     ANSWER_FILLS = {
         "AP": _fill("D4EFDF"),
         "ET": _fill("D6EAF8"),
+        "TE": _fill("D6EAF8"),  # same as ET
         "AE": _fill("FADBD8"),
         "TP": _fill("FDEBD0"),
         "A":  _fill("D4EFDF"),

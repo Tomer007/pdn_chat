@@ -1779,6 +1779,7 @@ def pdn_analysis_excel():
         CODE_FILLS = {"E": _fill("D6EAF8"), "A": _fill("D4EFDF"), "T": _fill("FDEBD0"), "P": _fill("FADBD8")}
         ANSWER_FILLS = {
             "AP": _fill("D4EFDF"), "ET": _fill("D6EAF8"), "AE": _fill("FADBD8"), "TP": _fill("FDEBD0"),
+            "TE": _fill("D6EAF8"),  # same as ET
             "A": _fill("D4EFDF"), "E": _fill("D6EAF8"), "P": _fill("FADBD8"), "T": _fill("FDEBD0"),
         }
         HEADER_FILL = _fill("2C3E50")
