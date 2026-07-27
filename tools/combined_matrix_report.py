@@ -17,6 +17,16 @@ from datetime import datetime
 from collections import defaultdict
 import math
 
+try:
+    import openpyxl
+    from openpyxl.styles import (
+        Font, PatternFill, Alignment, Border, Side
+    )
+    from openpyxl.utils import get_column_letter
+    OPENPYXL_AVAILABLE = True
+except ImportError:
+    OPENPYXL_AVAILABLE = False
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -123,7 +133,8 @@ def format_answer_code(answer_data):
         if "ranking" in answer_data:
             ranking = answer_data["ranking"]
             if isinstance(ranking, dict):
-                sorted_items = sorted(ranking.items(), key=lambda x: x[1])
+                # Higher score = stronger identification - sort descending, pick highest
+                sorted_items = sorted(ranking.items(), key=lambda x: -x[1])
                 if sorted_items:
                     return sorted_items[0][0]
     return None
@@ -142,7 +153,8 @@ def get_answer_text(answer_data):
         if "ranking" in answer_data:
             ranking = answer_data["ranking"]
             if isinstance(ranking, dict):
-                sorted_items = sorted(ranking.items(), key=lambda x: x[1])
+                # Higher score = stronger identification - sort descending, pick highest
+                sorted_items = sorted(ranking.items(), key=lambda x: -x[1])
                 if sorted_items:
                     top_code = sorted_items[0][0]
                     for opt in answer_data.get("question_options", []):
@@ -162,7 +174,8 @@ def format_answer_display(answer_data):
         if "ranking" in answer_data:
             ranking = answer_data["ranking"]
             if isinstance(ranking, dict):
-                sorted_items = sorted(ranking.items(), key=lambda x: x[1])
+                # Higher score = stronger identification - sort descending
+                sorted_items = sorted(ranking.items(), key=lambda x: -x[1])
                 return " ".join(f"{k}:{v}" for k, v in sorted_items)
     return ""
 
@@ -951,11 +964,252 @@ function filterPdnCodes() {
     return html
 
 
+# --- Excel Generation ---
+
+def generate_excel(users, questions, all_answers, stats, users_by_code, answer_texts, user_names):
+    """Generate an Excel workbook with 3 sheets matching the HTML report."""
+    if not OPENPYXL_AVAILABLE:
+        print("ERROR: openpyxl is not installed. Run: pip install openpyxl")
+        return None
+
+    wb = openpyxl.Workbook()
+
+    # --- Color helpers ---
+    def _fill(hex_color):
+        return PatternFill("solid", fgColor=hex_color)
+
+    def _font(bold=False, color="000000", size=10):
+        return Font(bold=bold, color=color, size=size)
+
+    def _border():
+        thin = Side(style="thin", color="CCCCCC")
+        return Border(left=thin, right=thin, top=thin, bottom=thin)
+
+    CODE_FILLS = {
+        "E": _fill("D6EAF8"),
+        "A": _fill("D4EFDF"),
+        "T": _fill("FDEBD0"),
+        "P": _fill("FADBD8"),
+    }
+    ANSWER_FILLS = {
+        "AP": _fill("D4EFDF"),
+        "ET": _fill("D6EAF8"),
+        "AE": _fill("FADBD8"),
+        "TP": _fill("FDEBD0"),
+        "A":  _fill("D4EFDF"),
+        "E":  _fill("D6EAF8"),
+        "P":  _fill("FADBD8"),
+        "T":  _fill("FDEBD0"),
+    }
+    HEADER_FILL = _fill("2C3E50")
+    HEADER_FONT = _font(bold=True, color="FFFFFF", size=10)
+    PHASE_FILL  = _fill("7F8C8D")
+    PHASE_FONT  = _font(bold=True, color="FFFFFF", size=10)
+    CENTER = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    RIGHT  = Alignment(horizontal="right",  vertical="center", wrap_text=True)
+
+    def sort_key(q_num):
+        try:
+            return int(q_num)
+        except ValueError:
+            return 999
+
+    sorted_q_nums = sorted(questions.keys(), key=sort_key)
+    users_with_answers = [u for u in users if u["email"] in all_answers and all_answers[u["email"]]]
+
+    # ================================================================
+    # Sheet 1 - User Answers Matrix
+    # ================================================================
+    ws1 = wb.active
+    ws1.title = "תשובות משתמשים"
+    ws1.sheet_view.rightToLeft = True
+
+    # Header row
+    ws1.cell(1, 1, "משתמש (PDN | UID | שם)").font = HEADER_FONT
+    ws1.cell(1, 1).fill = HEADER_FILL
+    ws1.cell(1, 1).alignment = RIGHT
+    ws1.column_dimensions["A"].width = 28
+
+    for col_idx, q_num in enumerate(sorted_q_nums, start=2):
+        c = ws1.cell(1, col_idx, f"Q{q_num}")
+        c.font = HEADER_FONT
+        c.fill = HEADER_FILL
+        c.alignment = CENTER
+        c.border = _border()
+        ws1.column_dimensions[get_column_letter(col_idx)].width = 7
+
+    ws1.row_dimensions[1].height = 30
+    ws1.freeze_panes = "B2"
+
+    # Data rows
+    for row_idx, user in enumerate(users_with_answers, start=2):
+        email  = user["email"]
+        answers = all_answers.get(email, {})
+        uid    = user["uid"]
+        pdn    = user["pdn_code"] or "NA"
+        first, last = user_names.get(email, ("", ""))
+        display = f"{first} {last}".strip()
+        label  = f"{pdn} | {uid}" + (f" | {display}" if display else "")
+
+        user_cell = ws1.cell(row_idx, 1, label)
+        user_cell.alignment = RIGHT
+        user_cell.border = _border()
+        if pdn and pdn[0] in CODE_FILLS:
+            user_cell.fill = CODE_FILLS[pdn[0]]
+
+        for col_idx, q_num in enumerate(sorted_q_nums, start=2):
+            answer = answers.get(str(q_num)) or answers.get(q_num)
+            val = format_answer_code(answer) if answer else None
+            c = ws1.cell(row_idx, col_idx, val or "")
+            c.alignment = CENTER
+            c.border = _border()
+            if val and val in ANSWER_FILLS:
+                c.fill = ANSWER_FILLS[val]
+
+    # ================================================================
+    # Sheet 2 - PDN Code Stats Matrix
+    # ================================================================
+    ws2 = wb.create_sheet("סטטיסטיקה לפי קוד")
+    ws2.sheet_view.rightToLeft = True
+
+    # Header
+    ws2.cell(1, 1, "שאלה").font = HEADER_FONT
+    ws2.cell(1, 1).fill = HEADER_FILL
+    ws2.cell(1, 1).alignment = RIGHT
+    ws2.column_dimensions["A"].width = 40
+
+    for col_idx, code in enumerate(PDN_12_CODES, start=2):
+        count = len(users_by_code.get(code, []))
+        c = ws2.cell(1, col_idx, f"{code}\n({count})")
+        c.font = HEADER_FONT
+        c.fill = CODE_FILLS.get(code[0], HEADER_FILL) if code[0] in CODE_FILLS else HEADER_FILL
+        c.font = _font(bold=True, color="000000" if code[0] in CODE_FILLS else "FFFFFF", size=10)
+        c.alignment = CENTER
+        c.border = _border()
+        ws2.column_dimensions[get_column_letter(col_idx)].width = 16
+
+    ws2.row_dimensions[1].height = 36
+    ws2.freeze_panes = "B2"
+
+    current_phase = None
+    row_idx = 2
+    for q_num in sorted_q_nums:
+        q = questions[q_num]
+
+        # Phase separator row
+        if q["phase"] != current_phase:
+            current_phase = q["phase"]
+            phase_label = {
+                "PartA": "חלק א - בחירה בינארית",
+                "PartB": "חלק ב - דירוג",
+                "PartC": "חלק ג - סולם",
+                "PartD": "חלק ד - ילדות/בגרות",
+                "PartE": "חלק ה - דירוג 4",
+            }.get(current_phase, current_phase)
+            for col in range(1, len(PDN_12_CODES) + 2):
+                c = ws2.cell(row_idx, col, phase_label if col == 1 else "")
+                c.fill = PHASE_FILL
+                c.font = PHASE_FONT
+                c.alignment = CENTER
+                c.border = _border()
+            ws2.row_dimensions[row_idx].height = 18
+            row_idx += 1
+
+        # Question label
+        short_text = q["text"][:55] + ("..." if len(q["text"]) > 55 else "")
+        q_label = f"Q{q_num} [{q['codes']}]\n{short_text}"
+        lc = ws2.cell(row_idx, 1, q_label)
+        lc.alignment = RIGHT
+        lc.border = _border()
+        ws2.row_dimensions[row_idx].height = 36
+
+        # Stats per PDN code
+        for col_idx, pdn_code in enumerate(PDN_12_CODES, start=2):
+            s = stats[q_num].get(pdn_code, {"counts": {}, "total": 0})
+            total = s["total"]
+            if total == 0:
+                c = ws2.cell(row_idx, col_idx, "-")
+                c.alignment = CENTER
+                c.border = _border()
+                continue
+
+            sorted_answers = sorted(s["counts"].items(), key=lambda x: -x[1])
+            lines = []
+            for ans, cnt in sorted_answers[:3]:
+                pct = round(cnt / total * 100)
+                txt = answer_texts.get(q_num, {}).get(ans, "")[:18]
+                lines.append(f"{ans}: {pct}%" + (f" ({txt})" if txt else ""))
+            cell_val = "\n".join(lines)
+
+            c = ws2.cell(row_idx, col_idx, cell_val)
+            c.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+            c.border = _border()
+            # Color by dominant answer
+            dom_ans = sorted_answers[0][0]
+            if dom_ans in ANSWER_FILLS:
+                c.fill = ANSWER_FILLS[dom_ans]
+
+        row_idx += 1
+
+    # ================================================================
+    # Sheet 3 - Summary (user count per code)
+    # ================================================================
+    ws3 = wb.create_sheet("סיכום קודים")
+    ws3.sheet_view.rightToLeft = True
+
+    ws3.cell(1, 1, "קוד PDN").font = _font(bold=True, size=11)
+    ws3.cell(1, 2, "מספר מאובחנים").font = _font(bold=True, size=11)
+    ws3.cell(1, 1).fill = HEADER_FILL
+    ws3.cell(1, 2).fill = HEADER_FILL
+    ws3.cell(1, 1).font = HEADER_FONT
+    ws3.cell(1, 2).font = HEADER_FONT
+    ws3.cell(1, 1).alignment = CENTER
+    ws3.cell(1, 2).alignment = CENTER
+    ws3.column_dimensions["A"].width = 14
+    ws3.column_dimensions["B"].width = 20
+
+    for row_idx, code in enumerate(PDN_12_CODES, start=2):
+        count = len(users_by_code.get(code, []))
+        c1 = ws3.cell(row_idx, 1, code)
+        c2 = ws3.cell(row_idx, 2, count)
+        c1.alignment = CENTER
+        c2.alignment = CENTER
+        c1.border = _border()
+        c2.border = _border()
+        if code[0] in CODE_FILLS:
+            c1.fill = CODE_FILLS[code[0]]
+            c2.fill = CODE_FILLS[code[0]]
+
+    ws3.cell(len(PDN_12_CODES) + 2, 1, "סה\"כ").font = _font(bold=True)
+    ws3.cell(len(PDN_12_CODES) + 2, 2, len(users_with_answers)).font = _font(bold=True)
+
+    return wb
+
+
 # --- Main ---
 
 def main():
-    # Check if significance section should be included
+    # Parse arguments
     include_significance = "--significance" in sys.argv or "--מובהקות" in sys.argv
+
+    # --format html | excel | both  (default: html)
+    fmt = "html"
+    for arg in sys.argv[1:]:
+        if arg.startswith("--format="):
+            fmt = arg.split("=", 1)[1].lower()
+        elif arg in ("--format", "-f"):
+            idx = sys.argv.index(arg)
+            if idx + 1 < len(sys.argv):
+                fmt = sys.argv[idx + 1].lower()
+
+    if fmt not in ("html", "excel", "both"):
+        print(f"Unknown format '{fmt}'. Valid options: html, excel, both. Defaulting to html.")
+        fmt = "html"
+
+    if fmt in ("excel", "both") and not OPENPYXL_AVAILABLE:
+        print("ERROR: openpyxl is required for Excel output.")
+        print("Install it with:  pip install openpyxl")
+        sys.exit(1)
 
     print("Loading questions...")
     questions = load_questions()
@@ -979,19 +1233,36 @@ def main():
     else:
         print("  Skipping significance section (use --significance to include)")
 
-    print("Generating combined HTML report...")
-    html = generate_html(users, questions, all_answers, stats, users_by_code, answer_texts, insights, user_names)
+    output_dir = PROJECT_ROOT / "docs"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    saved = []
 
-    output_path = PROJECT_ROOT / "docs" / "combined_matrix_report.html"
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(output_path, "w", encoding="utf-8") as f:
-        f.write(html)
+    # HTML output
+    if fmt in ("html", "both"):
+        print("Generating HTML report...")
+        html = generate_html(users, questions, all_answers, stats, users_by_code, answer_texts, insights, user_names)
+        html_path = output_dir / "combined_matrix_report.html"
+        with open(html_path, "w", encoding="utf-8") as f:
+            f.write(html)
+        print(f"  HTML saved to: {html_path}")
+        saved.append(str(html_path))
 
-    print(f"Report saved to: {output_path}")
-    return str(output_path)
+    # Excel output
+    if fmt in ("excel", "both"):
+        print("Generating Excel report...")
+        wb = generate_excel(users, questions, all_answers, stats, users_by_code, answer_texts, user_names)
+        if wb:
+            xlsx_path = output_dir / "combined_matrix_report.xlsx"
+            wb.save(xlsx_path)
+            print(f"  Excel saved to: {xlsx_path}")
+            saved.append(str(xlsx_path))
+
+    print("\nDone! Opening report(s)...")
+    for path in saved:
+        os.system(f"open '{path}'")
+
+    return saved[0] if saved else None
 
 
 if __name__ == "__main__":
-    output = main()
-    print("\nDone! Opening report...")
-    os.system(f"open '{output}'")
+    main()
