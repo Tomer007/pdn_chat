@@ -1692,6 +1692,8 @@ def pdn_analysis_excel():
     elif request.is_json and request.json:
         token = request.json.get('session_token')
     if not token:
+        token = request.form.get('session_token')  # form POST
+    if not token:
         token = request.args.get('session_token')
 
     try:
@@ -1709,7 +1711,7 @@ def pdn_analysis_excel():
         if request.is_json and request.json:
             emails_raw = request.json.get('emails')
         else:
-            emails_raw = request.args.get('emails')
+            emails_raw = request.form.get('emails') or request.args.get('emails')
         if emails_raw:
             emails_filter = frozenset(e.strip().lower() for e in emails_raw.split(',') if e.strip())
 

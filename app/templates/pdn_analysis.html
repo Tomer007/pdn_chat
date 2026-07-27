@@ -536,8 +536,23 @@ document.getElementById('excelBtn').addEventListener('click', function(e) {
     if (!reportReady) return;
     const token = localStorage.getItem('adminSessionToken') || '';
     const emails = DATA && DATA.users ? DATA.users.map(u => u.email).join(',') : '';
-    const url = `/pdn-admin/api/pdn-analysis/excel?session_token=${encodeURIComponent(token)}&emails=${encodeURIComponent(emails)}`;
-    window.location.href = url;
+    // Use a hidden form POST to avoid URL size limits with large email lists
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/pdn-admin/api/pdn-analysis/excel';
+    form.style.display = 'none';
+    const addField = (name, value) => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.value = value;
+        form.appendChild(input);
+    };
+    addField('session_token', token);
+    addField('emails', emails);
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
 });
 document.getElementById('closeBtn').addEventListener('click', function(e) {
     e.preventDefault();
