@@ -1914,6 +1914,12 @@ def pdn_analysis_excel():
                     sorted_r = sorted(ranking.items(), key=lambda x: x[1])
                     rank_str = " ".join(f"{k}:{v}" for k, v in sorted_r)
                     display = f"{rank_str}\n({text[:20]})" if text else rank_str
+                elif val and ans and 'ranking' in ans:
+                    # PartC/D scale: show "TP:10 AE:2\n(מופנם מאוד)"
+                    ranking = ans['ranking']
+                    sorted_r = sorted(ranking.items(), key=lambda x: -x[1])
+                    scale_str = " ".join(f"{k}:{v}" for k, v in sorted_r)
+                    display = f"{scale_str}\n({text[:20]})" if text else scale_str
                 else:
                     display = f"{val} ({text[:20]})" if text else (val or "")
                 c = ws1.cell(row_idx, col_idx, display)

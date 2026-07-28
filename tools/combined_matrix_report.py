@@ -1093,6 +1093,17 @@ def generate_excel(users, questions, all_answers, stats, users_by_code, answer_t
                         top_text = opt.get("text", "")[:20]
                         break
                 display = f"{rank_str}\n({top_text})" if top_text else rank_str
+            elif val and answer and 'ranking' in answer:
+                # PartC/D scale: show "TP:10 AE:2\n(מופנם מאוד)"
+                ranking = answer['ranking']
+                sorted_r = sorted(ranking.items(), key=lambda x: -x[1])
+                scale_str = " ".join(f"{k}:{v}" for k, v in sorted_r)
+                top_text = ""
+                for opt in questions.get(q_num, {}).get("options", []):
+                    if opt.get("code") == val:
+                        top_text = opt.get("text", "")[:20]
+                        break
+                display = f"{scale_str}\n({top_text})" if top_text else scale_str
             elif val:
                 top_text = questions.get(q_num, {}).get("options", [])
                 top_text = next((o.get("text","")[:20] for o in top_text if o.get("code") == val), "")
