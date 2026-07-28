@@ -1907,9 +1907,15 @@ def pdn_analysis_excel():
             for col_idx, q_num in enumerate(sorted_q_nums, start=2):
                 ans = answers.get(str(q_num))
                 val = _get_dominant_answer(ans, q_num) if ans else None
-                # Show "CODE (text)" e.g. "AP (פחות מאורגן)"
                 text = q_code_text.get(q_num, {}).get(val, '') if val else ''
-                display = f"{val} ({text[:20]})" if text else (val or "")
+                if val and ans and 'ranking' in ans and _is_rank_order(q_num):
+                    # PartB/E: show full ranking e.g. "S:1 F:2 D:3\n(פועל בקצב שלי)"
+                    ranking = ans['ranking']
+                    sorted_r = sorted(ranking.items(), key=lambda x: x[1])
+                    rank_str = " ".join(f"{k}:{v}" for k, v in sorted_r)
+                    display = f"{rank_str}\n({text[:20]})" if text else rank_str
+                else:
+                    display = f"{val} ({text[:20]})" if text else (val or "")
                 c = ws1.cell(row_idx, col_idx, display)
                 c.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
                 c.border = _border()

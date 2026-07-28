@@ -1082,8 +1082,25 @@ def generate_excel(users, questions, all_answers, stats, users_by_code, answer_t
         for col_idx, q_num in enumerate(sorted_q_nums, start=2):
             answer = answers.get(str(q_num)) or answers.get(q_num)
             val = format_answer_code(answer, q_num) if answer else None
-            c = ws1.cell(row_idx, col_idx, val or "")
-            c.alignment = CENTER
+            if val and answer and 'ranking' in answer and _is_rank_order(q_num):
+                # PartB/E: show full ranking e.g. "S:1 F:2 D:3\n(פועל בקצב שלי)"
+                ranking = answer['ranking']
+                sorted_r = sorted(ranking.items(), key=lambda x: x[1])
+                rank_str = " ".join(f"{k}:{v}" for k, v in sorted_r)
+                top_text = ""
+                for opt in questions.get(q_num, {}).get("options", []):
+                    if opt.get("code") == val:
+                        top_text = opt.get("text", "")[:20]
+                        break
+                display = f"{rank_str}\n({top_text})" if top_text else rank_str
+            elif val:
+                top_text = questions.get(q_num, {}).get("options", [])
+                top_text = next((o.get("text","")[:20] for o in top_text if o.get("code") == val), "")
+                display = f"{val} ({top_text})" if top_text else val
+            else:
+                display = ""
+            c = ws1.cell(row_idx, col_idx, display)
+            c.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
             c.border = _border()
             if val and val in ANSWER_FILLS:
                 c.fill = ANSWER_FILLS[val]
