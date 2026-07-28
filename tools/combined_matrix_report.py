@@ -1039,6 +1039,20 @@ def generate_excel(users, questions, all_answers, stats, users_by_code, answer_t
     sorted_q_nums = sorted(questions.keys(), key=sort_key)
     users_with_answers = [u for u in users if u["email"] in all_answers and all_answers[u["email"]]]
 
+    # Legacy code aliases for questions whose option codes were changed after deployment
+    # Q14 was re-coded from AP/ET -> TP/AE; text is identical, add old codes as aliases
+    _legacy_code_text = {
+        '14': {'AP': 'נוטה להסכים', 'ET': 'נוטה להתדיין'},
+    }
+
+    def _get_option_text(q_num, code):
+        """Lookup option text, falling back to legacy aliases for re-coded questions."""
+        opts = questions.get(q_num, {}).get("options", [])
+        text = next((o.get("text", "") for o in opts if o.get("code") == code), "")
+        if not text:
+            text = _legacy_code_text.get(q_num, {}).get(code, "")
+        return text[:20]
+
     # ================================================================
     # Sheet 1 - User Answers Matrix
     # ================================================================
@@ -1087,26 +1101,17 @@ def generate_excel(users, questions, all_answers, stats, users_by_code, answer_t
                 ranking = answer['ranking']
                 sorted_r = sorted(ranking.items(), key=lambda x: x[1])
                 rank_str = " ".join(f"{k}:{v}" for k, v in sorted_r)
-                top_text = ""
-                for opt in questions.get(q_num, {}).get("options", []):
-                    if opt.get("code") == val:
-                        top_text = opt.get("text", "")[:20]
-                        break
+                top_text = _get_option_text(q_num, val)
                 display = f"{rank_str}\n({top_text})" if top_text else rank_str
             elif val and answer and 'ranking' in answer:
                 # PartC/D scale: show "TP:10 AE:2\n(מופנם מאוד)"
                 ranking = answer['ranking']
                 sorted_r = sorted(ranking.items(), key=lambda x: -x[1])
                 scale_str = " ".join(f"{k}:{v}" for k, v in sorted_r)
-                top_text = ""
-                for opt in questions.get(q_num, {}).get("options", []):
-                    if opt.get("code") == val:
-                        top_text = opt.get("text", "")[:20]
-                        break
+                top_text = _get_option_text(q_num, val)
                 display = f"{scale_str}\n({top_text})" if top_text else scale_str
             elif val:
-                top_text = questions.get(q_num, {}).get("options", [])
-                top_text = next((o.get("text","")[:20] for o in top_text if o.get("code") == val), "")
+                top_text = _get_option_text(q_num, val)
                 display = f"{val} ({top_text})" if top_text else val
             else:
                 display = ""

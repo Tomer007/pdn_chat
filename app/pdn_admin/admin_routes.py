@@ -1846,6 +1846,10 @@ def pdn_analysis_excel():
                     mapping[code] = text
             q_code_text[q_num] = mapping
 
+        # Legacy code aliases: Q14 was re-coded from AP/ET -> TP/AE
+        # Old stored answers use AP/ET; text is identical so map them too
+        q_code_text.setdefault('14', {}).update({'AP': 'נוטה להסכים', 'ET': 'נוטה להתדיין'})
+
         # Group users by PDN code
         users_by_code = {}
         for code in PDN_12:
