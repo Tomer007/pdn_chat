@@ -1789,7 +1789,15 @@ def pdn_analysis_excel():
         CENTER = Alignment(horizontal="center", vertical="center", wrap_text=True)
         RIGHT  = Alignment(horizontal="right",  vertical="center", wrap_text=True)
 
-        def _get_dominant_answer(answer_entry):
+        def _is_rank_order(q_num):
+            """PartB (27-37) and PartE (57-61) store rank order: 1=best, higher=worse."""
+            try:
+                n = int(q_num)
+                return (27 <= n <= 37) or (57 <= n <= 61)
+            except (ValueError, TypeError):
+                return False
+
+        def _get_dominant_answer(answer_entry, q_num=None):
             """Return the dominant answer code from an answer entry."""
             if not isinstance(answer_entry, dict):
                 return None
@@ -1798,7 +1806,12 @@ def pdn_analysis_excel():
             if 'ranking' in answer_entry:
                 ranking = answer_entry['ranking']
                 if isinstance(ranking, dict) and ranking:
-                    return max(ranking, key=ranking.get)
+                    if _is_rank_order(q_num):
+                        # rank=1 is top choice -> pick LOWEST value
+                        return min(ranking, key=ranking.get)
+                    else:
+                        # scale 0-12: higher = stronger -> pick HIGHEST value
+                        return max(ranking, key=ranking.get)
             return None
 
         # Sort questions numerically
@@ -1849,7 +1862,7 @@ def pdn_analysis_excel():
                 for user in users_by_code[code]:
                     ans = user_answers.get(user['email'], {}).get(str(q_num))
                     if ans:
-                        dom = _get_dominant_answer(ans)
+                        dom = _get_dominant_answer(ans, q_num)
                         if dom:
                             counts[dom] += 1
                             total += 1
@@ -1893,7 +1906,7 @@ def pdn_analysis_excel():
 
             for col_idx, q_num in enumerate(sorted_q_nums, start=2):
                 ans = answers.get(str(q_num))
-                val = _get_dominant_answer(ans) if ans else None
+                val = _get_dominant_answer(ans, q_num) if ans else None
                 # Show "CODE (text)" e.g. "AP (פחות מאורגן)"
                 text = q_code_text.get(q_num, {}).get(val, '') if val else ''
                 display = f"{val} ({text[:20]})" if text else (val or "")

@@ -124,7 +124,20 @@ def load_user_answers(email):
         return None
 
 
-def format_answer_code(answer_data):
+def _is_rank_order(q_num):
+    """
+    Returns True for questions where ranking values represent ORDER (1=best, higher=worse).
+    PartB (Q27-37) and PartE (Q57-61) use drag-to-rank: rank 1 = most preferred.
+    Returns False for PartC/PartD (Q38-56) which use a 0-12 scale: higher = stronger match.
+    """
+    try:
+        n = int(q_num)
+        return (27 <= n <= 37) or (57 <= n <= 61)
+    except (ValueError, TypeError):
+        return False
+
+
+def format_answer_code(answer_data, q_num=None):
     if answer_data is None:
         return None
     if isinstance(answer_data, dict):
@@ -133,14 +146,18 @@ def format_answer_code(answer_data):
         if "ranking" in answer_data:
             ranking = answer_data["ranking"]
             if isinstance(ranking, dict):
-                # Higher score = stronger identification - sort descending, pick highest
-                sorted_items = sorted(ranking.items(), key=lambda x: -x[1])
+                if _is_rank_order(q_num):
+                    # rank=1 is top choice -> pick LOWEST value
+                    sorted_items = sorted(ranking.items(), key=lambda x: x[1])
+                else:
+                    # scale 0-12: higher = stronger identification -> pick HIGHEST value
+                    sorted_items = sorted(ranking.items(), key=lambda x: -x[1])
                 if sorted_items:
                     return sorted_items[0][0]
     return None
 
 
-def get_answer_text(answer_data):
+def get_answer_text(answer_data, q_num=None):
     if answer_data is None:
         return None
     if isinstance(answer_data, dict):
@@ -153,8 +170,10 @@ def get_answer_text(answer_data):
         if "ranking" in answer_data:
             ranking = answer_data["ranking"]
             if isinstance(ranking, dict):
-                # Higher score = stronger identification - sort descending, pick highest
-                sorted_items = sorted(ranking.items(), key=lambda x: -x[1])
+                if _is_rank_order(q_num):
+                    sorted_items = sorted(ranking.items(), key=lambda x: x[1])
+                else:
+                    sorted_items = sorted(ranking.items(), key=lambda x: -x[1])
                 if sorted_items:
                     top_code = sorted_items[0][0]
                     for opt in answer_data.get("question_options", []):
@@ -164,7 +183,7 @@ def get_answer_text(answer_data):
     return None
 
 
-def format_answer_display(answer_data):
+def format_answer_display(answer_data, q_num=None):
     """Format answer for the user matrix (code + short text)."""
     if answer_data is None:
         return ""
@@ -174,8 +193,10 @@ def format_answer_display(answer_data):
         if "ranking" in answer_data:
             ranking = answer_data["ranking"]
             if isinstance(ranking, dict):
-                # Higher score = stronger identification - sort descending
-                sorted_items = sorted(ranking.items(), key=lambda x: -x[1])
+                if _is_rank_order(q_num):
+                    sorted_items = sorted(ranking.items(), key=lambda x: x[1])
+                else:
+                    sorted_items = sorted(ranking.items(), key=lambda x: -x[1])
                 return " ".join(f"{k}:{v}" for k, v in sorted_items)
     return ""
 
@@ -246,12 +267,12 @@ def compute_statistics(users, questions):
                 user_answers = all_answers.get(user["email"], {})
                 answer = user_answers.get(str(q_num))
                 if answer is not None:
-                    val = format_answer_code(answer)
+                    val = format_answer_code(answer, q_num)
                     if val is not None:
                         answer_counts[val] += 1
                         total += 1
                         if val not in answer_texts[q_num]:
-                            txt = get_answer_text(answer)
+                            txt = get_answer_text(answer, q_num)
                             if txt:
                                 answer_texts[q_num][val] = txt
             stats[q_num][pdn_code] = {
@@ -723,7 +744,7 @@ tr.hidden {{ display: none; }}
             if answer is None or (isinstance(answer, dict) and "selected_option_code" not in answer and "ranking" not in answer):
                 html += '<td class="empty">-</td>\n'
                 continue
-            formatted = format_answer_display(answer)
+            formatted = format_answer_display(answer, q_num)
             if not formatted:
                 html += '<td class="empty">-</td>\n'
                 continue
@@ -1060,7 +1081,7 @@ def generate_excel(users, questions, all_answers, stats, users_by_code, answer_t
 
         for col_idx, q_num in enumerate(sorted_q_nums, start=2):
             answer = answers.get(str(q_num)) or answers.get(q_num)
-            val = format_answer_code(answer) if answer else None
+            val = format_answer_code(answer, q_num) if answer else None
             c = ws1.cell(row_idx, col_idx, val or "")
             c.alignment = CENTER
             c.border = _border()
