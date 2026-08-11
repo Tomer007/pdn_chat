@@ -157,10 +157,48 @@ function getSessionToken() {
     return token;
 }
 
+// Scale map for PartC questions (38-42): 7 positions, left pole = higher value
+const SCALE_MAP = [
+    {leftValue: 12, rightValue:  0, description: (l, r) => `${l} (במידה רבה מאוד)`, dots: 1},
+    {leftValue: 10, rightValue:  2, description: (l, r) => `${l} (במידה רבה)`,       dots: 2},
+    {leftValue:  8, rightValue:  4, description: (l, r) => `${l} (במידה מסוימת)`,    dots: 3},
+    {leftValue:  6, rightValue:  6, description: (l, r) => `באמצע (ניטרלי)`,          dots: 4},
+    {leftValue:  4, rightValue:  8, description: (l, r) => `${r} (במידה מסוימת)`,    dots: 5},
+    {leftValue:  2, rightValue: 10, description: (l, r) => `${r} (במידה רבה)`,       dots: 6},
+    {leftValue:  0, rightValue: 12, description: (l, r) => `${r} (במידה רבה מאוד)`, dots: 7}
+];
+
+function _isScaleQuestion(qNum) {
+    const n = parseInt(qNum, 10);
+    return n >= 38 && n <= 42;
+}
+
+function formatScaleAnswer(ans, qNum) {
+    if (!ans || !ans.ranking) return '';
+    const questions = DATA ? DATA.questions : null;
+    if (!questions || !questions[qNum]) return '';
+    const opts = questions[qNum].options;
+    if (!opts || opts.length < 2) return '';
+
+    const leftOpt  = opts[0]; // first option = left pole
+    const rightOpt = opts[1]; // second option = right pole
+    const leftVal  = ans.ranking[leftOpt.code]  || 0;
+    const rightVal = ans.ranking[rightOpt.code] || 0;
+
+    const entry = SCALE_MAP.find(e => e.leftValue === leftVal && e.rightValue === rightVal);
+    if (!entry) return Object.entries(ans.ranking).map(([k, v]) => k + ':' + v).join(' ');
+
+    const filled = '●'.repeat(entry.dots);
+    const empty  = '○'.repeat(7 - entry.dots);
+    const label  = entry.description(leftOpt.text, rightOpt.text);
+    return filled + empty + ' ' + label;
+}
+
 function formatAnswer(ans, qNum) {
     if (!ans) return '';
     if (ans.selected_option_code) return ans.selected_option_code;
     if (ans.ranking && typeof ans.ranking === 'object') {
+        if (_isScaleQuestion(qNum)) return formatScaleAnswer(ans, qNum);
         return Object.entries(ans.ranking)
             .sort((a, b) => _isRankOrder(qNum) ? a[1] - b[1] : b[1] - a[1])
             .map(([k, v]) => k + ':' + v)
@@ -370,7 +408,8 @@ function buildReport() {
             const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
             const domAns = sorted[0][0];
             let cellContent = '';
-            const limit = Math.min(sorted.length, 2);
+            const showAll = _isRankOrder(q);
+            const limit = showAll ? sorted.length : Math.min(sorted.length, 2);
             for (let si = 0; si < limit; si++) {
                 const [ans, cnt] = sorted[si];
                 const pct = Math.round(cnt / total * 100);
