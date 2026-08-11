@@ -196,7 +196,7 @@ function formatScaleAnswer(ans, qNum) {
     const filled = '●'.repeat(entry.dots);
     const empty  = '○'.repeat(7 - entry.dots);
     const label  = entry.description(leftText, rightText);
-    return filled + empty + ' ' + label;
+    return entry.dots + '/7 ' + filled + empty + ' ' + label;
 }
 
 function formatAnswer(ans, qNum) {
