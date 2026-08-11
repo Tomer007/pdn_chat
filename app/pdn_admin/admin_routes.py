@@ -1840,7 +1840,7 @@ def pdn_analysis_excel():
                 if lv == left_val and rv == right_val:
                     filled = '\u25cf' * dots
                     empty  = '\u25cb' * (7 - dots)
-                    return f"{dots}/7 {filled}{empty} {label_fn(left_text, right_text)}"
+                    return f"{dots}/7 [{left_text}] {filled}{empty} [{right_text}] {label_fn(left_text, right_text)}"
             # fallback
             sorted_r = sorted(ranking.items(), key=lambda x: -x[1])
             return " ".join(f"{k}:{v}" for k, v in sorted_r)
