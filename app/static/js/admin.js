@@ -992,6 +992,10 @@
         const diagnosed = filtered.filter(u => u.diagnose_pdn_code && u.diagnose_pdn_code !== 'N/A' && u.diagnose_pdn_code !== '').length;
         document.getElementById('metricDiagnosed').textContent = diagnosed;
 
+        // KPI: Not diagnosed by human (has PDN code but no diagnose_pdn_code)
+        const notDiagnosed = filtered.filter(u => u.pdn_code && u.pdn_code !== 'N/A' && u.pdn_code !== '' && u.pdn_code !== 'NA' && (!u.diagnose_pdn_code || u.diagnose_pdn_code === '' || u.diagnose_pdn_code === 'N/A')).length;
+        document.getElementById('metricNotDiagnosed').textContent = notDiagnosed;
+
         // KPI: Unique PDN codes
         const uniqueCodes = new Set(filtered.map(u => u.pdn_code).filter(c => c && c !== 'N/A' && c !== ''));
         document.getElementById('metricUniqueCodes').textContent = uniqueCodes.size;
@@ -1250,6 +1254,10 @@
             case 'diagnosed':
                 filtered = inRange.filter(u => u.diagnose_pdn_code && u.diagnose_pdn_code !== 'N/A' && u.diagnose_pdn_code !== '');
                 label = 'נבדקו ע"י מאבחן';
+                break;
+            case 'not_diagnosed':
+                filtered = inRange.filter(u => u.pdn_code && u.pdn_code !== 'N/A' && u.pdn_code !== '' && u.pdn_code !== 'NA' && (!u.diagnose_pdn_code || u.diagnose_pdn_code === '' || u.diagnose_pdn_code === 'N/A'));
+                label = 'לא נבדקו ע"י מאבחן';
                 break;
             case 'uniqueCodes':
                 filtered = inRange.filter(u => u.pdn_code && u.pdn_code !== 'N/A' && u.pdn_code !== '');
@@ -1870,6 +1878,9 @@
         } else if (statusVal === 'diagnosed') {
             filtered = filtered.filter(u => u.diagnose_pdn_code && u.diagnose_pdn_code.length > 0);
             labels.push('נבדק ע"י מאבחן');
+        } else if (statusVal === 'not_diagnosed') {
+            filtered = filtered.filter(u => u.pdn_code && u.pdn_code !== 'N/A' && u.pdn_code !== '' && u.pdn_code !== 'NA' && (!u.diagnose_pdn_code || u.diagnose_pdn_code === '' || u.diagnose_pdn_code === 'N/A'));
+            labels.push('לא נבדק ע"י מאבחן');
         }
 
         // Trait filter

@@ -674,6 +674,10 @@
                     <div class="metrics-kpi-value" id="metricDiagnosed">—</div>
                     <div class="metrics-kpi-label">נבדקו ע"י מאבחן</div>
                 </div>
+                <div class="metrics-kpi" style="cursor: pointer;" onclick="filterByMetric('not_diagnosed')" title="לחץ לסינון">
+                    <div class="metrics-kpi-value" id="metricNotDiagnosed">—</div>
+                    <div class="metrics-kpi-label">לא נבדקו ע"י מאבחן</div>
+                </div>
                 <div class="metrics-kpi" style="cursor: pointer;" onclick="showActiveUsers()" title="לחץ לפרטים">
                     <div class="metrics-kpi-value" id="metricActiveUsers">—</div>
                     <div class="metrics-kpi-label">משתמשים מחוברים</div>
@@ -747,6 +751,7 @@
                             <option value="valid">תקין</option>
                             <option value="needs_verification">לבדיקה</option>
                             <option value="diagnosed">נבדק ע"י מאבחן</option>
+                            <option value="not_diagnosed">לא נבדק ע"י מאבחן</option>
                         </select>
                         <select id="quickFilterTrait" onchange="quickTagFilter(this.value, 'trait')" aria-label="סינון לפי תכונה" autocomplete="off">
                             <option value="">תכונה</option>
