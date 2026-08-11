@@ -178,19 +178,29 @@ function formatScaleAnswer(ans, qNum) {
     const questions = DATA ? DATA.questions : null;
     if (!questions || !questions[qNum]) return '';
     const opts = questions[qNum].options;
-    if (!opts || opts.length < 2) return '';
 
-    const leftOpt  = opts[0]; // first option = left pole
-    const rightOpt = opts[1]; // second option = right pole
-    const leftVal  = ans.ranking[leftOpt.code]  || 0;
-    const rightVal = ans.ranking[rightOpt.code] || 0;
+    const entries = Object.entries(ans.ranking);
+    if (entries.length < 2) return entries.map(([k,v]) => k+':'+v).join(' ');
+
+    const [leftCode, leftVal]   = entries[0];
+    const [rightCode, rightVal] = entries[1];
+
+    // Resolve display text from question options
+    let leftText  = leftCode;
+    let rightText = rightCode;
+    if (opts) {
+        const leftOpt  = opts.find(o => o.code === leftCode);
+        const rightOpt = opts.find(o => o.code === rightCode);
+        if (leftOpt)  leftText  = leftOpt.text;
+        if (rightOpt) rightText = rightOpt.text;
+    }
 
     const entry = SCALE_MAP.find(e => e.leftValue === leftVal && e.rightValue === rightVal);
     if (!entry) return Object.entries(ans.ranking).map(([k, v]) => k + ':' + v).join(' ');
 
     const filled = '●'.repeat(entry.dots);
     const empty  = '○'.repeat(7 - entry.dots);
-    const label  = entry.description(leftOpt.text, rightOpt.text);
+    const label  = entry.description(leftText, rightText);
     return filled + empty + ' ' + label;
 }
 

@@ -1817,16 +1817,21 @@ def pdn_analysis_excel():
 
         def _format_scale(ranking, q_num):
             """Return dot-scale string e.g. '●●○○○○○ לא מוודא כלל (במידה רבה)'."""
-            opts = (questions_data.get(q_num) or {}).get('options') or []
-            if len(opts) < 2:
+            if not ranking or len(ranking) < 2:
                 sorted_r = sorted(ranking.items(), key=lambda x: -x[1])
                 return " ".join(f"{k}:{v}" for k, v in sorted_r)
-            left_code  = opts[0]['code']
-            right_code = opts[1]['code']
-            left_text  = opts[0].get('text', left_code)
-            right_text = opts[1].get('text', right_code)
-            left_val   = ranking.get(left_code, 0)
-            right_val  = ranking.get(right_code, 0)
+            opts = (questions_data.get(q_num) or {}).get('options') or []
+            entries = list(ranking.items())
+            left_code, left_val   = entries[0]
+            right_code, right_val = entries[1]
+            # Resolve display text from question options
+            left_text  = left_code
+            right_text = right_code
+            for opt in opts:
+                if opt['code'] == left_code:
+                    left_text = opt.get('text', left_code)
+                if opt['code'] == right_code:
+                    right_text = opt.get('text', right_code)
             for lv, rv, label_fn, dots in _SCALE_MAP:
                 if lv == left_val and rv == right_val:
                     filled = '\u25cf' * dots
