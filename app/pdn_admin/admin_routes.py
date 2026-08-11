@@ -1797,6 +1797,45 @@ def pdn_analysis_excel():
             except (ValueError, TypeError):
                 return False
 
+        def _is_scale_question(q_num):
+            """PartC (38-42): 7-position scale with dot display."""
+            try:
+                n = int(q_num)
+                return 38 <= n <= 42
+            except (ValueError, TypeError):
+                return False
+
+        _SCALE_MAP = [
+            (12,  0, lambda l, r: f"{l} (במידה רבה מאוד)", 1),
+            (10,  2, lambda l, r: f"{l} (במידה רבה)",       2),
+            ( 8,  4, lambda l, r: f"{l} (במידה מסוימת)",    3),
+            ( 6,  6, lambda l, r: "באמצע (ניטרלי)",          4),
+            ( 4,  8, lambda l, r: f"{r} (במידה מסוימת)",    5),
+            ( 2, 10, lambda l, r: f"{r} (במידה רבה)",       6),
+            ( 0, 12, lambda l, r: f"{r} (במידה רבה מאוד)", 7),
+        ]
+
+        def _format_scale(ranking, q_num):
+            """Return dot-scale string e.g. '●●○○○○○ לא מוודא כלל (במידה רבה)'."""
+            opts = (questions_data.get(q_num) or {}).get('options') or []
+            if len(opts) < 2:
+                sorted_r = sorted(ranking.items(), key=lambda x: -x[1])
+                return " ".join(f"{k}:{v}" for k, v in sorted_r)
+            left_code  = opts[0]['code']
+            right_code = opts[1]['code']
+            left_text  = opts[0].get('text', left_code)
+            right_text = opts[1].get('text', right_code)
+            left_val   = ranking.get(left_code, 0)
+            right_val  = ranking.get(right_code, 0)
+            for lv, rv, label_fn, dots in _SCALE_MAP:
+                if lv == left_val and rv == right_val:
+                    filled = '\u25cf' * dots
+                    empty  = '\u25cb' * (7 - dots)
+                    return f"{filled}{empty} {label_fn(left_text, right_text)}"
+            # fallback
+            sorted_r = sorted(ranking.items(), key=lambda x: -x[1])
+            return " ".join(f"{k}:{v}" for k, v in sorted_r)
+
         def _get_dominant_answer(answer_entry, q_num=None):
             """Return the dominant answer code from an answer entry."""
             if not isinstance(answer_entry, dict):
@@ -1918,8 +1957,11 @@ def pdn_analysis_excel():
                     sorted_r = sorted(ranking.items(), key=lambda x: x[1])
                     rank_str = " ".join(f"{k}:{v}" for k, v in sorted_r)
                     display = f"{rank_str}\n({text[:20]})" if text else rank_str
+                elif val and ans and 'ranking' in ans and _is_scale_question(q_num):
+                    # PartC scale: show dot display e.g. "●●○○○○○ לא מוודא כלל (במידה רבה)"
+                    display = _format_scale(ans['ranking'], q_num)
                 elif val and ans and 'ranking' in ans:
-                    # PartC/D scale: show "TP:10 AE:2\n(מופנם מאוד)"
+                    # PartD scale: show "TP:10 AE:2\n(מופנם מאוד)"
                     ranking = ans['ranking']
                     sorted_r = sorted(ranking.items(), key=lambda x: -x[1])
                     scale_str = " ".join(f"{k}:{v}" for k, v in sorted_r)
@@ -1992,7 +2034,8 @@ def pdn_analysis_excel():
                     continue
                 sorted_ans = sorted(s["counts"].items(), key=lambda x: -x[1])
                 lines = []
-                for a, n in sorted_ans[:3]:
+                show_limit = len(sorted_ans) if _is_rank_order(q_num) else 3
+                for a, n in sorted_ans[:show_limit]:
                     pct = round(n / total * 100)
                     text = q_code_text.get(q_num, {}).get(a, '')
                     if text:
