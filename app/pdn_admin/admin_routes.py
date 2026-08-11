@@ -1798,10 +1798,10 @@ def pdn_analysis_excel():
                 return False
 
         def _is_scale_question(q_num):
-            """PartC (38-42): 7-position scale with dot display."""
+            """PartC (38-42) and PartD (43-56): 7-position scale with dot display."""
             try:
                 n = int(q_num)
-                return 38 <= n <= 42
+                return 38 <= n <= 56
             except (ValueError, TypeError):
                 return False
 
