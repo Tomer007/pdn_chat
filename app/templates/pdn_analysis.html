@@ -179,21 +179,16 @@ function formatScaleAnswer(ans, qNum) {
     if (!questions || !questions[qNum]) return '';
     const opts = questions[qNum].options;
 
-    const entries = Object.entries(ans.ranking);
-    if (entries.length < 2) return entries.map(([k,v]) => k+':'+v).join(' ');
-
-    const [leftCode, leftVal]   = entries[0];
-    const [rightCode, rightVal] = entries[1];
-
-    // Resolve display text from question options
-    let leftText  = leftCode;
-    let rightText = rightCode;
-    if (opts) {
-        const leftOpt  = opts.find(o => o.code === leftCode);
-        const rightOpt = opts.find(o => o.code === rightCode);
-        if (leftOpt)  leftText  = leftOpt.text;
-        if (rightOpt) rightText = rightOpt.text;
+    // Always use question options order: opts[0]=left pole, opts[1]=right pole
+    if (!opts || opts.length < 2) {
+        return Object.entries(ans.ranking).map(([k,v]) => k+':'+v).join(' ');
     }
+    const leftCode  = opts[0].code;
+    const rightCode = opts[1].code;
+    const leftText  = opts[0].text;
+    const rightText = opts[1].text;
+    const leftVal   = ans.ranking[leftCode]  || 0;
+    const rightVal  = ans.ranking[rightCode] || 0;
 
     const entry = SCALE_MAP.find(e => e.leftValue === leftVal && e.rightValue === rightVal);
     if (!entry) return Object.entries(ans.ranking).map(([k, v]) => k + ':' + v).join(' ');
