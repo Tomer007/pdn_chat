@@ -1429,7 +1429,10 @@
 
         for (const email of emails) {
             try {
-                const response = await fetch(`/pdn-admin/user/send_email/${email}?session_token=${sessionToken}`, {
+                const endpoint = type === 'binat'
+                    ? `/pdn-admin/user/send_binat_invite/${email}?session_token=${sessionToken}`
+                    : `/pdn-admin/user/send_email/${email}?session_token=${sessionToken}`;
+                const response = await fetch(endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ type, password })
@@ -2817,12 +2820,14 @@
                 }
             }
 
-            // Prompt for admin password
-            const passwordPrompt = emailType === 'binat' ? 'הזן סיסמת מנהל לשליחת הזמנה לבינת:' : 'הזן סיסמת מנהל לשליחת אימייל:';
-            const password = await requestAdminPassword(passwordPrompt);
-            if (!password) {
-                resetRowLoadingState(email, 'email');
-                return;
+            // Prompt for admin password (PDN email only - binat invite uses session token directly)
+            if (emailType === 'pdn') {
+                const passwordPrompt = 'הזן סיסמת מנהל לשליחת אימייל:';
+                const password = await requestAdminPassword(passwordPrompt);
+                if (!password) {
+                    resetRowLoadingState(email, 'email');
+                    return;
+                }
             }
 
             try {
@@ -2835,7 +2840,7 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({password: password})
+                    body: JSON.stringify({})
                 });
 
                 if (response.ok) {
