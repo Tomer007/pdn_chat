@@ -3,6 +3,7 @@
 import json
 import hmac
 import logging
+import os
 import re
 import threading
 from datetime import datetime
@@ -32,7 +33,15 @@ class UserManager:
     PROMPTS_DIR = Path(__file__).parent / "binat_agents" / "prompts" / "pdn_code"
 
     def __init__(self, json_path: Optional[Path] = None):
-        self._json_path = json_path or (Path(__file__).parent.parent / "data" / "users.json")
+        # Store users.json on the persistent disk so deletes/changes survive restarts.
+        # On Render: SAVED_RESULTS_DIR=/pdn/saved_results → users.json at /pdn/saved_results/users.json
+        # Locally: falls back to app/data/users.json
+        saved_results = os.getenv('SAVED_RESULTS_DIR', '')
+        if saved_results:
+            default_path = Path(saved_results) / "users.json"
+        else:
+            default_path = Path(__file__).parent.parent / "data" / "users.json"
+        self._json_path = json_path or default_path
         self._users: dict = {}
         self._lock = threading.Lock()
         self._load_users()
