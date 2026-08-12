@@ -589,7 +589,9 @@
     <div class="dash-header">
         <div style="display: flex; align-items: center; gap: 16px;">
             <img src="static/images/pdn_logo.png" alt="PDN Logo"
-                 style="height: 44px; width: auto; object-fit: contain;">
+                 onclick="showReleaseNotes()"
+                 style="height: 44px; width: auto; object-fit: contain; cursor: pointer;"
+                 title="לחץ לפרטי גרסה">
             <div style="border-right: 2px solid #e2e8f0; padding-right: 16px;">
                 <h1 style="font-size: 22px; font-weight: 800; color: #0f172a; margin: 0;">מערכת שליטה וניהול</h1>
                 <button id="versionBadge" onclick="showReleaseNotes()" class="version-badge" style="margin-top: 4px;">

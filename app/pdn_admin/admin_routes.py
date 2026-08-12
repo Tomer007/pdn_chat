@@ -297,6 +297,54 @@ def admin_logout():
     cleanup_expired_sessions()
     return jsonify({"success": True, "message": "Logout successful"})
 
+
+@pdn_admin_bp.route('/version')
+def app_version():
+    """Return current build version, deploy date, and recent commit history."""
+    import subprocess
+    from datetime import timezone
+
+    def _git(cmd):
+        try:
+            return subprocess.check_output(
+                cmd, cwd=Path(__file__).parent.parent.parent,
+                stderr=subprocess.DEVNULL, text=True
+            ).strip()
+        except Exception:
+            return ''
+
+    # Commit hash (short)
+    commit_hash = _git(['git', 'rev-parse', '--short', 'HEAD']) or 'unknown'
+
+    # Deploy date from latest commit timestamp
+    raw_date = _git(['git', 'log', '-1', '--format=%ci'])
+    try:
+        from datetime import datetime
+        deploy_dt = datetime.strptime(raw_date[:19], '%Y-%m-%d %H:%M:%S')
+        deploy_date = deploy_dt.strftime('%d/%m/%Y %H:%M')
+    except Exception:
+        deploy_date = raw_date[:16] if raw_date else 'unknown'
+
+    # Version: count total commits as build number
+    commit_count = _git(['git', 'rev-list', '--count', 'HEAD']) or '0'
+    version = f"1.{commit_count}"
+
+    # Last 8 commits as release notes
+    log_lines = _git(['git', 'log', '--oneline', '-8']).splitlines()
+    release_notes = []
+    for line in log_lines:
+        # Strip the hash prefix (first word)
+        parts = line.split(' ', 1)
+        msg = parts[1] if len(parts) > 1 else line
+        release_notes.append(msg)
+
+    return jsonify({
+        'version': version,
+        'commit': commit_hash,
+        'release_date': deploy_date,
+        'release_notes': release_notes,
+    })
+
 def _format_user(s, user_type):
     """Helper to format user session data"""
     fmt = "%d/%m/%Y %H:%M:%S"
