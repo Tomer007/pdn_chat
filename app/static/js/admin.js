@@ -4003,7 +4003,7 @@
             return;
         }
 
-        const adminPassword = 'admin'; // Session already authenticated
+        const adminPassword = 'admin'; // not checked server-side, session_token handles auth
 
         showLoading();
         try {
@@ -4064,7 +4064,7 @@
 
         closeModal('deleteUserModal');
 
-        const adminPassword = 'admin'; // Session already authenticated
+        const adminPassword = 'admin'; // not checked server-side, session_token handles auth
 
         showLoading();
         try {

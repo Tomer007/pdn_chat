@@ -1157,10 +1157,6 @@ def create_user():
     if not data:
         return jsonify({"error": "No data provided"}), 400
 
-    admin_password = data.get('admin_password', '')
-    if admin_password.lower() != current_app.config.get('ADMIN_PASSWORD', 'pdn').lower():
-        return jsonify({"error": "Invalid admin password"}), 401
-
     email = data.get('email', '').strip().lower()
     password = data.get('password', '').strip()
     name = data.get('name', '').strip()
@@ -1190,10 +1186,7 @@ def update_user_endpoint(email):
     if not data:
         return jsonify({"error": "No data provided"}), 400
 
-    admin_password = data.get('admin_password', '')
     data.pop('admin_password', None)
-    if admin_password.lower() != current_app.config.get('ADMIN_PASSWORD', 'pdn').lower():
-        return jsonify({"error": "Invalid admin password"}), 401
 
     um = get_user_manager()
     allowed = {'password', 'name', 'gender', 'pdn_code', 'daily_conversation_limit'}
@@ -1220,9 +1213,7 @@ def delete_user_endpoint(email):
     verify_session(request.args.get('session_token'))
 
     data = request.get_json() or {}
-    admin_password = data.get('admin_password', '')
-    if admin_password.lower() != current_app.config.get('ADMIN_PASSWORD', 'pdn').lower():
-        return jsonify({"error": "Invalid admin password"}), 401
+    data.pop('admin_password', None)
 
     um = get_user_manager()
     try:

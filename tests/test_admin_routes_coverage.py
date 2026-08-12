@@ -562,7 +562,7 @@ class TestUserManagement:
         assert data['success'] is True
 
     def test_create_user_invalid_admin_password(self, client, valid_session_token, mock_user_manager):
-        """POST /users with wrong admin password returns 401."""
+        """POST /users with admin_password field ignored - session_token is sufficient."""
         response = client.post(
             f'/pdn-admin/users?session_token={valid_session_token}',
             json={
@@ -573,7 +573,7 @@ class TestUserManagement:
                 'pdn_code': 'a3'
             }
         )
-        assert response.status_code == 401
+        assert response.status_code == 201
 
     def test_create_user_no_data(self, client, valid_session_token, mock_user_manager):
         """POST /users with no data returns 400."""
@@ -630,12 +630,12 @@ class TestUserManagement:
         assert data['success'] is True
 
     def test_update_user_invalid_admin_password(self, client, valid_session_token, mock_user_manager):
-        """PUT /users/<email> with wrong admin password returns 401."""
+        """PUT /users/<email> with admin_password field ignored - session_token is sufficient."""
         response = client.put(
             f'/pdn-admin/users/user1@test.com?session_token={valid_session_token}',
             json={'admin_password': 'wrong', 'name': 'Updated'}
         )
-        assert response.status_code == 401
+        assert response.status_code == 200
 
     def test_update_user_not_found(self, client, valid_session_token, mock_user_manager):
         """PUT /users/<email> for missing user returns 404."""
@@ -674,12 +674,12 @@ class TestUserManagement:
         assert data['success'] is True
 
     def test_delete_user_invalid_admin_password(self, client, valid_session_token, mock_user_manager):
-        """DELETE /users/<email> with wrong admin password returns 401."""
+        """DELETE /users/<email> with admin_password field ignored - session_token is sufficient."""
         response = client.delete(
             f'/pdn-admin/users/user1@test.com?session_token={valid_session_token}',
             json={'admin_password': 'wrong'}
         )
-        assert response.status_code == 401
+        assert response.status_code == 200
 
     def test_delete_user_not_found(self, client, valid_session_token, mock_user_manager):
         """DELETE /users/<email> for missing user returns 404."""
