@@ -2993,6 +2993,10 @@
                 <div class="p-4 bg-blue-50 rounded-lg border border-blue-200 text-center mb-4">
                     <div class="text-2xl font-bold text-blue-900 mb-1">v${appVersionData.version}</div>
                     <div class="text-sm text-gray-600">${appVersionData.release_date}</div>
+                    <div style="margin-top:8px;display:inline-flex;align-items:center;gap:6px;padding:4px 12px;background:#dbeafe;border-radius:20px;">
+                        <i class="fas fa-robot" style="font-size:11px;color:#1e40af;"></i>
+                        <span style="font-size:11px;font-weight:600;color:#1e40af;">${appVersionData.model || 'claude-sonnet-5'}</span>
+                    </div>
                 </div>
                 <div class="space-y-2">
                     ${notesHtml}

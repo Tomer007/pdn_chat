@@ -343,6 +343,7 @@ def app_version():
         'commit': commit_hash,
         'release_date': deploy_date,
         'release_notes': release_notes,
+        'model': current_app.config.get('ANTHROPIC_MODEL', 'claude-sonnet-5'),
     })
 
 def _format_user(s, user_type):
