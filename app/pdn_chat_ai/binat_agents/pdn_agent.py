@@ -187,7 +187,7 @@ class PDNAgent(BasePDNAgent):
             'sonnet': {
                 'cost': round(calc_cost_with_model(aggregate, 'sonnet'), 4),
                 'per_call': round(calc_cost_with_model(aggregate, 'sonnet') / max(total_calls, 1), 4),
-                'label': 'Claude Sonnet 4 (נוכחי)',
+                'label': 'Claude Sonnet 5 (נוכחי)',
             },
             'haiku': {
                 'cost': round(calc_cost_with_model(aggregate, 'haiku'), 4),
