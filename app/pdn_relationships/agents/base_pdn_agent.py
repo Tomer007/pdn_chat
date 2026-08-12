@@ -100,10 +100,10 @@ class BasePDNAgent:
         self._is_anthropic = self.llm_provider.lower() == 'anthropic'
 
         # Use a cheap model for summarization — same provider as main LLM
+        # Note: claude-sonnet-5 doesn't support temperature parameter
         if self._is_anthropic:
             self.summary_llm = ChatAnthropic(
-                model="claude-3-5-haiku-20241022",
-                temperature=0.3,
+                model="claude-sonnet-5",
                 api_key=app_config.ANTHROPIC_API_KEY,
             )
         else:
@@ -159,13 +159,18 @@ class BasePDNAgent:
         if not api_key:
             raise ValueError(f"{key_name} not set")
 
-        return llm_class(
-            model=self.model_name,
-            temperature=0.7,
-            max_tokens=1500,
-            api_key=api_key,
-            timeout=180,
-        )
+        # Claude Sonnet 5 doesn't support temperature parameter
+        kwargs = {
+            "model": self.model_name,
+            "max_tokens": 1500,
+            "api_key": api_key,
+            "timeout": 180,
+        }
+        # Only add temperature for models that support it (not claude-sonnet-5)
+        if not self.model_name.startswith("claude-sonnet-5"):
+            kwargs["temperature"] = 0.7
+        
+        return llm_class(**kwargs)
 
     def _build_system_message(self, system_prompt: str) -> SystemMessage:
         """Build a SystemMessage, adding Anthropic cache_control when applicable.
