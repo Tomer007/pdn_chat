@@ -1,5 +1,17 @@
 let isDarkMode = false;
 
+function toggleBinatPassword() {
+    const input = document.getElementById('password');
+    const icon  = document.getElementById('binatEyeIcon');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fas fa-eye-slash';
+    } else {
+        input.type = 'password';
+        icon.className = 'fas fa-eye';
+    }
+}
+
 // Function to show error message
 function showError(message) {
     const loginError = document.getElementById('loginError');
