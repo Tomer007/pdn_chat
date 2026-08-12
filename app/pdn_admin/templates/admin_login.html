@@ -55,11 +55,21 @@
                     <i class="fas fa-lock"></i>
                     סיסמה
                 </label>
-                <input type="password" id="password" name="password" required
-                       class="form-input"
-                       placeholder="הזן סיסמה"
-                       autocomplete="current-password"
-                       maxlength="50">
+                <div style="position:relative;">
+                    <input type="password" id="password" name="password" required
+                           class="form-input"
+                           placeholder="הזן סיסמה"
+                           autocomplete="current-password"
+                           maxlength="50"
+                           style="padding-left:40px;">
+                    <button type="button"
+                            onclick="togglePassword()"
+                            tabindex="-1"
+                            title="הצג/הסתר סיסמה"
+                            style="position:absolute;left:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#94a3b8;font-size:16px;padding:0;line-height:1;">
+                        <i id="eyeIcon" class="fas fa-eye"></i>
+                    </button>
+                </div>
             </div>
 
             <button type="submit" class="submit-button">
@@ -92,6 +102,19 @@
 
         // Save preference
         localStorage.setItem('darkMode', isDarkMode);
+    }
+
+    // Toggle password visibility
+    function togglePassword() {
+        const input = document.getElementById('password');
+        const icon  = document.getElementById('eyeIcon');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.className = 'fas fa-eye-slash';
+        } else {
+            input.type = 'password';
+            icon.className = 'fas fa-eye';
+        }
     }
 
     // Function to show error message
