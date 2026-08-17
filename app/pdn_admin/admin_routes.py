@@ -2267,15 +2267,15 @@ def pdn_analysis_excel():
                 c.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
                 c.border = _border()
 
-        # ---- Sheet 6: Users without קוד מאבחן ----
+        # ---- Sheet 6: All users - statistical suggestion + verified code ----
         ws6 = wb.create_sheet("ממתינים לאבחון")
         ws6.sheet_view.rightToLeft = True
 
-        # Headers: 7 original columns + 3 new statistical columns
+        # Columns: שם | אימייל | תאריך | קוד מערכת | קוד מאבחן | הצעה סטטיסטית | חלופות | ביטחון סטטיסטי
         headers6    = ["שם", "אימייל", "תאריך",
-                       "קוד מערכת", "קוד מחושב", "האם שווים", "הסבר על הבדל",
+                       "קוד מערכת", "קוד מאבחן",
                        "הצעה סטטיסטית", "חלופות", "ביטחון סטטיסטי"]
-        col_widths6 = [22, 30, 12, 15, 15, 10, 52, 18, 30, 38]
+        col_widths6 = [22, 30, 12, 15, 15, 18, 30, 38]
 
         for col_idx, (h, w) in enumerate(zip(headers6, col_widths6), 1):
             c = ws6.cell(1, col_idx, h)
@@ -2413,58 +2413,22 @@ def pdn_analysis_excel():
         STAT_MED_FILL  = _fill("EBF5FB")   # very light blue - moderate
         STAT_LOW_FILL  = _fill("FDFEFE")   # near-white - low confidence
 
+        # Include ALL users: those with קוד מאבחן show it; those without show N/A
         row6 = 2
-        undiagnosed = [u for u in users_metadata if not u.get('diagnose_pdn_code', '').strip()
-                       and u.get('email', '').strip().lower() not in test_emails]
+        all_sheet6_users = [u for u in users_metadata
+                            if u.get('email', '').strip().lower() not in test_emails]
 
-        for u in sorted(undiagnosed, key=lambda x: x.get('date', '')):
-            email    = u.get('email', '').strip()
-            name     = f"{u.get('first_name','')} {u.get('last_name','')}".strip() or email
-            date     = u.get('date', '')
-            sys_code = u.get('pdn_code', '').strip()
+        for u in sorted(all_sheet6_users, key=lambda x: x.get('date', '')):
+            email        = u.get('email', '').strip()
+            name         = f"{u.get('first_name','')} {u.get('last_name','')}".strip() or email
+            date         = u.get('date', '')
+            sys_code     = u.get('pdn_code', '').strip()
+            diagnose_code = u.get('diagnose_pdn_code', '').strip()
 
-            # --- Column 5: Computed code from calculator ---
-            computed_code = ''
-            explanation   = ''
-            try:
-                raw_answers = csv_metadata_handler.get_user_files(email, "answers")
-                if raw_answers and isinstance(raw_answers, dict):
-                    _calc_res = _calc_pdn(raw_answers, return_details=True, user_id=email)
-                    if isinstance(_calc_res, dict):
-                        computed_code = _calc_res.get('pdn_code', '') or ''
-                        _needs_v  = _calc_res.get('needs_verification', False)
-                        _stage_e  = _calc_res.get('stage_e_override', False)
-                        _miss_e   = _calc_res.get('missing_stage_e', False)
-                        _conf     = _calc_res.get('confidence_score', None)
-                        _details  = _calc_res.get('calculation_details', [])
-                        _parts = []
-                        if _miss_e:
-                            _parts.append("חסרות תשובות לשלב E")
-                        if _needs_v:
-                            _parts.append("ציונים קרובים - נדרש אימות")
-                        if _stage_e:
-                            _pre_e = _calc_res.get('dominant_before_stage_e', '')
-                            _parts.append(f"שלב E שינה קוד מ-{_pre_e} ל-{computed_code.rstrip('0123456789')}")
-                        if _conf is not None:
-                            _parts.append(f"ביטחון: {_conf}%")
-                        for _d in _details:
-                            if _d.get('stage') == 'Final':
-                                _sc = _d.get('scores', {})
-                                if _sc:
-                                    _parts.append("ניקוד: " + "  ".join(
-                                        f"{t}={_sc[t]}" for t in ['E','A','T','P'] if t in _sc))
-                                break
-                        explanation = " | ".join(_parts)
-                    else:
-                        computed_code = str(_calc_res) if _calc_res else ''
-                else:
-                    computed_code = ''
-                    explanation   = 'אין תשובות שמורות'
-            except Exception as _e:
-                computed_code = ''
-                explanation   = f'שגיאה בחישוב: {str(_e)[:50]}'
+            # Row background: green if has קוד מאבחן, yellow if not
+            row_fill = OK_FILL if diagnose_code else WARN_FILL
 
-            # --- Columns 8-10: Statistical suggestion ---
+            # --- Statistical suggestion columns ---
             stat_suggestion = '-'
             stat_alts       = '-'
             stat_confidence = '-'
@@ -2497,7 +2461,6 @@ def pdn_analysis_excel():
                                 _alt_parts.append(f"{_top3_code} ({_top3_pct}%)")
                             stat_alts = " | ".join(_alt_parts) if _alt_parts else '-'
 
-                            # Confidence label + trait breakdown
                             if _gap >= 20:
                                 _conf_label = "גבוה"
                                 stat_col_fill = STAT_HIGH_FILL
@@ -2516,44 +2479,30 @@ def pdn_analysis_excel():
             except Exception:
                 pass
 
-            # --- Row fill based on code agreement ---
-            same      = (sys_code == computed_code) if sys_code and computed_code else None
-            same_text = 'כן' if same is True else ('לא' if same is False else '-')
-
-            if sys_code != computed_code and sys_code and computed_code:
-                explanation = f"קוד מערכת ({sys_code}) שונה מהמחושב ({computed_code}). " + explanation
-                row_fill = MISMATCH_FILL
-            elif not sys_code:
-                row_fill = WARN_FILL
-            else:
-                row_fill = OK_FILL
-
             row6_data = [name, email, date,
-                         sys_code or '-', computed_code or '-', same_text, explanation,
+                         sys_code or '-', diagnose_code or 'N/A',
                          stat_suggestion, stat_alts, stat_confidence]
 
             for col_idx, val in enumerate(row6_data, 1):
                 c = ws6.cell(row6, col_idx, val)
                 c.border = _border()
-                # Statistical columns get their own fill; others get row_fill
-                if col_idx in (8, 9, 10):
+                if col_idx in (6, 7, 8):
                     c.fill = stat_col_fill
                 else:
                     c.fill = row_fill
-                if col_idx in (7, 10):
+                if col_idx == 8:
                     c.alignment = Alignment(horizontal="right", vertical="top", wrap_text=True)
-                elif col_idx == 9:
-                    c.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
                 else:
                     c.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
 
-            _row_h = max(40, min(100, max(len(explanation), len(stat_confidence)) // 2 + 20))
+            _row_h = max(30, min(80, len(stat_confidence) // 2 + 20))
             ws6.row_dimensions[row6].height = _row_h
             row6 += 1
 
         # Summary row
-        total_undiagnosed = row6 - 2
-        ws6.cell(row6, 1, f'סה"כ ממתינים: {total_undiagnosed}').font = _font(bold=True)
+        total_all = row6 - 2
+        total_diagnosed = sum(1 for u in all_sheet6_users if u.get('diagnose_pdn_code', '').strip())
+        ws6.cell(row6, 1, f'סה"כ: {total_all} | עם קוד מאבחן: {total_diagnosed} | ממתינים: {total_all - total_diagnosed}').font = _font(bold=True)
         ws6.cell(row6, 1).alignment = RIGHT
 
         # --- Stream response ---
