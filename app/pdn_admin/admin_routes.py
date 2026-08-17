@@ -1938,10 +1938,10 @@ def pdn_analysis_excel():
         # Old stored answers use AP/ET; text is identical so map them too
         q_code_text.setdefault('14', {}).update({'AP': 'נוטה להסכים', 'ET': 'נוטה להתדיין'})
 
-        # Group users by PDN code
+        # Group users by diagnose_pdn_code (human-validated code, authoritative for all stats)
         users_by_code = {}
         for code in PDN_12:
-            users_by_code[code] = [u for u in valid_users if u['pdn_code'] == code]
+            users_by_code[code] = [u for u in valid_users if u.get('diagnose_pdn_code', '') == code]
 
         # Compute stats: for each question, for each code, count dominant answers
         from collections import defaultdict
@@ -2167,7 +2167,7 @@ def pdn_analysis_excel():
             ws4.row_dimensions[ri].height = 40
 
             for col_idx, code in enumerate(PDN_12, start=2):
-                s = stats.get(q_num, {}).get(code, {"counts": {}, "total": 0})
+                s = stats.get(str(q_num), {}).get(code, {"counts": {}, "total": 0})
                 total = s["total"]
                 if total == 0:
                     c = ws4.cell(ri, col_idx, "-")
@@ -2176,7 +2176,7 @@ def pdn_analysis_excel():
                     lines = []
                     for a, n in sorted_ans[:3]:
                         pct = round(n / total * 100)
-                        text = q_code_text.get(q_num, {}).get(a, '')
+                        text = q_code_text.get(str(q_num), {}).get(a, '')
                         lines.append(f"{a}: {pct}% ({n}/{total})" + (f"\n({text[:18]})" if text else ""))
                     c = ws4.cell(ri, col_idx, "\n".join(lines))
                     if sorted_ans and sorted_ans[0][0] in ANSWER_FILLS:
