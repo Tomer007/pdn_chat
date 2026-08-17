@@ -2266,6 +2266,115 @@ def pdn_analysis_excel():
                 c.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
                 c.border = _border()
 
+        # ---- Sheet 6: Users without קוד מאבחן ----
+        ws6 = wb.create_sheet("ממתינים לאבחון")
+        ws6.sheet_view.rightToLeft = True
+
+        # Headers
+        headers6 = ["שם", "אימייל", "תאריך", "קוד מערכת (PDN Code)", "קוד מחושב מתשובות", "האם שווים", "הסבר על הבדל"]
+        col_widths6 = [22, 30, 12, 18, 18, 12, 55]
+
+        for col_idx, (h, w) in enumerate(zip(headers6, col_widths6), 1):
+            c = ws6.cell(1, col_idx, h)
+            c.fill = HEADER_FILL
+            c.font = HEADER_FONT
+            c.alignment = CENTER
+            c.border = _border()
+            ws6.column_dimensions[get_column_letter(col_idx)].width = w
+
+        ws6.row_dimensions[1].height = 30
+        ws6.freeze_panes = "A2"
+
+        # Collect users without diagnose_pdn_code (empty קוד מאבחן)
+        from app.utils.pdn_calculator import calculate_pdn_code as _calc_pdn
+        from app.utils.csv_metadata_handler import UserMetadataHandler as _UMH
+
+        MISMATCH_FILL = _fill("FDEBD0")
+        OK_FILL       = _fill("D4EFDF")
+        WARN_FILL     = _fill("FEF9E7")
+
+        row6 = 2
+        undiagnosed = [u for u in users_metadata if not u.get('diagnose_pdn_code', '').strip()
+                       and u.get('email', '').strip().lower() not in test_emails]
+
+        for u in sorted(undiagnosed, key=lambda x: x.get('date', '')):
+            email  = u.get('email', '').strip()
+            name   = f"{u.get('first_name','')} {u.get('last_name','')}".strip() or email
+            date   = u.get('date', '')
+            sys_code = u.get('pdn_code', '').strip()  # system-stored code (may be from recalc or empty)
+
+            # Compute code from answers right now
+            computed_code = ''
+            explanation   = ''
+            try:
+                raw_answers = csv_metadata_handler.get_user_files(email, "answers")
+                if raw_answers and isinstance(raw_answers, dict):
+                    calc_result = _calc_pdn(raw_answers, return_details=True, user_id=email)
+                    if isinstance(calc_result, dict):
+                        computed_code = calc_result.get('pdn_code', '') or ''
+                        needs_verif   = calc_result.get('needs_verification', False)
+                        stage_e_ov    = calc_result.get('stage_e_override', False)
+                        missing_e     = calc_result.get('missing_stage_e', False)
+                        confidence    = calc_result.get('confidence_score', None)
+                        details       = calc_result.get('calculation_details', [])
+                        # Build explanation
+                        parts = []
+                        if missing_e:
+                            parts.append("חסרות תשובות לשלב E")
+                        if needs_verif:
+                            parts.append("ציונים קרובים - נדרש אימות")
+                        if stage_e_ov:
+                            pre_e = calc_result.get('dominant_before_stage_e', '')
+                            parts.append(f"שלב E שינה קוד מ-{pre_e} ל-{computed_code.rstrip('0123456789')}")
+                        if confidence is not None:
+                            parts.append(f"ביטחון: {confidence}%")
+                        # Show score breakdown from Final stage
+                        for d in details:
+                            if d.get('stage') == 'Final':
+                                scores = d.get('scores', {})
+                                if scores:
+                                    score_str = "  ".join(f"{t}={scores[t]}" for t in ['E','A','T','P'] if t in scores)
+                                    parts.append(f"ניקוד: {score_str}")
+                                break
+                        explanation = " | ".join(parts) if parts else ''
+                    else:
+                        computed_code = str(calc_result) if calc_result else ''
+                else:
+                    computed_code = ''
+                    explanation   = 'אין תשובות שמורות'
+            except Exception as e:
+                computed_code = ''
+                explanation   = f'שגיאה בחישוב: {str(e)[:50]}'
+
+            same = (sys_code == computed_code) if sys_code and computed_code else None
+            same_text = 'כן' if same is True else ('לא' if same is False else '-')
+
+            if sys_code != computed_code and sys_code and computed_code:
+                explanation = f"קוד מערכת ({sys_code}) שונה מהמחושב ({computed_code}). " + explanation
+                row_fill = MISMATCH_FILL
+            elif not sys_code:
+                row_fill = WARN_FILL
+            else:
+                row_fill = OK_FILL
+
+            row6_data = [name, email, date, sys_code or '-', computed_code or '-', same_text, explanation]
+            for col_idx, val in enumerate(row6_data, 1):
+                c = ws6.cell(row6, col_idx, val)
+                c.border = _border()
+                c.fill   = row_fill
+                if col_idx == 7:
+                    c.alignment = Alignment(horizontal="right", vertical="top", wrap_text=True)
+                else:
+                    c.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+
+            ws6.row_dimensions[row6].height = max(30, min(90, len(explanation) // 2 + 15))
+            row6 += 1
+
+        # Summary row
+        total_undiagnosed = row6 - 2
+        ws6.cell(row6, 1, f'סה"כ ממתינים: {total_undiagnosed}').font = _font(bold=True)
+        ws6.cell(row6, 1).alignment = RIGHT
+
         # --- Stream response ---
         buf = io.BytesIO()
         wb.save(buf)
