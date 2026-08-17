@@ -2300,6 +2300,20 @@ def pdn_analysis_excel():
         _SMOOTHING = 0.5
 
         def _build_ref_profiles(users_by_code, user_answers, questions_data):
+            """
+            Build per-code answer profiles AND a global baseline profile.
+
+            Returns (ref, baseline) where:
+              ref[code][q_num] = {answer_code: probability}  - per-code profile
+              baseline[q_num]  = {answer_code: probability}  - marginal across ALL verified users
+
+            Uses Laplace smoothing (0.5) to handle sparse codes.
+            The baseline is used for log-likelihood ratio scoring to eliminate
+            the population-size bias (codes with many users would otherwise always win).
+            """
+            all_verified = [u for users in users_by_code.values() for u in users]
+
+            # Build per-code profiles
             ref = {}
             for _code in PDN_12:
                 ref[_code] = {}
@@ -2317,20 +2331,44 @@ def pdn_analysis_excel():
                                 _cnt[_dom] += 1
                     _tot = sum(_cnt.values())
                     ref[_code][_q_num] = {k: v / _tot for k, v in _cnt.items()}
-            return ref
 
-        def _stat_score_user(user_ans_dict, ref_profiles):
+            # Build global baseline across all verified users
+            baseline = {}
+            for _q_num, _q_info in questions_data.items():
+                _opts = [o['code'] for o in _q_info.get('options', []) if o.get('code')]
+                if not _opts:
+                    continue
+                _cnt = {o: _SMOOTHING for o in _opts}
+                for _u in all_verified:
+                    _ans = user_answers.get(_u['email'], {}).get(str(_q_num))
+                    if _ans:
+                        _dom = _get_dominant_answer(_ans, _q_num)
+                        if _dom and _dom in _cnt:
+                            _cnt[_dom] += 1
+                _tot = sum(_cnt.values())
+                baseline[_q_num] = {k: v / _tot for k, v in _cnt.items()}
+
+            return ref, baseline
+
+        def _stat_score_user(user_ans_dict, ref_profiles, baseline):
             """
-            Score a user's answers against each code's reference profile using
-            average log-likelihood (Naive Bayes). Returns:
+            Score a user's answers using log-likelihood RATIO vs baseline.
+
+            LLR(code) = avg over questions of log(P(answer|code) / P(answer|baseline))
+
+            This eliminates population-size bias: codes with many users no longer
+            dominate just because their profiles are sharp. A code scores positively
+            only when it predicts the user's answers BETTER than the average verified user.
+
+            Returns:
               ranked   - list of (code, pct_score 0-100) sorted descending
               gap      - integer gap between top-1 and top-2 percentage scores
               trait_top - dict {trait: best_pct} for E/A/T/P
             """
             raw = {}
             for _code in PDN_12:
-                _ll = 0.0
-                _n  = 0
+                _llr = 0.0
+                _n   = 0
                 for _q_num, _code_profile in ref_profiles.get(_code, {}).items():
                     _ua = user_ans_dict.get(str(_q_num))
                     if not _ua:
@@ -2338,10 +2376,11 @@ def pdn_analysis_excel():
                     _dom = _get_dominant_answer(_ua, _q_num)
                     if not _dom:
                         continue
-                    _prob = _code_profile.get(_dom, 1e-9)
-                    _ll  += _math.log(_prob)
+                    _p_code = _code_profile.get(_dom, 1e-9)
+                    _p_base = baseline.get(_q_num, {}).get(_dom, 1e-9)
+                    _llr += _math.log(_p_code / _p_base)
                     _n   += 1
-                raw[_code] = _ll / _n if _n > 0 else -999.0
+                raw[_code] = _llr / _n if _n > 0 else -999.0
 
             # Normalise to 0-100 relative to worst/best in this user's run
             _vals = [v for v in raw.values() if v > -900]
@@ -2362,7 +2401,7 @@ def pdn_analysis_excel():
             return _ranked, _gap, _trait_top
 
         # Build profiles once using the already-loaded users_by_code and user_answers
-        _ref_profiles = _build_ref_profiles(users_by_code, user_answers, questions_data)
+        _ref_profiles, _baseline = _build_ref_profiles(users_by_code, user_answers, questions_data)
 
         # ------------------------------------------------------------------
         # Fill rows for undiagnosed users
@@ -2443,7 +2482,7 @@ def pdn_analysis_excel():
                         and ('selected_option_code' in v or 'ranking' in v)
                     }
                     if _user_ans_filtered:
-                        _ranked, _gap, _trait_top = _stat_score_user(_user_ans_filtered, _ref_profiles)
+                        _ranked, _gap, _trait_top = _stat_score_user(_user_ans_filtered, _ref_profiles, _baseline)
                         if _ranked:
                             _top1_code, _top1_pct = _ranked[0]
                             _top2_code, _top2_pct = _ranked[1] if len(_ranked) > 1 else ('', 0)
