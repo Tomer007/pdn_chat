@@ -763,12 +763,17 @@
                         <th style="padding:12px 16px;text-align:center;font-weight:600;color:#475569;">קריאות</th>
                         <th style="padding:12px 16px;text-align:center;font-weight:600;color:#475569;">קלט</th>
                         <th style="padding:12px 16px;text-align:center;font-weight:600;color:#475569;">פלט</th>
+                        <th style="padding:12px 16px;text-align:center;font-weight:600;color:#475569;">Cache</th>
                         <th style="padding:12px 16px;text-align:center;font-weight:600;color:#475569;">עלות</th>
                     </tr></thead><tbody>`;
             userNames.sort((a,b)=>stats[b].total_cost-stats[a].total_cost);
             userNames.forEach(user=>{const s=stats[user];
-            html+=`<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:10px 16px;font-weight:500;color:#1e293b;">${user}</td><td style="padding:10px 16px;text-align:center;color:#475569;">${s.calls}</td><td style="padding:10px 16px;text-align:center;color:#475569;">${(s.input_tokens/1000).toFixed(1)}K</td><td style="padding:10px 16px;text-align:center;color:#475569;">${(s.output_tokens/1000).toFixed(1)}K</td><td style="padding:10px 16px;text-align:center;font-weight:700;color:#0b2e6b;">$${s.total_cost.toFixed(4)}</td></tr>`;});
-            html+=`<tr style="background:#f8fafc;border-top:2px solid #e2e8f0;"><td style="padding:10px 16px;font-weight:700;color:#1e293b;">סה"כ</td><td style="padding:10px 16px;text-align:center;font-weight:700;">${tCalls}</td><td style="padding:10px 16px;text-align:center;font-weight:700;">${(tIn/1000).toFixed(1)}K</td><td style="padding:10px 16px;text-align:center;font-weight:700;">${(tOut/1000).toFixed(1)}K</td><td style="padding:10px 16px;text-align:center;font-weight:700;color:#0b2e6b;">$${tCost.toFixed(4)}</td></tr></tbody></table></div>`;
+            const cacheRead=s.cache_read_tokens||0;
+            const totalIn=s.input_tokens||1;
+            const cacheRate=Math.round(cacheRead/totalIn*100);
+            const cacheColor=cacheRate>=60?'#059669':cacheRate>=30?'#d97706':'#94a3b8';
+            html+=`<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:10px 16px;font-weight:500;color:#1e293b;">${user}</td><td style="padding:10px 16px;text-align:center;color:#475569;">${s.calls}</td><td style="padding:10px 16px;text-align:center;color:#475569;">${(s.input_tokens/1000).toFixed(1)}K</td><td style="padding:10px 16px;text-align:center;color:#475569;">${(s.output_tokens/1000).toFixed(1)}K</td><td style="padding:10px 16px;text-align:center;font-weight:600;color:${cacheColor};">${(cacheRead/1000).toFixed(1)}K (${cacheRate}%)</td><td style="padding:10px 16px;text-align:center;font-weight:700;color:#0b2e6b;">$${s.total_cost.toFixed(4)}</td></tr>`;});
+            html+=`<tr style="background:#f8fafc;border-top:2px solid #e2e8f0;"><td style="padding:10px 16px;font-weight:700;color:#1e293b;">סה"כ</td><td style="padding:10px 16px;text-align:center;font-weight:700;">${tCalls}</td><td style="padding:10px 16px;text-align:center;font-weight:700;">${(tIn/1000).toFixed(1)}K</td><td style="padding:10px 16px;text-align:center;font-weight:700;">${(tOut/1000).toFixed(1)}K</td><td style="padding:10px 16px;text-align:center;font-weight:700;color:#059669;">${(tCR/1000).toFixed(1)}K (${tIn>0?Math.round(tCR/tIn*100):0}%)</td><td style="padding:10px 16px;text-align:center;font-weight:700;color:#0b2e6b;">$${tCost.toFixed(4)}</td></tr></tbody></table></div>`;
             html+=`<p style="font-size:10px;color:#94a3b8;margin-top:12px;text-align:center;">* תמחור לפי Claude Sonnet 5. תחזית מבוססת על ממוצע יומי.</p>`;
             container.innerHTML=html;
         } catch(error){logError('loadTokenUsage',error);container.innerHTML='<div style="text-align:center;padding:24px;color:#dc2626;font-size:13px;"><i class="fas fa-exclamation-circle" style="margin-left:6px;"></i> שגיאה בטעינת נתוני עלויות</div>';}
