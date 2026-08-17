@@ -22,6 +22,37 @@
 
 This is a hard rule — no exceptions, no `--no-verify`, no "commit now fix later".
 
+## Playwright E2E Tests
+
+E2E tests live in `e2e/` and require the Flask server to be running on port 8001.
+
+**When to run E2E tests:**
+- After any change to HTML templates (`app/**/templates/*.html`)
+- After any change to frontend JS (`app/static/js/*.js`)
+- After adding or changing routes that the UI calls
+
+**How to run:**
+```bash
+# 1. Start the Flask server in one terminal
+source venv/bin/activate && python run.py
+
+# 2. In another terminal, run the E2E tests
+npm test
+# or specific file:
+npx playwright test e2e/admin.spec.js
+```
+
+**Test files and what they cover:**
+- `e2e/admin.spec.js` — Admin login, dashboard tabs, version modal, logo click, status filters
+- `e2e/diagnose.spec.js` — Questionnaire login, user_info form, answer API, progress
+- `e2e/binat.spec.js` — Binat chat login, chat page render, logout
+- `e2e/relationships.spec.js` — Relationships login API (all 12 PDN codes, all 3 relationship types), chat page
+
+**Credentials used in E2E tests:**
+- Admin: `jclazvbdn` (config.py default)
+- Binat/Relationships: `tomergur@gmail.com` / `pdn`
+- Diagnose: `e2etest@playwright.com` / `e2etest` (local part = password)
+
 ## Preventing Local/Production Drift
 
 **NEVER push frontend changes (JS/HTML) that reference backend routes without also committing the backend code in the same commit or earlier.**

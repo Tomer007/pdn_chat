@@ -38,5 +38,21 @@
     "gender": "",
     "daily_conversation_limit": 100,
     "created_at": "2026-05-02 00:00"
+  },
+  "persist_test_1786522371919@test.com": {
+    "password": "$2b$12$pLKIIOJ3UEV16jhLYA78cejO624RIDFbPbXmVqIUvR3lwxm8bp3MG",
+    "pdn_code": "a3",
+    "name": "PersistTest",
+    "gender": "",
+    "daily_conversation_limit": 5,
+    "created_at": "2026-08-12 11:12"
+  },
+  "update_test_1786522377102@test.com": {
+    "password": "$2b$12$iPy0RvgJts1sYwK20E4xMOGfOOci0ZTLSugE/oDsVSYAsOzI.iaZC",
+    "pdn_code": "a3",
+    "name": "Updated",
+    "gender": "",
+    "daily_conversation_limit": 20,
+    "created_at": "2026-08-12 11:12"
   }
 }

@@ -25,6 +25,10 @@
 - NEVER use emojis in reports, HTML files, or responses.
 - Use plain text symbols or nothing at all.
 
+### Dashes
+- NEVER use em dash (—) in code, UI text, or reports.
+- Use only a regular hyphen-minus (-) when a separator is needed.
+
 ### After Creating HTML Reports
 - Always open the HTML file in the browser after creating it (`open <path>`).
 - Do not ask the user if they want it opened — just do it.
