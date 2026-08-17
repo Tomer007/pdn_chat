@@ -1938,10 +1938,11 @@ def pdn_analysis_excel():
         # Old stored answers use AP/ET; text is identical so map them too
         q_code_text.setdefault('14', {}).update({'AP': 'נוטה להסכים', 'ET': 'נוטה להתדיין'})
 
-        # Group users by diagnose_pdn_code (human-validated code, authoritative for all stats)
+        # Group users by diagnose_pdn_code (human-validated code, authoritative for all stats).
+        # valid_users stores the diagnose_pdn_code under key 'pdn_code' (see build loop above).
         users_by_code = {}
         for code in PDN_12:
-            users_by_code[code] = [u for u in valid_users if u.get('diagnose_pdn_code', '') == code]
+            users_by_code[code] = [u for u in valid_users if u.get('pdn_code', '') == code]
 
         # Compute stats: for each question, for each code, count dominant answers
         from collections import defaultdict
