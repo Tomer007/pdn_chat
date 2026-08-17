@@ -2270,9 +2270,11 @@ def pdn_analysis_excel():
         ws6 = wb.create_sheet("ממתינים לאבחון")
         ws6.sheet_view.rightToLeft = True
 
-        # Headers
-        headers6 = ["שם", "אימייל", "תאריך", "קוד מערכת (PDN Code)", "קוד מחושב מתשובות", "האם שווים", "הסבר על הבדל"]
-        col_widths6 = [22, 30, 12, 18, 18, 12, 55]
+        # Headers: 7 original columns + 3 new statistical columns
+        headers6    = ["שם", "אימייל", "תאריך",
+                       "קוד מערכת", "קוד מחושב", "האם שווים", "הסבר על הבדל",
+                       "הצעה סטטיסטית", "חלופות", "ביטחון סטטיסטי"]
+        col_widths6 = [22, 30, 12, 15, 15, 10, 52, 18, 30, 38]
 
         for col_idx, (h, w) in enumerate(zip(headers6, col_widths6), 1):
             c = ws6.cell(1, col_idx, h)
@@ -2285,68 +2287,197 @@ def pdn_analysis_excel():
         ws6.row_dimensions[1].height = 30
         ws6.freeze_panes = "A2"
 
-        # Collect users without diagnose_pdn_code (empty קוד מאבחן)
+        # ------------------------------------------------------------------
+        # Build statistical reference profiles from verified users
+        # Each profile[code][q_num] = {answer_code: probability}
+        # Uses Laplace smoothing (0.5 pseudo-count per option) to handle
+        # codes with few verified users without zero-probability issues.
+        # ------------------------------------------------------------------
+        import math as _math
         from app.utils.pdn_calculator import calculate_pdn_code as _calc_pdn
-        from app.utils.csv_metadata_handler import UserMetadataHandler as _UMH
 
+        _SMOOTHING = 0.5
+
+        def _build_ref_profiles(users_by_code, user_answers, questions_data):
+            ref = {}
+            for _code in PDN_12:
+                ref[_code] = {}
+                _users_c = users_by_code.get(_code, [])
+                for _q_num, _q_info in questions_data.items():
+                    _opts = [o['code'] for o in _q_info.get('options', []) if o.get('code')]
+                    if not _opts:
+                        continue
+                    _cnt = {o: _SMOOTHING for o in _opts}
+                    for _u in _users_c:
+                        _ans = user_answers.get(_u['email'], {}).get(str(_q_num))
+                        if _ans:
+                            _dom = _get_dominant_answer(_ans, _q_num)
+                            if _dom and _dom in _cnt:
+                                _cnt[_dom] += 1
+                    _tot = sum(_cnt.values())
+                    ref[_code][_q_num] = {k: v / _tot for k, v in _cnt.items()}
+            return ref
+
+        def _stat_score_user(user_ans_dict, ref_profiles):
+            """
+            Score a user's answers against each code's reference profile using
+            average log-likelihood (Naive Bayes). Returns:
+              ranked   - list of (code, pct_score 0-100) sorted descending
+              gap      - integer gap between top-1 and top-2 percentage scores
+              trait_top - dict {trait: best_pct} for E/A/T/P
+            """
+            raw = {}
+            for _code in PDN_12:
+                _ll = 0.0
+                _n  = 0
+                for _q_num, _code_profile in ref_profiles.get(_code, {}).items():
+                    _ua = user_ans_dict.get(str(_q_num))
+                    if not _ua:
+                        continue
+                    _dom = _get_dominant_answer(_ua, _q_num)
+                    if not _dom:
+                        continue
+                    _prob = _code_profile.get(_dom, 1e-9)
+                    _ll  += _math.log(_prob)
+                    _n   += 1
+                raw[_code] = _ll / _n if _n > 0 else -999.0
+
+            # Normalise to 0-100 relative to worst/best in this user's run
+            _vals = [v for v in raw.values() if v > -900]
+            if not _vals:
+                return [], 0, {}
+            _min_v = min(_vals)
+            _max_v = max(raw[c] - _min_v for c in PDN_12 if raw[c] > -900) or 1
+            pct = {c: round((raw[c] - _min_v) / _max_v * 100) for c in PDN_12}
+
+            _ranked = sorted(pct.items(), key=lambda x: -x[1])
+            _gap    = (_ranked[0][1] - _ranked[1][1]) if len(_ranked) > 1 else 100
+
+            _trait_top = {}
+            for _t in ['E', 'A', 'T', 'P']:
+                _t_scores = [pct[c] for c in PDN_12 if c.startswith(_t)]
+                _trait_top[_t] = max(_t_scores) if _t_scores else 0
+
+            return _ranked, _gap, _trait_top
+
+        # Build profiles once using the already-loaded users_by_code and user_answers
+        _ref_profiles = _build_ref_profiles(users_by_code, user_answers, questions_data)
+
+        # ------------------------------------------------------------------
+        # Fill rows for undiagnosed users
+        # ------------------------------------------------------------------
         MISMATCH_FILL = _fill("FDEBD0")
         OK_FILL       = _fill("D4EFDF")
         WARN_FILL     = _fill("FEF9E7")
+        STAT_HIGH_FILL = _fill("D6EAF8")   # light blue - strong statistical suggestion
+        STAT_MED_FILL  = _fill("EBF5FB")   # very light blue - moderate
+        STAT_LOW_FILL  = _fill("FDFEFE")   # near-white - low confidence
 
         row6 = 2
         undiagnosed = [u for u in users_metadata if not u.get('diagnose_pdn_code', '').strip()
                        and u.get('email', '').strip().lower() not in test_emails]
 
         for u in sorted(undiagnosed, key=lambda x: x.get('date', '')):
-            email  = u.get('email', '').strip()
-            name   = f"{u.get('first_name','')} {u.get('last_name','')}".strip() or email
-            date   = u.get('date', '')
-            sys_code = u.get('pdn_code', '').strip()  # system-stored code (may be from recalc or empty)
+            email    = u.get('email', '').strip()
+            name     = f"{u.get('first_name','')} {u.get('last_name','')}".strip() or email
+            date     = u.get('date', '')
+            sys_code = u.get('pdn_code', '').strip()
 
-            # Compute code from answers right now
+            # --- Column 5: Computed code from calculator ---
             computed_code = ''
             explanation   = ''
             try:
                 raw_answers = csv_metadata_handler.get_user_files(email, "answers")
                 if raw_answers and isinstance(raw_answers, dict):
-                    calc_result = _calc_pdn(raw_answers, return_details=True, user_id=email)
-                    if isinstance(calc_result, dict):
-                        computed_code = calc_result.get('pdn_code', '') or ''
-                        needs_verif   = calc_result.get('needs_verification', False)
-                        stage_e_ov    = calc_result.get('stage_e_override', False)
-                        missing_e     = calc_result.get('missing_stage_e', False)
-                        confidence    = calc_result.get('confidence_score', None)
-                        details       = calc_result.get('calculation_details', [])
-                        # Build explanation
-                        parts = []
-                        if missing_e:
-                            parts.append("חסרות תשובות לשלב E")
-                        if needs_verif:
-                            parts.append("ציונים קרובים - נדרש אימות")
-                        if stage_e_ov:
-                            pre_e = calc_result.get('dominant_before_stage_e', '')
-                            parts.append(f"שלב E שינה קוד מ-{pre_e} ל-{computed_code.rstrip('0123456789')}")
-                        if confidence is not None:
-                            parts.append(f"ביטחון: {confidence}%")
-                        # Show score breakdown from Final stage
-                        for d in details:
-                            if d.get('stage') == 'Final':
-                                scores = d.get('scores', {})
-                                if scores:
-                                    score_str = "  ".join(f"{t}={scores[t]}" for t in ['E','A','T','P'] if t in scores)
-                                    parts.append(f"ניקוד: {score_str}")
+                    _calc_res = _calc_pdn(raw_answers, return_details=True, user_id=email)
+                    if isinstance(_calc_res, dict):
+                        computed_code = _calc_res.get('pdn_code', '') or ''
+                        _needs_v  = _calc_res.get('needs_verification', False)
+                        _stage_e  = _calc_res.get('stage_e_override', False)
+                        _miss_e   = _calc_res.get('missing_stage_e', False)
+                        _conf     = _calc_res.get('confidence_score', None)
+                        _details  = _calc_res.get('calculation_details', [])
+                        _parts = []
+                        if _miss_e:
+                            _parts.append("חסרות תשובות לשלב E")
+                        if _needs_v:
+                            _parts.append("ציונים קרובים - נדרש אימות")
+                        if _stage_e:
+                            _pre_e = _calc_res.get('dominant_before_stage_e', '')
+                            _parts.append(f"שלב E שינה קוד מ-{_pre_e} ל-{computed_code.rstrip('0123456789')}")
+                        if _conf is not None:
+                            _parts.append(f"ביטחון: {_conf}%")
+                        for _d in _details:
+                            if _d.get('stage') == 'Final':
+                                _sc = _d.get('scores', {})
+                                if _sc:
+                                    _parts.append("ניקוד: " + "  ".join(
+                                        f"{t}={_sc[t]}" for t in ['E','A','T','P'] if t in _sc))
                                 break
-                        explanation = " | ".join(parts) if parts else ''
+                        explanation = " | ".join(_parts)
                     else:
-                        computed_code = str(calc_result) if calc_result else ''
+                        computed_code = str(_calc_res) if _calc_res else ''
                 else:
                     computed_code = ''
                     explanation   = 'אין תשובות שמורות'
-            except Exception as e:
+            except Exception as _e:
                 computed_code = ''
-                explanation   = f'שגיאה בחישוב: {str(e)[:50]}'
+                explanation   = f'שגיאה בחישוב: {str(_e)[:50]}'
 
-            same = (sys_code == computed_code) if sys_code and computed_code else None
+            # --- Columns 8-10: Statistical suggestion ---
+            stat_suggestion = '-'
+            stat_alts       = '-'
+            stat_confidence = '-'
+            stat_col_fill   = STAT_LOW_FILL
+
+            try:
+                _raw_a = csv_metadata_handler.get_user_files(email, "answers")
+                if _raw_a and isinstance(_raw_a, dict):
+                    _user_ans_filtered = {
+                        k: ({'selected_option_code': v['selected_option_code']}
+                            if 'selected_option_code' in v
+                            else {'ranking': v['ranking']})
+                        for k, v in _raw_a.items()
+                        if k != 'metadata' and isinstance(v, dict)
+                        and ('selected_option_code' in v or 'ranking' in v)
+                    }
+                    if _user_ans_filtered:
+                        _ranked, _gap, _trait_top = _stat_score_user(_user_ans_filtered, _ref_profiles)
+                        if _ranked:
+                            _top1_code, _top1_pct = _ranked[0]
+                            _top2_code, _top2_pct = _ranked[1] if len(_ranked) > 1 else ('', 0)
+                            _top3_code, _top3_pct = _ranked[2] if len(_ranked) > 2 else ('', 0)
+
+                            stat_suggestion = f"{_top1_code}  ({_top1_pct}%)"
+
+                            _alt_parts = []
+                            if _top2_code:
+                                _alt_parts.append(f"{_top2_code} ({_top2_pct}%)")
+                            if _top3_code:
+                                _alt_parts.append(f"{_top3_code} ({_top3_pct}%)")
+                            stat_alts = " | ".join(_alt_parts) if _alt_parts else '-'
+
+                            # Confidence label + trait breakdown
+                            if _gap >= 20:
+                                _conf_label = "גבוה"
+                                stat_col_fill = STAT_HIGH_FILL
+                            elif _gap >= 10:
+                                _conf_label = "בינוני"
+                                stat_col_fill = STAT_MED_FILL
+                            else:
+                                _conf_label = "נמוך"
+                                stat_col_fill = STAT_LOW_FILL
+
+                            _trait_line = " | ".join(
+                                f"{t}={v}%"
+                                for t, v in sorted(_trait_top.items(), key=lambda x: -x[1])
+                            )
+                            stat_confidence = f"{_conf_label} (פער={_gap}%)\n{_trait_line}"
+            except Exception:
+                pass
+
+            # --- Row fill based on code agreement ---
+            same      = (sys_code == computed_code) if sys_code and computed_code else None
             same_text = 'כן' if same is True else ('לא' if same is False else '-')
 
             if sys_code != computed_code and sys_code and computed_code:
@@ -2357,17 +2488,27 @@ def pdn_analysis_excel():
             else:
                 row_fill = OK_FILL
 
-            row6_data = [name, email, date, sys_code or '-', computed_code or '-', same_text, explanation]
+            row6_data = [name, email, date,
+                         sys_code or '-', computed_code or '-', same_text, explanation,
+                         stat_suggestion, stat_alts, stat_confidence]
+
             for col_idx, val in enumerate(row6_data, 1):
                 c = ws6.cell(row6, col_idx, val)
                 c.border = _border()
-                c.fill   = row_fill
-                if col_idx == 7:
+                # Statistical columns get their own fill; others get row_fill
+                if col_idx in (8, 9, 10):
+                    c.fill = stat_col_fill
+                else:
+                    c.fill = row_fill
+                if col_idx in (7, 10):
                     c.alignment = Alignment(horizontal="right", vertical="top", wrap_text=True)
+                elif col_idx == 9:
+                    c.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
                 else:
                     c.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
 
-            ws6.row_dimensions[row6].height = max(30, min(90, len(explanation) // 2 + 15))
+            _row_h = max(40, min(100, max(len(explanation), len(stat_confidence)) // 2 + 20))
+            ws6.row_dimensions[row6].height = _row_h
             row6 += 1
 
         # Summary row
