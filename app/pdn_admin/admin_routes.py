@@ -2125,6 +2125,147 @@ def pdn_analysis_excel():
         ws3.cell(len(PDN_12) + 2, 1, 'סה"כ').font = _font(bold=True)
         ws3.cell(len(PDN_12) + 2, 2, len(valid_users)).font = _font(bold=True)
 
+        # ---- Sheet 4: Q38-Q56 Statistics ----
+        ws4 = wb.create_sheet("Q38-Q56 סטטיסטיקה")
+        ws4.sheet_view.rightToLeft = True
+
+        Q38_56_LABELS = {
+            38: "בדיקה לעומק לפני נטילת סיכון", 39: "קושי עם חוסר ודאות",
+            40: "קבלת החלטות במהירות", 41: "קושי לקבל הנחיות",
+            42: "נוחות להוביל אחרים", 43: "מוחצנות/מופנמות - ילדות",
+            44: "מוחצנות/מופנמות - בגרות", 45: "הובלה/הצטרפות - ילדות",
+            46: "הובלה/הצטרפות - בגרות", 47: "דברנות/שתקנות - ילדות",
+            48: "דברנות/שתקנות - בגרות", 49: "עימותים/ריצוי - ילדות",
+            50: "עימותים/ריצוי - בגרות", 51: "עמידה בזמנים - ילדות",
+            52: "עמידה בזמנים - בגרות", 53: "סדר/בלגן - ילדות",
+            54: "סדר/בלגן - בגרות", 55: "מאופקות/נועזות - ילדות",
+            56: "מאופקות/נועזות - בגרות",
+        }
+
+        ws4.cell(1, 1, "שאלה").fill = HEADER_FILL
+        ws4.cell(1, 1).font = HEADER_FONT
+        ws4.cell(1, 1).alignment = RIGHT
+        ws4.column_dimensions["A"].width = 32
+
+        for col_idx, code in enumerate(PDN_12, start=2):
+            count = len(users_by_code.get(code, []))
+            c = ws4.cell(1, col_idx, f"{code}\n(N={count})")
+            c.fill = CODE_FILLS.get(code[0], HEADER_FILL)
+            c.font = _font(bold=True, color="000000", size=10)
+            c.alignment = CENTER
+            c.border = _border()
+            ws4.column_dimensions[get_column_letter(col_idx)].width = 16
+
+        ws4.row_dimensions[1].height = 36
+        ws4.freeze_panes = "B2"
+
+        for ri, q_num in enumerate(range(38, 57), start=2):
+            label = Q38_56_LABELS.get(q_num, f"Q{q_num}")
+            lc = ws4.cell(ri, 1, f"Q{q_num} - {label}")
+            lc.alignment = RIGHT
+            lc.border = _border()
+            ws4.row_dimensions[ri].height = 40
+
+            for col_idx, code in enumerate(PDN_12, start=2):
+                s = stats.get(q_num, {}).get(code, {"counts": {}, "total": 0})
+                total = s["total"]
+                if total == 0:
+                    c = ws4.cell(ri, col_idx, "-")
+                else:
+                    sorted_ans = sorted(s["counts"].items(), key=lambda x: -x[1])
+                    lines = []
+                    for a, n in sorted_ans[:3]:
+                        pct = round(n / total * 100)
+                        text = q_code_text.get(q_num, {}).get(a, '')
+                        lines.append(f"{a}: {pct}% ({n}/{total})" + (f"\n({text[:18]})" if text else ""))
+                    c = ws4.cell(ri, col_idx, "\n".join(lines))
+                    if sorted_ans and sorted_ans[0][0] in ANSWER_FILLS:
+                        c.fill = ANSWER_FILLS[sorted_ans[0][0]]
+                c.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+                c.border = _border()
+
+        # ---- Sheet 5: Q57-Q61 Statistics (first choice + position breakdown) ----
+        ws5 = wb.create_sheet("Q57-Q61 סטטיסטיקה")
+        ws5.sheet_view.rightToLeft = True
+
+        Q57_61_LABELS = {
+            57: "דירוג: אסרטיבי/אכפתי/שיטתי/שופע רעיונות",
+            58: "דירוג: מוביל/תומך/זהיר/רעיוניסט",
+            59: "דירוג: ממוקד מטרה/נותן/שיטתי/אופטימי",
+            60: "מה היית רוצה לקבל מהאבחון",
+            61: "מה חשוב לך שהאבחון יספק",
+        }
+
+        ws5.cell(1, 1, "שאלה").fill = HEADER_FILL
+        ws5.cell(1, 1).font = HEADER_FONT
+        ws5.cell(1, 1).alignment = RIGHT
+        ws5.column_dimensions["A"].width = 38
+
+        for col_idx, code in enumerate(PDN_12, start=2):
+            count = len(users_by_code.get(code, []))
+            c = ws5.cell(1, col_idx, f"{code}\n(N={count})")
+            c.fill = CODE_FILLS.get(code[0], HEADER_FILL)
+            c.font = _font(bold=True, color="000000", size=10)
+            c.alignment = CENTER
+            c.border = _border()
+            ws5.column_dimensions[get_column_letter(col_idx)].width = 18
+
+        ws5.row_dimensions[1].height = 36
+        ws5.freeze_panes = "B2"
+
+        for ri, q_num in enumerate(range(57, 62), start=2):
+            label = Q57_61_LABELS.get(q_num, f"Q{q_num}")
+            lc = ws5.cell(ri, 1, f"Q{q_num}\n{label}")
+            lc.alignment = RIGHT
+            lc.border = _border()
+            ws5.row_dimensions[ri].height = 100
+
+            for col_idx, code in enumerate(PDN_12, start=2):
+                # Collect full rankings for this question from all users of this code
+                pos_counts = defaultdict(lambda: defaultdict(int))  # pos -> trait -> count
+                first_choices = []
+
+                for user in users_by_code.get(code, []):
+                    ans = user_answers.get(user['email'], {}).get(str(q_num))
+                    if not ans or not isinstance(ans, dict):
+                        continue
+                    ranking = ans.get('ranking', {})
+                    if not isinstance(ranking, dict):
+                        continue
+                    for trait, pos in ranking.items():
+                        if isinstance(pos, int) and 1 <= pos <= 4:
+                            pos_counts[pos][trait] += 1
+                    # First choice = trait with pos=1
+                    first = min(
+                        ((t, p) for t, p in ranking.items() if isinstance(p, int)),
+                        key=lambda x: x[1],
+                        default=(None, 99)
+                    )
+                    if first[0] and first[0] in ['T', 'A', 'E', 'P']:
+                        first_choices.append(first[0])
+
+                total = len(first_choices)
+                if total == 0:
+                    c = ws5.cell(ri, col_idx, "-")
+                else:
+                    fc_counts = defaultdict(int)
+                    for t in first_choices:
+                        fc_counts[t] += 1
+                    lines = []
+                    for trait in sorted(fc_counts, key=lambda t: -fc_counts[t]):
+                        pct = round(fc_counts[trait] * 100 / total)
+                        lines.append(f"{trait}: {pct}% ({fc_counts[trait]})")
+                    if pos_counts:
+                        lines.append("")
+                        for pos in [1, 2, 3, 4]:
+                            pd = pos_counts.get(pos, {})
+                            if pd:
+                                pos_str = f"מקום {pos}: " + "  ".join(f"{t}={cnt}" for t, cnt in sorted(pd.items()))
+                                lines.append(pos_str)
+                    c = ws5.cell(ri, col_idx, "\n".join(lines).strip())
+                c.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+                c.border = _border()
+
         # --- Stream response ---
         buf = io.BytesIO()
         wb.save(buf)
