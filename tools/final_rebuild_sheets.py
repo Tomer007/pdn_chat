@@ -1,279 +1,304 @@
 #!/usr/bin/env python3
 """
-Final rebuild: uses Excel as source for Q38-Q56 and Q57-Q61 first choice,
-augments Q57-Q61 with full ranking positions from JSON files where available.
+Rebuild PDN statistics Excel sheets from production data.
+Loads data from /tmp/pdn_analysis_full.json (fetched from production API).
+Includes: LLR type analysis, comparison table, per-code accuracy summary.
+
+Features used for LLR model:
+- Q1-Q26: selected_option_code (AP / ET / AE / TP)
+- Q27-Q37: ranking rank per letter (D/F/S: 1-3)
+- Q38-Q42: ranking score per letter (A/T or E/P: 0-12)
+- Q43-Q56: ranking score per pair (AE/TP or AP/TE: 0-12)
+- Q57-Q61: ranking rank per letter (A/E/P/T: 1-4)
 """
 
-import json, glob, re
-from collections import defaultdict, Counter
+import json, math
+from collections import defaultdict
+from pathlib import Path
 import openpyxl
-from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+from openpyxl.styles import Font, PatternFill, Alignment
 from openpyxl.utils import get_column_letter
 
-PDN_CODES = ['E1', 'E5', 'E9', 'A3', 'A7', 'A11', 'T4', 'T8', 'T12', 'P2', 'P6', 'P10']
+# ── paths ──────────────────────────────────────────────────────────────────────
+BASE       = Path(__file__).resolve().parent.parent
+EXCEL      = BASE / "statistics" / "pdn_statistics.xlsx"
+DATA_JSON  = Path("/tmp/pdn_analysis_full.json")
 
-wb = openpyxl.load_workbook('/Users/tomer.gur/dev-tools/pdn_chat/docs/combined_matrix_report.xlsx')
-ws_src = wb['תשובות משתמשים']
-header = [cell.value for cell in ws_src[1]]
-q38_idx = header.index('Q38')
-q57_idx = header.index('Q57')
+# ── constants ──────────────────────────────────────────────────────────────────
+PDN_CODES = ["E1", "E5", "E9", "A3", "A7", "A11", "T4", "T8", "T12", "P2", "P6", "P10"]
 
-# ===========================
-# DATASET FROM EXCEL
-# ===========================
-data_by_code = defaultdict(lambda: {
-    'q38_q56': defaultdict(list),
-    'q57_q61_first': defaultdict(list),
-    'q57_q61_pos': defaultdict(lambda: defaultdict(lambda: defaultdict(int))),
-    'count': 0
-})
+# ── styles ─────────────────────────────────────────────────────────────────────
+HEADER_FILL   = PatternFill("solid", fgColor="2F4F8F")
+HEADER_FONT   = Font(bold=True, color="FFFFFF", size=11)
+ALT_FILL      = PatternFill("solid", fgColor="EEF2FF")
+MATCH_FILL    = PatternFill("solid", fgColor="C6EFCE")
+MISMATCH_FILL = PatternFill("solid", fgColor="FFC7CE")
+SECTION_FILL  = PatternFill("solid", fgColor="D9E1F2")
+EMPTY_FILL    = PatternFill()
 
-for row in ws_src.iter_rows(min_row=2, values_only=True):
-    user_str = row[0]
-    if not user_str:
-        continue
-    parts = [p.strip() for p in str(user_str).split('|')]
-    pdn_code = parts[0]
-    if pdn_code not in PDN_CODES:
-        continue
+def _hdr(ws, row, col, text, width=None):
+    c = ws.cell(row=row, column=col, value=text)
+    c.fill = HEADER_FILL
+    c.font = HEADER_FONT
+    c.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    if width:
+        ws.column_dimensions[get_column_letter(col)].width = width
+    return c
 
-    data_by_code[pdn_code]['count'] += 1
+def _cell(ws, row, col, value, fill=None, align="center"):
+    c = ws.cell(row=row, column=col, value=value)
+    if fill:
+        c.fill = fill
+    c.alignment = Alignment(horizontal=align, vertical="center", wrap_text=True)
+    return c
 
-    # Q38-Q56
-    for i, q_num in enumerate(range(38, 57)):
-        val = row[q38_idx + i]
-        if val is not None:
-            data_by_code[pdn_code]['q38_q56'][q_num].append(str(val))
+# ── feature extraction ─────────────────────────────────────────────────────────
+def extract_features(answers: dict) -> dict:
+    """
+    Convert raw answer dict to flat feature dict for LLR model.
+    Returns: {feature_name: value_string}
+    """
+    feats = {}
+    for qnum_str, ans in answers.items():
+        qnum = int(qnum_str)
 
-    # Q57-Q61 first choice
-    for i, q_num in enumerate(range(57, 62)):
-        val = row[q57_idx + i]
-        if val and isinstance(val, str) and len(val) <= 2 and val in ['T', 'A', 'E', 'P']:
-            data_by_code[pdn_code]['q57_q61_first'][q_num].append(val)
+        if "selected_option_code" in ans:
+            # Q1-Q26: binary choice code
+            feats[f"q{qnum}_code"] = ans["selected_option_code"]
 
-# ===========================
-# AUGMENT Q57-Q61 WITH FULL RANKINGS FROM JSON
-# ===========================
-json_files = glob.glob('/Users/tomer.gur/dev-tools/pdn_chat/saved_results/**/*_answers.json', recursive=True)
+        elif "ranking" in ans:
+            ranking = ans["ranking"]
+            if qnum <= 61:
+                # Store each letter's value as a separate feature
+                for letter, val in ranking.items():
+                    feats[f"q{qnum}_{letter}"] = str(val)
 
-for jf in json_files:
-    with open(jf) as f:
-        try:
-            data = json.load(f)
-        except:
+    return feats
+
+# ── LLR model ─────────────────────────────────────────────────────────────────
+def train_llr_model(users: list, answers: dict) -> dict:
+    """
+    Train LLR model from labeled users.
+    Returns: {code: {feature: {value: log_likelihood_ratio}}}
+    """
+    labeled = [(u["email"], u["pdn_code"]) for u in users if u["pdn_code"] in PDN_CODES]
+
+    if len(labeled) < 10:
+        return {}
+
+    feat_count = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
+    code_total = defaultdict(int)
+
+    for email, code in labeled:
+        code_total[code] += 1
+        user_ans = answers.get(email, {})
+        feats = extract_features(user_ans)
+        for feat, val in feats.items():
+            feat_count[feat][val][code] += 1
+
+    total = sum(code_total.values())
+
+    model = {}
+    for code in PDN_CODES:
+        model[code] = {}
+        n_code = code_total.get(code, 0)
+        n_not  = total - n_code
+        if n_code < 2:
             continue
-    if '57' not in data:
-        continue
+        for feat, val_dict in feat_count.items():
+            model[code][feat] = {}
+            for val, code_counts in val_dict.items():
+                c_in  = code_counts.get(code, 0)
+                c_out = sum(v for k, v in code_counts.items() if k != code)
+                p_in  = (c_in  + 0.5) / (n_code + 1)
+                p_out = (c_out + 0.5) / (n_not  + 1)
+                model[code][feat][val] = math.log(p_in / p_out) if p_out > 0 else 0.0
 
-    meta = data.get('metadata', {})
-    email = meta.get('email', '').lower()
-    
-    # Match PDN code by email pattern only (reliable)
-    m = re.search(r'\+([EATP]\d+)@', email, re.IGNORECASE)
-    if not m:
-        continue
-    pdn_code = m.group(1).upper()
-    if pdn_code not in PDN_CODES:
-        continue
+    return model
 
-    for q_num in range(57, 62):
-        q_str = str(q_num)
-        if q_str not in data:
-            continue
-        q_data = data[q_str]
-        if not isinstance(q_data, dict):
-            continue
-        ranking = q_data.get('ranking', {})
-        if not isinstance(ranking, dict):
-            continue
-        for trait, pos in ranking.items():
-            if trait in ['T', 'A', 'E', 'P'] and isinstance(pos, int) and 1 <= pos <= 4:
-                data_by_code[pdn_code]['q57_q61_pos'][q_num][pos][trait] += 1
+def compute_llr_scores(user_answers: dict, model: dict) -> dict:
+    """Compute LLR score for each PDN code. Returns {code: score}."""
+    feats = extract_features(user_answers)
+    scores = {}
+    for code in PDN_CODES:
+        score = 0.0
+        code_model = model.get(code, {})
+        for feat, val in feats.items():
+            if feat in code_model:
+                score += code_model[feat].get(val, 0.0)
+        scores[code] = score
+    return scores
 
-# ===========================
-# STYLES
-# ===========================
-hdr_fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
-hdr_font = Font(bold=True, color="FFFFFF")
-alt_fill = PatternFill(start_color="EFF3FB", end_color="EFF3FB", fill_type="solid")
-thin = Border(
-    left=Side(style='thin'), right=Side(style='thin'),
-    top=Side(style='thin'), bottom=Side(style='thin')
-)
+def get_suggestion(email: str, answers: dict, model: dict):
+    """Returns (best_code, scores_dict) for a user."""
+    user_ans = answers.get(email, {})
+    if not user_ans or not model:
+        return None, {}
+    scores = compute_llr_scores(user_ans, model)
+    best = max(scores, key=scores.get)
+    return best, scores
 
-def make_header_row(ws, headers):
-    for col, val in enumerate(headers, 1):
-        c = ws.cell(row=1, column=col, value=val)
-        c.fill = hdr_fill
-        c.font = hdr_font
-        c.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
-        c.border = thin
-    ws.row_dimensions[1].height = 45
+# ── Sheet 1: Type Analysis ─────────────────────────────────────────────────────
+def build_type_analysis_sheet(ws, users, answers, model):
+    ws.title = "ניתוח טיפוסים"
 
-def pct(cnt, total):
-    return f'{round(cnt * 100 / total)}%' if total else ''
+    cols = [
+        ("מייל",                       30),
+        ("שם",                          16),
+        ("קוד מאבחן (פנינה)",           16),
+        ("הצעה סטטיסטית",               16),
+        ("סטטיסטי = מאבחן?",            16),
+        ("ציון LLR מוביל",              14),
+        ("כל ציוני LLR",                50),
+    ]
+    for ci, (h, w) in enumerate(cols, 1):
+        _hdr(ws, 1, ci, h, w)
+    ws.row_dimensions[1].height = 32
+    ws.freeze_panes = "A2"
 
-# ===========================
-# Q38-Q56 SHEET
-# ===========================
-Q38_56 = {
-    38: "בדיקה לעומק לפני נטילת סיכון", 39: "קושי עם חוסר ודאות",
-    40: "קבלת החלטות במהירות", 41: "קושי לקבל הנחיות",
-    42: "נוחות להוביל אחרים", 43: "מוחצנות/מופנמות - ילדות",
-    44: "מוחצנות/מופנמות - בגרות", 45: "הובלה/הצטרפות - ילדות",
-    46: "הובלה/הצטרפות - בגרות", 47: "דברנות/שתקנות - ילדות",
-    48: "דברנות/שתקנות - בגרות", 49: "עימותים/ריצוי - ילדות",
-    50: "עימותים/ריצוי - בגרות", 51: "עמידה בזמנים - ילדות",
-    52: "עמידה בזמנים - בגרות", 53: "סדר/בלגן - ילדות",
-    54: "סדר/בלגן - בגרות", 55: "מאופקות/נועזות - ילדות",
-    56: "מאופקות/נועזות - בגרות",
-}
+    for ri, u in enumerate(sorted(users, key=lambda x: x["email"]), 2):
+        email    = u["email"]
+        pdn_code = u["pdn_code"]
+        name     = f"{u.get('first_name','')} {u.get('last_name','')}".strip()
+        sugg, scores = get_suggestion(email, answers, model)
 
-if 'Q38-Q56 סטטיסטיקה' in wb.sheetnames:
-    del wb['Q38-Q56 סטטיסטיקה']
-ws38 = wb.create_sheet('Q38-Q56 סטטיסטיקה')
-
-make_header_row(ws38, ['שאלה'] + [f'{c}\n(N={data_by_code[c]["count"]})' for c in PDN_CODES])
-
-for ri, q_num in enumerate(range(38, 57), 2):
-    label = Q38_56[q_num]
-    c = ws38.cell(row=ri, column=1, value=f'Q{q_num} - {label}')
-    c.border = thin
-    c.alignment = Alignment(wrap_text=True, vertical='center')
-    if ri % 2 == 0:
-        c.fill = alt_fill
-
-    for ci, code in enumerate(PDN_CODES, 2):
-        answers = data_by_code[code]['q38_q56'].get(q_num, [])
-        total = len(answers)
-        if total == 0:
-            val = '-'
+        if sugg and pdn_code == sugg:
+            match_val  = "כן"
+            match_fill = MATCH_FILL
+        elif sugg:
+            match_val  = "לא"
+            match_fill = MISMATCH_FILL
         else:
-            counts = Counter(answers)
-            lines = [f'{t}: {pct(cnt, total)} ({cnt}/{total})' for t, cnt in sorted(counts.items(), key=lambda x: -x[1])]
-            val = '\n'.join(lines)
-        cell = ws38.cell(row=ri, column=ci, value=val)
-        cell.border = thin
-        cell.alignment = Alignment(wrap_text=True, horizontal='center', vertical='center')
-        if ri % 2 == 0:
-            cell.fill = alt_fill
-    ws38.row_dimensions[ri].height = 38
+            match_val  = "N/A"
+            match_fill = EMPTY_FILL
 
-ws38.column_dimensions['A'].width = 30
-for col in range(2, 14):
-    ws38.column_dimensions[get_column_letter(col)].width = 14
+        row_fill = ALT_FILL if ri % 2 == 0 else EMPTY_FILL
+        top_score = max(scores.values()) if scores else 0
+        all_scores_str = "  |  ".join(f"{c}: {v:.2f}" for c, v in sorted(scores.items(), key=lambda x: -x[1]))
 
-# ===========================
-# Q57-Q61 SHEET
-# ===========================
-Q57_61 = {
-    57: "דירוג: אסרטיבי/אכפתי/שיטתי/שופע רעיונות",
-    58: "דירוג: מוביל/תומך/זהיר/רעיוניסט",
-    59: "דירוג: ממוקד מטרה/נותן/שיטתי/אופטימי",
-    60: "מה היית רוצה לקבל מהאבחון",
-    61: "מה חשוב לך שהאבחון יספק",
-}
+        _cell(ws, ri, 1, email,         row_fill, "left")
+        _cell(ws, ri, 2, name,          row_fill, "left")
+        _cell(ws, ri, 3, pdn_code,      row_fill)
+        _cell(ws, ri, 4, sugg or "N/A", row_fill)
+        _cell(ws, ri, 5, match_val,     match_fill)
+        _cell(ws, ri, 6, round(top_score, 2), row_fill)
+        _cell(ws, ri, 7, all_scores_str, row_fill, "left")
 
-if 'Q57-Q61 סטטיסטיקה' in wb.sheetnames:
-    del wb['Q57-Q61 סטטיסטיקה']
-ws57 = wb.create_sheet('Q57-Q61 סטטיסטיקה')
+# ── Sheet 2: Per-Code Summary ──────────────────────────────────────────────────
+def build_summary_sheet(ws, users, answers, model):
+    ws.title = "סיכום לפי קוד"
 
-make_header_row(ws57, ['שאלה'] + [f'{c}\n(N={data_by_code[c]["count"]})' for c in PDN_CODES])
+    cols = [
+        ("קוד PDN",                     10),
+        ("סה\"כ מקרים",                  14),
+        ("סטטיסטי = מאבחן",              16),
+        ("% התאמה סטטיסטי",             18),
+    ]
+    for ci, (h, w) in enumerate(cols, 1):
+        _hdr(ws, 1, ci, h, w)
+    ws.row_dimensions[1].height = 32
+    ws.freeze_panes = "A2"
 
-for ri, q_num in enumerate(range(57, 62), 2):
-    label = Q57_61[q_num]
-    c = ws57.cell(row=ri, column=1, value=f'Q{q_num}\n{label}')
-    c.border = thin
-    c.alignment = Alignment(wrap_text=True, vertical='center')
-    if ri % 2 == 0:
-        c.fill = alt_fill
+    code_stats = {c: {"total": 0, "stat_match": 0} for c in PDN_CODES}
 
-    for ci, code in enumerate(PDN_CODES, 2):
-        first = data_by_code[code]['q57_q61_first'].get(q_num, [])
-        pos_data = data_by_code[code]['q57_q61_pos'].get(q_num, {})
-        total = len(first)
+    for u in users:
+        code = u["pdn_code"]
+        if code not in PDN_CODES:
+            continue
+        sugg, _ = get_suggestion(u["email"], answers, model)
+        code_stats[code]["total"] += 1
+        if sugg == code:
+            code_stats[code]["stat_match"] += 1
 
-        if total == 0:
-            val = '-'
+    # Totals row data
+    grand_total = sum(s["total"] for s in code_stats.values())
+    grand_match = sum(s["stat_match"] for s in code_stats.values())
+
+    for ri, code in enumerate(PDN_CODES, 2):
+        s     = code_stats[code]
+        total = s["total"]
+        sm    = s["stat_match"]
+
+        if total > 0:
+            pct_str = f"{sm}/{total} = {sm/total*100:.1f}%"
+            pct_fill = MATCH_FILL if sm / total >= 0.6 else MISMATCH_FILL
         else:
-            lines = []
-            # First choice %
-            fc = Counter(first)
-            for trait in sorted(fc, key=lambda t: -fc[t]):
-                lines.append(f'{trait}: {pct(fc[trait], total)} ({fc[trait]})')
-            # Position breakdown from JSON (if available)
-            if pos_data:
-                lines.append('')
-                for pos in [1, 2, 3, 4]:
-                    pd = pos_data.get(pos, {})
-                    if pd:
-                        pos_str = f'מקום {pos}: ' + '  '.join(f'{t}={cnt}' for t, cnt in sorted(pd.items()))
-                        lines.append(pos_str)
-            val = '\n'.join(lines).strip()
+            pct_str  = "אין נתונים"
+            pct_fill = EMPTY_FILL
 
-        cell = ws57.cell(row=ri, column=ci, value=val)
-        cell.border = thin
-        cell.alignment = Alignment(wrap_text=True, horizontal='center', vertical='center')
-        if ri % 2 == 0:
-            cell.fill = alt_fill
-    ws57.row_dimensions[ri].height = 95
+        row_fill = ALT_FILL if ri % 2 == 0 else EMPTY_FILL
+        _cell(ws, ri, 1, code,    SECTION_FILL)
+        _cell(ws, ri, 2, total,   row_fill)
+        _cell(ws, ri, 3, sm,      row_fill)
+        _cell(ws, ri, 4, pct_str, pct_fill)
 
-ws57.column_dimensions['A'].width = 38
-for col in range(2, 14):
-    ws57.column_dimensions[get_column_letter(col)].width = 16
+    # Grand total row
+    total_ri = len(PDN_CODES) + 2
+    gp = f"{grand_match}/{grand_total} = {grand_match/grand_total*100:.1f}%" if grand_total else "-"
+    _cell(ws, total_ri, 1, "סה\"כ",  PatternFill("solid", fgColor="4F4F4F"))
+    ws.cell(total_ri, 1).font = Font(bold=True, color="FFFFFF")
+    _cell(ws, total_ri, 2, grand_total, PatternFill("solid", fgColor="D9D9D9"))
+    _cell(ws, total_ri, 3, grand_match, PatternFill("solid", fgColor="D9D9D9"))
+    fill_total = MATCH_FILL if grand_total and grand_match/grand_total >= 0.6 else MISMATCH_FILL
+    _cell(ws, total_ri, 4, gp, fill_total)
 
-# ===========================
-# SAVE
-# ===========================
-wb.save('/Users/tomer.gur/dev-tools/pdn_chat/docs/combined_matrix_report.xlsx')
-print('Saved. Sheets:', wb.sheetnames)
+# ── main ───────────────────────────────────────────────────────────────────────
+def main():
+    if not DATA_JSON.exists():
+        print(f"Production data not found at {DATA_JSON}")
+        print("Run: TOKEN=... curl -X POST https://pdn-chat.onrender.com/pdn-admin/api/pdn-analysis/data ...")
+        return
 
-# ===========================
-# VALIDATION REPORT
-# ===========================
-print('\n====== VALIDATION REPORT ======')
-wb2 = openpyxl.load_workbook('/Users/tomer.gur/dev-tools/pdn_chat/docs/combined_matrix_report.xlsx')
+    print("Loading production data...")
+    with open(DATA_JSON) as f:
+        data = json.load(f)
 
-# REQ 1: Organized sheet
-ws_o = wb2['גיליון תשובות מאורגנים']
-h1 = [c.value for c in ws_o[1]]
-print(f'\nREQ 1 - גיליון תשובות מאורגנים')
-print(f'  Headers: {h1}')
-print(f'  User rows: {ws_o.max_row - 1}')
-print(f'  PASS: {h1 == ["Name", "UID", "Verified PDN Code"] and ws_o.max_row > 1}')
+    users   = data.get("users", [])
+    answers = data.get("answers", {})
 
-# REQ 2: Q38-Q56
-ws38v = wb2['Q38-Q56 סטטיסטיקה']
-rows_38 = ws38v.max_row - 1
-cols_38 = ws38v.max_column
-h2 = [c.value for c in ws38v[1]]
-print(f'\nREQ 2 - Q38-Q56 סטטיסטיקה')
-print(f'  Questions: {rows_38} (expected 19)')
-print(f'  Columns: {cols_38} (expected 13)')
-print(f'  PDN codes in header: {[x.split(chr(10))[0] for x in h2[1:]]}')
-# Show sample data for E1 and P10
-for code_name, col_offset in [('E1', 1), ('A7', 5), ('P10', 12)]:
-    n_header = ws38v.cell(row=1, column=col_offset+1).value
-    sample = ws38v.cell(row=2, column=col_offset+1).value
-    print(f'  {code_name} Q38: {str(sample)[:50]}')
-print(f'  PASS: {rows_38 == 19 and cols_38 == 13}')
+    labeled = [u for u in users if u.get("pdn_code", "") in PDN_CODES]
+    print(f"Total labeled users: {len(labeled)}")
+    from collections import Counter
+    dist = Counter(u["pdn_code"] for u in labeled)
+    for code in PDN_CODES:
+        print(f"  {code}: {dist.get(code, 0)}")
 
-# REQ 3: Q57-Q61
-ws57v = wb2['Q57-Q61 סטטיסטיקה']
-rows_57 = ws57v.max_row - 1
-cols_57 = ws57v.max_column
-print(f'\nREQ 3 - Q57-Q61 סטטיסטיקה')
-print(f'  Questions: {rows_57} (expected 5)')
-print(f'  Columns: {cols_57} (expected 13)')
-for code_name, col_offset in [('E1', 1), ('E5', 2), ('P2', 10)]:
-    val = ws57v.cell(row=2, column=col_offset+1).value
-    print(f'  {code_name}/Q57: {str(val)[:80]}')
-print(f'  PASS: {rows_57 == 5 and cols_57 == 13}')
-print()
-print('====== ALL REQUIREMENTS ======')
-all_pass = (
-    h1 == ["Name", "UID", "Verified PDN Code"] and ws_o.max_row > 1 and
-    rows_38 == 19 and cols_38 == 13 and
-    rows_57 == 5 and cols_57 == 13
-)
-print(f'OVERALL PASS: {all_pass}')
+    print("Training LLR model...")
+    model = train_llr_model(labeled, answers)
+    print(f"Model trained on {len(labeled)} users")
+
+    if not EXCEL.exists():
+        EXCEL.parent.mkdir(parents=True, exist_ok=True)
+        wb = openpyxl.Workbook()
+        # remove default sheet
+        wb.remove(wb.active)
+    else:
+        wb = openpyxl.load_workbook(EXCEL)
+
+    # Remove existing statistics sheets
+    for name in ["ניתוח טיפוסים", "סיכום לפי קוד"]:
+        if name in wb.sheetnames:
+            del wb[name]
+
+    ws1 = wb.create_sheet("ניתוח טיפוסים")
+    ws2 = wb.create_sheet("סיכום לפי קוד")
+
+    print("Building type analysis sheet...")
+    build_type_analysis_sheet(ws1, labeled, answers, model)
+
+    print("Building summary sheet...")
+    build_summary_sheet(ws2, labeled, answers, model)
+
+    wb.save(EXCEL)
+    print(f"\nSaved: {EXCEL}")
+
+    # Quick accuracy check
+    correct = sum(
+        1 for u in labeled
+        if get_suggestion(u["email"], answers, model)[0] == u["pdn_code"]
+    )
+    print(f"Overall LLR accuracy: {correct}/{len(labeled)} = {correct/len(labeled)*100:.1f}%")
+
+
+if __name__ == "__main__":
+    main()
