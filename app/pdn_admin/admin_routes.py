@@ -532,7 +532,7 @@ def compress_old_audio():
             "mp3_mb": round(mp3_total / (1024 * 1024), 1),
             "wav_old_count": len(wav_files),
             "wav_old_mb": round(sum(f.stat().st_size for f in wav_files) / (1024 * 1024), 1),
-            "disk_limit_mb": 1024
+            "disk_limit_mb": 5120
         }
 
         # If GET-like check (no actual compression requested)
@@ -647,7 +647,7 @@ def get_health_status():
             "memory_total_mb": round(memory.total / (1024 * 1024)),
             "memory_percent": round(memory.percent, 1),
             "storage_used_mb": round(storage_total / (1024 * 1024), 1),
-            "storage_limit_mb": 1024,
+            "storage_limit_mb": 5120,
             "active_sessions": active_count,
             "uptime_hours": uptime_hours,
             "errors_24h": error_count_24h,
@@ -2271,11 +2271,12 @@ def pdn_analysis_excel():
         ws6 = wb.create_sheet("ממתינים לאבחון")
         ws6.sheet_view.rightToLeft = True
 
-        # Columns: שם | אימייל | תאריך | קוד מערכת | קוד מאבחן | הצעה סטטיסטית | חלופות | ביטחון סטטיסטי
+        # Columns: שם | אימייל | תאריך | קוד מערכת | קוד מאבחן | הצעה סטטיסטית | הצעה=מערכת? | חלופות | ביטחון סטטיסטי
+        # Col F holds just the raw suggested code (e.g. "E5") so the Excel formula =IF(F2=D2,"כן","לא") works cleanly.
         headers6    = ["שם", "אימייל", "תאריך",
                        "קוד מערכת", "קוד מאבחן",
-                       "הצעה סטטיסטית", "חלופות", "ביטחון סטטיסטי"]
-        col_widths6 = [22, 30, 12, 15, 15, 18, 30, 38]
+                       "הצעה סטטיסטית", "הצעה=מערכת?", "חלופות", "ביטחון סטטיסטי"]
+        col_widths6 = [22, 30, 12, 15, 15, 18, 14, 30, 38]
 
         for col_idx, (h, w) in enumerate(zip(headers6, col_widths6), 1):
             c = ws6.cell(1, col_idx, h)
