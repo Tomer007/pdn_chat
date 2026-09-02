@@ -63,25 +63,55 @@
                 </div>
             </div>
 
-            <button type="submit" class="submit-button">
+            <div class="terms-row">
+                <input type="checkbox" id="termsCheckbox" class="terms-checkbox">
+                <label for="termsCheckbox" class="terms-label">
+                    קראתי והבנתי את
+                    <button type="button" class="terms-link" onclick="openTermsModal()">תנאי השימוש וההסכמה המודעת</button>
+                    ואני מסכים/ה להם
+                </label>
+            </div>
+
+            <div id="termsError" class="terms-error" role="alert" style="display:none;">
+                <i class="fas fa-exclamation-circle"></i>
+                יש לאשר את תנאי השימוש כדי להמשיך
+            </div>
+
+            <button type="submit" id="submitButton" class="submit-button" disabled>
                 התחל שיחה עם בינת קוד המקור
             </button>
         </form>
 
+        <!-- Terms Modal -->
+        <div id="termsModal" class="terms-modal-backdrop" style="display:none;" role="dialog" aria-modal="true" aria-label="תנאי שימוש">
+            <div class="terms-modal-box">
+                <div class="terms-modal-header">
+                    <h3>הסכמה מודעת למסע עם קוד המקור</h3>
+                    <button type="button" class="terms-modal-close" onclick="closeTermsModal()" aria-label="סגור">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="terms-modal-body">
+                    <p>המסע עם קוד המקור נועד לעורר תודעה, לאפשר גילוי עצמי, ולהאיר כיוונים פנימיים. הוא לא מחליף ייעוץ או טיפול מקצועי - רגשי, רפואי או אחר - ואינו מתיימר לאבחן או לרפא.</p>
+                    <p>האבחון והליווי דרך קוד המקור מזמינים אותך להתבונן, להקשיב לעצמך, ולבחור איך לפעול. האחריות על הדרך, הבחירות וההשלכות - היא שלך בלבד.</p>
+                    <p>אם עולה קושי רגשי עמוק, מצוקה מתמשכת או צורך בתמיכה - חשוב לפנות לאיש מקצוע מתאים.</p>
+                    <p class="terms-emphasis">אנחנו כאן להזכיר - שהכוח כבר בתוכך.</p>
+                </div>
+                <div class="terms-modal-footer">
+                    <button type="button" class="terms-accept-btn" onclick="acceptTermsFromModal()">
+                        <i class="fas fa-check"></i>
+                        קראתי ומסכים/ה
+                    </button>
+                    <button type="button" class="terms-cancel-btn" onclick="closeTermsModal()">
+                        סגור
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <div id="loginError" class="error-message" role="alert">
             <i class="fas fa-exclamation-triangle"></i>
             <span>אנא הזן אימייל וסיסמה תקינים</span>
-        </div>
-
-        <!-- Disclaimer -->
-        <div class="disclaimer collapsed">
-            <h3 class="disclaimer-toggle">הסכמה מודעת למסע עם קוד המקור</h3>
-            <div class="disclaimer-content">
-                <p>המסע עם קוד המקור נועד לעורר תודעה, לאפשר גילוי עצמי, ולהאיר כיוונים פנימיים. הוא לא מחליף ייעוץ או טיפול מקצועי – רגשי, רפואי או אחר – ואינו מתיימר לאבחן או לרפא.</p>
-                <p>האבחון והליווי דרך קוד המקור מזמינים אותך להתבונן, להקשיב לעצמך, ולבחור איך לפעול. האחריות על הדרך, הבחירות וההשלכות – היא שלך בלבד.</p>
-                <p>אם עולה קושי רגשי עמוק, מצוקה מתמשכת או צורך בתמיכה – חשוב לפנות לאיש מקצוע מתאים.</p>
-                <p>אנחנו כאן להזכיר – שהכוח כבר בתוכך.</p>
-            </div>
         </div>
 
         <!-- Footer -->

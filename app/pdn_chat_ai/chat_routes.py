@@ -109,6 +109,11 @@ def login():
 
     user_data = get_user_manager().get_user(email)
     if user_data and get_user_manager().verify_password(email, password):
+        # Server-side enforcement: terms must be accepted
+        if not data.get('terms_accepted'):
+            logger.warning("Login blocked — terms not accepted for: %s", email)
+            return jsonify({"success": False, "error": "יש לאשר את תנאי השימוש כדי להמשיך"}), 403
+
         user_id = str(uuid.uuid4())
         daily_conversation_limit = user_data.get('daily_conversation_limit', 15)
         access_days = user_data.get('access_days', 0)
@@ -150,6 +155,9 @@ def login():
         # Load persisted conversation history for cross-session continuity
         history_payload = _history_service.load_user_history(email)
         session['user_history'] = history_payload.to_dict() if history_payload else None
+
+        # Audit: record terms acceptance timestamp in user profile
+        get_user_manager().record_terms_acceptance(email)
 
         logger.info("User %s logged in successfully", email)
         return jsonify({

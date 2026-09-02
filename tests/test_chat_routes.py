@@ -62,6 +62,7 @@ def mock_user_manager():
 def logged_in_client(client, mock_user_manager, mock_agent):
     """A client that is already logged in."""
     client.post('/pdn-binat/login', json={
+            'terms_accepted': True,
         'email': 'test@example.com',
         'password': 'testpass'
     })
@@ -77,6 +78,7 @@ class TestLogin:
     def test_login_valid_credentials(self, client, mock_user_manager):
         """Valid credentials should return 200 with success."""
         response = client.post('/pdn-binat/login', json={
+            'terms_accepted': True,
             'email': 'test@example.com',
             'password': 'testpass'
         })
@@ -88,6 +90,7 @@ class TestLogin:
     def test_login_returns_user_details(self, client, mock_user_manager):
         """Successful login should return user_id, user_name, pdn_code, daily_conversation_limit."""
         response = client.post('/pdn-binat/login', json={
+            'terms_accepted': True,
             'email': 'test@example.com',
             'password': 'testpass'
         })
@@ -103,6 +106,7 @@ class TestLogin:
         """Invalid credentials should return 401."""
         mock_user_manager.verify_password.return_value = False
         response = client.post('/pdn-binat/login', json={
+            'terms_accepted': True,
             'email': 'test@example.com',
             'password': 'wrongpass'
         })
@@ -114,6 +118,7 @@ class TestLogin:
     def test_login_missing_email(self, client, mock_user_manager):
         """Missing email should return 400."""
         response = client.post('/pdn-binat/login', json={
+            'terms_accepted': True,
             'email': '',
             'password': 'testpass'
         })
@@ -124,6 +129,7 @@ class TestLogin:
     def test_login_missing_password(self, client, mock_user_manager):
         """Missing password should return 400."""
         response = client.post('/pdn-binat/login', json={
+            'terms_accepted': True,
             'email': 'test@example.com',
             'password': ''
         })
@@ -134,6 +140,7 @@ class TestLogin:
     def test_login_missing_both_fields(self, client, mock_user_manager):
         """Missing email and password should return 400."""
         response = client.post('/pdn-binat/login', json={
+            'terms_accepted': True,
             'email': '',
             'password': ''
         })
@@ -151,6 +158,7 @@ class TestLogin:
         """Non-existent user should return 401."""
         mock_user_manager.get_user.return_value = None
         response = client.post('/pdn-binat/login', json={
+            'terms_accepted': True,
             'email': 'nobody@test.com',
             'password': 'pass'
         })
@@ -159,6 +167,7 @@ class TestLogin:
     def test_login_calls_get_user_manager(self, client, mock_user_manager):
         """Login should call get_user_manager to retrieve user data."""
         client.post('/pdn-binat/login', json={
+            'terms_accepted': True,
             'email': 'test@example.com',
             'password': 'testpass'
         })
@@ -167,6 +176,7 @@ class TestLogin:
     def test_login_calls_verify_password(self, client, mock_user_manager):
         """Login should call verify_password with the provided credentials."""
         client.post('/pdn-binat/login', json={
+            'terms_accepted': True,
             'email': 'test@example.com',
             'password': 'testpass'
         })
@@ -183,6 +193,7 @@ class TestLogout:
         """Logout should clear session and return success."""
         # First login
         client.post('/pdn-binat/login', json={
+            'terms_accepted': True,
             'email': 'test@example.com',
             'password': 'testpass'
         })
@@ -196,6 +207,7 @@ class TestLogout:
         """Logout should call agent.persist_session to save conversation history."""
         # Login first
         client.post('/pdn-binat/login', json={
+            'terms_accepted': True,
             'email': 'test@example.com',
             'password': 'testpass'
         })
@@ -208,6 +220,7 @@ class TestLogout:
         """After logout, session should be cleared so auth-required endpoints return 401."""
         # Login
         client.post('/pdn-binat/login', json={
+            'terms_accepted': True,
             'email': 'test@example.com',
             'password': 'testpass'
         })
@@ -353,6 +366,7 @@ class TestChatEndpoint:
         """Empty JSON with valid content-type should call agent and return response."""
         # Login first to set session
         client.post('/pdn-binat/login', json={
+            'terms_accepted': True,
             'email': 'test@example.com',
             'password': 'testpass'
         })

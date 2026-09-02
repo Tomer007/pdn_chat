@@ -132,6 +132,7 @@ class UserManager:
                     'daily_conversation_limit': data.get('daily_conversation_limit', 15),
                     'access_days': data.get('access_days', 0),
                     'created_at': data.get('created_at', ''),
+                    'terms_accepted_at': data.get('terms_accepted_at', ''),
                 }
                 for email, data in self._users.items()
             ]
@@ -231,6 +232,18 @@ class UserManager:
             del self._users[email]
             self._save_to_file()
         logger.info("Deleted user: %s", email)
+
+    def record_terms_acceptance(self, email: str) -> None:
+        """Record the timestamp when a user accepted the terms of service.
+        Called on every successful login where terms_accepted=True.
+        Stores the most recent acceptance time for audit purposes.
+        """
+        with self._lock:
+            if email not in self._users:
+                return
+            self._users[email]['terms_accepted_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            self._save_to_file()
+        logger.info("Terms accepted by: %s", email)
 
     def get_available_pdn_codes(self) -> list:
         """Return PDN codes that have a matching .prompt file on disk."""
