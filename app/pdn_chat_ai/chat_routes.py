@@ -110,15 +110,30 @@ def login():
     user_data = get_user_manager().get_user(email)
     if user_data and get_user_manager().verify_password(email, password):
         user_id = str(uuid.uuid4())
-        # Get daily_conversation_limit with default value of 15
         daily_conversation_limit = user_data.get('daily_conversation_limit', 15)
+        access_days = user_data.get('access_days', 0)
+        created_at = user_data.get('created_at', '')
+
+        # Check days-based access expiry before allowing login
+        if access_days > 0 and created_at:
+            try:
+                created_dt = datetime.strptime(created_at[:10], '%Y-%m-%d')
+                days_elapsed = (datetime.now() - created_dt).days
+                if days_elapsed >= access_days:
+                    logger.info("Access expired for %s (%d days elapsed, limit %d)", email, days_elapsed, access_days)
+                    return jsonify({"success": False, "error": "תקופת הגישה שלך הסתיימה. אנא פנה לתמיכה."}), 403
+            except (ValueError, TypeError):
+                pass  # If date is unparseable, allow login
+
         session.permanent = True
         session.update({
             'user_id': user_id,
             'user_email': email,
             'user_name': user_data['name'],
             'pdn_code': user_data['pdn_code'],
-            'daily_conversation_limit': daily_conversation_limit
+            'daily_conversation_limit': daily_conversation_limit,
+            'access_days': access_days,
+            'created_at': created_at,
         })
         # Track active session (with cleanup to prevent unbounded growth)
         _cleanup_stale_sessions()
@@ -143,7 +158,8 @@ def login():
             "user_id": user_id,
             "user_name": user_data['name'],
             "pdn_code": user_data['pdn_code'],
-            "daily_conversation_limit": daily_conversation_limit
+            "daily_conversation_limit": daily_conversation_limit,
+            "access_days": access_days,
         })
 
     logger.warning("Failed login attempt for email: %s", email)

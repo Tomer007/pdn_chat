@@ -39,9 +39,24 @@ class PDNAgent(BasePDNAgent):
         self._prompts_dir = Path(__file__).parent / "prompts"
 
     @staticmethod
-    def _clean_response(text: str) -> str:
-        """Strip internal prompt markers that should not appear in user-facing responses."""
+    def _clean_response(text) -> str:
+        """Strip internal prompt markers that should not appear in user-facing responses.
+
+        Handles both plain strings and Anthropic content block lists gracefully.
+        """
         import re
+        # Anthropic returns response.content as a list of ContentBlock objects;
+        # extract the text value before applying regex.
+        if isinstance(text, list):
+            parts = []
+            for block in text:
+                if hasattr(block, 'text'):
+                    parts.append(block.text)
+                elif isinstance(block, str):
+                    parts.append(block)
+            text = ''.join(parts)
+        if not isinstance(text, str):
+            text = str(text) if text is not None else ''
         # Remove [STOP — wait for user response] and similar bracketed instructions
         text = re.sub(r'\[STOP[^\]]*\]', '', text)
         return text.strip()
@@ -281,7 +296,7 @@ class PDNAgent(BasePDNAgent):
             HumanMessage(content=user_message)
         ], max_tokens=4000)
         self._track_usage(user_name, response)
-        response_text = response.content
+        response_text = self._clean_response(response.content)
 
         # Increment count AFTER successful LLM call
         if user_name:
@@ -304,7 +319,7 @@ class PDNAgent(BasePDNAgent):
             HumanMessage(content=user_message)
         ])
         self._track_usage(user_name, response)
-        response_text = response.content
+        response_text = self._clean_response(response.content)
 
         # Increment count AFTER successful LLM call
         if user_name:

@@ -3914,7 +3914,25 @@
             return;
         }
 
-        tbody.innerHTML = chatUsersData.map(user => `
+        tbody.innerHTML = chatUsersData.map(user => {
+            const accessDays = user.access_days || 0;
+            let accessDisplay = accessDays === 0 ? '<span style="color:#6b7280">-</span>' : `${accessDays}`;
+            // Show days remaining if access_days is set
+            if (accessDays > 0 && user.created_at) {
+                try {
+                    const created = new Date(user.created_at.replace(' ', 'T'));
+                    const elapsed = Math.floor((Date.now() - created.getTime()) / 86400000);
+                    const remaining = accessDays - elapsed;
+                    if (remaining <= 0) {
+                        accessDisplay = `<span style="color:#dc2626;font-weight:600">${accessDays} (פג)</span>`;
+                    } else if (remaining <= 7) {
+                        accessDisplay = `<span style="color:#d97706;font-weight:600">${accessDays} (${remaining} נותרו)</span>`;
+                    } else {
+                        accessDisplay = `${accessDays} <span style="color:#6b7280;font-size:11px">(${remaining} נותרו)</span>`;
+                    }
+                } catch(e) { /* ignore date parse errors */ }
+            }
+            return `
             <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                 <td class="px-4 py-3 font-medium text-gray-900" dir="ltr">${user.email}</td>
                 <td class="px-4 py-3 text-gray-800">${user.name}</td>
@@ -3923,6 +3941,7 @@
                     <span class="px-2 py-1 rounded-full text-xs font-medium ${getPdnBadgeColor(user.pdn_code)}">${user.pdn_code}</span>
                 </td>
                 <td class="px-4 py-3 text-center text-gray-700">${user.daily_conversation_limit}</td>
+                <td class="px-4 py-3 text-center text-gray-700">${accessDisplay}</td>
                 <td class="px-4 py-3 text-center text-gray-500 text-xs">${user.created_at || '-'}</td>
                 <td class="px-4 py-3 text-center">
                     <div class="flex items-center justify-center gap-2">
@@ -3937,7 +3956,7 @@
                     </div>
                 </td>
             </tr>
-        `).join('');
+        `; }).join('');
     }
 
     function populatePdnCodeDropdown(selectedCode) {
@@ -3963,6 +3982,7 @@
         document.getElementById('userFormPassword').placeholder = 'סיסמה (חובה)';
         document.getElementById('userFormName').value = '';
         document.getElementById('userFormLimit').value = 15;
+        document.getElementById('userFormAccessDays').value = 0;
         populatePdnCodeDropdown('');
         document.getElementById('userFormModal').style.display = 'flex';
         setTimeout(() => document.getElementById('userFormEmail').focus(), 100);
@@ -3983,6 +4003,7 @@
         document.getElementById('userFormName').value = user.name;
         document.getElementById('userFormGender').value = user.gender || '';
         document.getElementById('userFormLimit').value = user.daily_conversation_limit;
+        document.getElementById('userFormAccessDays').value = user.access_days || 0;
         populatePdnCodeDropdown(user.pdn_code);
         document.getElementById('userFormModal').style.display = 'flex';
         setTimeout(() => document.getElementById('userFormName').focus(), 100);
@@ -3998,6 +4019,7 @@
         const gender = document.getElementById('userFormGender').value;
         const pdnCode = document.getElementById('userFormPdnCode').value;
         const limit = parseInt(document.getElementById('userFormLimit').value) || 15;
+        const accessDays = parseInt(document.getElementById('userFormAccessDays').value) || 0;
 
         // Frontend validation
         if (!email || !name || !pdnCode || !gender) {
@@ -4026,12 +4048,12 @@
             if (mode === 'add') {
                 url = `/pdn-admin/users?session_token=${sessionToken}`;
                 method = 'POST';
-                body = { email, password, name, gender, pdn_code: pdnCode, daily_conversation_limit: limit, admin_password: adminPassword };
+                body = { email, password, name, gender, pdn_code: pdnCode, daily_conversation_limit: limit, access_days: accessDays, admin_password: adminPassword };
             } else {
                 const originalEmail = document.getElementById('userFormOriginalEmail').value;
                 url = `/pdn-admin/users/${encodeURIComponent(originalEmail)}?session_token=${sessionToken}`;
                 method = 'PUT';
-                body = { name, gender, pdn_code: pdnCode, daily_conversation_limit: limit, admin_password: adminPassword };
+                body = { name, gender, pdn_code: pdnCode, daily_conversation_limit: limit, access_days: accessDays, admin_password: adminPassword };
                 if (password) body.password = password;
             }
 

@@ -130,6 +130,7 @@ class UserManager:
                     'gender': data.get('gender', ''),
                     'pdn_code': data.get('pdn_code', ''),
                     'daily_conversation_limit': data.get('daily_conversation_limit', 15),
+                    'access_days': data.get('access_days', 0),
                     'created_at': data.get('created_at', ''),
                 }
                 for email, data in self._users.items()
@@ -137,7 +138,7 @@ class UserManager:
 
     def add_user(self, email: str, password: str, name: str,
                  pdn_code: str, daily_conversation_limit: int = 15,
-                 gender: str = '') -> dict:
+                 gender: str = '', access_days: int = 0) -> dict:
         """Add a new user. Raises ValueError if email exists or validation fails."""
         email = email.strip().lower()
 
@@ -157,6 +158,9 @@ class UserManager:
         if not isinstance(daily_conversation_limit, int) or daily_conversation_limit < 1:
             raise ValueError("מגבלת שיחות יומית חייבת להיות מספר חיובי")
 
+        if not isinstance(access_days, int) or access_days < 0:
+            raise ValueError("ימי גישה חייבים להיות מספר אי-שלילי (0 = ללא הגבלה)")
+
         with self._lock:
             if email in self._users:
                 raise ValueError(f"משתמש עם אימייל {email} כבר קיים")
@@ -167,6 +171,7 @@ class UserManager:
                 'name': name.strip(),
                 'gender': gender,
                 'daily_conversation_limit': daily_conversation_limit,
+                'access_days': access_days,
                 'created_at': datetime.now().strftime('%Y-%m-%d %H:%M'),
             }
             self._save_to_file()
@@ -174,6 +179,7 @@ class UserManager:
         logger.info("Added user: %s (%s)", email, pdn_code)
         return {'email': email, 'name': name.strip(), 'gender': gender,
                 'pdn_code': pdn_code, 'daily_conversation_limit': daily_conversation_limit,
+                'access_days': access_days,
                 'created_at': self._users[email]['created_at']}
 
     def update_user(self, email: str, **updates) -> dict:
@@ -182,7 +188,7 @@ class UserManager:
             if email not in self._users:
                 raise KeyError(f"משתמש {email} לא נמצא")
 
-            allowed = {'password', 'name', 'gender', 'pdn_code', 'daily_conversation_limit'}
+            allowed = {'password', 'name', 'gender', 'pdn_code', 'daily_conversation_limit', 'access_days'}
             for key in updates:
                 if key not in allowed:
                     continue
@@ -198,6 +204,9 @@ class UserManager:
                 elif key == 'daily_conversation_limit':
                     if not isinstance(value, int) or value < 1:
                         raise ValueError("מגבלת שיחות יומית חייבת להיות מספר חיובי")
+                elif key == 'access_days':
+                    if not isinstance(value, int) or value < 0:
+                        raise ValueError("ימי גישה חייבים להיות מספר אי-שלילי (0 = ללא הגבלה)")
                 elif key == 'name' and not str(value).strip():
                     raise ValueError("שם נדרש")
                 elif key == 'gender' and value and value not in ('male', 'female'):
@@ -211,6 +220,7 @@ class UserManager:
         logger.info("Updated user: %s", email)
         return {'email': email, 'name': user['name'], 'gender': user.get('gender', ''),
                 'pdn_code': user['pdn_code'], 'daily_conversation_limit': user['daily_conversation_limit'],
+                'access_days': user.get('access_days', 0),
                 'created_at': user.get('created_at', '')}
 
     def delete_user(self, email: str) -> None:

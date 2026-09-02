@@ -1212,15 +1212,21 @@ def create_user():
     gender = data.get('gender', '').strip()
     pdn_code = data.get('pdn_code', '').strip()
     daily_limit = data.get('daily_conversation_limit', 15)
+    access_days = data.get('access_days', 0)
 
     try:
         daily_limit = int(daily_limit)
     except (ValueError, TypeError):
         return jsonify({"error": "daily_conversation_limit must be a number"}), 400
 
+    try:
+        access_days = int(access_days)
+    except (ValueError, TypeError):
+        return jsonify({"error": "access_days must be a number"}), 400
+
     um = get_user_manager()
     try:
-        user = um.add_user(email, password, name, pdn_code, daily_limit, gender=gender)
+        user = um.add_user(email, password, name, pdn_code, daily_limit, gender=gender, access_days=access_days)
         return jsonify({"success": True, "user": user}), 201
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
@@ -1238,7 +1244,7 @@ def update_user_endpoint(email):
     data.pop('admin_password', None)
 
     um = get_user_manager()
-    allowed = {'password', 'name', 'gender', 'pdn_code', 'daily_conversation_limit'}
+    allowed = {'password', 'name', 'gender', 'pdn_code', 'daily_conversation_limit', 'access_days'}
     updates = {k: v for k, v in data.items() if k in allowed and v is not None}
 
     if 'daily_conversation_limit' in updates:
@@ -1246,6 +1252,12 @@ def update_user_endpoint(email):
             updates['daily_conversation_limit'] = int(updates['daily_conversation_limit'])
         except (ValueError, TypeError):
             return jsonify({"error": "daily_conversation_limit must be a number"}), 400
+
+    if 'access_days' in updates:
+        try:
+            updates['access_days'] = int(updates['access_days'])
+        except (ValueError, TypeError):
+            return jsonify({"error": "access_days must be a number"}), 400
 
     try:
         user = um.update_user(email, **updates)
