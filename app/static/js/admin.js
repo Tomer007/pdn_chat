@@ -3943,6 +3943,11 @@
                 <td class="px-4 py-3 text-center text-gray-700">${user.daily_conversation_limit}</td>
                 <td class="px-4 py-3 text-center text-gray-700">${accessDisplay}</td>
                 <td class="px-4 py-3 text-center text-gray-500 text-xs">${user.created_at || '-'}</td>
+                <td class="px-4 py-3 text-center text-xs">${
+                    user.terms_accepted_at
+                        ? `<span style="color:#15803d;font-weight:600;" title="${user.terms_accepted_at}"><i class="fas fa-check-circle" style="margin-left:4px;"></i>${user.terms_accepted_at.slice(0,10)}</span>`
+                        : '<span style="color:#9ca3af;">-</span>'
+                }</td>
                 <td class="px-4 py-3 text-center">
                     <div class="flex items-center justify-center gap-2">
                         <button onclick="openEditUserModal('${user.email}')"
@@ -3983,6 +3988,9 @@
         document.getElementById('userFormName').value = '';
         document.getElementById('userFormLimit').value = 15;
         document.getElementById('userFormAccessDays').value = 0;
+        // Hide terms audit row for new users
+        const termsAudit = document.querySelector('.form-group-terms-audit');
+        if (termsAudit) termsAudit.style.display = 'none';
         populatePdnCodeDropdown('');
         document.getElementById('userFormModal').style.display = 'flex';
         setTimeout(() => document.getElementById('userFormEmail').focus(), 100);
@@ -4005,6 +4013,17 @@
         document.getElementById('userFormLimit').value = user.daily_conversation_limit;
         document.getElementById('userFormAccessDays').value = user.access_days || 0;
         populatePdnCodeDropdown(user.pdn_code);
+
+        // Show terms acceptance info (read-only)
+        const termsInfo = document.getElementById('userFormTermsInfo');
+        if (termsInfo) {
+            if (user.terms_accepted_at) {
+                termsInfo.innerHTML = `<i class="fas fa-check-circle" style="color:#15803d;margin-left:6px;"></i><span style="color:#15803d;font-weight:600;">אושרו ב-${user.terms_accepted_at}</span>`;
+            } else {
+                termsInfo.innerHTML = `<span style="color:#9ca3af;">טרם אישר תנאים</span>`;
+            }
+            termsInfo.closest('.form-group-terms-audit').style.display = 'block';
+        }
         document.getElementById('userFormModal').style.display = 'flex';
         setTimeout(() => document.getElementById('userFormName').focus(), 100);
     }

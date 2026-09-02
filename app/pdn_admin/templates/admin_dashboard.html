@@ -1001,11 +1001,12 @@
                                 <th style="padding: 12px 16px; text-align: center; font-weight: 600; color: #475569;">מגבלת שיחות</th>
                                 <th style="padding: 12px 16px; text-align: center; font-weight: 600; color: #475569;">ימי גישה</th>
                                 <th style="padding: 12px 16px; text-align: center; font-weight: 600; color: #475569;">תאריך יצירה</th>
+                                <th style="padding: 12px 16px; text-align: center; font-weight: 600; color: #475569;">אישור תנאים</th>
                                 <th style="padding: 12px 16px; text-align: center; font-weight: 600; color: #475569;">פעולות</th>
                             </tr>
                         </thead>
                         <tbody id="chatUsersTableBody">
-                            <tr><td colspan="7" style="text-align: center; padding: 32px; color: #94a3b8;"><i class="fas fa-spinner fa-spin" style="margin-left: 8px;"></i> טוען...</td></tr>
+                            <tr><td colspan="9" style="text-align: center; padding: 32px; color: #94a3b8;"><i class="fas fa-spinner fa-spin" style="margin-left: 8px;"></i> טוען...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -1434,6 +1435,14 @@
                        style="width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; outline: none; transition: border-color 0.2s;"
                        dir="ltr"
                        onfocus="this.style.borderColor='#0b2e6b'" onblur="this.style.borderColor='#e2e8f0'">
+            </div>
+            <div class="form-group-terms-audit" style="display:none;">
+                <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
+                    <i class="fas fa-shield-alt" style="margin-left:5px; color:#6b7280;"></i>אישור תנאי שימוש
+                </label>
+                <div id="userFormTermsInfo"
+                     style="padding: 10px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 13px; color: #374151;">
+                </div>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-top: 8px;">
                 <button type="submit" class="header-btn primary" style="justify-content: center; padding: 12px;">
