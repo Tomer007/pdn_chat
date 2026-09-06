@@ -32,3 +32,13 @@
 ### After Creating HTML Reports
 - Always open the HTML file in the browser after creating it (`open <path>`).
 - Do not ask the user if they want it opened — just do it.
+
+## Excel Default Column Rule
+
+**Every Excel file produced by the system MUST include:**
+- Column A: `UID` - separate column, left-aligned
+- Column B: `שם` (full name) - separate column
+
+This applies to ALL sheets in ALL Excel files, no exceptions.
+Never combine UID and name in the same cell.
+This allows Pnina to use UID for anonymous analysis and name for quick identification.
