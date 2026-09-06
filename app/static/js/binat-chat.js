@@ -1256,8 +1256,8 @@ async function submitPlanRequest(event) {
     const submitBtn = document.getElementById('submitPlanBtn');
     const originalText = submitBtn.innerHTML;
 
-    // PDN code data for loading animation
-    const PDN_DATA = {
+    // PDN code data for loading animation (shared with daily training)
+    if (!window.PDN_DATA) window.PDN_DATA = {
         'e1':  { name: 'אומץ והעזה',    element: 'Empower - אדנות ומנהיגות',  eng1: 'E1',  eng2: 'A7',  eng3: 'P2',
                  fear: 'פחד משעבוד ואיבוד שליטה',
                  best: 'מנהיגות טבעית, יוזמה ותעוזה, חיבור לאינטואיציה',
@@ -1702,9 +1702,28 @@ async function submitDailyTrainingRequest(event) {
     const originalText = submitBtn.innerHTML;
 
     try {
-        // Disable button and show loading
+        // Disable button and show PDN loading animation
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>שולח...';
+
+        // Show loading screen
+        const DAILY_MSGS = ['מכין אימון יומי מותאם...', 'מנתח את הצופן שלך...', 'בונה משימה אישית...', 'עוד רגע...'];
+        const code = (PDN_CODE || 'e5').toLowerCase();
+        const dailyData = PDN_DATA[code] || PDN_DATA['e5'];
+        document.getElementById('dailyLoadingCode').textContent = (PDN_CODE || 'E5').toUpperCase();
+        document.getElementById('dailyLoadingCodeName').textContent = dailyData.name;
+        document.getElementById('dailyLoadingElement').textContent = dailyData.element;
+        document.getElementById('dailyEng1').textContent = dailyData.eng1;
+        document.getElementById('dailyEng2').textContent = dailyData.eng2;
+        document.getElementById('dailyEng3').textContent = dailyData.eng3;
+        let dailyMsgIdx = 0;
+        window._dailyMsgInterval = setInterval(() => {
+            dailyMsgIdx = (dailyMsgIdx + 1) % DAILY_MSGS.length;
+            const el = document.getElementById('dailyLoadingMsg');
+            if (el) el.textContent = DAILY_MSGS[dailyMsgIdx];
+        }, 2500);
+        document.getElementById('dailyLoadingScreen').style.display = 'flex';
+        document.getElementById('dailyTrainingContent').style.visibility = 'hidden';
 
         // Get form data
         const formData = new FormData(event.target);
@@ -1739,6 +1758,9 @@ async function submitDailyTrainingRequest(event) {
             }
 
             // Hide modal
+            clearInterval(window._dailyMsgInterval);
+            document.getElementById('dailyLoadingScreen').style.display = 'none';
+            document.getElementById('dailyTrainingContent').style.visibility = '';
             hideDailyTrainingModal();
 
             // Add user message to chat
@@ -1818,7 +1840,12 @@ async function submitDailyTrainingRequest(event) {
     } catch (error) {
         showError('שגיאה בשליחת הבקשה לשרת');
     } finally {
-        // Restore button
+        // Restore button and hide loading
+        clearInterval(window._dailyMsgInterval);
+        const dl = document.getElementById('dailyLoadingScreen');
+        if (dl) dl.style.display = 'none';
+        const dc = document.getElementById('dailyTrainingContent');
+        if (dc) dc.style.visibility = '';
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalText;
     }
