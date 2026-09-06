@@ -1337,15 +1337,15 @@ async function submitPlanRequest(event) {
         document.getElementById('eng2').textContent = data.eng2;
         document.getElementById('eng3').textContent = data.eng3;
 
-        // Make code clickable - show popup on click
+        // Make code show popup on hover
         const codeEl = document.getElementById('loadingCode');
-        codeEl.style.cursor = 'pointer';
-        codeEl.title = 'לחץ לסיכום הצופן';
-        codeEl.onclick = () => {
-            // Remove existing popup if any
-            const existing = document.getElementById('codePopup');
-            if (existing) { existing.remove(); return; }
+        codeEl.style.cursor = 'default';
+        codeEl.title = '';
 
+        let hoverPopup = null;
+
+        codeEl.addEventListener('mouseenter', () => {
+            if (hoverPopup) return;
             const popup = document.createElement('div');
             popup.id = 'codePopup';
             popup.className = 'code-summary-popup';
@@ -1353,7 +1353,6 @@ async function submitPlanRequest(event) {
                 <div class="csp-header">
                     <span class="csp-code">${(PDN_CODE || 'E5').toUpperCase()}</span>
                     <span class="csp-name">${data.name}</span>
-                    <button class="csp-close" onclick="document.getElementById('codePopup').remove()">✕</button>
                 </div>
                 <div class="csp-element">${data.element}</div>
                 <div class="csp-row">
@@ -1375,16 +1374,28 @@ async function submitPlanRequest(event) {
                 </div>
             `;
             codeEl.parentElement.appendChild(popup);
-            // Close on outside click
+            hoverPopup = popup;
+        });
+
+        codeEl.addEventListener('mouseleave', (e) => {
+            // Small delay so user can move into the popup itself
             setTimeout(() => {
-                document.addEventListener('click', function closePopup(e) {
-                    if (!popup.contains(e.target) && e.target !== codeEl) {
-                        popup.remove();
-                        document.removeEventListener('click', closePopup);
-                    }
-                });
-            }, 50);
-        };
+                const popup = document.getElementById('codePopup');
+                if (popup && !popup.matches(':hover')) {
+                    popup.remove();
+                    hoverPopup = null;
+                }
+            }, 120);
+        });
+
+        // Also remove when leaving the popup itself
+        codeEl.parentElement.addEventListener('mouseleave', () => {
+            const popup = document.getElementById('codePopup');
+            if (popup) {
+                popup.remove();
+                hoverPopup = null;
+            }
+        });
 
         // Cycle messages
         let msgIdx = 0;

@@ -1870,7 +1870,8 @@ body.dark-mode .quick-reply-btn:hover {
     text-align: right;
     direction: rtl;
     box-shadow: 0 16px 48px rgba(0,0,0,0.5);
-    animation: popupIn 0.2s ease;
+    animation: popupIn 0.18s ease;
+    pointer-events: none;
 }
 
 @keyframes popupIn {
