@@ -40,13 +40,8 @@ class PDNAgent(BasePDNAgent):
 
     @staticmethod
     def _clean_response(text) -> str:
-        """Strip internal prompt markers that should not appear in user-facing responses.
-
-        Handles both plain strings and Anthropic content block lists gracefully.
-        """
+        """Strip internal prompt markers and emojis from LLM responses."""
         import re
-        # Anthropic returns response.content as a list of ContentBlock objects;
-        # extract the text value before applying regex.
         if isinstance(text, list):
             parts = []
             for block in text:
@@ -59,6 +54,17 @@ class PDNAgent(BasePDNAgent):
             text = str(text) if text is not None else ''
         # Remove [STOP — wait for user response] and similar bracketed instructions
         text = re.sub(r'\[STOP[^\]]*\]', '', text)
+        # Remove all emoji / pictographic characters
+        text = re.sub(
+            r'[\U00010000-\U0010FFFF'   # supplementary planes (most emoji)
+            r'\U00002600-\U000027BF'    # misc symbols, dingbats
+            r'\U0001F300-\U0001FAFF'   # emoji blocks
+            r'\u2600-\u27BF'           # BMP symbols
+            r'\uFE00-\uFE0F'           # variation selectors
+            r'\u200D'                  # zero-width joiner
+            r']+',
+            '', text, flags=re.UNICODE
+        )
         result = text.strip()
         if not result:
             import logging
