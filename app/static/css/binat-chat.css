@@ -1689,3 +1689,168 @@ body.dark-mode .quick-reply-btn:hover {
     font-weight: 500;
 }
 .session-timer i { font-size: 12px; }
+
+/* ===== PDN Plan Loading Screen ===== */
+.plan-loading-screen {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(160deg, #1a2540 0%, #2d3a5e 60%, #1e3a6e 100%);
+    border-radius: 20px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeInLoad 0.3s ease;
+}
+
+@keyframes fadeInLoad {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.pdn-loading-card {
+    text-align: center;
+    padding: 32px 24px;
+    width: 100%;
+    max-width: 420px;
+}
+
+.pdn-loading-logo img {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: 2px solid rgba(201, 169, 110, 0.4);
+    margin-bottom: 20px;
+    animation: logoPulse 2s ease-in-out infinite;
+}
+
+@keyframes logoPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(201, 169, 110, 0.4); }
+    50%       { box-shadow: 0 0 0 12px rgba(201, 169, 110, 0); }
+}
+
+.pdn-loading-code {
+    font-size: 4rem;
+    font-weight: 900;
+    letter-spacing: -2px;
+    background: linear-gradient(135deg, #f0d080, #c9a96e);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    margin-bottom: 6px;
+    animation: codeGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes codeGlow {
+    from { filter: drop-shadow(0 0 8px rgba(201, 169, 110, 0.4)); }
+    to   { filter: drop-shadow(0 0 20px rgba(201, 169, 110, 0.8)); }
+}
+
+.pdn-loading-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 4px;
+}
+
+.pdn-loading-element {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.55);
+    letter-spacing: 0.5px;
+    margin-bottom: 24px;
+}
+
+/* Engine pills */
+.pdn-engines-row {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+}
+
+.pdn-engine-pill {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 8px 14px;
+    border-radius: 12px;
+    min-width: 72px;
+    animation: pillEntrance 0.5s ease both;
+}
+
+.pdn-engine-pill:nth-child(1) { animation-delay: 0.1s; }
+.pdn-engine-pill:nth-child(2) { animation-delay: 0.25s; }
+.pdn-engine-pill:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes pillEntrance {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.pdn-engine-pill.dom   { background: rgba(201, 169, 110, 0.18); border: 1px solid rgba(201, 169, 110, 0.35); }
+.pdn-engine-pill.stab  { background: rgba(13, 148, 136, 0.18);  border: 1px solid rgba(13, 148, 136, 0.35); }
+.pdn-engine-pill.trans { background: rgba(109, 40, 217, 0.18);  border: 1px solid rgba(109, 40, 217, 0.35); }
+
+.engine-pct {
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.55);
+    line-height: 1;
+}
+
+.engine-name {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #f0d080;
+    line-height: 1.1;
+}
+
+.pdn-engine-pill.stab  .engine-name { color: #5eead4; }
+.pdn-engine-pill.trans .engine-name { color: #c4b5fd; }
+
+.engine-role {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.5);
+    line-height: 1;
+}
+
+/* Progress bar */
+.pdn-loading-progress {
+    height: 3px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 14px;
+}
+
+.pdn-loading-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #8b6914, #f0d080, #8b6914);
+    background-size: 200% 100%;
+    border-radius: 2px;
+    animation: progressSlide 2s ease-in-out infinite;
+    width: 60%;
+}
+
+@keyframes progressSlide {
+    0%   { background-position: 200% center; transform: translateX(100%); }
+    50%  { background-position: 0% center;   transform: translateX(-30%); }
+    100% { background-position: -200% center; transform: translateX(100%); }
+}
+
+.pdn-loading-msg {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.65);
+    animation: msgCycle 4s ease-in-out infinite;
+}
+
+@keyframes msgCycle {
+    0%, 20%  { opacity: 1; }
+    25%, 45% { opacity: 0; }
+    50%, 70% { opacity: 1; }
+    75%, 95% { opacity: 0; }
+    100%     { opacity: 1; }
+}

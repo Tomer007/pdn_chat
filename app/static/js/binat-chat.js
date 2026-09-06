@@ -1267,10 +1267,65 @@ async function submitPlanRequest(event) {
     const submitBtn = document.getElementById('submitPlanBtn');
     const originalText = submitBtn.innerHTML;
 
+    // PDN code data for loading animation
+    const PDN_DATA = {
+        'e1':  { name: 'אומץ והעזה',    element: 'Empower - אדנות ומנהיגות',  eng1: 'E1',  eng2: 'A7',  eng3: 'P2'  },
+        'e5':  { name: 'קבלה והנהגה',   element: 'Empower - אדנות ומנהיגות',  eng1: 'E5',  eng2: 'A11', eng3: 'P6'  },
+        'e9':  { name: 'חוכמה והתנסות', element: 'Empower - אדנות ומנהיגות',  eng1: 'E9',  eng2: 'A3',  eng3: 'P10' },
+        'a3':  { name: 'תקשורת ותקווה', element: 'Achievement - הישגיות והצלחה', eng1: 'A3',  eng2: 'E9',  eng3: 'T4'  },
+        'a7':  { name: 'תבונה והצלחה',  element: 'Achievement - הישגיות והצלחה', eng1: 'A7',  eng2: 'E1',  eng3: 'T8'  },
+        'a11': { name: 'הארה וחדשנות',  element: 'Achievement - הישגיות והצלחה', eng1: 'A11', eng2: 'E5',  eng3: 'T12' },
+        't4':  { name: 'ביטחון והגנה',  element: 'Trust - ביטחון והרמוניה',    eng1: 'T4',  eng2: 'P10', eng3: 'A3'  },
+        't8':  { name: 'צדק ושמירה',    element: 'Trust - ביטחון והרמוניה',    eng1: 'T8',  eng2: 'P2',  eng3: 'A7'  },
+        't12': { name: 'אחדות והרמוניה',element: 'Trust - ביטחון והרמוניה',    eng1: 'T12', eng2: 'P6',  eng3: 'A11' },
+        'p2':  { name: 'אפשור ועשייה',  element: 'Pleasure - הנאה ושפע',       eng1: 'P2',  eng2: 'T8',  eng3: 'E1'  },
+        'p6':  { name: 'צמיחה והדרכה',  element: 'Pleasure - הנאה ושפע',       eng1: 'P6',  eng2: 'T12', eng3: 'E5'  },
+        'p10': { name: 'שפע ונתינה',    element: 'Pleasure - הנאה ושפע',       eng1: 'P10', eng2: 'T4',  eng3: 'E9'  },
+    };
+
+    const LOADING_MSGS = [
+        'בונה תוכנית מותאמת אישית...',
+        'מנתח את הצופן שלך...',
+        'מתאים משימות למנועים שלך...',
+        'יוצר חוויה אישית...',
+        'עוד רגע קצר...',
+    ];
+
+    function showPlanLoading() {
+        const code = (PDN_CODE || 'e5').toLowerCase();
+        const data = PDN_DATA[code] || PDN_DATA['e5'];
+        document.getElementById('loadingCode').textContent = (PDN_CODE || 'E5').toUpperCase();
+        document.getElementById('loadingCodeName').textContent = data.name;
+        document.getElementById('loadingElement').textContent = data.element;
+        document.getElementById('eng1').textContent = data.eng1;
+        document.getElementById('eng2').textContent = data.eng2;
+        document.getElementById('eng3').textContent = data.eng3;
+
+        // Cycle messages
+        let msgIdx = 0;
+        window._loadingMsgInterval = setInterval(() => {
+            msgIdx = (msgIdx + 1) % LOADING_MSGS.length;
+            const el = document.getElementById('loadingMsg');
+            if (el) el.textContent = LOADING_MSGS[msgIdx];
+        }, 3000);
+
+        document.getElementById('planLoadingScreen').style.display = 'flex';
+        document.getElementById('planContent').style.visibility = 'hidden';
+    }
+
+    function hidePlanLoading() {
+        clearInterval(window._loadingMsgInterval);
+        const screen = document.getElementById('planLoadingScreen');
+        if (screen) screen.style.display = 'none';
+        const content = document.getElementById('planContent');
+        if (content) content.style.visibility = '';
+    }
+
     try {
-        // Disable button and show loading
+        // Disable button and show PDN loading animation
         submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>בונה  אתגר 21 יום...';
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>בונה אתגר 21 יום...';
+        showPlanLoading();
 
 
         // Get form data
@@ -1312,6 +1367,7 @@ async function submitPlanRequest(event) {
             }
 
             // Hide modal
+            hidePlanLoading();
             hidePlanModal();
 
             // Add user message to chat
@@ -1404,7 +1460,8 @@ async function submitPlanRequest(event) {
             showError('שגיאה בשליחת הבקשה לשרת');
         }
     } finally {
-        // Restore button
+        // Restore button and hide loading
+        hidePlanLoading();
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalText;
     }

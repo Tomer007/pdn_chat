@@ -114,7 +114,43 @@
 
 <!-- 21-Day Plan Modal -->
 <div class="plan-modal" id="planModal">
-    <div class="plan-content">
+
+    <!-- Loading animation shown while building the plan -->
+    <div class="plan-loading-screen" id="planLoadingScreen" style="display:none;">
+        <div class="pdn-loading-card">
+            <div class="pdn-loading-logo">
+                <img src="{{ url_for('static', filename='images/pdn_logo.png') }}" alt="PDN" onerror="this.style.display='none'">
+            </div>
+            <div class="pdn-loading-code" id="loadingCode">E5</div>
+            <div class="pdn-loading-name" id="loadingCodeName">קבלה והנהגה</div>
+            <div class="pdn-loading-element" id="loadingElement">Empower - אדנות ומנהיגות</div>
+
+            <div class="pdn-engines-row" id="loadingEngines">
+                <div class="pdn-engine-pill dom">
+                    <span class="engine-pct">50%</span>
+                    <span class="engine-name" id="eng1">E5</span>
+                    <span class="engine-role">דומיננטי</span>
+                </div>
+                <div class="pdn-engine-pill stab">
+                    <span class="engine-pct">30%</span>
+                    <span class="engine-name" id="eng2">A11</span>
+                    <span class="engine-role">מייצב</span>
+                </div>
+                <div class="pdn-engine-pill trans">
+                    <span class="engine-pct">20%</span>
+                    <span class="engine-name" id="eng3">P6</span>
+                    <span class="engine-role">מתמיר</span>
+                </div>
+            </div>
+
+            <div class="pdn-loading-progress">
+                <div class="pdn-loading-bar"></div>
+            </div>
+            <div class="pdn-loading-msg" id="loadingMsg">בונה תוכנית מותאמת אישית...</div>
+        </div>
+    </div>
+
+    <div class="plan-content" id="planContent">
         <div class="plan-header">
             <div class="plan-title-container">
                 <div class="plan-title-main">
