@@ -979,8 +979,8 @@ async function processMessageQueue() {
 
         scrollToBottom(true); // Force scroll for bot message
 
-        // Add quick reply buttons for bot messages
-        addQuickReplies(botBubble);
+        // Add quick reply buttons for bot messages (not first welcome)
+        addQuickReplies(botBubble, true);
         scrollToBottom(true); // Force scroll after quick replies
 
     } catch (error) {
@@ -1005,12 +1005,12 @@ async function processMessageQueue() {
 }
 
 // Add quick reply buttons
-function addQuickReplies(botBubble) {
+function addQuickReplies(botBubble, skipCodeInfo = false) {
     const quickReplies = [
        /* "אתגר 21 יום",
         "אימון יומי",*/
         "ספר לי על הקוד שלי"
-    ];
+    ].filter(r => !(skipCodeInfo && r === "ספר לי על הקוד שלי"));
 
     const quickRepliesDiv = document.createElement("div");
     quickRepliesDiv.className = "quick-replies";
@@ -1205,7 +1205,7 @@ document.addEventListener("DOMContentLoaded", function () {
             `;
 
         chatContainer.appendChild(initialBot);
-        addQuickReplies(initialBot);
+        addQuickReplies(initialBot, false); // first message - show "ספר לי"
         scrollToBottom(true);
         } // end binat-only welcome message
 
