@@ -612,6 +612,30 @@ body {
     background: rgba(220, 38, 38, 0.06);
 }
 
+.fab-item.highlight {
+    color: #8b6914;
+    font-weight: 600;
+    border-bottom: 1px solid rgba(201, 169, 110, 0.2);
+    margin-bottom: 4px;
+    padding-bottom: 14px;
+}
+
+.fab-item.highlight i {
+    color: #c9a96e;
+}
+
+.fab-item.highlight:hover {
+    background: rgba(201, 169, 110, 0.10);
+}
+
+body.dark-mode .fab-item.highlight {
+    color: #f0d080;
+}
+
+body.dark-mode .fab-item.highlight i {
+    color: #f0d080;
+}
+
 body.dark-mode .fab-dropdown {
     background: rgba(30, 41, 59, 0.98);
     border-color: rgba(51, 65, 85, 0.3);
