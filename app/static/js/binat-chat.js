@@ -1199,17 +1199,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 <div class="message-content">
                     <p class="welcome-greeting"><span style="color: #c9a96e;">🌿</span> שלום ${USER_NAME.toUpperCase()}, קוד המקור שלך הינו <strong>${finalPdnCode.toUpperCase()}</strong></p>
                     <p>בינת קוד המקור ממתינה לך כאן, בקצב שלך.</p>
-                    <details class="welcome-disclaimer">
-                        <summary>הסכמה מודעת וכתב ויתור</summary>
-                        <div class="disclaimer-body">
-                            <p>בינת קוד המקור מיועדת לצורכי התפתחות אישית והעשרה עצמית בלבד.</p>
-                            <p>השיחות והתובנות המוצעות כאן אינן מהוות תחליף לייעוץ מקצועי, טיפול פסיכולוגי, רפואי או כל שירות מקצועי אחר.</p>
-                            <p>השימוש בבינה זו הוא באחריותך המלאה. אם את/ה חווה מצוקה נפשית, קושי רגשי משמעותי או זקוק/ה לתמיכה מקצועית – מומלץ בחום לפנות לגורם מוסמך.</p>
-                            <p>הבינה מיועדת לשימוש אישי בלבד ואינה מחליפה ליווי אנושי מקצועי.</p>
-                            <p>כל הזכויות שמורות למרכז PDN ולבעליו החוקיים.</p>
-                            <p>השימוש בבינה מהווה אישור להסכמה מלאה לכל האמור לעיל.</p>
-                        </div>
-                    </details>
                     <p class="welcome-closing">אני כאן להזכיר לך – הכוח כבר בתוכך. <span style="color: #c9a96e;">💛</span></p>
                 </div>
                 <div class="message-time">${getCurrentTime()}</div>

