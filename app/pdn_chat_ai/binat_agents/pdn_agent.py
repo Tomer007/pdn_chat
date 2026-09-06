@@ -298,26 +298,38 @@ class PDNAgent(BasePDNAgent):
         safe_goal = self._sanitize_user_input(user_goal)
         user_message = f"user_name: {user_name}\nuser_pdn_code: {pdn_code}\nuser_goal: {safe_goal}"
 
-        response = self._invoke_llm([
+        # claude-sonnet-5 consistently returns empty for long-form plan generation.
+        # Use claude-3-5-sonnet-20241022 which handles long HTML output reliably.
+        from config import Config as _Config
+        _cfg = _Config()
+        if self._is_anthropic:
+            from langchain_anthropic import ChatAnthropic as _CA
+            plan_llm = _CA(
+                model="claude-3-5-sonnet-20241022",
+                max_tokens=4000,
+                api_key=_cfg.ANTHROPIC_API_KEY,
+                timeout=180,
+            )
+        else:
+            plan_llm = self.llm  # OpenAI handles long output fine
+
+        messages = [
             self._build_system_message(system_prompt),
             HumanMessage(content=user_message)
-        ], max_tokens=4000)
+        ]
+        response = plan_llm.invoke(messages)
         self._track_usage(user_name, response)
         response_text = self._clean_response(response.content)
 
-        # If response is empty (can happen with long plan generation), retry once with plain text request
+        # If still empty, return a friendly error instead of a blank response
         if not response_text.strip():
-            self.logger.warning("Empty plan response for %s, retrying without markdown tables", user_name)
-            user_message_plain = (
-                f"user_name: {user_name}\nuser_pdn_code: {pdn_code}\nuser_goal: {safe_goal}\n\n"
-                f"כתוב את התוכנית בפורמט טקסט רץ בלבד, ללא טבלאות ו-markdown."
+            self.logger.error("Plan generation returned empty for %s even with fallback model", user_name)
+            return (
+                "<div style='font-family:Arial,sans-serif;direction:rtl;padding:20px;color:#1a2540;'>"
+                "<p style='font-size:1rem;font-weight:600;'>מצטערים, לא הצלחנו לבנות את התוכנית כרגע.</p>"
+                "<p style='font-size:0.9rem;color:#7a7060;'>נסה שוב בעוד כמה דקות, או פנה לתמיכה אם הבעיה נמשכת.</p>"
+                "</div>"
             )
-            response = self._invoke_llm([
-                self._build_system_message(system_prompt),
-                HumanMessage(content=user_message_plain)
-            ], max_tokens=4000)
-            self._track_usage(user_name, response)
-            response_text = self._clean_response(response.content)
 
         # Increment count AFTER successful LLM call
         if user_name:
