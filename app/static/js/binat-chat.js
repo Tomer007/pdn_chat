@@ -1596,10 +1596,9 @@ async function copyPlanToClipboard(button) {
     }
 }
 
-// Download plan as file function
+// Download plan as HTML file
 function downloadPlan(button) {
     try {
-        // Find the message content in the same chat bubble
         const chatBubble = button.closest('.chat-bubble');
         const messageContent = chatBubble.querySelector('.message-content');
 
@@ -1608,23 +1607,43 @@ function downloadPlan(button) {
             return;
         }
 
-        // Get the text content (without HTML tags)
-        const planText = messageContent.innerText || messageContent.textContent;
+        const planHtml = messageContent.innerHTML;
+        const date = new Date().toLocaleDateString('he-IL');
+        const fileName = `תוכנית-21-יום-${USER_NAME}-${new Date().toISOString().split('T')[0]}.html`;
 
-        // Create file content with header
-        const fileName = `תוכנית-21-יום-${USER_NAME}-${new Date().toISOString().split('T')[0]}.txt`;
-        const fileContent = `תוכנית 21 יום - ${USER_NAME}
-תאריך: ${new Date().toLocaleDateString('he-IL')}
-קוד המקור: ${PDN_CODE}
-========================================
+        const fileContent = `<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>תוכנית 21 יום - ${USER_NAME}</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #f0f4f8; direction: rtl; padding: 32px 20px; margin: 0; }
+  .wrapper { max-width: 680px; margin: 0 auto; }
+  .cover { background: linear-gradient(135deg,#1a2540,#2d3a5e); border-radius: 16px; padding: 22px 26px; color: white; margin-bottom: 24px; text-align: right; }
+  .cover h1 { font-size: 1.3rem; font-weight: 800; margin: 0 0 4px; }
+  .cover p { font-size: 0.85rem; color: rgba(255,255,255,0.65); margin: 0; }
+  .cover .meta { font-size: 0.78rem; color: #c9a96e; margin-top: 6px; }
+  .content { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  footer { text-align: center; font-size: 12px; color: #94a3b8; margin-top: 24px; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="cover">
+    <h1>תוכנית 21 יום - ${USER_NAME}</h1>
+    <p>קוד המקור: ${(PDN_CODE || '').toUpperCase()}</p>
+    <div class="meta">תאריך הפקה: ${date} | PDN Center - בינת קוד המקור</div>
+  </div>
+  <div class="content">
+    ${planHtml}
+  </div>
+  <footer>&copy; ${new Date().getFullYear()} PDN Center - בינת קוד המקור</footer>
+</div>
+</body>
+</html>`;
 
-${planText}
-
-========================================
-© ${new Date().getFullYear()} PDN Center - בינת קוד המקור`;
-
-        // Create and download file
-        const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8' });
+        const blob = new Blob([fileContent], { type: 'text/html;charset=utf-8' });
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
