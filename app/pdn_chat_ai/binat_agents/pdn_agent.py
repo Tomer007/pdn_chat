@@ -298,25 +298,16 @@ class PDNAgent(BasePDNAgent):
         safe_goal = self._sanitize_user_input(user_goal)
         user_message = f"user_name: {user_name}\nuser_pdn_code: {pdn_code}\nuser_goal: {safe_goal}"
 
-        # claude-sonnet-5 returns empty for long complex prompts - use the same model
-        # but with a simplified direct user message that's easier for it to complete.
-        if self._is_anthropic:
-            self.llm = self.llm  # keep same model
-        
-        messages = [
+        response = self._invoke_llm([
             self._build_system_message(system_prompt),
             HumanMessage(content=user_message)
-        ]
-        try:
-            response = self._invoke_llm(messages, max_tokens=4000)
-        finally:
-            pass  # nothing to restore
+        ], max_tokens=4000)
         self._track_usage(user_name, response)
         response_text = self._clean_response(response.content)
 
-        # If still empty, return a friendly error instead of a blank response
+        # If empty, return a friendly error
         if not response_text.strip():
-            self.logger.error("Plan generation returned empty for %s even with fallback model", user_name)
+            self.logger.error("Plan generation returned empty for %s", user_name)
             return (
                 "<div style='font-family:Arial,sans-serif;direction:rtl;padding:20px;color:#1a2540;'>"
                 "<p style='font-size:1rem;font-weight:600;'>מצטערים, לא הצלחנו לבנות את התוכנית כרגע.</p>"
