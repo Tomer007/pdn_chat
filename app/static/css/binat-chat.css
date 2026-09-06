@@ -526,12 +526,14 @@ body {
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #8b6914, #c9a96e);
+    background: transparent;
     color: #2d2a26;
     border: none;
     cursor: pointer;
     display: flex;
     align-items: center;
+    padding: 0;
+    overflow: hidden;
     justify-content: center;
     font-size: 18px;
     box-shadow: 0 4px 16px rgba(201, 169, 110, 0.3);
