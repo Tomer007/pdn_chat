@@ -324,6 +324,16 @@ body {
     box-shadow: 0 6px 16px rgba(201, 169, 110, 0.3);
 }
 
+.action-button.challenge-btn {
+    background: linear-gradient(135deg, #1a2540 0%, #2d3a5e 100%);
+    color: #f0d080;
+    box-shadow: 0 4px 12px rgba(26, 37, 64, 0.25);
+}
+
+.action-button.challenge-btn:hover {
+    box-shadow: 0 6px 16px rgba(26, 37, 64, 0.35);
+}
+
 /* ===== Typing Indicator - Modern Wave Animation ===== */
 .typing-indicator {
     display: flex;
