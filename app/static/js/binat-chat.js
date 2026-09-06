@@ -1481,9 +1481,15 @@ async function submitPlanRequest(event) {
             const botBubble = document.createElement("div");
             botBubble.className = "chat-bubble bot animated";
             const botTime = getCurrentTime();
-            let botContent = safeMarkdownParse(data.response);
-            botContent = botContent.replace('```markdown', '')
-            botContent = botContent.replace('---', '');
+            let botContent;
+            // Plan response is HTML - render directly, don't parse as markdown
+            const raw = data.response || '';
+            if (raw.trim().startsWith('<')) {
+                botContent = raw; // already HTML from the LLM
+            } else {
+                // Fallback: parse as markdown if somehow plain text came back
+                botContent = safeMarkdownParse(raw);
+            }
 
 
             botBubble.innerHTML = `
