@@ -59,7 +59,14 @@ class PDNAgent(BasePDNAgent):
             text = str(text) if text is not None else ''
         # Remove [STOP — wait for user response] and similar bracketed instructions
         text = re.sub(r'\[STOP[^\]]*\]', '', text)
-        return text.strip()
+        result = text.strip()
+        if not result:
+            import logging
+            logging.getLogger(__name__).warning(
+                "_clean_response: output is empty after cleaning (input type=%s, input preview=%r)",
+                type(text).__name__, str(text)[:100]
+            )
+        return result
 
     def _load_prompt(self, pdn_code: str, prompt_file: str) -> str:
         """Load prompt file with caching. Raises FileNotFoundError with clear message if code is invalid."""
@@ -297,6 +304,20 @@ class PDNAgent(BasePDNAgent):
         ], max_tokens=4000)
         self._track_usage(user_name, response)
         response_text = self._clean_response(response.content)
+
+        # If response is empty (can happen with long plan generation), retry once with plain text request
+        if not response_text.strip():
+            self.logger.warning("Empty plan response for %s, retrying without markdown tables", user_name)
+            user_message_plain = (
+                f"user_name: {user_name}\nuser_pdn_code: {pdn_code}\nuser_goal: {safe_goal}\n\n"
+                f"כתוב את התוכנית בפורמט טקסט רץ בלבד, ללא טבלאות ו-markdown."
+            )
+            response = self._invoke_llm([
+                self._build_system_message(system_prompt),
+                HumanMessage(content=user_message_plain)
+            ], max_tokens=4000)
+            self._track_usage(user_name, response)
+            response_text = self._clean_response(response.content)
 
         # Increment count AFTER successful LLM call
         if user_name:
