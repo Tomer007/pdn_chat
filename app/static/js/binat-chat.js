@@ -1269,18 +1269,54 @@ async function submitPlanRequest(event) {
 
     // PDN code data for loading animation
     const PDN_DATA = {
-        'e1':  { name: 'אומץ והעזה',    element: 'Empower - אדנות ומנהיגות',  eng1: 'E1',  eng2: 'A7',  eng3: 'P2'  },
-        'e5':  { name: 'קבלה והנהגה',   element: 'Empower - אדנות ומנהיגות',  eng1: 'E5',  eng2: 'A11', eng3: 'P6'  },
-        'e9':  { name: 'חוכמה והתנסות', element: 'Empower - אדנות ומנהיגות',  eng1: 'E9',  eng2: 'A3',  eng3: 'P10' },
-        'a3':  { name: 'תקשורת ותקווה', element: 'Achievement - הישגיות והצלחה', eng1: 'A3',  eng2: 'E9',  eng3: 'T4'  },
-        'a7':  { name: 'תבונה והצלחה',  element: 'Achievement - הישגיות והצלחה', eng1: 'A7',  eng2: 'E1',  eng3: 'T8'  },
-        'a11': { name: 'הארה וחדשנות',  element: 'Achievement - הישגיות והצלחה', eng1: 'A11', eng2: 'E5',  eng3: 'T12' },
-        't4':  { name: 'ביטחון והגנה',  element: 'Trust - ביטחון והרמוניה',    eng1: 'T4',  eng2: 'P10', eng3: 'A3'  },
-        't8':  { name: 'צדק ושמירה',    element: 'Trust - ביטחון והרמוניה',    eng1: 'T8',  eng2: 'P2',  eng3: 'A7'  },
-        't12': { name: 'אחדות והרמוניה',element: 'Trust - ביטחון והרמוניה',    eng1: 'T12', eng2: 'P6',  eng3: 'A11' },
-        'p2':  { name: 'אפשור ועשייה',  element: 'Pleasure - הנאה ושפע',       eng1: 'P2',  eng2: 'T8',  eng3: 'E1'  },
-        'p6':  { name: 'צמיחה והדרכה',  element: 'Pleasure - הנאה ושפע',       eng1: 'P6',  eng2: 'T12', eng3: 'E5'  },
-        'p10': { name: 'שפע ונתינה',    element: 'Pleasure - הנאה ושפע',       eng1: 'P10', eng2: 'T4',  eng3: 'E9'  },
+        'e1':  { name: 'אומץ והעזה',    element: 'Empower - אדנות ומנהיגות',  eng1: 'E1',  eng2: 'A7',  eng3: 'P2',
+                 fear: 'פחד משעבוד ואיבוד שליטה',
+                 best: 'מנהיגות טבעית, יוזמה ותעוזה, חיבור לאינטואיציה',
+                 warn: 'חוסר סבלנות, תגובות חדות לביקורת, התבצרות בעמדות' },
+        'e5':  { name: 'קבלה והנהגה',   element: 'Empower - אדנות ומנהיגות',  eng1: 'E5',  eng2: 'A11', eng3: 'P6',
+                 fear: 'איבוד שליטה ואובדן חירות פנימית',
+                 best: 'סמכות שקטה עם חמלה, תכנון לטווח ארוך, השראת צמיחה',
+                 warn: 'אחריות עודפת, צורך בשליטה, עקשנות' },
+        'e9':  { name: 'חוכמה והתנסות', element: 'Empower - אדנות ומנהיגות',  eng1: 'E9',  eng2: 'A3',  eng3: 'P10',
+                 fear: 'פחד משעבוד ואיבוד החופש',
+                 best: 'שיתוף חוכמה מניסיון, מנטורינג מתוך חמלה, חופש פנימי',
+                 warn: 'ירידה בערך עצמי, עייפות מחוסר הכרה, שינויי כיוון תכופים' },
+        'a3':  { name: 'תקשורת ותקווה', element: 'Achievement - הישגיות והצלחה', eng1: 'A3',  eng2: 'E9',  eng3: 'T4',
+                 fear: 'פחד מכישלון',
+                 best: 'זיהוי הזדמנויות, תקשורת מעוררת השראה, קשרים כמפתח',
+                 warn: 'פיזור, צורך באישור, קושי בהתמדה' },
+        'a7':  { name: 'תבונה והצלחה',  element: 'Achievement - הישגיות והצלחה', eng1: 'A7',  eng2: 'E1',  eng3: 'T8',
+                 fear: 'פחד מכישלון',
+                 best: 'הסקת מסקנות מהירה, פיתוח חדשנות, ראיית התמונה הרחבה',
+                 warn: 'עיכוב בהחלטות, פרפקציוניזם, רגישות לביקורת' },
+        'a11': { name: 'הארה וחדשנות',  element: 'Achievement - הישגיות והצלחה', eng1: 'A11', eng2: 'E5',  eng3: 'T12',
+                 fear: 'פחד מכישלון',
+                 best: 'תרגום תובנות לפתרונות מעשיים, חזון רחב, השראה',
+                 warn: 'היצמדות לרעיונות לא מציאותיים, דחיינות, חשדנות' },
+        't4':  { name: 'ביטחון והגנה',  element: 'Trust - ביטחון והרמוניה',    eng1: 'T4',  eng2: 'P10', eng3: 'A3',
+                 fear: 'פחד מסכנות ואי ודאות',
+                 best: 'פעולה מתוך שקט, חשיבה לוגית, עוגן יציבות לסביבה',
+                 warn: 'דאגנות יתר, חשדנות, הסתגרות' },
+        't8':  { name: 'צדק ושמירה',    element: 'Trust - ביטחון והרמוניה',    eng1: 'T8',  eng2: 'P2',  eng3: 'A7',
+                 fear: 'פחד מסכנות ואי ודאות',
+                 best: 'הובלה מתוך ערכים ויושרה, פעולה עקבית ומאוזנת',
+                 warn: 'שחור-לבן, שיפוטיות, קושי לסלוח' },
+        't12': { name: 'אחדות והרמוניה',element: 'Trust - ביטחון והרמוניה',    eng1: 'T12', eng2: 'P6',  eng3: 'A11',
+                 fear: 'פחד מאובדן ואי ודאות',
+                 best: 'הקשבה אותנטית, גישור, שלווה פנימית בחוסר ודאות',
+                 warn: 'ויתור על רצונות, ריצוי יתר, קושי בהצבת גבולות' },
+        'p2':  { name: 'אפשור ועשייה',  element: 'Pleasure - הנאה ושפע',       eng1: 'P2',  eng2: 'T8',  eng3: 'E1',
+                 fear: 'פחד מדחייה ואובדן הנאה',
+                 best: 'יציבות ובהירות, אמפתיה ונתינה, שביעות רצון ביומיום',
+                 warn: 'ביקורת עצמית, היאחזות בשגרה, הימנעות מהזדמנויות' },
+        'p6':  { name: 'צמיחה והדרכה',  element: 'Pleasure - הנאה ושפע',       eng1: 'P6',  eng2: 'T12', eng3: 'E5',
+                 fear: 'איבוד אהבה ושייכות',
+                 best: 'הדרכה סבלנית, גבולות עדינים עם הרמוניה, ניהול לצמיחה',
+                 warn: 'נתינת יתר עד תשישות, ביקורתיות עצמית, קושי לבקש עזרה' },
+        'p10': { name: 'שפע ונתינה',    element: 'Pleasure - הנאה ושפע',       eng1: 'P10', eng2: 'T4',  eng3: 'E9',
+                 fear: 'פחד מדחייה ונטישה',
+                 best: 'ביצוע גבוה, נתינה מתוך שמחה, שיתופי פעולה הרמוניים',
+                 warn: 'נתינת יתר עד מחסור, ביקורתיות עצמית, קושי לבקש עזרה' },
     };
 
     const LOADING_MSGS = [
@@ -1300,6 +1336,55 @@ async function submitPlanRequest(event) {
         document.getElementById('eng1').textContent = data.eng1;
         document.getElementById('eng2').textContent = data.eng2;
         document.getElementById('eng3').textContent = data.eng3;
+
+        // Make code clickable - show popup on click
+        const codeEl = document.getElementById('loadingCode');
+        codeEl.style.cursor = 'pointer';
+        codeEl.title = 'לחץ לסיכום הצופן';
+        codeEl.onclick = () => {
+            // Remove existing popup if any
+            const existing = document.getElementById('codePopup');
+            if (existing) { existing.remove(); return; }
+
+            const popup = document.createElement('div');
+            popup.id = 'codePopup';
+            popup.className = 'code-summary-popup';
+            popup.innerHTML = `
+                <div class="csp-header">
+                    <span class="csp-code">${(PDN_CODE || 'E5').toUpperCase()}</span>
+                    <span class="csp-name">${data.name}</span>
+                    <button class="csp-close" onclick="document.getElementById('codePopup').remove()">✕</button>
+                </div>
+                <div class="csp-element">${data.element}</div>
+                <div class="csp-row">
+                    <div class="csp-label">בשיאך</div>
+                    <div class="csp-val good">${data.best}</div>
+                </div>
+                <div class="csp-row">
+                    <div class="csp-label">פחד שורשי</div>
+                    <div class="csp-val fear">${data.fear}</div>
+                </div>
+                <div class="csp-row">
+                    <div class="csp-label">כשפחד פעיל</div>
+                    <div class="csp-val warn">${data.warn}</div>
+                </div>
+                <div class="csp-engines">
+                    <span class="csp-eng dom">${data.eng1} <small>50%</small></span>
+                    <span class="csp-eng stab">${data.eng2} <small>30%</small></span>
+                    <span class="csp-eng trans">${data.eng3} <small>20%</small></span>
+                </div>
+            `;
+            codeEl.parentElement.appendChild(popup);
+            // Close on outside click
+            setTimeout(() => {
+                document.addEventListener('click', function closePopup(e) {
+                    if (!popup.contains(e.target) && e.target !== codeEl) {
+                        popup.remove();
+                        document.removeEventListener('click', closePopup);
+                    }
+                });
+            }, 50);
+        };
 
         // Cycle messages
         let msgIdx = 0;
