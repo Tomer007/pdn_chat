@@ -102,8 +102,21 @@ document.addEventListener('DOMContentLoaded', function () {
     const storedUserId   = sessionStorage.getItem('binat_user_id');
     const storedPdnCode  = sessionStorage.getItem('binat_pdn_code');
     if (storedUsername && storedUserId && storedPdnCode) {
-        window.location.href = `/pdn-binat/binat?user_name=${encodeURIComponent(storedUsername)}&user_id=${encodeURIComponent(storedUserId)}&pdn_code=${encodeURIComponent(storedPdnCode)}`;
-        return;
+        // Check if we were just redirected back here (redirect loop guard)
+        const redirectCount = parseInt(sessionStorage.getItem('_binat_redirect_count') || '0');
+        if (redirectCount >= 1) {
+            // Server rejected our session - clear everything and stay on login page
+            sessionStorage.removeItem('binat_username');
+            sessionStorage.removeItem('binat_user_id');
+            sessionStorage.removeItem('binat_pdn_code');
+            sessionStorage.removeItem('_binat_redirect_count');
+        } else {
+            sessionStorage.setItem('_binat_redirect_count', String(redirectCount + 1));
+            window.location.href = `/pdn-binat/binat?user_name=${encodeURIComponent(storedUsername)}&user_id=${encodeURIComponent(storedUserId)}&pdn_code=${encodeURIComponent(storedPdnCode)}`;
+            return;
+        }
+    } else {
+        sessionStorage.removeItem('_binat_redirect_count');
     }
 
     // Auto-fill stored username
@@ -149,6 +162,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
             sessionStorage.setItem('binat_username', data.user_name);
             sessionStorage.setItem('binat_user_id',  data.user_id);
             sessionStorage.setItem('binat_pdn_code', data.pdn_code);
+            sessionStorage.removeItem('_binat_redirect_count');
             window.location.href = `/pdn-binat/binat?user_name=${encodeURIComponent(data.user_name)}&user_id=${encodeURIComponent(data.user_id)}&pdn_code=${encodeURIComponent(data.pdn_code)}`;
         } else {
             showError(data.error || 'שגיאה בהתחברות');
