@@ -196,6 +196,10 @@ def logout():
 @pdn_chat_ai_bp.route('/binat')
 def chat_interface():
     """Chat interface endpoint - accessed after login"""
+    # If no session, redirect to login instead of serving a broken page
+    if not session.get('user_email'):
+        from flask import redirect, url_for
+        return redirect(url_for('pdn_chat_ai.chat'))
     return render_template(
         "chat.html",
         welcome_message="ברוך הבא לבינת קוד המקור ",
