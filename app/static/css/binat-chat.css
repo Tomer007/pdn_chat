@@ -1970,3 +1970,20 @@ body.dark-mode .quick-reply-btn:hover {
 #loadingCode:hover {
     filter: drop-shadow(0 0 24px rgba(240, 208, 128, 1));
 }
+
+/* ===== Strengths ticker in loading screen ===== */
+.pdn-strengths-ticker {
+    min-height: 22px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.55);
+    margin-top: 10px;
+    text-align: center;
+    letter-spacing: 0.2px;
+    animation: strengthFade 0.5s ease;
+    font-style: italic;
+}
+
+@keyframes strengthFade {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}

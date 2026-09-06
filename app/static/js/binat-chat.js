@@ -1261,51 +1261,63 @@ async function submitPlanRequest(event) {
         'e1':  { name: 'אומץ והעזה',    element: 'Empower - אדנות ומנהיגות',  eng1: 'E1',  eng2: 'A7',  eng3: 'P2',
                  fear: 'פחד משעבוד ואיבוד שליטה',
                  best: 'מנהיגות טבעית, יוזמה ותעוזה, חיבור לאינטואיציה',
-                 warn: 'חוסר סבלנות, תגובות חדות לביקורת, התבצרות בעמדות' },
+                 warn: 'חוסר סבלנות, תגובות חדות לביקורת, התבצרות בעמדות',
+                 strengths: ['אומץ ותעוזה לפרוץ גבולות', 'יכולת להנהיג באותנטיות', 'אינטואיציה חדה בהחלטות', 'מיקוד ובהירות במטרה', 'כריזמה סוחפת ומעניקה השראה', 'ראיית חזון ויכולת מימוש'] },
         'e5':  { name: 'קבלה והנהגה',   element: 'Empower - אדנות ומנהיגות',  eng1: 'E5',  eng2: 'A11', eng3: 'P6',
                  fear: 'איבוד שליטה ואובדן חירות פנימית',
                  best: 'סמכות שקטה עם חמלה, תכנון לטווח ארוך, השראת צמיחה',
-                 warn: 'אחריות עודפת, צורך בשליטה, עקשנות' },
+                 warn: 'אחריות עודפת, צורך בשליטה, עקשנות',
+                 strengths: ['סמכות שקטה עם הכלה', 'ראייה רחבה וסדרי עדיפויות', 'מנהיגות אסטרטגית', 'עוגן שמחבר אנשים', 'ביטחון באינטואיציה', 'מיקוד בהשגת יעד', 'חיבור לשמחת חיים'] },
         'e9':  { name: 'חוכמה והתנסות', element: 'Empower - אדנות ומנהיגות',  eng1: 'E9',  eng2: 'A3',  eng3: 'P10',
                  fear: 'פחד משעבוד ואיבוד החופש',
                  best: 'שיתוף חוכמה מניסיון, מנטורינג מתוך חמלה, חופש פנימי',
-                 warn: 'ירידה בערך עצמי, עייפות מחוסר הכרה, שינויי כיוון תכופים' },
+                 warn: 'ירידה בערך עצמי, עייפות מחוסר הכרה, שינויי כיוון תכופים',
+                 strengths: ['הנהגה מתוך תכלית', 'מנטורינג מניסיון אישי', 'יכולת הכוונה מחוכמת הניסיון', 'אופטימיות ואמונה ביכולות', 'יכולת ללמד בסבלנות', 'חיבור לחופש פנימי', 'שמירה על מוניטין והשראת אמון'] },
         'a3':  { name: 'תקשורת ותקווה', element: 'Achievement - הישגיות והצלחה', eng1: 'A3',  eng2: 'E9',  eng3: 'T4',
                  fear: 'פחד מכישלון',
                  best: 'זיהוי הזדמנויות, תקשורת מעוררת השראה, קשרים כמפתח',
-                 warn: 'פיזור, צורך באישור, קושי בהתמדה' },
+                 warn: 'פיזור, צורך באישור, קושי בהתמדה',
+                 strengths: ['כושר ביטוי גבוה', 'שנינות וסקרנות', 'חוכמת ניסיון ומנטורינג', 'יכולת שיווקית', 'זיהוי הזדמנויות דרך קשרים', 'איזון עבודה-משפחה', 'השראה טבעית ופתרונות מעשיים'] },
         'a7':  { name: 'תבונה והצלחה',  element: 'Achievement - הישגיות והצלחה', eng1: 'A7',  eng2: 'E1',  eng3: 'T8',
                  fear: 'פחד מכישלון',
                  best: 'הסקת מסקנות מהירה, פיתוח חדשנות, ראיית התמונה הרחבה',
-                 warn: 'עיכוב בהחלטות, פרפקציוניזם, רגישות לביקורת' },
+                 warn: 'עיכוב בהחלטות, פרפקציוניזם, רגישות לביקורת',
+                 strengths: ['חשיבה תבונית רחבה', 'חיבור ידע, רעיונות וחדשנות', 'תרגום רעיונות ליישום מעשי', 'זיהוי מהיר של הזדמנויות', 'יכולת ייעוץ וראיית הצלחה עתידית', 'אופטימיות ואמונה בהצלחה', 'יכולת ביטוי גבוהה וניתוח מהיר'] },
         'a11': { name: 'הארה וחדשנות',  element: 'Achievement - הישגיות והצלחה', eng1: 'A11', eng2: 'E5',  eng3: 'T12',
                  fear: 'פחד מכישלון',
                  best: 'תרגום תובנות לפתרונות מעשיים, חזון רחב, השראה',
-                 warn: 'היצמדות לרעיונות לא מציאותיים, דחיינות, חשדנות' },
+                 warn: 'היצמדות לרעיונות לא מציאותיים, דחיינות, חשדנות',
+                 strengths: ['ראיית חזון רחב ורצון לשפר מציאות', 'חשיבה חדשנית ומקורית', 'רצון אמיתי להיטיב עם העולם', 'אמון בחזון ללא סייג', 'השראה טבעית ופתרונות מעשיים'] },
         't4':  { name: 'ביטחון והגנה',  element: 'Trust - ביטחון והרמוניה',    eng1: 'T4',  eng2: 'P10', eng3: 'A3',
                  fear: 'פחד מסכנות ואי ודאות',
                  best: 'פעולה מתוך שקט, חשיבה לוגית, עוגן יציבות לסביבה',
-                 warn: 'דאגנות יתר, חשדנות, הסתגרות' },
+                 warn: 'דאגנות יתר, חשדנות, הסתגרות',
+                 strengths: ['יציבות, אחריות ונאמנות גבוהה', 'רגישות לפרטים ולתחושות אחרים', 'ראיית סיכונים והיערכות מראש', 'יכולת להעניק שקט בעת משבר', 'יצירת מרחב מוגן', 'הגנה על הבית, המשפחה והערכים'] },
         't8':  { name: 'צדק ושמירה',    element: 'Trust - ביטחון והרמוניה',    eng1: 'T8',  eng2: 'P2',  eng3: 'A7',
                  fear: 'פחד מסכנות ואי ודאות',
                  best: 'הובלה מתוך ערכים ויושרה, פעולה עקבית ומאוזנת',
-                 warn: 'שחור-לבן, שיפוטיות, קושי לסלוח' },
+                 warn: 'שחור-לבן, שיפוטיות, קושי לסלוח',
+                 strengths: ['עמוד שדרה מוסרי וחוק פנימי יציב', 'הבחנה חדה בין נכון ללא נכון', 'הגנה על זכויות ופרטיות', 'ראייה יסודית וחקירה לעומק', 'נאמנות ועמידה בהתחייבויות', 'שליטה עצמית ונחישות', 'שאיפה לצדק חברתי'] },
         't12': { name: 'אחדות והרמוניה',element: 'Trust - ביטחון והרמוניה',    eng1: 'T12', eng2: 'P6',  eng3: 'A11',
                  fear: 'פחד מאובדן ואי ודאות',
                  best: 'הקשבה אותנטית, גישור, שלווה פנימית בחוסר ודאות',
-                 warn: 'ויתור על רצונות, ריצוי יתר, קושי בהצבת גבולות' },
+                 warn: 'ויתור על רצונות, ריצוי יתר, קושי בהצבת גבולות',
+                 strengths: ['הקשבה עמוקה ואמיתית', 'אמפתיה חמלה וסובלנות', 'אצילות ושלווה במצבי לחץ', 'הבחנה בסכנות מבלי לייצר פחד', 'הרמוניה בבית ובעבודה', 'מענה מאוזן למצבים רגישים', 'גשר ואחדות בין דעות ותרבויות'] },
         'p2':  { name: 'אפשור ועשייה',  element: 'Pleasure - הנאה ושפע',       eng1: 'P2',  eng2: 'T8',  eng3: 'E1',
                  fear: 'פחד מדחייה ואובדן הנאה',
                  best: 'יציבות ובהירות, אמפתיה ונתינה, שביעות רצון ביומיום',
-                 warn: 'ביקורת עצמית, היאחזות בשגרה, הימנעות מהזדמנויות' },
+                 warn: 'ביקורת עצמית, היאחזות בשגרה, הימנעות מהזדמנויות',
+                 strengths: ['אמינות גבוהה, יציבות ותמיכה', 'יכולת ביצוע מדויקת', 'הקשבה, סבלנות ואמפתיה', 'איזון בין עשייה להנאה', 'השראה באמצעות עקביות ונאמנות'] },
         'p6':  { name: 'צמיחה והדרכה',  element: 'Pleasure - הנאה ושפע',       eng1: 'P6',  eng2: 'T12', eng3: 'E5',
                  fear: 'איבוד אהבה ושייכות',
                  best: 'הדרכה סבלנית, גבולות עדינים עם הרמוניה, ניהול לצמיחה',
-                 warn: 'נתינת יתר עד תשישות, ביקורתיות עצמית, קושי לבקש עזרה' },
+                 warn: 'נתינת יתר עד תשישות, ביקורתיות עצמית, קושי לבקש עזרה',
+                 strengths: ['ארגון, אבחנה ויעילות', 'הדרכה סבלנית מכילה ומכוונת צמיחה', 'איזון בין עבודה, הנאה ושמחת חיים', 'אחריות אמינות ומחויבות מאוזנת', 'ראיית האסתטיקה והיופי שבחיים'] },
         'p10': { name: 'שפע ונתינה',    element: 'Pleasure - הנאה ושפע',       eng1: 'P10', eng2: 'T4',  eng3: 'E9',
                  fear: 'פחד מדחייה ונטישה',
                  best: 'ביצוע גבוה, נתינה מתוך שמחה, שיתופי פעולה הרמוניים',
-                 warn: 'נתינת יתר עד מחסור, ביקורתיות עצמית, קושי לבקש עזרה' },
+                 warn: 'נתינת יתר עד מחסור, ביקורתיות עצמית, קושי לבקש עזרה',
+                 strengths: ['יכולת ביצוע גבוהה והתמדה', 'נתינה מתוך שמחה', 'בניית תשתיות ותוצרים איכותיים', 'עבודת צוות והרמוניה', 'חוש אחריות ומנהיגות יציבה', 'שמחת חיים ויכולת לחגוג הצלחות'] },
     };
 
     const LOADING_MSGS = [
@@ -1388,10 +1400,26 @@ async function submitPlanRequest(event) {
 
         // Cycle messages
         let msgIdx = 0;
+        let strengthIdx = 0;
+        const strengths = data.strengths || [];
+        if (strengths.length) {
+            document.getElementById('loadingStrength').textContent = strengths[0];
+        }
         window._loadingMsgInterval = setInterval(() => {
             msgIdx = (msgIdx + 1) % LOADING_MSGS.length;
             const el = document.getElementById('loadingMsg');
             if (el) el.textContent = LOADING_MSGS[msgIdx];
+
+            if (strengths.length) {
+                strengthIdx = (strengthIdx + 1) % strengths.length;
+                const sel = document.getElementById('loadingStrength');
+                if (sel) {
+                    sel.style.animation = 'none';
+                    sel.offsetHeight; // reflow to restart animation
+                    sel.style.animation = '';
+                    sel.textContent = strengths[strengthIdx];
+                }
+            }
         }, 3000);
 
         document.getElementById('planLoadingScreen').style.display = 'flex';
@@ -1736,10 +1764,26 @@ async function submitDailyTrainingRequest(event) {
         document.getElementById('dailyEng2').textContent = dailyData.eng2;
         document.getElementById('dailyEng3').textContent = dailyData.eng3;
         let dailyMsgIdx = 0;
+        let dailyStrengthIdx = 0;
+        const dailyStrengths = dailyData.strengths || [];
+        if (dailyStrengths.length) {
+            document.getElementById('dailyLoadingStrength').textContent = dailyStrengths[0];
+        }
         window._dailyMsgInterval = setInterval(() => {
             dailyMsgIdx = (dailyMsgIdx + 1) % DAILY_MSGS.length;
             const el = document.getElementById('dailyLoadingMsg');
             if (el) el.textContent = DAILY_MSGS[dailyMsgIdx];
+
+            if (dailyStrengths.length) {
+                dailyStrengthIdx = (dailyStrengthIdx + 1) % dailyStrengths.length;
+                const sel = document.getElementById('dailyLoadingStrength');
+                if (sel) {
+                    sel.style.animation = 'none';
+                    sel.offsetHeight;
+                    sel.style.animation = '';
+                    sel.textContent = dailyStrengths[dailyStrengthIdx];
+                }
+            }
         }, 2500);
         document.getElementById('dailyLoadingScreen').style.display = 'flex';
         document.getElementById('dailyTrainingContent').style.visibility = 'hidden';
