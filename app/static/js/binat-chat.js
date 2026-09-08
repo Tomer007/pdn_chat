@@ -1007,10 +1007,10 @@ async function processMessageQueue() {
 // Add quick reply buttons
 function addQuickReplies(botBubble, skipCodeInfo = false) {
     const quickReplies = [
-       /* "אתגר 21 יום",
-        "אימון יומי",*/
-        "ספר לי על הקוד שלי"
-    ].filter(r => !(skipCodeInfo && r === "ספר לי על הקוד שלי"));
+        "ספר לי על קוד המקור שלי",
+        "אתגר 21 יום",
+        "אימון יומי"
+    ].filter(r => !(skipCodeInfo && r === "ספר לי על קוד המקור שלי"));
 
     const quickRepliesDiv = document.createElement("div");
     quickRepliesDiv.className = "quick-replies";
@@ -1041,6 +1041,14 @@ function addQuickReplies(botBubble, skipCodeInfo = false) {
     });
 
     botBubble.appendChild(quickRepliesDiv);
+}
+
+// Ask about source code - triggers a chat message
+function askAboutSourceCode() {
+    if (!isProcessing) {
+        document.getElementById("userInput").value = "ספר לי על קוד המקור שלי";
+        sendMessage();
+    }
 }
 
 // Handle "תודה על השיחה" click - redirect to login page
