@@ -2007,15 +2007,32 @@ body.dark-mode .quick-reply-btn:hover {
 }
 
 /* ===== Strengths ticker in loading screen ===== */
-.pdn-strengths-ticker {
-    min-height: 28px;
-    font-size: 15px;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.85);
-    margin-top: 12px;
+.pdn-strengths-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 20px;
+    margin-bottom: 6px;
     text-align: center;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.pdn-strengths-ticker {
+    min-height: 36px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #f5d742;
+    margin-top: 4px;
+    text-align: center;
+    letter-spacing: 0.5px;
     animation: strengthFade 0.5s ease;
+    text-shadow: 0 2px 8px rgba(245, 215, 66, 0.3);
+    padding: 8px 16px;
+    background: rgba(245, 215, 66, 0.08);
+    border-radius: 8px;
+    border: 1px solid rgba(245, 215, 66, 0.15);
+    display: inline-block;
 }
 
 @keyframes strengthFade {
