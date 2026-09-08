@@ -1005,23 +1005,19 @@ async function processMessageQueue() {
 }
 
 // Add quick reply buttons
-// isFirstMessage: true = show all 3 buttons (opening message), false = only show "ספר לי על קוד המקור שלי"
+// isFirstMessage: true = show all 3 buttons (opening message only), false = no buttons
 function addQuickReplies(botBubble, isFirstMessage = false) {
-    let quickReplies;
-    
-    if (isFirstMessage) {
-        // First welcome message - show all 3 buttons
-        quickReplies = [
-            "ספר לי על קוד המקור שלי",
-            "אתגר 21 יום",
-            "אימון יומי"
-        ];
-    } else {
-        // Regular bot messages - only show "ספר לי על קוד המקור שלי"
-        quickReplies = [
-            "ספר לי על קוד המקור שלי"
-        ];
+    // Only show quick reply buttons on the first welcome message
+    if (!isFirstMessage) {
+        return;
     }
+    
+    // First welcome message - show all 3 buttons
+    const quickReplies = [
+        "ספר לי על קוד המקור שלי",
+        "אתגר 21 יום",
+        "אימון יומי"
+    ];
 
     const quickRepliesDiv = document.createElement("div");
     quickRepliesDiv.className = "quick-replies";
